@@ -8,6 +8,11 @@ class PageLayoutHeader
 {
 
     /**
+     * @var string
+     */
+    const COLUMN_NAME = 'tx_yoastseo_focuskeyword';
+
+    /**
      * @var CMS\Core\Page\PageRenderer
      */
     protected $pageRenderer;
@@ -27,13 +32,28 @@ class PageLayoutHeader
     {
         $lineBuffer = array();
 
-        $this->pageRenderer->addHeaderData('<!--' . __METHOD__ . '-->');
+        $queryParameters = CMS\Core\Utility\GeneralUtility::_GET();
+
+        $currentPage = NULL;
+        $focusKeyword = '';
+
+        if (is_array($queryParameters) && array_key_exists('id', $queryParameters) && !empty($queryParameters['id'])) {
+            $currentPage = CMS\Backend\Utility\BackendUtility::getRecord('pages', (int) $queryParameters['id']);
+        }
+
+        if (is_array($currentPage) && array_key_exists(self::COLUMN_NAME, $currentPage)) {
+            $focusKeyword = $currentPage[self::COLUMN_NAME];
+        }
+
         $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/bundle');
 
-        $baseUrl = '../' . \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::siteRelPath('yoast_seo');
-        $this->pageRenderer->addCssFile($baseUrl . 'Resources/Public/CSS/yoast-seo.min.css', 'stylesheet', 'all', '', false, '', true);
+        $this->pageRenderer->addCssFile(
+            CMS\Core\Utility\ExtensionManagementUtility::extRelPath('yoast_seo') . 'Resources/Public/CSS/yoast-seo.min.css'
+        );
 
-        $lineBuffer[] = '<div id="snippet"></div><div id="output"></div>';
+        $lineBuffer[] = '<div id="snippet" data-yoast-focuskeyword="' . htmlspecialchars($focusKeyword) . '"></div>';
+
+        $lineBuffer[] = '<div id="output"></div>';
 
         return implode(PHP_EOL, $lineBuffer);
     }
