@@ -36,6 +36,7 @@ class PageLayoutHeader
 
         $currentPage = NULL;
         $focusKeyword = '';
+        $previewDataUrl = '';
 
         if (is_array($queryParameters) && array_key_exists('id', $queryParameters) && !empty($queryParameters['id'])) {
             $currentPage = CMS\Backend\Utility\BackendUtility::getRecord('pages', (int) $queryParameters['id']);
@@ -43,6 +44,17 @@ class PageLayoutHeader
 
         if (is_array($currentPage) && array_key_exists(self::COLUMN_NAME, $currentPage)) {
             $focusKeyword = $currentPage[self::COLUMN_NAME];
+
+            $previewDataUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl(
+                'ajax_yoast_seo-page-content-preview',
+                array(
+                    'yoast' => array(
+                        'preview' => array(
+                            'page' => $currentPage['uid']
+                        )
+                    )
+                )
+            );
         }
 
         $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/bundle');
@@ -51,7 +63,10 @@ class PageLayoutHeader
             CMS\Core\Utility\ExtensionManagementUtility::extRelPath('yoast_seo') . 'Resources/Public/CSS/yoast-seo.min.css'
         );
 
-        $lineBuffer[] = '<div id="snippet" data-yoast-focuskeyword="' . htmlspecialchars($focusKeyword) . '"></div>';
+        $lineBuffer[] = '<div id="snippet" ' .
+            'data-yoast-focuskeyword="' . htmlspecialchars($focusKeyword) . '"' .
+            'data-yoast-previewdataurl="' . htmlspecialchars($previewDataUrl) . '"' .
+            '></div>';
 
         $lineBuffer[] = '<div class="yoastPanel">';
         $lineBuffer[] = '<h3 class="snippet-editor__heading" data-controls="readability"><span class="caret caret--closed"></span> Readability</h3>';
