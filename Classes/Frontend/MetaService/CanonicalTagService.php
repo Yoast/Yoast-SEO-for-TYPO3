@@ -15,7 +15,7 @@ class CanonicalTagService implements TagRendererServiceInterface
     public function render(TypoScriptFrontendController $typoScriptFrontendController)
     {
         $configuration['returnLast'] = 'url';
-        $configuration['parameter'] =  '#';
+        $configuration['parameter'] =  $typoScriptFrontendController->contentPid;
         $configuration['forceAbsoluteUrl'] = true;
         $configuration['useCashHash'] = true;
         $url = $typoScriptFrontendController->cObj->typoLink_URL($configuration);
