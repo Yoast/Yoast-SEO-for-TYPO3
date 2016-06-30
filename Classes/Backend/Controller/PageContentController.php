@@ -18,8 +18,12 @@ class PageContentController
      */
     public function renderPagePreview(Http\Message\ServerRequestInterface $request, Http\Message\ResponseInterface $response)
     {
+        $contentRecords = null;
         $currentPage = null;
-        $data = array('meta' => array());
+        $data = array(
+            'meta' => array(),
+            'content' => array()
+        );
 
         $queryParameters = $request->getQueryParams();
 
@@ -50,6 +54,37 @@ class PageContentController
                     $data['meta'][$columnName] = $columnValue;
                 }
             });
+        }
+
+        if (is_array($currentPage) && array_key_exists('pid', $currentPage)) {
+            $contentRecords = CMS\Backend\Utility\BackendUtility::getRecordsByField(
+                'tt_content',
+                'pid',
+                $currentPage['uid'],
+                '',
+                '',
+                'colPos, sorting'
+            );
+        }
+
+        if (is_array($contentRecords)) {
+            $data['content'] = array_map(function (array $contentRecord) {
+                $filteredContentRecord = array();
+
+                array_walk($contentRecord, function ($columnValue, $columnName) use (&$filteredContentRecord) {
+                    if (in_array($columnName, array(
+                        'header',
+                        'bodytext',
+                        'colPos',
+                        'sorting',
+                        'CType'
+                    ))) {
+                        $filteredContentRecord[$columnName] = $columnValue;
+                    }
+                });
+
+                return $filteredContentRecord;
+            }, $contentRecords);
         }
 
         $response->getBody()->write(json_encode($data));
