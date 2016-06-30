@@ -28,6 +28,12 @@ class PageLayoutHeader
         $lineBuffer = array();
 
         $this->pageRenderer->addHeaderData('<!--' . __METHOD__ . '-->');
+        $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/bundle');
+
+        $baseUrl = '../' . \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::siteRelPath('yoast_seo');
+        $this->pageRenderer->addCssFile($baseUrl . 'Resources/Public/CSS/yoast-seo.min.css', 'stylesheet', 'all', '', false, '', true);
+
+        $lineBuffer[] = '<div id="snippet"></div><div id="output"></div>';
 
         return implode(PHP_EOL, $lineBuffer);
     }
