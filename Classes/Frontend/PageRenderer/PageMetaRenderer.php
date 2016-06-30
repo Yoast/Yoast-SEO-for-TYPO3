@@ -20,13 +20,17 @@ class PageMetaRenderer implements CMS\Core\SingletonInterface
      */
     public function render(array $parameters)
     {
-        $lineBuffer = array_map(function ($serviceClassName) {
-            $serviceInstance = CMS\Core\Utility\GeneralUtility::makeInstance($serviceClassName);
+        $typoScriptFrontendController = $GLOBALS['TSFE'];
 
-            return $serviceInstance instanceof YoastSeo\Frontend\MetaService\TagRendererServiceInterface ? $serviceInstance->render() : '';
+        if ($typoScriptFrontendController instanceof CMS\Frontend\Controller\TypoScriptFrontendController) {
+            $lineBuffer = array_map(function ($serviceClassName) use ($typoScriptFrontendController) {
+                $serviceInstance = CMS\Core\Utility\GeneralUtility::makeInstance($serviceClassName);
+
+                return $serviceInstance instanceof YoastSeo\Frontend\MetaService\TagRendererServiceInterface ? $serviceInstance->render($typoScriptFrontendController) : '';
         }, $this->services);
 
-        $parameters['headerData'][] = implode(PHP_EOL, $lineBuffer);
+            $parameters['headerData'][] = implode(PHP_EOL, $lineBuffer);
+        }
     }
 
     /**
