@@ -1,0 +1,9 @@
+# Grunt aliases
+---
+# Build everything
+build:
+  - 'sass'
+  - 'browserify'
+# Default task
+default:
+  - build

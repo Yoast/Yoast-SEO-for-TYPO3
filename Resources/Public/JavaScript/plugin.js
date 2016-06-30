@@ -16,7 +16,7 @@ var app = new App({
     callbacks: {
         getData: function() {
             return {
-                keyword: 'asd',
+                keyword: document.querySelector('[data-yoast-focuskeyword]').getAttribute('data-yoast-focuskeyword'),
                 text: 'bla'
             };
         }
