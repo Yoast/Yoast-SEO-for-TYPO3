@@ -1,0 +1,35 @@
+{
+  "name": "t3ext-yoast-seo",
+  "version": "1.0.0",
+  "description": "Yoast SEO for TYPO3",
+  "main": "plugin.js",
+  "devDependencies": {
+    "autoprefixer": "^6.3.1",
+    "grunt": ">=0.4.0",
+    "grunt-browserify": "^5.0.0",
+    "grunt-contrib-cssmin": "^1.0.1",
+    "grunt-contrib-uglify": "^1.0.1",
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-postcss": "^0.8.0",
+    "grunt-sass": "^1.1.0",
+    "load-grunt-config": "^0.19.2",
+    "time-grunt": "^1.0.0"
+  },
+  "dependencies": {
+    "yoastseo": "git+https://github.com/Yoast/YoastSEO.js.git#develop"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YoastSeoForTypo3/t3ext-yoast-seo.git"
+  },
+  "keywords": [
+    "Yoast",
+    "TYPO3"
+  ],
+  "author": "Frank Baak <frank@maxserv.com>",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/YoastSeoForTypo3/t3ext-yoast-seo/issues"
+  },
+  "homepage": "https://github.com/YoastSeoForTypo3/t3ext-yoast-seo"
+}
