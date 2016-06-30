@@ -54,6 +54,24 @@ class PageContentController
                     $data['meta'][$columnName] = $columnValue;
                 }
             });
+
+            $data['meta']['url'] = CMS\Core\Utility\GeneralUtility::getIndpEnv('TYPO3_SITE_URL');
+
+            // fake a speaking URL by just lowercasing the titles in the pages' root line
+            $path = array();
+            $rootLine = CMS\Backend\Utility\BackendUtility::BEgetRootLine($currentPage['uid']);
+
+            foreach ($rootLine as $pageRecord) {
+                if (empty($pageRecord['is_siteroot'])) {
+                    $path[] = strtolower(str_replace(' ', '-', $pageRecord['title']));
+                } else {
+                    break;
+                }
+            };
+
+            if (!empty($path)) {
+                $data['meta']['url'] .= implode('/', array_reverse($path)) . '/';
+            }
         }
 
         if (is_array($currentPage) && array_key_exists('pid', $currentPage)) {
