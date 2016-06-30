@@ -11,7 +11,8 @@ var snippetPreview = new SnippetPreview({
 var app = new App({
     snippetPreview: snippetPreview,
     targets: {
-        output: "output"
+        output: 'seo',
+        contentOutput: 'readability'
     },
     callbacks: {
         getData: function() {
@@ -24,6 +25,14 @@ var app = new App({
 });
 
 app.refresh();
+
+var toggles = document.querySelectorAll('[data-controls]');
+for (var i = 0; i < toggles.length; i++) {
+    toggles[i].addEventListener('click', function () {
+        this.querySelector('.caret').classList.toggle('caret--closed');
+        document.getElementById(this.getAttribute('data-controls')).classList.toggle('yoastPanel__content--open');
+    });
+}
 
 // focusKeywordField.addEventListener( 'change', app.refresh.bind( app ) );
 // contentField.addEventListener( 'change', app.refresh.bind( app ) );

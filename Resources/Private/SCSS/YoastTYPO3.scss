@@ -4,3 +4,60 @@
 @import "../../../node_modules/yoastseo/css/analysis";
 @import "../../../node_modules/yoastseo/css/loading-dialog";
 @import "../../../node_modules/yoastseo/css/tooltips";
+
+.snippet-editor__heading {
+	font-size: 15px;
+}
+
+#snippet,
+.yoastPanel {
+	margin-bottom: 20px;
+}
+
+.yoastPanel {
+	position: relative;
+	border: 1px solid $color_border;
+	padding: 0 20px 15px;
+	border-radius: 20px;
+	background-color: #fff;
+	position: relative;
+	width: $snippet_width + 40;
+
+	.fa {
+		position: absolute;
+		top: 5px;
+		right: 20px;
+	}
+
+	.snippet-editor__heading {
+		cursor: pointer;
+	}
+}
+
+.yoastPanel__content {
+	display: none;
+}
+
+.yoastPanel__content--open {
+	display: block;
+}
+
+.assessment-results__mark-container {
+	display: none;
+}
+
+.wpseoanalysis {
+	padding-left: 0;
+}
+
+.caret {
+	transition: transform 0.25s ease-in-out;
+}
+
+.caret--closed {
+	transform: rotate(-90deg);
+}
+
+.snippet-editor__edit-button {
+	display: none;
+}

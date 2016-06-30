@@ -53,7 +53,15 @@ class PageLayoutHeader
 
         $lineBuffer[] = '<div id="snippet" data-yoast-focuskeyword="' . htmlspecialchars($focusKeyword) . '"></div>';
 
-        $lineBuffer[] = '<div id="output"></div>';
+        $lineBuffer[] = '<div class="yoastPanel">';
+        $lineBuffer[] = '<h3 class="snippet-editor__heading" data-controls="readability"><span class="caret caret--closed"></span> Readability</h3>';
+        $lineBuffer[] = '<div id="readability" class="yoastPanel__content"></div>';
+        $lineBuffer[] = '</div>';
+
+        $lineBuffer[] = '<div class="yoastPanel">';
+        $lineBuffer[] = '<h3 class="snippet-editor__heading" data-controls="seo"><span class="caret caret--closed"></span> SEO</h3>';
+        $lineBuffer[] = '<div id="seo" class="yoastPanel__content"></div>';
+        $lineBuffer[] = '</div>';
 
         return implode(PHP_EOL, $lineBuffer);
     }

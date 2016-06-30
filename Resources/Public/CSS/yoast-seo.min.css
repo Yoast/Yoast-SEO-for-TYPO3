@@ -564,3 +564,46 @@ button.yoast-tooltip {
 @media only screen and (-webkit-min-device-pixel-ratio: 2), only screen and (min--moz-device-pixel-ratio: 2), only screen and (-moz-min-device-pixel-ratio: 2), only screen and (min-device-pixel-ratio: 2), only screen and (min-resolution: 192dpi), only screen and (min-resolution: 2dppx) {
   .yoast-tooltip-w::after {
     margin-right: 4.5px; } }
+
+.snippet-editor__heading {
+  font-size: 15px; }
+
+#snippet,
+.yoastPanel {
+  margin-bottom: 20px; }
+
+.yoastPanel {
+  position: relative;
+  border: 1px solid #f7f7f7;
+  padding: 0 20px 15px;
+  border-radius: 20px;
+  background-color: #fff;
+  position: relative;
+  width: 640px; }
+  .yoastPanel .fa {
+    position: absolute;
+    top: 5px;
+    right: 20px; }
+  .yoastPanel .snippet-editor__heading {
+    cursor: pointer; }
+
+.yoastPanel__content {
+  display: none; }
+
+.yoastPanel__content--open {
+  display: block; }
+
+.assessment-results__mark-container {
+  display: none; }
+
+.wpseoanalysis {
+  padding-left: 0; }
+
+.caret {
+  transition: transform 0.25s ease-in-out; }
+
+.caret--closed {
+  transform: rotate(-90deg); }
+
+.snippet-editor__edit-button {
+  display: none; }
