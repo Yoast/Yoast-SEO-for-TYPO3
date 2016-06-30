@@ -586,12 +586,25 @@ button.yoast-tooltip {
     right: 20px; }
   .yoastPanel .snippet-editor__heading {
     cursor: pointer; }
+  .yoastPanel .caret {
+    float: right; }
 
 .yoastPanel__content {
-  display: none; }
+  position: relative;
+  height: 60px;
+  overflow: hidden; }
+  .yoastPanel__content:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-image: linear-gradient(to bottom, transparent 0%, #fff 100%); }
 
 .yoastPanel__content--open {
-  display: block; }
+  display: block;
+  height: auto; }
 
 .assessment-results__mark-container {
   display: none; }
@@ -603,7 +616,15 @@ button.yoast-tooltip {
   transition: transform 0.25s ease-in-out; }
 
 .caret--closed {
-  transform: rotate(-90deg); }
+  transform: rotate(90deg); }
 
 .snippet-editor__edit-button {
   display: none; }
+
+.wpseo-score-icon {
+  float: left;
+  width: 12px;
+  height: 12px;
+  margin: 3px 10px 0 0;
+  border-radius: 50%;
+  background: #888; }
