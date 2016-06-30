@@ -69,12 +69,16 @@ class PageLayoutHeader
             '></div>';
 
         $lineBuffer[] = '<div class="yoastPanel">';
-        $lineBuffer[] = '<h3 class="snippet-editor__heading" data-controls="readability"><span class="caret caret--closed"></span> Readability</h3>';
+        $lineBuffer[] = '<h3 class="snippet-editor__heading" data-controls="readability">';
+		$lineBuffer[] = '<span class="wpseo-score-icon"></span> Readability <span class="fa fa-chevron-down"></span>';
+		$lineBuffer[] = '</h3>';
         $lineBuffer[] = '<div id="readability" class="yoastPanel__content"></div>';
         $lineBuffer[] = '</div>';
 
         $lineBuffer[] = '<div class="yoastPanel">';
-        $lineBuffer[] = '<h3 class="snippet-editor__heading" data-controls="seo"><span class="caret caret--closed"></span> SEO</h3>';
+		$lineBuffer[] = '<h3 class="snippet-editor__heading" data-controls="seo">';
+        $lineBuffer[] = '<span class="wpseo-score-icon"></span> SEO <span class="fa fa-chevron-down"></span>';
+		$lineBuffer[] = '</h3>';
         $lineBuffer[] = '<div id="seo" class="yoastPanel__content"></div>';
         $lineBuffer[] = '</div>';
 
