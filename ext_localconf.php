@@ -7,5 +7,6 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['cms/layout/db_layout.php']['drawHeade
 $pageMetaRenderer = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\YoastSeoForTypo3\YoastSeo\Frontend\PageRenderer\PageMetaRenderer::class);
 
 $pageMetaRenderer->registerService(\YoastSeoForTypo3\YoastSeo\Frontend\MetaService\CanonicalTagService::class);
+$pageMetaRenderer->registerService(\YoastSeoForTypo3\YoastSeo\Frontend\MetaService\SocialTagService::class);
 
 unset($pageMetaRenderer);
