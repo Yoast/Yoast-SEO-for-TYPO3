@@ -2,9 +2,6 @@ var SnippetPreview = require( "yoastseo" ).SnippetPreview;
 var App = require( "yoastseo" ).App;
 var scoreToRating = require( 'yoastseo' ).helpers.scoreToRating;
 
-var focusKeywordField = document.getElementById( "focusKeyword" );
-// var contentField = document.getElementById( "content" );
-
 var $ = TYPO3.jQuery;
 
 $.getJSON(document.querySelector('[data-yoast-previewdataurl]').getAttribute('data-yoast-previewdataurl'), function (data) {
@@ -13,7 +10,18 @@ $.getJSON(document.querySelector('[data-yoast-previewdataurl]').getAttribute('da
         data: {
             title: data.meta.title
         },
-        targetElement: document.getElementById( "snippet" )
+        baseURL: data.meta.url,
+        placeholder: {
+            urlPath: ''
+        },
+        targetElement: document.getElementById( 'snippet' )
+    });
+
+    var pageContent = '';
+    $.each(data.content, function () {
+        if (typeof this.bodytext === 'string' && this.bodytext !== '') {
+            pageContent += this.bodytext;
+        }
     });
 
     var app = new App({
@@ -26,15 +34,15 @@ $.getJSON(document.querySelector('[data-yoast-previewdataurl]').getAttribute('da
             getData: function () {
                 return {
                     title: data.meta.title,
-                    keyword: document.querySelector('[data-yoast-focuskeyword]').getAttribute('data-yoast-focuskeyword'),
-                    text: data.meta.description
+                    keyword: $('[data-yoast-focuskeyword]').attr('data-yoast-focuskeyword'),
+                    text: pageContent
                 };
             },
             saveScores: function (score) {
-                TYPO3.jQuery('[data-controls="seo"]').find('.wpseo-score-icon').addClass(scoreToRating(score));
+                $('[data-controls="seo"]').find('.wpseo-score-icon').addClass(scoreToRating(score / 10));
             },
             saveContentScore: function (score) {
-                TYPO3.jQuery('[data-controls="readability"]').find('.wpseo-score-icon').addClass(scoreToRating(score));
+                $('[data-controls="readability"]').find('.wpseo-score-icon').addClass(scoreToRating(score / 10));
             }
         }
     });
@@ -42,14 +50,7 @@ $.getJSON(document.querySelector('[data-yoast-previewdataurl]').getAttribute('da
     app.refresh();
 });
 
-var toggles = document.querySelectorAll('[data-controls]');
-for (var i = 0; i < toggles.length; i++) {
-    toggles[i].addEventListener('click', function () {
-
-        $(this).find('.fa-chevron-down, .fa-chevron-up').toggleClass('fa-chevron-down fa-chevron-up');
-        document.getElementById(this.getAttribute('data-controls')).classList.toggle('yoastPanel__content--open');
-    });
-}
-
-// focusKeywordField.addEventListener( 'change', app.refresh.bind( app ) );
-// contentField.addEventListener( 'change', app.refresh.bind( app ) );
+$('.yoastPanel').on('click', function () {
+    $(this).find('.fa-chevron-down, .fa-chevron-up').toggleClass('fa-chevron-down fa-chevron-up');
+    $(this).find('#' + $(this).find('[data-controls]').attr('data-controls')).toggleClass('yoastPanel__content--open');
+});

@@ -579,15 +579,12 @@ button.yoast-tooltip {
   border-radius: 20px;
   background-color: #fff;
   position: relative;
-  width: 640px; }
+  width: 640px;
+  cursor: pointer; }
   .yoastPanel .fa {
     position: absolute;
-    top: 5px;
+    top: 8px;
     right: 20px; }
-  .yoastPanel .snippet-editor__heading {
-    cursor: pointer; }
-  .yoastPanel .caret {
-    float: right; }
 
 .yoastPanel__content {
   position: relative;
@@ -605,18 +602,14 @@ button.yoast-tooltip {
 .yoastPanel__content--open {
   display: block;
   height: auto; }
+  .yoastPanel__content--open:after {
+    display: none; }
 
 .assessment-results__mark-container {
   display: none; }
 
 .wpseoanalysis {
   padding-left: 0; }
-
-.caret {
-  transition: transform 0.25s ease-in-out; }
-
-.caret--closed {
-  transform: rotate(90deg); }
 
 .snippet-editor__edit-button {
   display: none; }

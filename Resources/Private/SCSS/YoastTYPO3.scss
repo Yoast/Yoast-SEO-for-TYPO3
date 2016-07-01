@@ -22,19 +22,12 @@
 	background-color: #fff;
 	position: relative;
 	width: $snippet_width + 40;
+	cursor: pointer;
 
 	.fa {
 		position: absolute;
-		top: 5px;
+		top: 8px;
 		right: 20px;
-	}
-
-	.snippet-editor__heading {
-		cursor: pointer;
-	}
-	
-	.caret {
-		float: right;
 	}
 }
 
@@ -57,6 +50,10 @@
 .yoastPanel__content--open {
 	display: block;
 	height: auto;
+
+	&:after {
+		display: none;
+	}
 }
 
 .assessment-results__mark-container {
@@ -65,14 +62,6 @@
 
 .wpseoanalysis {
 	padding-left: 0;
-}
-
-.caret {
-	transition: transform 0.25s ease-in-out;
-}
-
-.caret--closed {
-	transform: rotate(90deg);
 }
 
 .snippet-editor__edit-button {
