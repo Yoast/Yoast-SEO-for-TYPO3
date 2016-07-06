@@ -1,0 +1,20 @@
+{
+  "name": "yoast-seo-for-typo3/yoast_seo",
+  "description": "Yoast SEO for TYPO3",
+  "type": "typo3-cms-extension",
+  "license": "GPL-3.0",
+  "keywords": [
+    "TYPO3 CMS",
+    "Yoast",
+    "SEO"
+  ],
+  "homepage": "https://yoast.com",
+  "autoload": {
+    "psr-4": {
+      "YoastSeoForTypo3\\YoastSeo\\": "Classes/"
+    }
+  },
+  "require": {
+    "typo3/cms-core": ">=7.6.9, <7.6.99"
+  }
+}
