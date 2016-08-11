@@ -10,10 +10,21 @@
     "grunt-contrib-cssmin": "^1.0.1",
     "grunt-contrib-uglify": "^1.0.1",
     "grunt-contrib-watch": "^1.0.0",
+    "grunt-glotpress": "git+https://github.com/markoheijnen/grunt-glotpress.git#05a38906b357d5a4785bc57e6287fb6479e674b7",
+    "grunt-po2json": "git+https://github.com/atimmer/grunt-po2json.git#f26c05653af89ef0f7a72456dbe141eb56bf5471",
     "grunt-postcss": "^0.8.0",
     "grunt-sass": "^1.1.0",
     "load-grunt-config": "^0.19.2",
     "time-grunt": "^1.0.0"
+  },
+  "plugin": {
+    "glotpress": "http://translate.yoast.com",
+    "textdomain": "wordpress-seo"
+  },
+  "pot": {
+    "reportmsgidbugsto": "https://github.com/YoastSeoForTypo3/t3ext-yoast-seo/issues",
+    "languageteam": "Yoast Translate <translations@yoast.com>",
+    "lasttranslator": "Yoast Translate Team <translations@yoast.com>"
   },
   "dependencies": {
     "lodash": "^4.14.2",
