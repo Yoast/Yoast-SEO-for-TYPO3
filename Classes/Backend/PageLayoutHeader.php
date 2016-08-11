@@ -37,6 +37,7 @@ class PageLayoutHeader
         $currentPage = NULL;
         $focusKeyword = '';
         $previewDataUrl = '';
+        $recordId = 0;
 
         if (is_array($queryParameters) && array_key_exists('id', $queryParameters) && !empty($queryParameters['id'])) {
             $currentPage = CMS\Backend\Utility\BackendUtility::getRecord('pages', (int) $queryParameters['id']);
@@ -44,6 +45,8 @@ class PageLayoutHeader
 
         if (is_array($currentPage) && array_key_exists(self::COLUMN_NAME, $currentPage)) {
             $focusKeyword = $currentPage[self::COLUMN_NAME];
+
+            $recordId = $currentPage['uid'];
 
             $previewDataUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl(
                 'ajax_yoast_seo-page-content-preview',
@@ -66,6 +69,7 @@ class PageLayoutHeader
         $lineBuffer[] = '<div id="snippet" ' .
             'data-yoast-focuskeyword="' . htmlspecialchars($focusKeyword) . '"' .
             'data-yoast-previewdataurl="' . htmlspecialchars($previewDataUrl) . '"' .
+            'data-yoast-recordid="' . htmlspecialchars($recordId) . '"' .
             '></div>';
 
         $lineBuffer[] = '<div class="yoastPanel">';
