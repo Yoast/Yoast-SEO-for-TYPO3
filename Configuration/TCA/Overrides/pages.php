@@ -8,6 +8,12 @@
                 'type' => 'input'
             )
         ),
+        'tx_yoastseo_canonical_url' => array(
+            'label' => 'Canonical URL',
+            'config' => array(
+                'type' => 'input'
+            )
+        ),
         'tx_yoastseo_facebook_title' => array(
             'label' => 'Facebook title',
             'config' => array(
@@ -116,7 +122,7 @@
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
     'pages',
     'metatags',
-    '--linebreak--, tx_yoastseo_focuskeyword, --linebreak--, tx_yoastseo_facebook_title, --linebreak--,
+    '--linebreak--, tx_yoastseo_focuskeyword, tx_yoastseo_canonical_url, --linebreak--, tx_yoastseo_facebook_title, --linebreak--,
     tx_yoastseo_facebook_description, --linebreak--, tx_yoastseo_facebook_image, --linebreak--,
     tx_yoastseo_twitter_title, --linebreak--, tx_yoastseo_twitter_description, --linebreak--, tx_yoastseo_twitter_image'
 );
