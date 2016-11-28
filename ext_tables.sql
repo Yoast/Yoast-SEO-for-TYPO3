@@ -11,3 +11,10 @@ CREATE TABLE pages (
 	tx_yoastseo_twitter_description varchar(255) DEFAULT '' NOT NULL,
 	tx_yoastseo_twitter_image varchar(255) DEFAULT '' NOT NULL,
 );
+
+#
+# Table structure for table 'pages_language_overlay'
+#
+CREATE TABLE pages_language_overlay (
+	tx_yoastseo_focuskeyword varchar(32) DEFAULT '' NOT NULL
+);

@@ -37,15 +37,35 @@ class PageLayoutHeader
     {
         $lineBuffer = array();
 
-        $queryParameters = CMS\Core\Utility\GeneralUtility::_GET();
+        /** @var CMS\Backend\Controller\PageLayoutController $pageLayoutController */
+        $pageLayoutController = $GLOBALS['SOBE'];
 
         $currentPage = NULL;
         $focusKeyword = '';
         $previewDataUrl = '';
         $recordId = 0;
 
-        if (is_array($queryParameters) && array_key_exists('id', $queryParameters) && !empty($queryParameters['id'])) {
-            $currentPage = CMS\Backend\Utility\BackendUtility::getRecord('pages', (int) $queryParameters['id']);
+        if ($pageLayoutController instanceof CMS\Backend\Controller\PageLayoutController
+            && (int) $pageLayoutController->id > 0
+            && (int) $pageLayoutController->current_sys_language === 0
+        ) {
+            $currentPage = CMS\Backend\Utility\BackendUtility::getRecord(
+                'pages',
+                (int) $pageLayoutController->id
+            );
+        } elseif ($pageLayoutController instanceof CMS\Backend\Controller\PageLayoutController
+            && (int) $pageLayoutController->id > 0
+            && (int) $pageLayoutController->current_sys_language > 0
+        ) {
+            $overlayRecords = CMS\Backend\Utility\BackendUtility::getRecordLocalization(
+                'pages',
+                (int) $pageLayoutController->id,
+                (int) $pageLayoutController->current_sys_language
+            );
+
+            if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
+                $currentPage = $overlayRecords[0];
+            }
         }
 
         if (is_array($currentPage) && array_key_exists(self::COLUMN_NAME, $currentPage)) {
@@ -54,10 +74,11 @@ class PageLayoutHeader
             $recordId = $currentPage['uid'];
 
             $previewDataUrl = vsprintf(
-                '/index.php?id=%d&type=%d',
+                '/index.php?id=%d&type=%d&L=%d',
                 array(
-                    $currentPage['uid'],
-                    self::FE_PREVIEW_TYPE
+                    $pageLayoutController->id,
+                    self::FE_PREVIEW_TYPE,
+                    $pageLayoutController->current_sys_language
                 )
             );
         }
