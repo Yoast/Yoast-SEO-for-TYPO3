@@ -5,15 +5,25 @@ var scoreToRating = require( 'yoastseo' ).helpers.scoreToRating;
 
 var $ = TYPO3.jQuery;
 
-$.getJSON(document.querySelector('[data-yoast-previewdataurl]').getAttribute('data-yoast-previewdataurl'), function (data) {
+$.get(document.querySelector('[data-yoast-previewdataurl]').getAttribute('data-yoast-previewdataurl'), function (previewDocument) {
     var recordId = document.querySelector('[data-yoast-previewdataurl]').getAttribute('data-yoast-recordid');
+
+    var $previewDocument = $(previewDocument);
+    var $metaSection = $previewDocument.find('meta');
+    var $contentElements = $previewDocument.find('content>element');
+
+    var pageContent = '';
+
+    $contentElements.each(function (index, element) {
+        pageContent += element.textContent;
+    });
 
     var snippetPreview = new SnippetPreview({
         data: {
-            title: data.meta.title,
-            metaDesc: data.meta.description
+            title: $metaSection.find('title').text(),
+            metaDesc: $metaSection.find('description').text()
         },
-        baseURL: data.meta.url,
+        baseURL: $metaSection.find('url').text(),
         placeholder: {
             urlPath: ''
         },
@@ -36,13 +46,6 @@ $.getJSON(document.querySelector('[data-yoast-previewdataurl]').getAttribute('da
         }
     });
 
-    var pageContent = '';
-    $.each(data.content, function () {
-        if (typeof this.bodytext === 'string' && this.bodytext !== '') {
-            pageContent += this.bodytext;
-        }
-    });
-
     var app = new App({
         snippetPreview: snippetPreview,
         targets: {
@@ -52,7 +55,7 @@ $.getJSON(document.querySelector('[data-yoast-previewdataurl]').getAttribute('da
         callbacks: {
             getData: function () {
                 return {
-                    title: data.meta.title,
+                    title: $metaSection.find('title').text(),
                     keyword: $('[data-yoast-focuskeyword]').attr('data-yoast-focuskeyword'),
                     text: pageContent
                 };
