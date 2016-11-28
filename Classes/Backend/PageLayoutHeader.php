@@ -13,6 +13,11 @@ class PageLayoutHeader
     const COLUMN_NAME = 'tx_yoastseo_focuskeyword';
 
     /**
+     * @var int
+     */
+    const FE_PREVIEW_TYPE = 1480321830;
+
+    /**
      * @var CMS\Core\Page\PageRenderer
      */
     protected $pageRenderer;
@@ -48,14 +53,11 @@ class PageLayoutHeader
 
             $recordId = $currentPage['uid'];
 
-            $previewDataUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl(
-                'ajax_yoast_seo-page-content-preview',
+            $previewDataUrl = vsprintf(
+                '/index.php?id=%d&type=%d',
                 array(
-                    'yoast' => array(
-                        'preview' => array(
-                            'page' => $currentPage['uid']
-                        )
-                    )
+                    $currentPage['uid'],
+                    self::FE_PREVIEW_TYPE
                 )
             );
         }
