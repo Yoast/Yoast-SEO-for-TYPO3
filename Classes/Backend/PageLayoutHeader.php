@@ -13,6 +13,11 @@ class PageLayoutHeader
     const COLUMN_NAME = 'tx_yoastseo_focuskeyword';
 
     /**
+     * @var int
+     */
+    const FE_PREVIEW_TYPE = 1480321830;
+
+    /**
      * @var CMS\Core\Page\PageRenderer
      */
     protected $pageRenderer;

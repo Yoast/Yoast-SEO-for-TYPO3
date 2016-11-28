@@ -10,3 +10,14 @@ $pageMetaRenderer->registerService(\YoastSeoForTypo3\YoastSeo\Frontend\MetaServi
 $pageMetaRenderer->registerService(\YoastSeoForTypo3\YoastSeo\Frontend\MetaService\SocialTagService::class);
 
 unset($pageMetaRenderer);
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScriptConstants('
+    config.yoast_seo.fe_preview_type = ' . \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::FE_PREVIEW_TYPE . '
+');
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
+    'YoastSeo',
+    'setup',
+    '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/setup.txt">',
+    'defaultContentRendering'
+);

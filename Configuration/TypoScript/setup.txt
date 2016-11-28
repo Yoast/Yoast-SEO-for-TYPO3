@@ -1,0 +1,47 @@
+yoast_seo_preview = PAGE
+yoast_seo_preview {
+    typeNum = {$config.yoast_seo.fe_preview_type}
+    config {
+        disableAllHeaderCode = 1
+        additionalHeaders = Content-type: text/xml; charset=UTF-8
+    }
+
+    wrap = <?xml version="1.0" encoding="UTF-8"?><preview>|</preview>
+
+    20 = COA
+    20 {
+        10 = TEXT
+        10 {
+            stdWrap.typolink {
+                parameter = #
+                returnLast = url
+                forceAbsoluteUrl = 1
+                useCacheHash = 1
+            }
+
+            htmlSpecialChars = 1
+
+            wrap = <url>|</url>
+        }
+
+        20 = TEXT
+        20.field = title
+        20.wrap = <title><![CDATA[|]]></title>
+
+        30 = TEXT
+        30.field = description
+        30.wrap = <description><![CDATA[|]]></description>
+
+        wrap = <meta>|</meta>
+    }
+
+    30 = CONTENT
+    30 {
+        table = tt_content
+
+        renderObj < tt_content
+        renderObj.stdWrap.wrap = <element><![CDATA[|]]></element>
+
+        wrap = <content>|</content>
+    }
+}
