@@ -18,6 +18,26 @@ class PageLayoutHeader
     const FE_PREVIEW_TYPE = 1480321830;
 
     /**
+     * @var string
+     */
+    const APP_TRANSLATION_FILE_PATTERN = 'EXT:yoast_seo/Resources/Private/Language/wordpress-seo-%s.json';
+
+    /**
+     * @var array
+     */
+    protected $configuration = array(
+        'translations' => array(
+            'availableLocales' => array(),
+            'languageKeyToLocaleMapping' => array()
+        )
+    );
+
+    /**
+     * @var CMS\Core\Localization\Locales
+     */
+    protected $localeService;
+
+    /**
      * @var CMS\Core\Page\PageRenderer
      */
     protected $pageRenderer;
@@ -27,6 +47,13 @@ class PageLayoutHeader
      */
     public function __construct()
     {
+        if (array_key_exists('yoast_seo', $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'])
+            && is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'])
+        ) {
+            $this->configuration = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'];
+        }
+
+        $this->localeService = CMS\Core\Utility\GeneralUtility::makeInstance(CMS\Core\Localization\Locales::class);
         $this->pageRenderer = CMS\Core\Utility\GeneralUtility::makeInstance(CMS\Core\Page\PageRenderer::class);
     }
 
@@ -86,6 +113,29 @@ class PageLayoutHeader
             );
         }
 
+        $interfaceLocale = $this->getInterfaceLocale();
+
+        if ($interfaceLocale !== null
+            && ($translationFilePath = sprintf(
+                self::APP_TRANSLATION_FILE_PATTERN,
+                $interfaceLocale
+            )) !== false
+            && ($translationFilePath = CMS\Core\Utility\GeneralUtility::getFileAbsFileName(
+                $translationFilePath
+            )) !== false
+            && file_exists($translationFilePath)
+        ) {
+            $this->pageRenderer->addJsInlineCode(
+                md5($translationFilePath),
+                'var tx_yoast_seo = tx_yoast_seo || {};'
+                    . ' tx_yoast_seo.translations = '
+                    . file_get_contents($translationFilePath)
+                    . ';'
+            );
+        }
+
+
+
         $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/bundle');
 
         $this->pageRenderer->addCssFile(
@@ -114,6 +164,60 @@ class PageLayoutHeader
         $lineBuffer[] = '</div>';
 
         return implode(PHP_EOL, $lineBuffer);
+    }
+
+    /**
+     * Try to resolve a supported locale based on the user settings
+     * take the configured locale dependencies into account
+     * so if the TYPO3 interface is tailored for a specific dialect
+     * the local of a parent language might be used
+     *
+     * @return string|null
+     */
+    protected function getInterfaceLocale()
+    {
+        $locale = null;
+        $languageChain = null;
+
+        if ($GLOBALS['BE_USER'] instanceof CMS\Core\Authentication\BackendUserAuthentication
+            && is_array($GLOBALS['BE_USER']->uc)
+            && array_key_exists('lang', $GLOBALS['BE_USER']->uc)
+            && !empty($GLOBALS['BE_USER']->uc['lang'])
+        ) {
+            $languageChain = $this->localeService->getLocaleDependencies(
+                $GLOBALS['BE_USER']->uc['lang']
+            );
+
+            array_unshift($languageChain, $GLOBALS['BE_USER']->uc['lang']);
+        }
+
+        // try to find a matching locale available for this plugins UI
+        // take configured locale dependencies into account
+        if ($languageChain !== null
+            && ($suitableLocales = array_intersect(
+                $languageChain,
+                $this->configuration['translations']['availableLocales']
+            )) !== false
+            && count($suitableLocales) > 0
+        ) {
+            $locale = array_shift($suitableLocales);
+        }
+
+        // if a locale couldn't be resolved try if an entry of the
+        // language dependency chain matches legacy mapping
+        if ($locale === null && $languageChain !== null
+            && ($suitableLanguageKeys = array_intersect(
+                $languageChain,
+                array_flip(
+                    $this->configuration['translations']['languageKeyToLocaleMapping']
+                )
+            )) !== false
+            && count($suitableLanguageKeys) > 0
+        ) {
+            $locale = $this->configuration['translations']['languageKeyToLocaleMapping'][array_shift($suitableLanguageKeys)];
+        }
+
+        return $locale;
     }
 
 }
