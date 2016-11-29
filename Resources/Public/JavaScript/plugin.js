@@ -7,6 +7,7 @@ var $ = TYPO3.jQuery;
 
 $.get(document.querySelector('[data-yoast-previewdataurl]').getAttribute('data-yoast-previewdataurl'), function (previewDocument) {
     var recordId = document.querySelector('[data-yoast-previewdataurl]').getAttribute('data-yoast-recordid');
+    var recordTable = document.querySelector('[data-yoast-previewdataurl]').getAttribute('data-yoast-recordtable');
 
     var $previewDocument = $(previewDocument);
     var $metaSection = $previewDocument.find('meta');
@@ -31,12 +32,12 @@ $.get(document.querySelector('[data-yoast-previewdataurl]').getAttribute('data-y
         callbacks: {
             saveSnippetData: debounce(function (data) {
                 var payload = {
-                    data: {
-                        pages: {}
-                    }
+                    data: {}
                 };
 
-                payload.data.pages[recordId] = {
+                payload.data[recordTable] = {};
+
+                payload.data[recordTable][recordId] = {
                     title: data.title,
                     description: data.metaDesc
                 };
