@@ -32,6 +32,11 @@ yoast_seo_preview {
         30.field = description
         30.wrap = <description><![CDATA[|]]></description>
 
+        40 = TEXT
+        40.data = TSFE:config|config|locale_all
+        40.htmlSpecialChars = 1
+        40.wrap = <locale>|</locale>
+
         wrap = <meta>|</meta>
     }
 
