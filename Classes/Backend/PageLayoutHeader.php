@@ -44,6 +44,7 @@ class PageLayoutHeader
         $focusKeyword = '';
         $previewDataUrl = '';
         $recordId = 0;
+        $tableName = 'pages';
 
         if ($pageLayoutController instanceof CMS\Backend\Controller\PageLayoutController
             && (int) $pageLayoutController->id > 0
@@ -65,6 +66,8 @@ class PageLayoutHeader
 
             if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
                 $currentPage = $overlayRecords[0];
+
+                $tableName = 'pages_language_overlay';
             }
         }
 
@@ -92,6 +95,7 @@ class PageLayoutHeader
         $lineBuffer[] = '<div id="snippet" ' .
             'data-yoast-focuskeyword="' . htmlspecialchars($focusKeyword) . '"' .
             'data-yoast-previewdataurl="' . htmlspecialchars($previewDataUrl) . '"' .
+            'data-yoast-recordtable="' . htmlspecialchars($tableName) . '"' .
             'data-yoast-recordid="' . htmlspecialchars($recordId) . '"' .
             '></div>';
 
