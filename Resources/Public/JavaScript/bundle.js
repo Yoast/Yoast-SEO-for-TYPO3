@@ -68,7 +68,8 @@ $.get(document.querySelector('[data-yoast-previewdataurl]').getAttribute('data-y
             saveContentScore: function (score) {
                 $('[data-controls="readability"]').find('.wpseo-score-icon').addClass(scoreToRating(score / 10));
             }
-        }
+        },
+        locale: $metaSection.find('locale').text()
     });
 
     app.refresh();
