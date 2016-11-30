@@ -1,6 +1,6 @@
-/*global define, tx_yoast_seo, TYPO3*/
+/*global define, top, tx_yoast_seo, TYPO3*/
 
-define(['jquery', './bundle', 'TYPO3/CMS/Backend/Notification'], function ($, YoastSEO, Notification) {
+define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Backend/Notification', 'TYPO3/CMS/Backend/PageActions'], function ($, YoastSEO, AjaxDataHandler, Notification, PageActions) {
    'use strict';
 
     var previewRequest = $.get(tx_yoast_seo.settings.preview);
@@ -14,6 +14,31 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/Notification'], function ($, Yo
             + '</h3>'
                 + '<div id="' + elementIdPrefix + '_' + type + '_panel_content" data-panel-content class="yoastPanel__content"></div>'
             + '</div>';
+    };
+
+    var saveSnippetData = function (data) {
+        var payload = {
+            data: {}
+        };
+
+        payload.data[tx_yoast_seo.settings.recordTable] = {};
+
+        payload.data[tx_yoast_seo.settings.recordTable][tx_yoast_seo.settings.recordId] = {
+            title: data.title,
+            description: data.metaDesc
+        };
+
+        AjaxDataHandler.process(payload).done(function() {
+            // if the page title is modified trigger a refresh of the tree
+            if (PageActions.elements.$pageTitle.text() !== data.title) {
+                PageActions.elements.$pageTitle.text(data.title);
+                PageActions.initializePageTitleRenaming();
+
+                if (top.TYPO3 && top.TYPO3.Backend && top.TYPO3.Backend.NavigationContainer && top.TYPO3.Backend.NavigationContainer.PageTree) {
+                    top.TYPO3.Backend.NavigationContainer.PageTree.refreshTree();
+                }
+            }
+        });
     };
 
     // make sure the document is ready before we interact with the DOM
@@ -50,7 +75,10 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/Notification'], function ($, Yo
                 placeholder: {
                     urlPath: ''
                 },
-                targetElement: $snippetPreview.get(0)
+                targetElement: $snippetPreview.get(0),
+                callbacks: {
+                    saveSnippetData: YoastSEO.debounce(saveSnippetData, 1000)
+                }
             });
 
             var app = new YoastSEO.App({
