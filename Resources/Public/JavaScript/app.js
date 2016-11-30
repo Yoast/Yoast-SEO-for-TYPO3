@@ -118,6 +118,27 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 $panel.find('.fa-chevron-down, .fa-chevron-up').toggleClass('fa-chevron-down fa-chevron-up');
                 $panel.find('[data-panel-content]').toggleClass('yoastPanel__content--open');
             });
+
+            // due to the wacky workaround in typo3_src-7.6.11/typo3/sysext/backend/Resources/Public/JavaScript/PageActions.js:143
+            // and the prevention of event propagation forces us to observe EVERY click event
+            // depending on the target the actual method is invoked
+            $('#PageLayoutController').on('click', function (e) {
+                var $trigger = $(e.target);
+                var currentPageTitle = PageActions.elements.$pageTitle.text();
+
+                if ($trigger.hasClass('btn')
+                    && $trigger.parentsUntil('form').find('input').val() !== currentPageTitle
+                ) {
+                    // wait a short period of time to give the application chance to update the title indication
+                    window.setTimeout(function () {
+                        if (PageActions.elements.$pageTitle.text() !== currentPageTitle) {
+                            snippetPreview.data.title = PageActions.elements.$pageTitle.text();
+
+                            app.refresh();
+                        }
+                    }, 200);
+                }
+            });
         });
 
         previewRequest.error(function (jqXHR) {
