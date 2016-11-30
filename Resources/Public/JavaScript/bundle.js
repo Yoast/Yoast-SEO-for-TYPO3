@@ -69,7 +69,8 @@ $.get(document.querySelector('[data-yoast-previewdataurl]').getAttribute('data-y
                 $('[data-controls="readability"]').find('.wpseo-score-icon').addClass(scoreToRating(score / 10));
             }
         },
-        locale: $metaSection.find('locale').text()
+        locale: $metaSection.find('locale').text(),
+        translations: (window.tx_yoast_seo !== undefined && window.tx_yoast_seo !== null && window.tx_yoast_seo.translations !== undefined ? window.tx_yoast_seo.translations : null)
     });
 
     app.refresh();
