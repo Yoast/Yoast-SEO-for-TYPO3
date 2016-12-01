@@ -10,6 +10,18 @@ plugin.tx_yoastseo {
     view {
         file = EXT:yoast_seo/Resources/Private/Templates/Meta.html
         partialRootPaths.tx_yoastseo = EXT:yoast_seo/Resources/Private/Partials/
+        dataProcessing {
+            10 = TYPO3\CMS\Frontend\DataProcessing\FilesProcessor
+            10 {
+                references.fieldName = tx_yoastseo_facebook_image
+                as = openGraphImages
+            }
+            20 < .10
+            20 {
+                references.fieldName = tx_yoastseo_twitter_image
+                as = twitterCardsImages
+            }
+        }
         settings {
             og.image.count = 2
         }

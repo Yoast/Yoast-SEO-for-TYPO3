@@ -6,4 +6,10 @@
     <f:if condition="{data.tx_yoastseo_twitter_title}">
         <meta property="twitter:description" content="{data.tx_yoastseo_twitter_title}">
     </f:if>
+
+    <f:for each="{twitterCardsImages}" as="twitterCardsImage" iteration="iteration">
+        <f:if condition="{iteration.cycle} <= 1">
+            <meta property="twitter:image" content="{f:uri.image(image: twitterCardsImage, width: settings.twitter.image.width, height: settings.twitter.image.height, absolute: 1)}">
+        </f:if>
+    </f:for>
 </html>
