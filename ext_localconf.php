@@ -3,20 +3,6 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php'][
 
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['cms/layout/db_layout.php']['drawHeaderHook'][] = \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::class . '->render';
 
-/** @var \YoastSeoForTypo3\YoastSeo\Frontend\PageRenderer\PageMetaRenderer $pageMetaRenderer */
-$pageMetaRenderer = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(
-    \YoastSeoForTypo3\YoastSeo\Frontend\PageRenderer\PageMetaRenderer::class
-);
-
-$pageMetaRenderer->registerService(
-    \YoastSeoForTypo3\YoastSeo\Frontend\MetaService\CanonicalTagService::class
-);
-$pageMetaRenderer->registerService(
-    \YoastSeoForTypo3\YoastSeo\Frontend\MetaService\SocialTagService::class
-);
-
-unset($pageMetaRenderer);
-
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScriptConstants(
     'config.yoast_seo.fe_preview_type = '
         . \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::FE_PREVIEW_TYPE
@@ -79,3 +65,9 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = array(
         )
     )
 );
+
+// allow social meta fields to be overlaid
+$GLOBALS['TYPO3_CONF_VARS']['FE']['pageOverlayFields'] .= ',tx_yoastseo_facebook_title'
+    . ',tx_yoastseo_facebook_description'
+    . ',tx_yoastseo_twitter_title'
+    . ',tx_yoastseo_twitter_description';
