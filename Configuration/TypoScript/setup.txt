@@ -1,3 +1,21 @@
+config.yoast_seo.enabled = 1
+
+plugin.tx_yoastseo {
+    settings {
+        og.image.width = 640c
+        og.image.height = 480c
+        twitter.image.width = 640c
+        twitter.image.height = 480c
+    }
+    view {
+        file = EXT:yoast_seo/Resources/Private/Templates/Meta.html
+        partialRootPaths.tx_yoastseo = EXT:yoast_seo/Resources/Private/Partials/
+        settings {
+            og.image.count = 2
+        }
+    }
+}
+
 yoast_seo_preview = PAGE
 yoast_seo_preview {
     typeNum = {$config.yoast_seo.fe_preview_type}
