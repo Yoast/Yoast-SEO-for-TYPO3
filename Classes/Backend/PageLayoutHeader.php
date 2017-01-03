@@ -62,16 +62,17 @@ class PageLayoutHeader
      */
     public function render()
     {
-        $lineBuffer = array();
-
         /** @var CMS\Backend\Controller\PageLayoutController $pageLayoutController */
         $pageLayoutController = $GLOBALS['SOBE'];
 
-        $currentPage = NULL;
+        $currentPage = null;
         $focusKeyword = '';
         $previewDataUrl = '';
         $recordId = 0;
         $tableName = 'pages';
+        $targetElementId = uniqid('_YoastSEO_panel_');
+        $publicResourcesPath = CMS\Core\Utility\ExtensionManagementUtility::extRelPath('yoast_seo')
+            . 'Resources/Public/';
 
         if ($pageLayoutController instanceof CMS\Backend\Controller\PageLayoutController
             && (int) $pageLayoutController->id > 0
@@ -134,36 +135,37 @@ class PageLayoutHeader
             );
         }
 
-
-
-        $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/bundle');
-
-        $this->pageRenderer->addCssFile(
-            CMS\Core\Utility\ExtensionManagementUtility::extRelPath('yoast_seo') . 'Resources/Public/CSS/yoast-seo.min.css'
+        $this->pageRenderer->addJsInlineCode(
+            'YoastSEO settings',
+            'var tx_yoast_seo = tx_yoast_seo || {};'
+            . ' tx_yoast_seo.settings = '
+            . json_encode(
+                array(
+                    'focusKeyword' => $focusKeyword,
+                    'preview' => $previewDataUrl,
+                    'recordId' => $recordId,
+                    'recordTable' => $tableName,
+                    'targetElementId' => $targetElementId
+                )
+            )
+            . ';'
         );
 
-        $lineBuffer[] = '<div id="snippet" ' .
-            'data-yoast-focuskeyword="' . htmlspecialchars($focusKeyword) . '"' .
-            'data-yoast-previewdataurl="' . htmlspecialchars($previewDataUrl) . '"' .
-            'data-yoast-recordtable="' . htmlspecialchars($tableName) . '"' .
-            'data-yoast-recordid="' . htmlspecialchars($recordId) . '"' .
-            '></div>';
+        $this->pageRenderer->addRequireJsConfiguration(
+            array(
+                'paths' => array(
+                    'YoastSEO' => $publicResourcesPath . 'JavaScript/'
+                )
+            )
+        );
 
-        $lineBuffer[] = '<div class="yoastPanel">';
-        $lineBuffer[] = '<h3 class="snippet-editor__heading" data-controls="readability">';
-		$lineBuffer[] = '<span class="wpseo-score-icon"></span> Readability <span class="fa fa-chevron-down"></span>';
-		$lineBuffer[] = '</h3>';
-        $lineBuffer[] = '<div id="readability" class="yoastPanel__content"></div>';
-        $lineBuffer[] = '</div>';
+        $this->pageRenderer->loadRequireJsModule('YoastSEO/app');
 
-        $lineBuffer[] = '<div class="yoastPanel">';
-		$lineBuffer[] = '<h3 class="snippet-editor__heading" data-controls="seo">';
-        $lineBuffer[] = '<span class="wpseo-score-icon"></span> SEO <span class="fa fa-chevron-down"></span>';
-		$lineBuffer[] = '</h3>';
-        $lineBuffer[] = '<div id="seo" class="yoastPanel__content"></div>';
-        $lineBuffer[] = '</div>';
+        $this->pageRenderer->addCssFile(
+            $publicResourcesPath . 'CSS/yoast-seo.min.css'
+        );
 
-        return implode(PHP_EOL, $lineBuffer);
+        return '<div id="' . $targetElementId . '"><!-- ' . $targetElementId . ' --></div>';
     }
 
     /**
