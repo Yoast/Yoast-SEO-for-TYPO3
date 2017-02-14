@@ -1,0 +1,79 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" data-namespace-typo3-fluid="true">
+<h1>Yoast SEO</h1>
+<f:if condition="{page}">
+	<f:then>
+		<f:flashMessages renderMode="div" />
+		<h2>{page.title}</h2>
+		<div role="tabpanel">
+			<f:form action="save" arguments="{id: page.uid, returnUrl: returnUrl}" id="editYoastSettings">
+				<ul class="nav nav-tabs t3js-tabs" role="tablist" id="tabs-tab" data-store-last-tab="1">
+					<li role="presentation" class="t3js-tabmenu-item  active">
+						<a href="#tab-analysis" title="" aria-controls="tab-analysis" role="tab" data-toggle="tab">
+							<i class="fa fa-eye"></i> Analysis
+						</a>
+					</li>
+					<li role="presentation" class="t3js-tabmenu-item ">
+						<a href="#tab-2" title="" aria-controls="tab-2" role="tab" data-toggle="tab">
+							<i class="fa fa-share-alt"></i> Social
+						</a>
+					</li>
+					<li role="presentation" class="t3js-tabmenu-item ">
+						<a href="#tab-3" title="" aria-controls="tab-3" role="tab" data-toggle="tab">
+							<i class="fa fa-cog"></i> Advanced
+						</a>
+					</li>
+				</ul>
+				<div class="tab-content">
+					<div role="tabpanel" class="tab-pane active" id="tab-analysis">
+						<div class="panel panel-tab">
+							<div class="panel-body">
+								<div id="{targetElementId}"><!-- {targetElementId} --></div>
+							</div>
+						</div>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="tab-2">
+						<div class="panel panel-tab">
+							<div class="panel-body">
+								<h3><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook" /></h3>
+								<div class="form-group">
+									<label for="facebookTitle"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.title" /></label>
+									<f:form.textfield type="text" class="form-control" id="facebookTitle" name="facebookTitle" value="{page.tx_yoastseo_facebook_title}" />
+								</div>
+								<div class="form-group">
+									<label for="facebookDescription"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.description" /></label>
+									<f:form.textfield type="text" class="form-control" id="facebookDescription" name="facebookDescription" value="{page.tx_yoastseo_facebook_description}" />
+								</div>
+
+								<h3><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter" /></h3>
+								<div class="form-group">
+									<label for="twitterTitle"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.title" /></label>
+									<f:form.textfield type="text" class="form-control" id="twitterTitle" name="twitterTitle" value="{page.tx_yoastseo_twitter_title}" />
+								</div>
+								<div class="form-group">
+									<label for="twitterDescription"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.description" /></label>
+									<f:form.textfield type="text" class="form-control" id="twitterDescription" name="twitterDescription" value="{page.tx_yoastseo_twitter_description}" />
+								</div>
+							</div>
+						</div>
+					</div>
+					<div role="tabpanel" class="tab-pane" id="tab-3">
+						<div class="panel panel-tab">
+							<div class="panel-body">
+								<div class="form-group">
+									<label for="canonical"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:canonical" /></label>
+									<f:form.textfield type="text" class="form-control" id="canonical" name="canonical" value="{page.tx_yoastseo_canonical_url}" />
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</f:form>
+		</div>
+	</f:then>
+	<f:else>
+		<f:be.infobox title="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:noPageSelected.title')}" state="-1">
+			{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:noPageSelected.description')}
+		</f:be.infobox>
+	</f:else>
+</f:if>
+</html>
