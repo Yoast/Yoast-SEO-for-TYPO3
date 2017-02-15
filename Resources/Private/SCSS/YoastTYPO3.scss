@@ -1,59 +1,138 @@
-@import "../../../node_modules/sassdash/index";
 @import "../../../node_modules/yoastseo/css/snippet-editor";
 @import "../../../node_modules/yoastseo/css/colors";
 @import "../../../node_modules/yoastseo/css/analysis";
 @import "../../../node_modules/yoastseo/css/loading-dialog";
 @import "../../../node_modules/yoastseo/css/tooltips";
 
+$color_border: #cccccc;
+$color_headings: #000;
+
 .snippet-editor__heading {
-	font-size: 15px;
+	font-size: 12px;
+	line-height: 18px;
+	padding-bottom: 13px;
+	margin: 0 -20px;
+	color: $color_headings;
+	cursor: pointer;
+}
+
+.yoastSeo--small .snippet-editor__heading {
+	cursor: auto;
+}
+
+.snippet-editor__heading-icon {
+	padding-left: 20px;
+}
+.snippet-editor__heading-icon-eye {
+	margin-bottom: 15px;
+}
+
+.snippet-editor__preview .snippet-editor__heading,
+.snippet-editor__heading--active {
+	border-bottom: 1px solid $color_border;
+}
+
+.snippet-editor__preview .btn {
+	margin: 15px 0;
+}
+
+.yoastSeo {
+	padding: 15px;
 }
 
 #snippet,
 .yoastPanel {
-	margin-bottom: 20px;
+	margin-bottom: 5px;
+}
+
+.yoast-section {
+	max-width: 100%;
+}
+.snippet-editor__preview {
+	max-width: 100%;
+	padding: 5px 20px 0px;
+
+	.snippet-editor__container {
+		max-width: $snippet_width + 40;
+	}
+}
+
+#snippet_preview {
+	border-radius: 0;
+	border: 0;
+}
+
+.yoastSeo--small .snippet-editor__preview {
+	padding: 15px;
+}
+
+.yoastSeo.yoastSeo--small #snippet_preview {
+	border: 1px solid #cdcdcd;
+	background-color: #fff;
+}
+
+.yoastSeo--small .snippet-editor__container {
+	cursor: default;
+}
+
+.yoastSeo--small #snippet_preview h3, .yoastSeo--small .snippet-editor__preview button {
+	display: none;
 }
 
 .yoastPanel {
 	position: relative;
 	border: 1px solid $color_border;
-	padding: 0 20px 15px;
-	border-radius: 20px;
+	padding: 5px 20px 0;
+	border-radius: 0;
 	background-color: #fff;
 	position: relative;
-	width: $snippet_width + 40;
-	cursor: pointer;
+	width: 100%;
 
 	.fa {
 		position: absolute;
-		top: 8px;
+		top: 16px;
 		right: 20px;
+	}
+}
+
+.snippet_container {
+	.down_arrow {
+		display: none;
 	}
 }
 
 .yoastPanel__content {
 	position: relative;
-	height: 60px;
+	height: 0px;
 	overflow: hidden;
 
-	&:after {
-		content: "";
-		position: absolute;
-		top: 0;
-		right: 0;
-		bottom: 0;
-		left: 0;
-		background-image: linear-gradient(to bottom, transparent 0%, #fff 100%);
+	a {
+		text-decoration: underline;
+	}
+
+	a:hover {
+		color: $color_ok;
 	}
 }
 
 .yoastPanel__content--open {
 	display: block;
 	height: auto;
+	margin: 10px 0 5px;
 
 	&:after {
 		display: none;
 	}
+}
+
+.seoPanel .yoastPanel__title {
+	&:after {
+		content: ': ';
+	}
+}
+
+.seoPanel .yoastPanel__focusKeyword {
+	font-weight: bold;
 }
 
 .assessment-results__mark-container {
@@ -64,10 +143,6 @@
 	padding-left: 0;
 }
 
-.snippet-editor__edit-button {
-	display: none;
-}
-
 .wpseo-score-icon {
 	float: left;
 	width: 12px;
@@ -75,4 +150,21 @@
 	margin: 3px 10px 0 0;
 	border-radius: 50%;
 	background: #888;
+}
+
+progress {
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.btn[aria-expanded="true"] {
+	display: none;
+}
+
+.snippet-editor__view-toggle {
+	display: none;
+}
+
+.yoastSeo--small .snippet-editor__form {
+	display: none;
 }
