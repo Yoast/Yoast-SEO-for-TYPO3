@@ -151,19 +151,19 @@ class ModuleController extends ActionController {
     {
         $pageId = (int)$this->request->getArgument('id');
 
+        $fields = array();
+        $this->addFieldToArray($fields, 'title', 'snippet-editor-title');
+        $this->addFieldToArray($fields, 'description', 'snippet-editor-meta-description');
+        $this->addFieldToArray($fields, 'tx_yoastseo_facebook_title', 'facebookTitle');
+        $this->addFieldToArray($fields, 'tx_yoastseo_facebook_description', 'facebookDescription');
+        $this->addFieldToArray($fields, 'tx_yoastseo_twitter_title', 'twitterTitle');
+        $this->addFieldToArray($fields, 'tx_yoastseo_twitter_description', 'twitterDescription');
+        $this->addFieldToArray($fields, 'tx_yoastseo_canonical_url', 'canonical');
+        $this->addFieldToArray($fields, 'tx_yoastseo_focuskeyword', 'focusKeyword');
+
         $data = array(
             'pages' => array(
-                $pageId => array(
-                    'title' => $this->request->getArgument('snippet-editor-title'),
-                    'description' => $this->request->getArgument('snippet-editor-meta-description'),
-                    'tx_realurl_pathsegment' => $this->request->getArgument('snippet-editor-slug'),
-                    'tx_yoastseo_facebook_title' => $this->request->getArgument('facebookTitle'),
-                    'tx_yoastseo_facebook_description' => $this->request->getArgument('facebookDescription'),
-                    'tx_yoastseo_twitter_title' => $this->request->getArgument('twitterTitle'),
-                    'tx_yoastseo_twitter_description' => $this->request->getArgument('twitterDescription'),
-                    'tx_yoastseo_canonical_url' => $this->request->getArgument('canonical'),
-                    'tx_yoastseo_focuskeyword' => $this->request->getArgument('focusKeyword'),
-                )
+                $pageId => $fields
             )
         );
 
@@ -194,6 +194,24 @@ class ModuleController extends ActionController {
         }
 
         $this->redirect('edit', null, null, array('id' => $pageId, 'returnUrl' => $returnUrl));
+    }
+
+    /**
+     * @param $fields
+     * @param $key
+     * @string $fieldName
+     *
+     * @return void
+     */
+    protected function addFieldToArray(&$fields, $key, $fieldName = null)
+    {
+        if ($fieldName === null) {
+            $fieldName = $key;
+        }
+
+        if ($this->request->hasArgument($fieldName)) {
+            $fields[$key] = $this->request->getArgument($fieldName);
+        }
     }
 
     /**
