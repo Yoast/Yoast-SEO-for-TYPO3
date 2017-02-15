@@ -97,7 +97,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                         };
                     },
                     saveScores: function (score) {
-                        $seoPanel.find('.wpseo-score-icon').addClass(YoastSEO.scoreToRating(score / 10));
+                        $seoPanel.find('.wpseo-score-icon').first().addClass(YoastSEO.scoreToRating(score / 10));
 
                         if (tx_yoast_seo.settings.editable == 1) {
                             var $focusKeywordInput = $seoPanel.find('#' + tx_yoast_seo.settings.targetElementId + '_focusKeyword');
@@ -112,7 +112,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                         }
                     },
                     saveContentScore: function (score) {
-                        $readabilityPanel.find('.wpseo-score-icon').addClass(YoastSEO.scoreToRating(score / 10));
+                        $readabilityPanel.find('.wpseo-score-icon').first().addClass(YoastSEO.scoreToRating(score / 10));
 
                         if (tx_yoast_seo.settings.editable == 1) {
                             $readabilityPanel.find('.fa-chevron-down, .fa-chevron-up').toggleClass('fa-chevron-down fa-chevron-up');

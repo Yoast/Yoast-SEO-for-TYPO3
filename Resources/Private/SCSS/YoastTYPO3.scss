@@ -71,6 +71,10 @@ $color_headings: #000;
 	background-color: #fff;
 }
 
+.yoastSeo--small .snippet-editor__container {
+	cursor: default;
+}
+
 .yoastSeo--small #snippet_preview h3, .yoastSeo--small .snippet-editor__preview button {
 	display: none;
 }
