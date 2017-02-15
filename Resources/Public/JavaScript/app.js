@@ -182,7 +182,6 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
             });
         });
 
-        console.log($._data($('div#snippet_title.snippet_container.snippet-editor__container'), 'events'));
         $('div#snippet_title.snippet_container.snippet-editor__container').off('click');
 
         previewRequest.error(function (jqXHR) {

@@ -757,3 +757,6 @@ progress {
 
 .snippet-editor__view-toggle {
   display: none; }
+
+.yoastSeo--small .snippet-editor__form {
+  display: none; }
