@@ -20,6 +20,9 @@ $color_headings: #000;
 	cursor: auto;
 }
 
+.snippet-editor__heading-icon {
+	padding-left: 20px;
+}
 .snippet-editor__heading-icon-eye {
 	margin-bottom: 15px;
 }
@@ -42,6 +45,9 @@ $color_headings: #000;
 	margin-bottom: 5px;
 }
 
+.yoast-section {
+	max-width: 100%;
+}
 .snippet-editor__preview {
 	max-width: 100%;
 	padding: 5px 20px 0px;
@@ -80,8 +86,14 @@ $color_headings: #000;
 
 	.fa {
 		position: absolute;
-		top: 12px;
+		top: 16px;
 		right: 20px;
+	}
+}
+
+.snippet_container {
+	.down_arrow {
+		display: none;
 	}
 }
 
@@ -89,6 +101,14 @@ $color_headings: #000;
 	position: relative;
 	height: 0px;
 	overflow: hidden;
+
+	a {
+		text-decoration: underline;
+	}
+
+	a:hover {
+		color: $color_ok;
+	}
 }
 
 .yoastPanel__content--open {
@@ -134,5 +154,9 @@ progress {
 }
 
 .btn[aria-expanded="true"] {
-	display:none;
+	display: none;
+}
+
+.snippet-editor__view-toggle {
+	display: none;
 }

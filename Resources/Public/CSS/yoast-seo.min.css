@@ -653,6 +653,9 @@ button.yoast-tooltip {
 .yoastSeo--small .snippet-editor__heading {
   cursor: auto; }
 
+.snippet-editor__heading-icon {
+  padding-left: 20px; }
+
 .snippet-editor__heading-icon-eye {
   margin-bottom: 15px; }
 
@@ -669,6 +672,9 @@ button.yoast-tooltip {
 #snippet,
 .yoastPanel {
   margin-bottom: 5px; }
+
+.yoast-section {
+  max-width: 100%; }
 
 .snippet-editor__preview {
   max-width: 100%;
@@ -700,13 +706,20 @@ button.yoast-tooltip {
   width: 100%; }
   .yoastPanel .fa {
     position: absolute;
-    top: 12px;
+    top: 16px;
     right: 20px; }
+
+.snippet_container .down_arrow {
+  display: none; }
 
 .yoastPanel__content {
   position: relative;
   height: 0px;
   overflow: hidden; }
+  .yoastPanel__content a {
+    text-decoration: underline; }
+  .yoastPanel__content a:hover {
+    color: #ee7c1b; }
 
 .yoastPanel__content--open {
   display: block;
@@ -740,4 +753,7 @@ progress {
   appearance: none; }
 
 .btn[aria-expanded="true"] {
+  display: none; }
+
+.snippet-editor__view-toggle {
   display: none; }
