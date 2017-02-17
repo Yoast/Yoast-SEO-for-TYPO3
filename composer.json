@@ -10,13 +10,17 @@
   ],
   "authors": [
     {
+      "name": "Team Yoast",
+      "email": "support@yoast.com",
+      "homepage": "https://yoast.com",
+    },
+    {
       "name": "Team MaxServ",
       "email": "support@maxserv.com",
-      "homepage": "https://www.maxserv.com",
-      "role": "Developer"
+      "homepage": "https://maxserv.com",
     }
   ],
-  "homepage": "https://maxserv.com",
+  "homepage": "https://yoast.com",
   "autoload": {
     "psr-4": {
       "YoastSeoForTypo3\\YoastSeo\\": "Classes/"
