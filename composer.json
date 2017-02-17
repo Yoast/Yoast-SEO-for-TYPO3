@@ -8,7 +8,15 @@
     "Yoast",
     "SEO"
   ],
-  "homepage": "https://yoast.com",
+  "authors": [
+    {
+      "name": "Team MaxServ",
+      "email": "support@maxserv.com",
+      "homepage": "https://www.maxserv.com",
+      "role": "Developer"
+    }
+  ],
+  "homepage": "https://maxserv.com",
   "autoload": {
     "psr-4": {
       "YoastSeoForTypo3\\YoastSeo\\": "Classes/"
