@@ -254,6 +254,8 @@
   color: #006621;
   font-style: normal;
   float: left; }
+  .snippet_container .url strong {
+    font-weight: 700; }
 
 .snippet_container .down_arrow {
   border-left: 4px solid transparent;
@@ -265,9 +267,9 @@
 
 .snippet_container .desc-default {
   color: #545454; }
-
-.snippet_container .desc-default strong {
-  color: #6a6a6a; }
+  .snippet_container .desc-default strong {
+    color: #6a6a6a;
+    font-weight: 700; }
 
 .snippet_container .desc-render {
   color: #777; }

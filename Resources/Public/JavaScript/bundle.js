@@ -1,6 +1,9 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var oldDefineAmd = define.amd;
+define.amd = false;
 var SnippetPreview = require( "yoastseo" ).SnippetPreview;
 var App = require( "yoastseo" ).App;
+define.amd = oldDefineAmd;
 var scoreToRating = require( 'yoastseo' ).helpers.scoreToRating;
 var debounce = require('lodash/debounce');
 
@@ -12450,7 +12453,7 @@ var calculateStopWordsCountResult = function calculateStopWordsCountResult(stopW
 			score: 0,
 			text: i18n.dngettext("js-text-analysis",
 			/* Translators: %1$s opens a link to a Yoast article about stop words, %2$s closes the link */
-			"The focus keyword contains a stop word. This may or may not be wise depending on the circumstances. " + "Read %1$sthis article%2$s for more info.", "The focus keyword contains %3$d stop words. This may or may not be wise depending on the circumstances. " + "Read %1$sthis article%2$s for more info.", stopWordCount)
+			"The focus keyword contains a stop word. This may or may not be wise depending on the circumstances. " + "%1$sLearn more about the stop words%2$s.", "The focus keyword contains %3$d stop words. This may or may not be wise depending on the circumstances. " + "%1$sLearn more about the stop words%2$s.", stopWordCount)
 		};
 	}
 
