@@ -42,7 +42,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
     $(function () {
         var $targetElement = $('#' + tx_yoast_seo.settings.targetElementId);
 
-        previewRequest.success(function (previewDocument) {
+        previewRequest.done(function (previewDocument) {
             // wait with UI markup until the preview is loaded
             var $snippetPreview = $targetElement.append('<div class="snippetPreview" />').find('.snippetPreview');
             var $targetPanels = $targetElement.append('<div class="row" />').find('.row');
@@ -184,7 +184,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
         $('div#snippet_title.snippet_container.snippet-editor__container').off('click');
 
-        previewRequest.error(function (jqXHR) {
+        previewRequest.fail(function (jqXHR) {
             Notification.error('Loading the page content preview failed', [jqXHR.status, jqXHR.statusText].join(' '), 0);
         });
     });

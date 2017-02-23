@@ -33,7 +33,14 @@ yoast_seo_preview {
     typeNum = {$config.yoast_seo.fe_preview_type}
     config {
         disableAllHeaderCode = 1
-        additionalHeaders = Content-type: text/xml; charset=UTF-8
+
+        no_cache = 1
+
+        additionalHeaders {
+            10 {
+                header = Content-type: text/xml; charset=UTF-8
+            }
+        }
     }
 
     wrap = <?xml version="1.0" encoding="UTF-8"?><preview>|</preview>
