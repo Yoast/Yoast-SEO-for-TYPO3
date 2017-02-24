@@ -4,7 +4,14 @@
     </f:if>
 
     <f:if condition="{data.tx_yoastseo_facebook_description}">
-        <meta property="og:description" content="{data.tx_yoastseo_facebook_description}">
+        <f:then>
+            <meta property="og:description" content="{data.tx_yoastseo_facebook_description}">
+        </f:then>
+        <f:else>
+            <f:if condition="{data.description}">
+                <meta property="og:description" content="{data.description}">
+            </f:if>
+        </f:else>
     </f:if>
 
     <f:for each="{openGraphImages}" as="openGraphImage" iteration="iteration">

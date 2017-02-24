@@ -3,8 +3,15 @@
         <meta property="twitter:title" content="{data.tx_yoastseo_twitter_title}">
     </f:if>
 
-    <f:if condition="{data.tx_yoastseo_twitter_title}">
-        <meta property="twitter:description" content="{data.tx_yoastseo_twitter_title}">
+    <f:if condition="{data.tx_yoastseo_twitter_description}">
+        <f:then>
+            <meta property="twitter:description" content="{data.tx_yoastseo_twitter_description}">
+        </f:then>
+        <f:else>
+            <f:if condition="{data.description}">
+                <meta property="twitter:description" content="{data.description}">
+            </f:if>
+        </f:else>
     </f:if>
 
     <f:for each="{twitterCardsImages}" as="twitterCardsImage" iteration="iteration">
