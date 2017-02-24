@@ -2,7 +2,7 @@
 <h1>Yoast SEO</h1>
 <f:if condition="{page}">
 	<f:then>
-		<f:flashMessages renderMode="div" />
+		<f:flashMessages/>
 		<h2>{page.title}</h2>
 		<div role="tabpanel">
 			<f:form action="save" arguments="{id: page.uid, returnUrl: returnUrl}" id="editYoastSettings">
