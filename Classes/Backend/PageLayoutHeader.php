@@ -1,7 +1,6 @@
 <?php
 namespace YoastSeoForTypo3\YoastSeo\Backend;
 
-
 use TYPO3\CMS;
 
 class PageLayoutHeader
@@ -254,5 +253,4 @@ class PageLayoutHeader
 
         return $locale;
     }
-
 }

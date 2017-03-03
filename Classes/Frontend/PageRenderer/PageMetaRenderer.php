@@ -1,7 +1,6 @@
 <?php
 namespace YoastSeoForTypo3\YoastSeo\Frontend\PageRenderer;
 
-
 use TYPO3\CMS;
 use YoastSeoForTypo3\YoastSeo;
 
