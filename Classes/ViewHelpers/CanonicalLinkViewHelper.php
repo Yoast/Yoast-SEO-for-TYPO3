@@ -22,7 +22,7 @@ class CanonicalLinkViewHelper extends Fluid\Core\ViewHelper\AbstractTagBasedView
 
     /**
      * @param string $href
-     * 
+     *
      * @return string
      */
     public function render($href = null)
@@ -46,5 +46,4 @@ class CanonicalLinkViewHelper extends Fluid\Core\ViewHelper\AbstractTagBasedView
 
         return $this->tag->hasAttribute('href') ? $this->tag->render() : '';
     }
-
 }

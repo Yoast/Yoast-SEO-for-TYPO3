@@ -25,10 +25,12 @@
             'config' => array(
                 'type' => 'input'
             )
-        ), 
+        ),
         'tx_yoastseo_facebook_image' => array(
             'label' => 'Facebook image',
-            'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig('tx_yoastseo_facebook_image', array(
+            'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig(
+                'tx_yoastseo_facebook_image',
+                array(
                     // Use the imageoverlayPalette instead of the basicoverlayPalette
                     'foreign_types' => array(
                         '0' => array(
@@ -79,7 +81,9 @@
         ),
         'tx_yoastseo_twitter_image' => array(
             'label' => 'Twitter image',
-            'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig('tx_yoastseo_twitter_image', array(
+            'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig(
+                'tx_yoastseo_twitter_image',
+                array(
                     // Use the imageoverlayPalette instead of the basicoverlayPalette
                     'foreign_types' => array(
                         '0' => array(

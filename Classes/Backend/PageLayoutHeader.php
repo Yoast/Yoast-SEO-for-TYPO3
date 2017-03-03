@@ -1,7 +1,6 @@
 <?php
 namespace YoastSeoForTypo3\YoastSeo\Backend;
 
-
 use TYPO3\CMS;
 
 class PageLayoutHeader
@@ -16,6 +15,11 @@ class PageLayoutHeader
      * @var int
      */
     const FE_PREVIEW_TYPE = 1480321830;
+
+    /**
+     * @var array
+     */
+    const ALLOWED_DOKTYPES = array(1, 6);
 
     /**
      * @var string
@@ -114,67 +118,71 @@ class PageLayoutHeader
             );
         }
 
-        $interfaceLocale = $this->getInterfaceLocale();
-
-        if ($interfaceLocale !== null
-            && ($translationFilePath = sprintf(
-                self::APP_TRANSLATION_FILE_PATTERN,
-                $interfaceLocale
-            )) !== false
-            && ($translationFilePath = CMS\Core\Utility\GeneralUtility::getFileAbsFileName(
-                $translationFilePath
-            )) !== false
-            && file_exists($translationFilePath)
+        if (is_array($currentPage) &&
+            array_key_exists('doktype', $currentPage) &&
+            in_array($currentPage['doktype'], self::ALLOWED_DOKTYPES, false)
         ) {
-            $this->pageRenderer->addJsInlineCode(
-                md5($translationFilePath),
-                'var tx_yoast_seo = tx_yoast_seo || {};'
+            $interfaceLocale = $this->getInterfaceLocale();
+
+            if ($interfaceLocale !== null
+                && ($translationFilePath = sprintf(
+                    self::APP_TRANSLATION_FILE_PATTERN,
+                    $interfaceLocale
+                )) !== false
+                && ($translationFilePath = CMS\Core\Utility\GeneralUtility::getFileAbsFileName(
+                    $translationFilePath
+                )) !== false
+                && file_exists($translationFilePath)
+            ) {
+                $this->pageRenderer->addJsInlineCode(
+                    md5($translationFilePath),
+                    'var tx_yoast_seo = tx_yoast_seo || {};'
                     . ' tx_yoast_seo.translations = '
                     . file_get_contents($translationFilePath)
                     . ';'
+                );
+            }
+
+            $this->pageRenderer->addJsInlineCode(
+                'YoastSEO settings',
+                'var tx_yoast_seo = tx_yoast_seo || {};'
+                . ' tx_yoast_seo.settings = '
+                . json_encode(
+                    array(
+                        'focusKeyword' => $focusKeyword,
+                        'preview' => $previewDataUrl,
+                        'recordId' => $recordId,
+                        'recordTable' => $tableName,
+                        'targetElementId' => $targetElementId,
+                        'editable' => 0
+                    )
+                )
+                . ';'
             );
-        }
 
-        $this->pageRenderer->addJsInlineCode(
-            'YoastSEO settings',
-            'var tx_yoast_seo = tx_yoast_seo || {};'
-            . ' tx_yoast_seo.settings = '
-            . json_encode(
+            $this->pageRenderer->addRequireJsConfiguration(
                 array(
-                    'focusKeyword' => $focusKeyword,
-                    'preview' => $previewDataUrl,
-                    'recordId' => $recordId,
-                    'recordTable' => $tableName,
-                    'targetElementId' => $targetElementId,
-                    'editable' => 0
+                    'paths' => array(
+                        'YoastSEO' => $publicResourcesPath . 'JavaScript/'
+                    )
                 )
-            )
-            . ';'
-        );
+            );
 
-        $this->pageRenderer->addRequireJsConfiguration(
-            array(
-                'paths' => array(
-                    'YoastSEO' => $publicResourcesPath . 'JavaScript/'
-                )
-            )
-        );
+            $this->pageRenderer->loadRequireJsModule('YoastSEO/app');
 
-        $this->pageRenderer->loadRequireJsModule('YoastSEO/app');
+            $this->pageRenderer->addCssFile(
+                $publicResourcesPath . 'CSS/yoast-seo.min.css'
+            );
 
-        $this->pageRenderer->addCssFile(
-            $publicResourcesPath . 'CSS/yoast-seo.min.css'
-        );
+            $returnUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl('web_layout', array('id' => (int) $pageLayoutController->id));
 
-        $returnUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl('web_layout', array('id' => (int) $pageLayoutController->id));
+            $parameters = array(
+                'tx_yoastseo_help_yoastseoseoplugin[id]' => (int) $pageLayoutController->id,
+                'tx_yoastseo_help_yoastseoseoplugin[returnUrl]' => rawurlencode($returnUrl)
+            );
+            $seoUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl('help_YoastSeoSeoPlugin', $parameters);
 
-        $parameters = array(
-            'tx_yoastseo_help_yoastseoseoplugin[id]' => (int) $pageLayoutController->id,
-            'tx_yoastseo_help_yoastseoseoplugin[returnUrl]' => rawurlencode($returnUrl)
-        );
-        $seoUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl('help_YoastSeoSeoPlugin', $parameters);
-
-        return '<div class="t3-page-column-header">
+            return '<div class="t3-page-column-header">
                     <div class="t3-page-column-header-icons btn-group btn-group-sm">
                         <a href="' . $seoUrl . '" title="" class="btn btn-default">
                             <span class="t3js-icon icon icon-size-small icon-state-default icon-actions-document-open" data-identifier="actions-document-open">
@@ -187,6 +195,9 @@ class PageLayoutHeader
                     <div class="t3-page-column-header-label">Yoast SEO</div>
                 </div>
                 <div id="' . $targetElementId . '" class="t3-grid-cell yoastSeo yoastSeo--small"><!-- ' . $targetElementId . ' --></div>';
+        } else {
+            return '';
+        }
     }
 
     /**
@@ -242,5 +253,4 @@ class PageLayoutHeader
 
         return $locale;
     }
-
 }
