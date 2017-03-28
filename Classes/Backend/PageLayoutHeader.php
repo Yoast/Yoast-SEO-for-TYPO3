@@ -17,11 +17,6 @@ class PageLayoutHeader
     const FE_PREVIEW_TYPE = 1480321830;
 
     /**
-     * @var array
-     */
-    const ALLOWED_DOKTYPES = array(1, 6);
-
-    /**
      * @var string
      */
     const APP_TRANSLATION_FILE_PATTERN = 'EXT:yoast_seo/Resources/Private/Language/wordpress-seo-%s.json';
@@ -118,9 +113,10 @@ class PageLayoutHeader
             );
         }
 
+        $allowedDoktypes = $this->getAllowedDoktypes();
         if (is_array($currentPage) &&
             array_key_exists('doktype', $currentPage) &&
-            in_array($currentPage['doktype'], self::ALLOWED_DOKTYPES, false)
+            in_array($currentPage['doktype'], $allowedDoktypes, true)
         ) {
             $interfaceLocale = $this->getInterfaceLocale();
 
@@ -259,5 +255,25 @@ class PageLayoutHeader
         }
 
         return $locale;
+    }
+
+    /**
+     * @return array
+     */
+    protected function getAllowedDoktypes()
+    {
+        $allowedDoktypes = [1];     // By default only add normal pages
+
+        /** @var CMS\Extbase\Configuration\ConfigurationManager $configurationManager */
+        $configurationManager =  CMS\Core\Utility\GeneralUtility::makeInstance(CMS\Extbase\Configuration\ConfigurationManager::class);
+        $configuration = $configurationManager->getConfiguration(CMS\Extbase\Configuration\ConfigurationManagerInterface::CONFIGURATION_TYPE_SETTINGS, 'yoastseo');
+
+        foreach ($configuration['allowedDoktypes'] as $key => $doktype) {
+            if (!in_array($doktype, $allowedDoktypes)) {
+                $allowedDoktypes[] = (int)$doktype;
+            }
+        }
+
+        return $allowedDoktypes;
     }
 }
