@@ -45,6 +45,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
         previewRequest.done(function (previewDocument) {
             // wait with UI markup until the preview is loaded
             var $snippetPreview = $targetElement.append('<div class="snippetPreview" />').find('.snippetPreview');
+            $targetElement.find('.spinner').hide();
             var $targetPanels = $targetElement.append('<div class="row" />').find('.row');
             if ($targetElement.hasClass('yoastSeo--small')) {
                 var $readabilityPanel = $targetPanels.append(buildYoastPanelMarkup(tx_yoast_seo.settings.targetElementId, 'readability')).find('.readabilityPanel');
