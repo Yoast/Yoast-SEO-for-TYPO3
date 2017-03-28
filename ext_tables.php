@@ -11,7 +11,7 @@ if (TYPO3_MODE === 'BE') {
         ),
         array(
             'access' => 'user,group',
-            'icon' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/yoast-logo-icon-black.svg',
+            'icon' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Yoast-module.svg',
             'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/BackendModule.xlf',
         )
     );
