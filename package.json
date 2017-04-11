@@ -20,7 +20,7 @@
     "time-grunt": "^1.0.0"
   },
   "plugin": {
-    "glotpress": "http://translate.yoast.com",
+    "glotpress": "http://translate.wordpress.org",
     "textdomain": "wordpress-seo"
   },
   "pot": {
