@@ -101,24 +101,24 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                         $seoPanel.find('.wpseo-score-icon').first().addClass(YoastSEO.scoreToRating(score / 10));
 
                         if (tx_yoast_seo.settings.editable == 1) {
-                            var $focusKeywordInput = $seoPanel.find('#' + tx_yoast_seo.settings.targetElementId + '_focusKeyword');
-                            $focusKeywordInput.val(tx_yoast_seo.settings.focusKeyword);
-                            var $focusKeywordInputContainer = $focusKeywordInput.parent()
-                            $focusKeywordInputContainer.prependTo($seoPanel.find('[data-panel-content]'));
-                            $focusKeywordInputContainer.show();
 
-                            $seoPanel.find('.fa-chevron-down, .fa-chevron-up').toggleClass('fa-chevron-down fa-chevron-up');
-                            $seoPanel.find('.snippet-editor__heading').toggleClass('snippet-editor__heading--active');
-                            $seoPanel.find('[data-panel-content]').toggleClass('yoastPanel__content--open');
+                            var focusKeywordInputField = '<div class="form-group"><label for="' + tx_yoast_seo.settings.targetElementId + '_focusKeyword">' + tx_yoast_seo.settings.focusKeywordLabel + '</label><input type="text" class="form-control" value="' + tx_yoast_seo.settings.focusKeyword + '" id="' + tx_yoast_seo.settings.targetElementId + '_focusKeyword" name="tx_yoastseo_help_yoastseoseoplugin[focusKeyword]" /></div>';
+                            var $focusKeywordInputContainer = $seoPanel.find('#' + tx_yoast_seo.settings.targetElementId + '_seo_panel_content');
+
+                            $focusKeywordInputContainer.prepend(focusKeywordInputField);
+
+                            $seoPanel.find('.fa-chevron-down').addClass('fa-chevron-up').removeClass('fa-chevron-down');
+                            $seoPanel.find('.snippet-editor__heading').addClass('snippet-editor__heading--active');
+                            $seoPanel.find('[data-panel-content]').addClass('yoastPanel__content--open');
                         }
                     },
                     saveContentScore: function (score) {
                         $readabilityPanel.find('.wpseo-score-icon').first().addClass(YoastSEO.scoreToRating(score / 10));
 
                         if (tx_yoast_seo.settings.editable == 1) {
-                            $readabilityPanel.find('.fa-chevron-down, .fa-chevron-up').toggleClass('fa-chevron-down fa-chevron-up');
-                            $readabilityPanel.find('.snippet-editor__heading').toggleClass('snippet-editor__heading--active');
-                            $readabilityPanel.find('[data-panel-content]').toggleClass('yoastPanel__content--open');
+                            $readabilityPanel.find('.fa-chevron-down').addClass('fa-chevron-up').removeClass('fa-chevron-down');
+                            $readabilityPanel.find('.snippet-editor__heading').addClass('snippet-editor__heading--active');
+                            $readabilityPanel.find('[data-panel-content]').addClass('yoastPanel__content--open');
                         }
 
                     }
