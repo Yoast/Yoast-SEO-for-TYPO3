@@ -7,11 +7,9 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
     var buildYoastPanelMarkup = function (elementIdPrefix, type) {
         var focusKeyword = '';
-        var focusKeywordInputField = '';
 
         if (type == 'seo') {
             focusKeyword = '<span class="yoastPanel__focusKeyword" data-panel-focus-keyword></span>';
-            focusKeywordInputField = '<div class="form-group" style="display: none;"><label for="' + elementIdPrefix + '_focusKeyword">' + tx_yoast_seo.settings.focusKeywordLabel + '</label><input type="text" class="form-control" id="' + elementIdPrefix + '_focusKeyword" name="tx_yoastseo_help_yoastseoseoplugin[focusKeyword]" /></div>';
         }
 
         if (tx_yoast_seo.settings.editable == 0) {
@@ -32,7 +30,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 + focusKeyword
                 + '<span class="fa fa-chevron-down"></span>'
                 + '</h3>'
-                + '<div id="' + elementIdPrefix + '_' + type + '_panel_content" data-panel-content class="yoastPanel__content"></div>' + focusKeywordInputField
+                + '<div id="' + elementIdPrefix + '_' + type + '_panel_content" data-panel-content class="yoastPanel__content"></div>'
                 + '</div>';
         }
     };
@@ -40,6 +38,9 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
     // make sure the document is ready before we interact with the DOM
     // use the jQuery (ready) callback
     $(function () {
+        var $focusKeywordElement = $('#focusKeyword');
+        $focusKeywordElement.val(tx_yoast_seo.settings.focusKeyword);
+
         var $targetElement = $('#' + tx_yoast_seo.settings.targetElementId);
 
         previewRequest.done(function (previewDocument) {
@@ -83,6 +84,12 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 }
             });
 
+            $focusKeywordElement.on( "keyup", snippetPreview.changedInput.bind( snippetPreview ) );
+            $focusKeywordElement.on( "keydown", snippetPreview.changedInput.bind( snippetPreview ) );
+            $focusKeywordElement.on( "input", snippetPreview.changedInput.bind( snippetPreview ) );
+            $focusKeywordElement.on( "focus", snippetPreview.changedInput.bind( snippetPreview ) );
+            $focusKeywordElement.on( "blur", snippetPreview.changedInput.bind( snippetPreview ) );
+
             var app = new YoastSEO.App({
                 snippetPreview: snippetPreview,
                 targets: {
@@ -93,20 +100,31 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                     getData: function () {
                         return {
                             title: $metaSection.find('title').text(),
-                            keyword: tx_yoast_seo.settings.focusKeyword,
+                            keyword: $focusKeywordElement.val(),
                             text: pageContent
                         };
                     },
                     saveScores: function (score) {
+                        $seoPanel.find('.wpseo-score-icon').first().removeClass('good ok bad')
                         $seoPanel.find('.wpseo-score-icon').first().addClass(YoastSEO.scoreToRating(score / 10));
 
                         if (tx_yoast_seo.settings.editable == 1) {
 
-                            var focusKeywordInputField = '<div class="form-group"><label for="' + tx_yoast_seo.settings.targetElementId + '_focusKeyword">' + tx_yoast_seo.settings.focusKeywordLabel + '</label><input type="text" class="form-control" value="' + tx_yoast_seo.settings.focusKeyword + '" id="' + tx_yoast_seo.settings.targetElementId + '_focusKeyword" name="tx_yoastseo_help_yoastseoseoplugin[focusKeyword]" /></div>';
+                            var focusKeywordInputField = '<div class="form-group"><label for="' + tx_yoast_seo.settings.targetElementId + '_focusKeyword">' + tx_yoast_seo.settings.focusKeywordLabel + '</label><input type="text" class="form-control" value="' + $focusKeywordElement.val() + '" id="' + tx_yoast_seo.settings.targetElementId + '_focusKeyword" name="tx_yoastseo_help_yoastseoseoplugin[focusKeyword]" /></div>';
                             var $focusKeywordInputContainer = $seoPanel.find('#' + tx_yoast_seo.settings.targetElementId + '_seo_panel_content');
 
                             $focusKeywordInputContainer.prepend(focusKeywordInputField);
+                            $seoPanel.find('#' + tx_yoast_seo.settings.targetElementId + '_focusKeyword').on('input keyup keydown blur', function() {
+                                $focusKeywordElement.val($(this).val());
+                                $focusKeywordElement.trigger('input');
+                            })
 
+                            if ($focusKeywordElement.val() != tx_yoast_seo.settings.focusKeyword) {
+                                var $el = $seoPanel.find('#' + tx_yoast_seo.settings.targetElementId + '_focusKeyword');
+                                var value = $el.val();
+                                $el.focus().val('').val(value);
+                            }
+                            $seoPanel.find('[data-panel-focus-keyword]').text($focusKeywordElement.val());
                             $seoPanel.find('.fa-chevron-down').addClass('fa-chevron-up').removeClass('fa-chevron-down');
                             $seoPanel.find('.snippet-editor__heading').addClass('snippet-editor__heading--active');
                             $seoPanel.find('[data-panel-content]').addClass('yoastPanel__content--open');
@@ -130,7 +148,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
             // after bootstrapping the app (with possible translations) update the title of both panels
             $readabilityPanel.find('[data-panel-title]').text((app.i18n.dgettext('js-text-analysis', 'Readability')));
             $seoPanel.find('[data-panel-title]').text((app.i18n.dgettext('js-text-analysis', 'Focus keyword')));
-            $seoPanel.find('[data-panel-focus-keyword]').text(tx_yoast_seo.settings.focusKeyword);
+            $seoPanel.find('[data-panel-focus-keyword]').text($focusKeywordElement.val());
 
             $snippetPreview.find('.snippet-editor__label').each(function () {
                 $(this).wrap('<div class="form-group"></div>')

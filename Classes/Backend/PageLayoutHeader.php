@@ -191,6 +191,7 @@ class PageLayoutHeader
                     </div>
                     <div class="t3-page-column-header-label">Yoast SEO</div>
                 </div>
+                <input id="focusKeyword" style="display: none" />
                 <div id="' . $targetElementId . '" class="t3-grid-cell yoastSeo yoastSeo--small">
                 	<!-- ' . $targetElementId . ' -->
                 	<div class="spinner">
