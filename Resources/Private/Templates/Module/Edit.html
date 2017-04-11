@@ -5,21 +5,21 @@
 		<f:flashMessages/>
 		<h2>{page.title}</h2>
 		<div role="tabpanel">
-			<f:form action="save" arguments="{id: page.uid, returnUrl: returnUrl}" id="editYoastSettings">
+			<f:form action="save" arguments="{id: pageId, language: page.sys_language_uid, returnUrl: returnUrl}" id="editYoastSettings">
 				<ul class="nav nav-tabs t3js-tabs" role="tablist" id="tabs-tab" data-store-last-tab="1">
 					<li role="presentation" class="t3js-tabmenu-item  active">
 						<a href="#tab-analysis" title="" aria-controls="tab-analysis" role="tab" data-toggle="tab">
-							<i class="fa fa-eye"></i> Analysis
+							<i class="fa fa-eye"></i> <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:analysis" />
 						</a>
 					</li>
 					<li role="presentation" class="t3js-tabmenu-item ">
 						<a href="#tab-2" title="" aria-controls="tab-2" role="tab" data-toggle="tab">
-							<i class="fa fa-share-alt"></i> Social
+							<i class="fa fa-share-alt"></i> <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:social" />
 						</a>
 					</li>
 					<li role="presentation" class="t3js-tabmenu-item ">
 						<a href="#tab-3" title="" aria-controls="tab-3" role="tab" data-toggle="tab">
-							<i class="fa fa-cog"></i> Advanced
+							<i class="fa fa-cog"></i> <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:advanced" />
 						</a>
 					</li>
 				</ul>

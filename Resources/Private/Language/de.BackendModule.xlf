@@ -1,55 +1,52 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <xliff version="1.0">
-	<file source-language="en" datatype="plaintext" original="messages" date="2014-05-02T12:00:00Z" product-name="yoastseo">
+	<file source-language="en" target-language="de" datatype="plaintext" original="messages" date="2014-05-02T12:00:00Z" product-name="yoastseo">
 		<header/>
 		<body>
 			<trans-unit id="mlang_tabs_tab">
-				<source>Yoast SEO</source>
+				<target>Yoast SEO</target>
 			</trans-unit>
 			<trans-unit id="mlang_labels_tabdescr">
-				<source>The first true all-in-one SEO solution for TYPO3, including on-page content analysis</source>
+				<target>Die erste echte All-in-One-SEO-Lösung für TYPO3, einschließlich On-Page Inhaltsanalyse.</target>
 			</trans-unit>
 			<trans-unit id="mlang_labels_tablabel">
-				<source>Yoast SEO Analysis</source>
+				<target>Yoast SEO Analyse</target>
 			</trans-unit>
 			<trans-unit id="noPageSelected.title">
-				<source>No page selected</source>
-			</trans-unit>
-			<trans-unit id="noPageSelected.description">
-				<source>Please select a page to edit the SEO properties</source>
+				<target>Keine Seite ausgewählt</target>
 			</trans-unit>
 			<trans-unit id="facebook">
-				<source>Facebook</source>
+				<target>Facebook</target>
 			</trans-unit>
 			<trans-unit id="facebook.title">
-				<source>Title</source>
+				<target>Titel</target>
 			</trans-unit>
 			<trans-unit id="facebook.description">
-				<source>Description</source>
+                   <target>Definition</target>
 			</trans-unit>
 			<trans-unit id="twitter">
-				<source>Twitter</source>
+				<target>Twitter</target>
 			</trans-unit>
 			<trans-unit id="twitter.title">
-				<source>Title</source>
+				<target>Titel</target>
 			</trans-unit>
 			<trans-unit id="twitter.description">
-				<source>Description</source>
+				<target>Definition</target>
 			</trans-unit>
 			<trans-unit id="canonical">
-				<source>Canonical URL</source>
+				<target>Canonical URL</target>
 			</trans-unit>
 			<trans-unit id="analysis">
-				<source>Analysis</source>
+				<target>Analyse</target>
 			</trans-unit>
 			<trans-unit id="social">
-				<source>Social</source>
+				<target>Social</target>
 			</trans-unit>
 			<trans-unit id="advanced">
-				<source>Advanced</source>
+				<target>Fortgeschritten</target>
 			</trans-unit>
 			<trans-unit id="focusKeyword">
-				<source>Focus keyword</source>
+				<target>Fokus-Keyword</target>
 			</trans-unit>
 		</body>
 	</file>

@@ -11,7 +11,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
         if (type == 'seo') {
             focusKeyword = '<span class="yoastPanel__focusKeyword" data-panel-focus-keyword></span>';
-            focusKeywordInputField = '<div class="form-group" style="display: none;"><label for="' + elementIdPrefix + '_focusKeyword">Focus keyword</label><input type="text" class="form-control" id="' + elementIdPrefix + '_focusKeyword" name="tx_yoastseo_help_yoastseoseoplugin[focusKeyword]" /></div>';
+            focusKeywordInputField = '<div class="form-group" style="display: none;"><label for="' + elementIdPrefix + '_focusKeyword">' + tx_yoast_seo.settings.focusKeywordLabel + '</label><input type="text" class="form-control" id="' + elementIdPrefix + '_focusKeyword" name="tx_yoastseo_help_yoastseoseoplugin[focusKeyword]" /></div>';
         }
 
         if (tx_yoast_seo.settings.editable == 0) {

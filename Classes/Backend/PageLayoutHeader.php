@@ -174,6 +174,7 @@ class PageLayoutHeader
 
             $parameters = array(
                 'tx_yoastseo_help_yoastseoseoplugin[id]' => (int) $pageLayoutController->id,
+                'tx_yoastseo_help_yoastseoseoplugin[language]' => (int) $pageLayoutController->current_sys_language,
                 'tx_yoastseo_help_yoastseoseoplugin[returnUrl]' => rawurlencode($returnUrl)
             );
             $seoUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl('help_YoastSeoSeoPlugin', $parameters);

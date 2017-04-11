@@ -4,14 +4,17 @@ namespace YoastSeoForTypo3\YoastSeo\Controller;
 use TYPO3\CMS\Backend\Template\Components\ButtonBar;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Backend\View\BackendTemplateView;
+use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Database\DatabaseConnection;
 use TYPO3\CMS\Core\Imaging\Icon;
+use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
+use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
 
 class ModuleController extends ActionController
 {
@@ -48,6 +51,27 @@ class ModuleController extends ActionController
     const FE_PREVIEW_TYPE = 1480321830;
 
     /**
+     * @var string
+     */
+    const APP_TRANSLATION_FILE_PATTERN = 'EXT:yoast_seo/Resources/Private/Language/wordpress-seo-%s.json';
+
+    /**
+     * @var array
+     */
+    protected $configuration = array(
+        'translations' => array(
+            'availableLocales' => array(),
+            'languageKeyToLocaleMapping' => array()
+        )
+    );
+
+    /**
+     * @var Locales
+     */
+    protected $localeService;
+
+
+    /**
      * @param ViewInterface $view
      *
      * @return void
@@ -67,8 +91,17 @@ class ModuleController extends ActionController
 
     protected function initializeAction()
     {
+        if (array_key_exists('yoast_seo', $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'])
+            && is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'])
+        ) {
+            $this->configuration = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'];
+        }
+
         parent::initializeAction();
 
+        if (!($this->localeService instanceof Locales)) {
+            $this->localeService = GeneralUtility::makeInstance(Locales::class);
+        }
         if (!($this->pageRenderer instanceof PageRenderer)) {
             $this->pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
         }
@@ -80,8 +113,13 @@ class ModuleController extends ActionController
     public function editAction()
     {
         $pageId = 0;
+        $languageId = 0;
+
         if ($this->request->hasArgument('id')) {
             $pageId = $this->request->getArgument('id');
+        }
+        if ($this->request->hasArgument('language')) {
+            $languageId = $this->request->getArgument('language');
         }
         $targetElementId = uniqid('_YoastSEO_panel_');
 
@@ -90,6 +128,17 @@ class ModuleController extends ActionController
             (int) $pageId
         );
 
+        if ($languageId > 0) {
+            $overlayRecords = BackendUtility::getRecordLocalization(
+                'pages',
+                (int) $pageId,
+                (int) $languageId
+            );
+
+            if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
+                $currentPage = $overlayRecords[0];
+            }
+        }
         $focusKeyword = $currentPage[self::FOCUS_KEYWORD_COLUMN_NAME];
 
         $previewDataUrl = vsprintf(
@@ -97,11 +146,31 @@ class ModuleController extends ActionController
             array(
                 (int) $pageId,
                 self::FE_PREVIEW_TYPE,
-                0
+                $languageId
             )
         );
 
+        $interfaceLocale = $this->getInterfaceLocale();
 
+        if ($interfaceLocale !== null
+            && ($translationFilePath = sprintf(
+                self::APP_TRANSLATION_FILE_PATTERN,
+                $interfaceLocale
+            )) !== false
+            && ($translationFilePath = GeneralUtility::getFileAbsFileName(
+                $translationFilePath
+            )) !== false
+            && file_exists($translationFilePath)
+        ) {
+            echo $translationFilePath;
+            $this->pageRenderer->addJsInlineCode(
+                md5($translationFilePath),
+                'var tx_yoast_seo = tx_yoast_seo || {};'
+                . ' tx_yoast_seo.translations = '
+                . file_get_contents($translationFilePath)
+                . ';'
+            );
+        }
         $publicResourcesPath = ExtensionManagementUtility::extRelPath('yoast_seo') . 'Resources/Public/';
 
         $this->pageRenderer->addJsInlineCode(
@@ -111,6 +180,7 @@ class ModuleController extends ActionController
             . json_encode(
                 array(
                     'focusKeyword' => $focusKeyword,
+                    'focusKeywordLabel' => LocalizationUtility::translate('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:focusKeyword', 'yoast_seo'),
                     'preview' => $previewDataUrl,
                     'recordId' => '',
                     'recordTable' => '',
@@ -141,6 +211,7 @@ class ModuleController extends ActionController
         }
 
         $this->view->assign('page', $currentPage);
+        $this->view->assign('pageId', $pageId);
         $this->view->assign('targetElementId', $targetElementId);
         $this->view->assign('returnUrl', $returnUrl);
     }
@@ -148,6 +219,7 @@ class ModuleController extends ActionController
     public function saveAction()
     {
         $pageId = (int)$this->request->getArgument('id');
+        $languageId = (int)$this->request->getArgument('language');
 
         $fields = array();
         $this->addFieldToArray($fields, 'title', 'snippet-editor-title');
@@ -159,9 +231,26 @@ class ModuleController extends ActionController
         $this->addFieldToArray($fields, 'tx_yoastseo_canonical_url', 'canonical');
         $this->addFieldToArray($fields, 'tx_yoastseo_focuskeyword', 'focusKeyword');
 
+        $table = 'pages';
+        $recordId = $pageId;
+
+        if ($languageId > 0) {
+            $table = 'pages_language_overlay';
+
+            $overlayRecords = BackendUtility::getRecordLocalization(
+                'pages',
+                (int) $pageId,
+                (int) $languageId
+            );
+
+            if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
+                $recordId = $overlayRecords[0]['uid'];
+            }
+
+        }
         $data = array(
-            'pages' => array(
-                $pageId => $fields
+            $table => array(
+                $recordId => $fields
             )
         );
 
@@ -191,7 +280,7 @@ class ModuleController extends ActionController
             $returnUrl = $this->request->getArgument('returnUrl');
         }
 
-        $this->redirect('edit', null, null, array('id' => $pageId, 'returnUrl' => $returnUrl));
+        $this->redirect('edit', null, null, array('id' => $pageId, 'language' => $languageId, 'returnUrl' => $returnUrl));
     }
 
     /**
@@ -313,5 +402,60 @@ class ModuleController extends ActionController
     protected function getLanguageService()
     {
         return $GLOBALS['LANG'];
+    }
+
+
+    /**
+     * Try to resolve a supported locale based on the user settings
+     * take the configured locale dependencies into account
+     * so if the TYPO3 interface is tailored for a specific dialect
+     * the local of a parent language might be used
+     *
+     * @return string|null
+     */
+    protected function getInterfaceLocale()
+    {
+        $locale = null;
+        $languageChain = null;
+
+        if ($GLOBALS['BE_USER'] instanceof BackendUserAuthentication
+            && is_array($GLOBALS['BE_USER']->uc)
+            && array_key_exists('lang', $GLOBALS['BE_USER']->uc)
+            && !empty($GLOBALS['BE_USER']->uc['lang'])
+        ) {
+            $languageChain = $this->localeService->getLocaleDependencies(
+                $GLOBALS['BE_USER']->uc['lang']
+            );
+
+            array_unshift($languageChain, $GLOBALS['BE_USER']->uc['lang']);
+        }
+
+        // try to find a matching locale available for this plugins UI
+        // take configured locale dependencies into account
+        if ($languageChain !== null
+            && ($suitableLocales = array_intersect(
+                $languageChain,
+                $this->configuration['translations']['availableLocales']
+            )) !== false
+            && count($suitableLocales) > 0
+        ) {
+            $locale = array_shift($suitableLocales);
+        }
+
+        // if a locale couldn't be resolved try if an entry of the
+        // language dependency chain matches legacy mapping
+        if ($locale === null && $languageChain !== null
+            && ($suitableLanguageKeys = array_intersect(
+                $languageChain,
+                array_flip(
+                    $this->configuration['translations']['languageKeyToLocaleMapping']
+                )
+            )) !== false
+            && count($suitableLanguageKeys) > 0
+        ) {
+            $locale = $this->configuration['translations']['languageKeyToLocaleMapping'][array_shift($suitableLanguageKeys)];
+        }
+
+        return $locale;
     }
 }
