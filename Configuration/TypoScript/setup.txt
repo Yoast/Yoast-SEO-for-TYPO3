@@ -1,14 +1,5 @@
 config.yoast_seo.enabled = 1
 
-module.tx_yoastseo {
-    settings {
-        allowedDoktypes {
-            page = 1
-            backend_user_section = 6
-        }
-    }
-}
-
 plugin.tx_yoastseo {
     settings {
         og.image.width = 640c
@@ -34,6 +25,19 @@ plugin.tx_yoastseo {
         settings {
             og.image.count = 2
         }
+    }
+}
+
+
+module.tx_yoastseo {
+    settings {
+        allowedDoktypes {
+            page = 1
+            backend_user_section = 6
+        }
+
+        og < plugin.tx_yoastseo.settings.og
+        twitter < plugin.tx_yoastseo.settings.twitter
     }
 }
 

@@ -240,6 +240,67 @@ class ModuleController extends ActionController
         $extraTableRecords = [];
         $recordId = $pageId;
 
+        if ($this->request->hasArgument('twitterImage')) {
+            $twitterImage = $this->request->getArgument('twitterImage');
+
+            if ($this->request->hasArgument('twitterDeleteImage') ||
+                (array_key_exists('tmp_name', $twitterImage) && !empty($twitterImage['tmp_name']))) {
+                $GLOBALS['TYPO3_DB']->exec_UPDATEquery('sys_file_reference', 'fieldname="tx_yoastseo_twitter_image" AND uid_foreign=' . $pageId, ['deleted' => 1]);
+            }
+            if (array_key_exists('tmp_name', $twitterImage) && !empty($twitterImage['tmp_name'])) {
+                $resourceFactory = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
+                $storage = $resourceFactory->getDefaultStorage();
+                $newFile = $storage->addFile(
+                    $twitterImage['tmp_name'],
+                    $storage->getDefaultFolder(),
+                    $twitterImage['name']
+                );
+
+                $newId = 'NEW1234';
+                $extraTableRecords['sys_file_reference'][$newId] = [
+                    'table_local' => 'sys_file',
+                    'uid_local' => $newFile->getUid(),
+                    'tablenames' => 'pages',
+                    'uid_foreign' => $pageId,
+                    'fieldname' => 'tx_yoastseo_twitter_image',
+                    'pid' => $pageId
+                ];
+
+                $extraTableRecords['pages'][$pageId]['tx_yoastseo_twitter_image'] = $newId;
+            }
+        }
+
+        if ($this->request->hasArgument('facebookImage')) {
+            $facebookImage = $this->request->getArgument('facebookImage');
+
+            if ($this->request->hasArgument('facebookDeleteImage') ||
+                (array_key_exists('tmp_name', $facebookImage) && !empty($facebookImage['tmp_name']))) {
+                $GLOBALS['TYPO3_DB']->exec_UPDATEquery('sys_file_reference', 'fieldname="tx_yoastseo_facebook_image" AND uid_foreign=' . $pageId, ['deleted' => 1]);
+            }
+            if (array_key_exists('tmp_name', $facebookImage) && !empty($facebookImage['tmp_name'])) {
+                $resourceFactory = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
+                $storage = $resourceFactory->getDefaultStorage();
+                $newFile = $storage->addFile(
+                    $facebookImage['tmp_name'],
+                    $storage->getDefaultFolder(),
+                    $facebookImage['name']
+                );
+
+                $newId = 'NEW1234';
+                $extraTableRecords['sys_file_reference'][$newId] = [
+                    'table_local' => 'sys_file',
+                    'uid_local' => $newFile->getUid(),
+                    'tablenames' => 'pages',
+                    'uid_foreign' => $pageId,
+                    'fieldname' => 'tx_yoastseo_facebook_image',
+                    'pid' => $pageId
+                ];
+
+                $extraTableRecords['pages'][$pageId]['tx_yoastseo_facebook_image'] = $newId;
+            }
+        }
+
+
         if ($languageId > 0) {
             $table = 'pages_language_overlay';
 
@@ -254,13 +315,12 @@ class ModuleController extends ActionController
             }
 
             if (array_key_exists('tx_realurl_pathsegment', $fields) && !empty($fields['tx_realurl_pathsegment'])) {
-                $extraTableRecords = [
-                    'pages' => [
+                $extraTableRecords['pages'] =
+                    [
                         $pageId => [
                             'tx_realurl_pathoverride' => 1
                         ]
-                    ]
-                ];
+                    ];
             }
         } else {
             if (array_key_exists('tx_realurl_pathsegment', $fields) && !empty($fields['tx_realurl_pathsegment'])) {

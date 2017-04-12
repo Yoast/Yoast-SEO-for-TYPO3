@@ -27,6 +27,24 @@
 			<trans-unit id="facebook.description">
 				<source>Description</source>
 			</trans-unit>
+			<trans-unit id="facebook.image">
+				<source>Image</source>
+			</trans-unit>
+			<trans-unit id="facebook.image.new">
+				<source>New image</source>
+			</trans-unit>
+			<trans-unit id="facebook.image.newDescription">
+				<source>Upload a new image to show on a Facebook post</source>
+			</trans-unit>
+			<trans-unit id="facebook.image.delete">
+				<source>Remove current image</source>
+			</trans-unit>
+			<trans-unit id="facebook.image.deleteDescription">
+				<source>Remove the current image</source>
+			</trans-unit>
+			<trans-unit id="facebook.image.no">
+				<source>No image set</source>
+			</trans-unit>
 			<trans-unit id="twitter">
 				<source>Twitter</source>
 			</trans-unit>
@@ -35,6 +53,24 @@
 			</trans-unit>
 			<trans-unit id="twitter.description">
 				<source>Description</source>
+			</trans-unit>
+			<trans-unit id="twitter.image">
+				<source>Image</source>
+			</trans-unit>
+			<trans-unit id="twitter.image.new">
+				<source>New image</source>
+			</trans-unit>
+			<trans-unit id="twitter.image.newDescription">
+				<source>Upload a new image to show on a Twitter card</source>
+			</trans-unit>
+			<trans-unit id="twitter.image.delete">
+				<source>Remove current image</source>
+			</trans-unit>
+			<trans-unit id="twitter.image.deleteDescription">
+				<source>Remove the current image</source>
+			</trans-unit>
+			<trans-unit id="twitter.image.no">
+				<source>No image set</source>
 			</trans-unit>
 			<trans-unit id="canonical">
 				<source>Canonical URL</source>

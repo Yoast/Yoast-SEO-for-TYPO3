@@ -1,8 +1,14 @@
 <html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" data-namespace-typo3-fluid="true">
     <f:if condition="{data.tx_yoastseo_facebook_title}">
-        <meta property="og:title" content="{data.tx_yoastseo_facebook_title}">
+        <f:then>
+            <meta property="og:title" content="{data.tx_yoastseo_facebook_title}">
+        </f:then>
+        <f:else>
+            <f:if condition="{data.title}">
+                <meta property="og:title" content="{data.title}">
+            </f:if>
+        </f:else>
     </f:if>
-
     <f:if condition="{data.tx_yoastseo_facebook_description}">
         <f:then>
             <meta property="og:description" content="{data.tx_yoastseo_facebook_description}">

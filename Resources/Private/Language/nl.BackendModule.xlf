@@ -27,6 +27,24 @@
 			<trans-unit id="facebook.description">
 				<target>Omschrijving</target>
 			</trans-unit>
+			<trans-unit id="facebook.image">
+				<target>Afbeelding</target>
+			</trans-unit>
+			<trans-unit id="facebook.image.new">
+				<target>Nieuwe afbeelding</target>
+			</trans-unit>
+			<trans-unit id="facebook.image.newDescription">
+				<target>Upload een nieuwe afbeelding voor een Facebook post</target>
+			</trans-unit>
+			<trans-unit id="facebook.image.delete">
+				<target>Verwijderen</target>
+			</trans-unit>
+			<trans-unit id="facebook.image.deleteDescription">
+				<target>Verwijder de huidige afbeelding</target>
+			</trans-unit>
+			<trans-unit id="facebook.image.no">
+				<target>Geen afbeelding</target>
+			</trans-unit>
 			<trans-unit id="twitter">
 				<target>Twitter</target>
 			</trans-unit>
@@ -35,6 +53,24 @@
 			</trans-unit>
 			<trans-unit id="twitter.description">
 				<target>Omschrijving</target>
+			</trans-unit>
+			<trans-unit id="twitter.image">
+				<target>Afbeelding</target>
+			</trans-unit>
+			<trans-unit id="twitter.image.new">
+				<target>Nieuwe afbeelding</target>
+			</trans-unit>
+			<trans-unit id="twitter.image.newDescription">
+				<target>Upload een nieuwe afbeelding voor een Twitter card</target>
+			</trans-unit>
+			<trans-unit id="twitter.image.delete">
+				<target>Verwijderen</target>
+			</trans-unit>
+			<trans-unit id="twitter.image.deleteDescription">
+				<target>Verwijder de huidige afbeelding</target>
+			</trans-unit>
+			<trans-unit id="twitter.image.no">
+				<target>Geen afbeelding</target>
 			</trans-unit>
 			<trans-unit id="canonical">
 				<target>Canonieke URL</target>

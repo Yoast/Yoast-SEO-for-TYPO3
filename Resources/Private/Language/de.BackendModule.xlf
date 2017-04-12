@@ -22,7 +22,25 @@
 				<target>Titel</target>
 			</trans-unit>
 			<trans-unit id="facebook.description">
-                   <target>Definition</target>
+				<target>Definition</target>
+			</trans-unit>
+			<trans-unit id="facebook.image">
+				<target>Bild</target>
+			</trans-unit>
+			<trans-unit id="facebook.image.new">
+				<target>Neues bild</target>
+			</trans-unit>
+			<trans-unit id="facebook.image.newDescription">
+				<target>Laden sie ein neues bild für ein Facebook post</target>
+			</trans-unit>
+			<trans-unit id="facebook.image.delete">
+				<target>Löschen</target>
+			</trans-unit>
+			<trans-unit id="facebook.image.deleteDescription">
+				<target>Löschen aktuelles bild</target>
+			</trans-unit>
+			<trans-unit id="facebook.image.no">
+				<target>Kein bild</target>
 			</trans-unit>
 			<trans-unit id="twitter">
 				<target>Twitter</target>
@@ -32,6 +50,24 @@
 			</trans-unit>
 			<trans-unit id="twitter.description">
 				<target>Definition</target>
+			</trans-unit>
+			<trans-unit id="twitter.image">
+				<target>Bild</target>
+			</trans-unit>
+			<trans-unit id="twitter.image.new">
+				<target>Neues bild</target>
+			</trans-unit>
+			<trans-unit id="twitter.image.newDescription">
+				<target>Laden sie ein neues bild für eine Twitter karte</target>
+			</trans-unit>
+			<trans-unit id="twitter.image.delete">
+				<target>Löschen</target>
+			</trans-unit>
+			<trans-unit id="twitter.image.deleteDescription">
+				<target>Löschen aktuelles bild</target>
+			</trans-unit>
+			<trans-unit id="twitter.image.no">
+				<target>Kein bild</target>
 			</trans-unit>
 			<trans-unit id="canonical">
 				<target>Canonical URL</target>
