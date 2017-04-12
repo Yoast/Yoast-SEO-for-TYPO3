@@ -162,7 +162,6 @@ class ModuleController extends ActionController
             )) !== false
             && file_exists($translationFilePath)
         ) {
-            echo $translationFilePath;
             $this->pageRenderer->addJsInlineCode(
                 md5($translationFilePath),
                 'var tx_yoast_seo = tx_yoast_seo || {};'
