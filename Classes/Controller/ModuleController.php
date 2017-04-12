@@ -213,6 +213,7 @@ class ModuleController extends ActionController
 
         $this->view->assign('page', $currentPage);
         $this->view->assign('pageId', $pageId);
+        $this->view->assign('languageId', $languageId);
         $this->view->assign('targetElementId', $targetElementId);
         $this->view->assign('returnUrl', $returnUrl);
     }

@@ -116,7 +116,7 @@ class PageLayoutHeader
         $allowedDoktypes = $this->getAllowedDoktypes();
         if (is_array($currentPage) &&
             array_key_exists('doktype', $currentPage) &&
-            in_array($currentPage['doktype'], $allowedDoktypes, true)
+            in_array((int)$currentPage['doktype'], $allowedDoktypes, true)
         ) {
             $interfaceLocale = $this->getInterfaceLocale();
 
