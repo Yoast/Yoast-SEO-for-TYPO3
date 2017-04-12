@@ -48,6 +48,12 @@
 			<trans-unit id="focusKeyword">
 				<target>Fokus-Keyword</target>
 			</trans-unit>
+			<trans-unit id="saved.title">
+				<target>Gespeichert</target>
+			</trans-unit>
+			<trans-unit id="saved.description">
+				<target>Die SEO-informationen sind gespeichert</target>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

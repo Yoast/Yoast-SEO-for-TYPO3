@@ -260,11 +260,12 @@ class ModuleController extends ActionController
         \TYPO3\CMS\Backend\Utility\BackendUtility::setUpdateSignal('updatePageTree');
         $tce->clear_cacheCmd('pages');
 
+        $lang = $this->getLanguageService();
 
         $message = GeneralUtility::makeInstance(
             FlashMessage::class,
-            'The information is saved',
-            'Saved',
+            $lang->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:saved.description'),
+            $lang->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:saved.title'),
             FlashMessage::OK,
             true
         );

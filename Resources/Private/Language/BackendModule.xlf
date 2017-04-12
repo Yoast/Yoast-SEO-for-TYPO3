@@ -51,6 +51,12 @@
 			<trans-unit id="focusKeyword">
 				<source>Focus keyword</source>
 			</trans-unit>
+			<trans-unit id="saved.title">
+				<source>Saved</source>
+			</trans-unit>
+			<trans-unit id="saved.description">
+				<source>The SEO information is saved</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>
