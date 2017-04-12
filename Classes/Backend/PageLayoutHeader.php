@@ -150,7 +150,8 @@ class PageLayoutHeader
                         'recordId' => $recordId,
                         'recordTable' => $tableName,
                         'targetElementId' => $targetElementId,
-                        'editable' => 0
+                        'editable' => 0,
+                        'disableSlug' => 1
                     )
                 )
                 . ';'

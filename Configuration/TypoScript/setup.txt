@@ -83,6 +83,24 @@ yoast_seo_preview {
         40.htmlSpecialChars = 1
         40.wrap = <locale>|</locale>
 
+        50 = TEXT
+        50 {
+            stdWrap.typolink {
+                parameter = #
+                returnLast = url
+                forceAbsoluteUrl = 0
+                useCacheHash = 1
+            }
+
+            htmlSpecialChars = 1
+
+            wrap = <slug>|</slug>
+        }
+
+        60 = TEXT
+        60.field = tx_realurl_pathsegment
+        60.wrap = <pathOverride>|</pathOverride>
+
         wrap = <meta>|</meta>
     }
 

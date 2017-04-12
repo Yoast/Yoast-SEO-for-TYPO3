@@ -6,6 +6,7 @@ use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Backend\View\BackendTemplateView;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Database\DatabaseConnection;
+use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
@@ -184,7 +185,8 @@ class ModuleController extends ActionController
                     'recordId' => '',
                     'recordTable' => '',
                     'targetElementId' => $targetElementId,
-                    'editable' => 1
+                    'editable' => 1,
+                    'disableSlug' => ExtensionManagementUtility::isLoaded('realurl') ? 0 : 1
                 )
             )
             . ';'
@@ -230,7 +232,12 @@ class ModuleController extends ActionController
         $this->addFieldToArray($fields, 'tx_yoastseo_canonical_url', 'canonical');
         $this->addFieldToArray($fields, 'tx_yoastseo_focuskeyword', 'focusKeyword');
 
+        if (ExtensionManagementUtility::isLoaded('realurl')) {
+            $this->addFieldToArray($fields, 'tx_realurl_pathsegment', 'snippet-editor-slug', ['/^\/|\/$/', '']);
+        }
+
         $table = 'pages';
+        $extraTableRecords = [];
         $recordId = $pageId;
 
         if ($languageId > 0) {
@@ -246,18 +253,37 @@ class ModuleController extends ActionController
                 $recordId = $overlayRecords[0]['uid'];
             }
 
+            if (array_key_exists('tx_realurl_pathsegment', $fields) && !empty($fields['tx_realurl_pathsegment'])) {
+                $extraTableRecords = [
+                    'pages' => [
+                        $pageId => [
+                            'tx_realurl_pathoverride' => 1
+                        ]
+                    ]
+                ];
+            }
+        } else {
+            if (array_key_exists('tx_realurl_pathsegment', $fields) && !empty($fields['tx_realurl_pathsegment'])) {
+                $fields['tx_realurl_pathoverride'] = 1;
+            }
         }
+
+
         $data = array(
             $table => array(
                 $recordId => $fields
-            )
+            ),
         );
 
-        $tce = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\DataHandling\\DataHandler');
+        if (!empty($extraTableRecords)) {
+            $data = array_merge($data, $extraTableRecords);
+        }
+
+        $tce = GeneralUtility::makeInstance(DataHandler::class);
         $tce->reverseOrder = 1;
         $tce->start($data, array());
         $tce->process_datamap();
-        \TYPO3\CMS\Backend\Utility\BackendUtility::setUpdateSignal('updatePageTree');
+        BackendUtility::setUpdateSignal('updatePageTree');
         $tce->clear_cacheCmd('pages');
 
         $lang = $this->getLanguageService();
@@ -284,20 +310,26 @@ class ModuleController extends ActionController
     }
 
     /**
-     * @param $fields
-     * @param $key
-     * @string $fieldName
+     * @param array $fields
+     * @param string $key
+     * @param string $fieldName
+     * @param array $replace
      *
      * @return void
      */
-    protected function addFieldToArray(&$fields, $key, $fieldName = null)
+    protected function addFieldToArray(&$fields, $key, $fieldName = null, $replace = [])
     {
         if ($fieldName === null) {
             $fieldName = $key;
         }
 
         if ($this->request->hasArgument($fieldName)) {
-            $fields[$key] = $this->request->getArgument($fieldName);
+            $value = $this->request->getArgument($fieldName);
+
+            if (!empty($replace)) {
+                $value = preg_replace($replace[0], $replace[1], $value);
+            }
+            $fields[$key] = $value;
         }
     }
 

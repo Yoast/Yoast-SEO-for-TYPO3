@@ -74,10 +74,11 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 data: {
                     title: $metaSection.find('title').text(),
                     metaDesc: $metaSection.find('description').text(),
+                    urlPath: $metaSection.find('pathOverride').text(),
                 },
-                baseURL: $metaSection.find('url').text(),
+                baseURL: $metaSection.find('url').text().replace($metaSection.find('slug').text(), '/'),
                 placeholder: {
-                    urlPath: ''
+                    urlPath: $metaSection.find('slug').text().replace(/^\/|\/$/g, '')
                 },
                 targetElement: $snippetPreview.get(0),
                 callbacks: {
@@ -166,7 +167,9 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 $(this).appendTo($prev);
             });
 
-            $snippetPreview.find('#snippet-editor-slug').parent().hide();
+            if (tx_yoast_seo.settings.disableSlug) {
+                $snippetPreview.find('#snippet-editor-slug').parent().hide();
+            }
 
             $snippetPreview.find('.snippet-editor__button').addClass('btn btn-default').removeClass('snippet-editor__button snippet-editor__edit-button snippet-editor__submit');
             app.refresh();
