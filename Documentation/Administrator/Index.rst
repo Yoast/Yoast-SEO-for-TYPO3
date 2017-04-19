@@ -46,3 +46,16 @@ If you use a specific page type for something like a print-only template you can
 .. code-block:: typoscript
 
     printPage.config.yoast_seo.enabled = 0
+
+By default, the snippet preview is only shown on pages with doktype 1 (Standard page) and 6 (Backend user section). You can
+add your own doktypes like the example below.
+
+.. code-block:: typoscript
+
+    module.tx_yoastseo {
+        settings {
+            allowedDoktypes {
+                blog = 137
+            }
+        }
+    }
