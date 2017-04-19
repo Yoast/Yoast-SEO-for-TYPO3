@@ -94,6 +94,8 @@
 .snippet-editor__container {
   position: relative;
   cursor: pointer; }
+  .snippet-editor__container.editable-preview__container--no-caret {
+    cursor: auto; }
 
 .snippet-editor__heading {
   padding: 8px 20px;
