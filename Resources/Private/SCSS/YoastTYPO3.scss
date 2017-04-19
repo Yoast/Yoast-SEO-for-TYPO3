@@ -96,6 +96,10 @@ $color_headings: #000;
 }
 
 .snippet_container {
+	.title {
+		white-space: nowrap;
+	}
+
 	.down_arrow {
 		display: none;
 	}

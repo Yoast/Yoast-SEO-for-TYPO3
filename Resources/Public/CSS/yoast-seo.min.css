@@ -716,6 +716,9 @@ button.yoast-tooltip {
     top: 16px;
     right: 20px; }
 
+.snippet_container .title {
+  white-space: nowrap; }
+
 .snippet_container .down_arrow {
   display: none; }
 
