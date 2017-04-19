@@ -130,6 +130,10 @@
 									<label for="canonical"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:canonical" /></label>
 									<f:form.textfield type="text" class="form-control" id="canonical" name="canonical" value="{page.tx_yoastseo_canonical_url}" />
 								</div>
+								<div class="form-group">
+									<label for="robotInstructions"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:robotInstructions" /></label>
+									<f:form.select class="form-control" id="robotInstructions" name="robotInstructions" value="{page.tx_yoastseo_robot_instructions}" options="{0: 'index, follow', 1: 'noindex, nofollow', 2: 'noindex, follow', 3: 'index, nofollow'}"/>
+								</div>
 							</div>
 						</div>
 					</div>

@@ -231,6 +231,7 @@ class ModuleController extends ActionController
         $this->addFieldToArray($fields, 'tx_yoastseo_twitter_title', 'twitterTitle');
         $this->addFieldToArray($fields, 'tx_yoastseo_twitter_description', 'twitterDescription');
         $this->addFieldToArray($fields, 'tx_yoastseo_canonical_url', 'canonical');
+        $this->addFieldToArray($fields, 'tx_yoastseo_robot_instructions', 'robotInstructions');
         $this->addFieldToArray($fields, 'tx_yoastseo_focuskeyword', 'focusKeyword');
 
         if (ExtensionManagementUtility::isLoaded('realurl')) {

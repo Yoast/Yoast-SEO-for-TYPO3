@@ -1,0 +1,20 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" data-namespace-typo3-fluid="true">
+	<f:switch expression="{data.tx_yoastseo_robot_instructions}">
+		<f:case value="1">
+			<f:render section="meta" arguments="{content: 'noindex,nofollow'}" />
+		</f:case>
+		<f:case value="2">
+			<f:render section="meta" arguments="{content: 'noindex,follow'}" />
+		</f:case>
+		<f:case value="3">
+			<f:render section="meta" arguments="{content: 'index,nofollow'}" />
+		</f:case>
+		<f:case default="true">
+			<f:render section="meta" arguments="{content: 'index,follow'}" />
+		</f:case>
+	</f:switch>
+
+	<f:section name="meta">
+		<meta name="robots" content="{content}" />
+	</f:section>
+</html>

@@ -8,6 +8,12 @@
                 'type' => 'input'
             )
         ),
+        'tx_yoastseo_canonical_url' => array(
+            'label' => 'Canonical URL',
+            'config' => array(
+                'type' => 'input'
+            )
+        ),
         'tx_yoastseo_facebook_title' => array(
             'label' => 'Facebook title',
             'config' => array(
@@ -18,6 +24,18 @@
             'label' => 'Facebook description',
             'config' => array(
                 'type' => 'input'
+            )
+        ),
+        'tx_yoastseo_robot_instructions' => array(
+            'label' => 'Robot instructions',
+            'config' => array(
+                'type' => 'select',
+                'items' => array(
+                    array('index, follow', 0),
+                    array('noindex, nofollow', 1),
+                    array('noindex, follow', 2),
+                    array('index, nofollow', 3),
+                )
             )
         ),
         'tx_yoastseo_facebook_image' => array(
@@ -121,7 +139,7 @@
     'pages_language_overlay',
     'metatags',
     '
-    --linebreak--, tx_yoastseo_focuskeyword,
+    --linebreak--, tx_yoastseo_focuskeyword, tx_yoastseo_canonical_url, tx_yoastseo_robot_instructions,
      --linebreak--, tx_yoastseo_facebook_title, 
      --linebreak--, tx_yoastseo_facebook_description, 
      --linebreak--, tx_yoastseo_facebook_image,

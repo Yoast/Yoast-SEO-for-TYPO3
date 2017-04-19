@@ -75,6 +75,9 @@
 			<trans-unit id="canonical">
 				<target>Canonieke URL</target>
 			</trans-unit>
+			<trans-unit id="robotInstructions">
+				<target>Robot instructies</target>
+			</trans-unit>
 			<trans-unit id="analysis">
 				<target>Analyse</target>
 			</trans-unit>

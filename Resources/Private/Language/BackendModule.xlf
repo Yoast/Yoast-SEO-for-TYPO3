@@ -75,6 +75,9 @@
 			<trans-unit id="canonical">
 				<source>Canonical URL</source>
 			</trans-unit>
+			<trans-unit id="robotInstructions">
+				<source>Robot instructions</source>
+			</trans-unit>
 			<trans-unit id="analysis">
 				<source>Analysis</source>
 			</trans-unit>
