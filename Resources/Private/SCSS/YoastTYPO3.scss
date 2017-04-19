@@ -215,3 +215,12 @@ progress {
 		  transform: scale(1.0);
 	  }
 }
+
+.form-group__focusKeyword {
+	display: none;
+	margin-top: 15px;
+}
+
+.form-group__focusKeyword--open {
+	display: block;
+}

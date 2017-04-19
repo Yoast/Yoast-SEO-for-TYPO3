@@ -7,9 +7,11 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
     var buildYoastPanelMarkup = function (elementIdPrefix, type) {
         var focusKeyword = '';
+        var focusKeywordField = '';
 
         if (type == 'seo') {
-            focusKeyword = '<span class="yoastPanel__focusKeyword" data-panel-focus-keyword></span>';
+            focusKeyword = '<span class="yoastPanel__focusKeyword" data-panel-focus-keyword>' + tx_yoast_seo.settings.focusKeyword + '</span>';
+            focusKeywordField = '<div class="form-group form-group__focusKeyword" data-panel-focus-keyword-field><label for="' + elementIdPrefix + '_focusKeyword">' + tx_yoast_seo.settings.focusKeywordLabel + '</label><input type="text" class="form-control" value="' + tx_yoast_seo.settings.focusKeyword + '" id="' + elementIdPrefix+ '_focusKeyword" name="tx_yoastseo_help_yoastseoseoplugin[focusKeyword]" /></div>';
         }
 
         if (tx_yoast_seo.settings.editable == 0) {
@@ -30,6 +32,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 + focusKeyword
                 + '<span class="fa fa-chevron-down"></span>'
                 + '</h3>'
+                + focusKeywordField
                 + '<div id="' + elementIdPrefix + '_' + type + '_panel_content" data-panel-content class="yoastPanel__content"></div>'
                 + '</div>';
         }
@@ -38,9 +41,6 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
     // make sure the document is ready before we interact with the DOM
     // use the jQuery (ready) callback
     $(function () {
-        var $focusKeywordElement = $('#focusKeyword');
-        $focusKeywordElement.val(tx_yoast_seo.settings.focusKeyword);
-
         var $targetElement = $('#' + tx_yoast_seo.settings.targetElementId);
 
         previewRequest.done(function (previewDocument) {
@@ -70,6 +70,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 pageContent += element.textContent;
             });
 
+            var $focusKeywordElement = $('#' + tx_yoast_seo.settings.targetElementId + '_focusKeyword');
             var snippetPreview = new YoastSEO.SnippetPreview({
                 data: {
                     title: $metaSection.find('title').text(),
@@ -85,11 +86,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 }
             });
 
-            $focusKeywordElement.on( "keyup", snippetPreview.changedInput.bind( snippetPreview ) );
-            $focusKeywordElement.on( "keydown", snippetPreview.changedInput.bind( snippetPreview ) );
-            $focusKeywordElement.on( "input", snippetPreview.changedInput.bind( snippetPreview ) );
-            $focusKeywordElement.on( "focus", snippetPreview.changedInput.bind( snippetPreview ) );
-            $focusKeywordElement.on( "blur", snippetPreview.changedInput.bind( snippetPreview ) );
+            $focusKeywordElement.on('input', snippetPreview.changedInput.bind( snippetPreview ) );
 
             var app = new YoastSEO.App({
                 snippetPreview: snippetPreview,
@@ -110,25 +107,11 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                         $seoPanel.find('.wpseo-score-icon').first().addClass(YoastSEO.scoreToRating(score / 10));
 
                         if (tx_yoast_seo.settings.editable == 1) {
-
-                            var focusKeywordInputField = '<div class="form-group"><label for="' + tx_yoast_seo.settings.targetElementId + '_focusKeyword">' + tx_yoast_seo.settings.focusKeywordLabel + '</label><input type="text" class="form-control" value="' + $focusKeywordElement.val() + '" id="' + tx_yoast_seo.settings.targetElementId + '_focusKeyword" name="tx_yoastseo_help_yoastseoseoplugin[focusKeyword]" /></div>';
-                            var $focusKeywordInputContainer = $seoPanel.find('#' + tx_yoast_seo.settings.targetElementId + '_seo_panel_content');
-
-                            $focusKeywordInputContainer.prepend(focusKeywordInputField);
-                            $seoPanel.find('#' + tx_yoast_seo.settings.targetElementId + '_focusKeyword').on('input keyup keydown blur', function() {
-                                $focusKeywordElement.val($(this).val());
-                                $focusKeywordElement.trigger('input');
-                            })
-
-                            if ($focusKeywordElement.val() != tx_yoast_seo.settings.focusKeyword) {
-                                var $el = $seoPanel.find('#' + tx_yoast_seo.settings.targetElementId + '_focusKeyword');
-                                var value = $el.val();
-                                $el.focus().val('').val(value);
-                            }
                             $seoPanel.find('[data-panel-focus-keyword]').text($focusKeywordElement.val());
                             $seoPanel.find('.fa-chevron-down').addClass('fa-chevron-up').removeClass('fa-chevron-down');
                             $seoPanel.find('.snippet-editor__heading').addClass('snippet-editor__heading--active');
                             $seoPanel.find('[data-panel-content]').addClass('yoastPanel__content--open');
+                            $seoPanel.find('[data-panel-focus-keyword-field]').addClass('form-group__focusKeyword--open');
                         }
                     },
                     saveContentScore: function (score) {
@@ -180,6 +163,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 $panel.find('.fa-chevron-down, .fa-chevron-up').toggleClass('fa-chevron-down fa-chevron-up');
                 $panel.find('.snippet-editor__heading').toggleClass('snippet-editor__heading--active');
                 $panel.find('[data-panel-content]').toggleClass('yoastPanel__content--open');
+                $panel.find('[data-panel-focus-keyword-field]').toggleClass('form-group__focusKeyword--open');
             });
 
             // due to the wacky workaround in typo3_src-7.6.11/typo3/sysext/backend/Resources/Public/JavaScript/PageActions.js:143
