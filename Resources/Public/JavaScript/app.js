@@ -21,6 +21,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 + '<span class="yoastPanel__title" data-panel-title>' + type + '</span>'
                 + focusKeyword
                 + '</h3>'
+                + focusKeywordField
                 + '<div id="' + elementIdPrefix + '_' + type + '_panel_content" data-panel-content class="yoastPanel__content"></div>'
                 + '</div>';
 
