@@ -736,7 +736,7 @@ button.yoast-tooltip {
     display: none; }
 
 .seoPanel .yoastPanel__title:after {
-  content: ': '; }
+  content: ' '; }
 
 .seoPanel .yoastPanel__focusKeyword {
   margin-left: 4px;
