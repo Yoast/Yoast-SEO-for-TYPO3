@@ -1,10 +1,14 @@
 <?php
 namespace YoastSeoForTypo3\YoastSeo\Frontend\PageRenderer;
 
-use TYPO3\CMS;
+use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Core\TypoScript\TemplateService;
+use TYPO3\CMS\Extbase\Reflection\ObjectAccess;
+use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
+use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use YoastSeoForTypo3\YoastSeo;
 
-class PageMetaRenderer implements CMS\Core\SingletonInterface
+class PageMetaRenderer implements SingletonInterface
 {
 
     /**
@@ -24,25 +28,13 @@ class PageMetaRenderer implements CMS\Core\SingletonInterface
          * The content object renderer of TSFE is used to render FLUIDTEMPLATE
          * after `plugin.tx_yoastseo.settings` is merged with `plugin.tx_yoastseo.view.settings`
          */
-        if ($GLOBALS['TSFE'] instanceof CMS\Frontend\Controller\TypoScriptFrontendController
+        if ($GLOBALS['TSFE'] instanceof TypoScriptFrontendController
             && is_array($GLOBALS['TSFE']->config)
-            && array_key_exists('config', $GLOBALS['TSFE']->config)
-            && is_array($GLOBALS['TSFE']->config['config'])
-            && array_key_exists('yoast_seo.', $GLOBALS['TSFE']->config['config'])
-            && is_array($GLOBALS['TSFE']->config['config']['yoast_seo.'])
-            && array_key_exists('enabled', $GLOBALS['TSFE']->config['config']['yoast_seo.'])
-            && !empty($GLOBALS['TSFE']->config['config']['yoast_seo.']['enabled'])
-            && $GLOBALS['TSFE']->tmpl instanceof CMS\Core\TypoScript\TemplateService
-            && is_array($GLOBALS['TSFE']->tmpl->setup)
-            && array_key_exists('plugin.', $GLOBALS['TSFE']->tmpl->setup)
-            && is_array($GLOBALS['TSFE']->tmpl->setup['plugin.'])
-            && array_key_exists('tx_yoastseo.', $GLOBALS['TSFE']->tmpl->setup['plugin.'])
-            && is_array($GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_yoastseo.'])
-            && array_key_exists('view.', $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_yoastseo.'])
-            && is_array($GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_yoastseo.']['view.'])
-            && array_key_exists('settings.', $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_yoastseo.'])
-            && is_array($GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_yoastseo.']['settings.'])
-            && $GLOBALS['TSFE']->cObj instanceof CMS\Frontend\ContentObject\ContentObjectRenderer
+            && ObjectAccess::getPropertyPath($GLOBALS['TSFE']->config, 'config.yoast_seo.enabled') !== null
+            && $GLOBALS['TSFE']->tmpl instanceof TemplateService
+            && ObjectAccess::getPropertyPath($GLOBALS['TSFE']->tmpl->setup, 'plugin.tx_yoastseo.settings') !== null
+            && ObjectAccess::getPropertyPath($GLOBALS['TSFE']->tmpl->setup, 'plugin.tx_yoastseo.view') !== null
+            && $GLOBALS['TSFE']->cObj instanceof ContentObjectRenderer
         ) {
             $parameters['metaTags'][] = $GLOBALS['TSFE']->cObj->cObjGetSingle(
                 'FLUIDTEMPLATE',
