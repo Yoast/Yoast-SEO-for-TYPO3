@@ -53,6 +53,10 @@ yoast_seo_preview {
             10 {
                 header = Content-type: text/xml; charset=UTF-8
             }
+
+            20 {
+                header = Access-Control-Allow-Origin: *
+            }
         }
     }
 

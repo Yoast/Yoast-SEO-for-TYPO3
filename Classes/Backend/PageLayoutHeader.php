@@ -103,8 +103,9 @@ class PageLayoutHeader
 
             $recordId = $currentPage['uid'];
 
+            $domain = CMS\Backend\Utility\BackendUtility::getViewDomain($currentPage['uid']);
             $previewDataUrl = vsprintf(
-                '/index.php?id=%d&type=%d&L=%d',
+                $domain . '/index.php?id=%d&type=%d&L=%d',
                 array(
                     $pageLayoutController->id,
                     self::FE_PREVIEW_TYPE,
