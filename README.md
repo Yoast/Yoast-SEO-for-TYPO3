@@ -5,10 +5,8 @@ This plugin integrates text analysis and assessment from [YoastSEO.js](https://g
 You can easily install the plugin with [Composer](https://getcomposer.org/). Just use the following command in the root of your project:  
 
 ```bash
-composer require yoast-seo-for-typo3/yoast_seo:dev-master
+composer require yoast-seo-for-typo3/yoast_seo
 ```
-
-While this plugin is still in beta-phase, please be aware that it is not recommended for use in a production environment.
 
 ## Configuration
 There is no need for configuration although it is recommended to remove all other SEO related plugins creating metatags in frontend.
