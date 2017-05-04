@@ -46,6 +46,7 @@ yoast_seo_preview {
     typeNum = {$config.yoast_seo.fe_preview_type}
     config {
         disableAllHeaderCode = 1
+        absRefPrefix = /
 
         no_cache = 1
 
