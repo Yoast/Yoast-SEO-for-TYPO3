@@ -272,7 +272,7 @@ class PageLayoutHeader
         $configurationManager =  CMS\Core\Utility\GeneralUtility::makeInstance(CMS\Extbase\Configuration\ConfigurationManager::class);
         $configuration = $configurationManager->getConfiguration(CMS\Extbase\Configuration\ConfigurationManagerInterface::CONFIGURATION_TYPE_SETTINGS, 'yoastseo');
 
-        if (is_array($configuration) && array_key_exists('allowedDoktype', $configuration)
+        if (is_array($configuration) && array_key_exists('allowedDoktypes', $configuration)
         ) {
             foreach ($configuration['allowedDoktypes'] as $key => $doktype) {
                 if (!in_array($doktype, $allowedDoktypes)) {
