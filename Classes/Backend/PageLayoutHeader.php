@@ -268,8 +268,10 @@ class PageLayoutHeader
     {
         $allowedDoktypes = [1];     // By default only add normal pages
 
+        /** @var CMS\Extbase\Object\ObjectManager $objectManager */
+        $objectManager = CMS\Core\Utility\GeneralUtility::makeInstance(CMS\Extbase\Object\ObjectManager::class);
         /** @var CMS\Extbase\Configuration\ConfigurationManager $configurationManager */
-        $configurationManager =  CMS\Core\Utility\GeneralUtility::makeInstance(CMS\Extbase\Configuration\ConfigurationManager::class);
+        $configurationManager = $objectManager->get(CMS\Extbase\Configuration\ConfigurationManager::class);
         $configuration = $configurationManager->getConfiguration(CMS\Extbase\Configuration\ConfigurationManagerInterface::CONFIGURATION_TYPE_SETTINGS, 'yoastseo');
 
         if (is_array($configuration) && array_key_exists('allowedDoktypes', $configuration)
