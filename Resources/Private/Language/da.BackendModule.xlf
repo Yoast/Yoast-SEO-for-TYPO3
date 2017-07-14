@@ -117,7 +117,7 @@
 			</trans-unit>
 			<trans-unit id="focusKeyword">
 				<source>Focus keyword</source>
-				<target state="translated">Fokus nøgleord</target>
+				<target state="translated">Fokussøgeord</target>
 			</trans-unit>
 			<trans-unit id="saved.title">
 				<source>Saved</source>
