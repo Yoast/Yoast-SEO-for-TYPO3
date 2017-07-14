@@ -18,6 +18,7 @@
             'label' => 'Robot instructions',
             'config' => array(
                 'type' => 'select',
+                'renderType' => 'selectSingle',
                 'items' => array(
                     array('index, follow', 0),
                     array('noindex, nofollow', 1),
