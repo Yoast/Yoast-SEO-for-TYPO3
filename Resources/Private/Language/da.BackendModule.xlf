@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" target-language="da" datatype="plaintext" original="messages" date="2014-05-02T12:00:00Z" product-name="yoastseo">
+		<header/>
+		<body>
+			<trans-unit id="mlang_tabs_tab">
+				<source>Yoast SEO</source>
+				<target state="translated">Yoast SEO</target>
+			</trans-unit>
+			<trans-unit id="mlang_labels_tabdescr">
+				<source>The first true all-in-one SEO solution for TYPO3, including on-page content analysis</source>
+				<target state="translated">Den første ægte all-in-one SEO-løsning til TYPO3, med on-page indholdsanalyse</target>
+			</trans-unit>
+			<trans-unit id="mlang_labels_tablabel">
+				<source>Yoast SEO Analysis</source>
+				<target state="translated">Yoast SEO analyse</target>
+			</trans-unit>
+			<trans-unit id="noPageSelected.title">
+				<source>No page selected</source>
+				<target state="translated">Ingen side valgt</target>
+			</trans-unit>
+			<trans-unit id="noPageSelected.description">
+				<source>Please select a page to edit the SEO properties</source>
+				<target state="translated">Vælg venligst en side for at redigere SEO indstillinger</target>
+			</trans-unit>
+			<trans-unit id="facebook">
+				<source>Facebook</source>
+				<target state="translated">Facebook</target>
+			</trans-unit>
+			<trans-unit id="facebook.title">
+				<source>Title</source>
+				<target state="translated">Titel</target>
+			</trans-unit>
+			<trans-unit id="facebook.description">
+				<source>Description</source>
+				<target state="translated">Beskrivelse</target>
+			</trans-unit>
+			<trans-unit id="facebook.image">
+				<source>Image</source>
+				<target state="translated">Billede</target>
+			</trans-unit>
+			<trans-unit id="facebook.image.new">
+				<source>New image</source>
+				<target state="translated">Nyt billede</target>
+			</trans-unit>
+			<trans-unit id="facebook.image.newDescription">
+				<source>Upload a new image to show on a Facebook post</source>
+				<target state="translated">Upload et nyt billede det skal vises på et Facebook indlæg</target>
+			</trans-unit>
+			<trans-unit id="facebook.image.delete">
+				<source>Remove current image</source>
+				<target state="translated">Fjern aktuelle billede</target>
+			</trans-unit>
+			<trans-unit id="facebook.image.deleteDescription">
+				<source>Remove the current image</source>
+				<target state="translated">Fjern det aktuelle billede</target>
+			</trans-unit>
+			<trans-unit id="facebook.image.no">
+				<source>No image set</source>
+				<target state="translated">Intet billede angivet</target>
+			</trans-unit>
+			<trans-unit id="twitter">
+				<source>Twitter</source>
+				<target state="translated">Twitter</target>
+			</trans-unit>
+			<trans-unit id="twitter.title">
+				<source>Title</source>
+				<target state="translated">Titel</target>
+			</trans-unit>
+			<trans-unit id="twitter.description">
+				<source>Description</source>
+				<target state="translated">Beskrivelse</target>
+			</trans-unit>
+			<trans-unit id="twitter.image">
+				<source>Image</source>
+				<target state="translated">Billede</target>
+			</trans-unit>
+			<trans-unit id="twitter.image.new">
+				<source>New image</source>
+				<target state="translated">Nyt billede</target>
+			</trans-unit>
+			<trans-unit id="twitter.image.newDescription">
+				<source>Upload a new image to show on a Twitter card</source>
+				<target state="translated">Upload et nyt billede det skal vises på et Twitter card</target>
+			</trans-unit>
+			<trans-unit id="twitter.image.delete">
+				<source>Remove current image</source>
+				<target state="translated">Fjern aktuelle billede</target>
+			</trans-unit>
+			<trans-unit id="twitter.image.deleteDescription">
+				<source>Remove the current image</source>
+				<target state="translated">Fjern det aktuelle billede</target>
+			</trans-unit>
+			<trans-unit id="twitter.image.no">
+				<source>No image set</source>
+				<target state="translated">Intet billede anivet</target>
+			</trans-unit>
+			<trans-unit id="canonical">
+				<source>Canonical URL</source>
+				<target state="translated">Canonical URL</target>
+			</trans-unit>
+			<trans-unit id="robotInstructions">
+				<source>Robot instructions</source>
+				<target state="translated">Robot instruktioner</target>
+			</trans-unit>
+			<trans-unit id="analysis">
+				<source>Analysis</source>
+				<target state="translated">Analyser</target>
+			</trans-unit>
+			<trans-unit id="social">
+				<source>Social</source>
+				<target state="translated">Social</target>
+			</trans-unit>
+			<trans-unit id="advanced">
+				<source>Advanced</source>
+				<target state="translated">Avanceret</target>
+			</trans-unit>
+			<trans-unit id="focusKeyword">
+				<source>Focus keyword</source>
+				<target state="translated">Fokussøgeord</target>
+			</trans-unit>
+			<trans-unit id="saved.title">
+				<source>Saved</source>
+				<target state="translated">Gemt</target>
+			</trans-unit>
+			<trans-unit id="saved.description">
+				<source>The SEO information is saved</source>
+				<target state="translated">SEO informationerne er gemt</target>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>
