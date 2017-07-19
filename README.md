@@ -1,4 +1,9 @@
 # Yoast SEO for TYPO3
+======================
+
+[![Stable Version](https://poser.pugx.org/yoast-seo-for-typo3/yoast_seo/v/stable.svg)](https://packagist.org/packages/yoast-seo-for-typo3/yoast_seo)
+[![License](https://poser.pugx.org/yoast-seo-for-typo3/yoast_seo/license.svg)](https://packagist.org/packages/yoast-seo-for-typo3/yoast_seo)
+
 This plugin integrates text analysis and assessment from [YoastSEO.js](https://github.com/Yoast/YoastSEO.js). Content analysis can generate interesting metrics about a text and give you an assessment which can be used to improve the text.
 
 ## Installation
