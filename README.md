@@ -1,4 +1,4 @@
-# Yoast SEO for TYPO3
+Yoast SEO for TYPO3
 ======================
 
 [![Stable Version](https://poser.pugx.org/yoast-seo-for-typo3/yoast_seo/v/stable.svg)](https://packagist.org/packages/yoast-seo-for-typo3/yoast_seo)
