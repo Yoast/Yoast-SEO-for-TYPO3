@@ -11,6 +11,7 @@ use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Page\PageRenderer;
+use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
@@ -253,23 +254,26 @@ class ModuleController extends ActionController
             if (array_key_exists('tmp_name', $twitterImage) && !empty($twitterImage['tmp_name'])) {
                 $resourceFactory = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
                 $storage = $resourceFactory->getDefaultStorage();
-                $newFile = $storage->addFile(
-                    $twitterImage['tmp_name'],
-                    $storage->getDefaultFolder(),
-                    $twitterImage['name']
-                );
 
-                $newId = 'NEW1234';
-                $extraTableRecords['sys_file_reference'][$newId] = [
-                    'table_local' => 'sys_file',
-                    'uid_local' => $newFile->getUid(),
-                    'tablenames' => 'pages',
-                    'uid_foreign' => $pageId,
-                    'fieldname' => 'tx_yoastseo_twitter_image',
-                    'pid' => $pageId
-                ];
+                if ($storage instanceof ResourceStorage) {
+                    $newFile = $storage->addFile(
+                        $twitterImage['tmp_name'],
+                        $storage->getDefaultFolder(),
+                        $twitterImage['name']
+                    );
 
-                $extraTableRecords['pages'][$pageId]['tx_yoastseo_twitter_image'] = $newId;
+                    $newId = 'NEW1234';
+                    $extraTableRecords['sys_file_reference'][$newId] = [
+                        'table_local' => 'sys_file',
+                        'uid_local' => $newFile->getUid(),
+                        'tablenames' => 'pages',
+                        'uid_foreign' => $pageId,
+                        'fieldname' => 'tx_yoastseo_twitter_image',
+                        'pid' => $pageId
+                    ];
+
+                    $extraTableRecords['pages'][$pageId]['tx_yoastseo_twitter_image'] = $newId;
+                }
             }
         }
 
@@ -283,23 +287,26 @@ class ModuleController extends ActionController
             if (array_key_exists('tmp_name', $facebookImage) && !empty($facebookImage['tmp_name'])) {
                 $resourceFactory = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
                 $storage = $resourceFactory->getDefaultStorage();
-                $newFile = $storage->addFile(
-                    $facebookImage['tmp_name'],
-                    $storage->getDefaultFolder(),
-                    $facebookImage['name']
-                );
 
-                $newId = 'NEW1234';
-                $extraTableRecords['sys_file_reference'][$newId] = [
-                    'table_local' => 'sys_file',
-                    'uid_local' => $newFile->getUid(),
-                    'tablenames' => 'pages',
-                    'uid_foreign' => $pageId,
-                    'fieldname' => 'tx_yoastseo_facebook_image',
-                    'pid' => $pageId
-                ];
+                if ($storage instanceof ResourceStorage) {
+                    $newFile = $storage->addFile(
+                        $facebookImage['tmp_name'],
+                        $storage->getDefaultFolder(),
+                        $facebookImage['name']
+                    );
 
-                $extraTableRecords['pages'][$pageId]['tx_yoastseo_facebook_image'] = $newId;
+                    $newId = 'NEW1234';
+                    $extraTableRecords['sys_file_reference'][$newId] = [
+                        'table_local' => 'sys_file',
+                        'uid_local' => $newFile->getUid(),
+                        'tablenames' => 'pages',
+                        'uid_foreign' => $pageId,
+                        'fieldname' => 'tx_yoastseo_facebook_image',
+                        'pid' => $pageId
+                    ];
+
+                    $extraTableRecords['pages'][$pageId]['tx_yoastseo_facebook_image'] = $newId;
+                }
             }
         }
 
