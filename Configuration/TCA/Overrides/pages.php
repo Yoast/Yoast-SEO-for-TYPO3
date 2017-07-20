@@ -8,6 +8,12 @@
                 'type' => 'input'
             )
         ),
+        'tx_yoastseo_title' => array(
+            'label' => 'SEO title',
+            'config' => array(
+                'type' => 'input'
+            )
+        ),
         'tx_yoastseo_canonical_url' => array(
             'label' => 'Canonical URL',
             'config' => array(
@@ -140,7 +146,7 @@
     'pages',
     'metatags',
     '
-    --linebreak--, tx_yoastseo_focuskeyword, tx_yoastseo_canonical_url, tx_yoastseo_robot_instructions,
+    --linebreak--, tx_yoastseo_title, tx_yoastseo_focuskeyword, tx_yoastseo_canonical_url, tx_yoastseo_robot_instructions,
     --linebreak--, tx_yoastseo_facebook_title, 
     --linebreak--, tx_yoastseo_facebook_description, 
     --linebreak--, tx_yoastseo_facebook_image, 
