@@ -249,7 +249,7 @@ class ModuleController extends ActionController
         $languageId = (int)$this->request->getArgument('language');
 
         $fields = array();
-        $this->addFieldToArray($fields, 'title', 'snippet-editor-title');
+        $this->addFieldToArray($fields, 'tx_yoastseo_title', 'snippet-editor-title');
         $this->addFieldToArray($fields, 'description', 'snippet-editor-meta-description');
         $this->addFieldToArray($fields, 'tx_yoastseo_facebook_title', 'facebookTitle');
         $this->addFieldToArray($fields, 'tx_yoastseo_facebook_description', 'facebookDescription');

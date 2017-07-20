@@ -80,7 +80,7 @@ yoast_seo_preview {
         }
 
         20 = TEXT
-        20.field = title
+        20.field = tx_yoastseo_title // title
         20.wrap = <title><![CDATA[|]]></title>
 
         30 = TEXT
