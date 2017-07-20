@@ -28,19 +28,19 @@
 				<target>Bild</target>
 			</trans-unit>
 			<trans-unit id="facebook.image.new">
-				<target>Neues bild</target>
+				<target>Neues Bild</target>
 			</trans-unit>
 			<trans-unit id="facebook.image.newDescription">
-				<target>Laden sie ein neues bild für ein Facebook post</target>
+				<target>Laden sie ein neues Bild für ein Facebook post</target>
 			</trans-unit>
 			<trans-unit id="facebook.image.delete">
 				<target>Löschen</target>
 			</trans-unit>
 			<trans-unit id="facebook.image.deleteDescription">
-				<target>Löschen aktuelles bild</target>
+				<target>Löschen aktuelles Bild</target>
 			</trans-unit>
 			<trans-unit id="facebook.image.no">
-				<target>Kein bild</target>
+				<target>Kein Bild</target>
 			</trans-unit>
 			<trans-unit id="twitter">
 				<target>Twitter</target>
@@ -55,19 +55,19 @@
 				<target>Bild</target>
 			</trans-unit>
 			<trans-unit id="twitter.image.new">
-				<target>Neues bild</target>
+				<target>Neues Bild</target>
 			</trans-unit>
 			<trans-unit id="twitter.image.newDescription">
-				<target>Laden sie ein neues bild für eine Twitter karte</target>
+				<target>Laden sie ein neues Bild für eine Twitter karte</target>
 			</trans-unit>
 			<trans-unit id="twitter.image.delete">
 				<target>Löschen</target>
 			</trans-unit>
 			<trans-unit id="twitter.image.deleteDescription">
-				<target>Löschen aktuelles bild</target>
+				<target>Löschen aktuelles Bild</target>
 			</trans-unit>
 			<trans-unit id="twitter.image.no">
-				<target>Kein bild</target>
+				<target>Kein Bild</target>
 			</trans-unit>
 			<trans-unit id="canonical">
 				<target>Canonical URL</target>
@@ -91,7 +91,7 @@
 				<target>Gespeichert</target>
 			</trans-unit>
 			<trans-unit id="saved.description">
-				<target>Die SEO-informationen sind gespeichert</target>
+				<target>Die SEO-Informationen sind gespeichert</target>
 			</trans-unit>
 		</body>
 	</file>
