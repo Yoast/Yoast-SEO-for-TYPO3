@@ -3,11 +3,11 @@
 if (TYPO3_MODE === 'BE') {
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
         'YoastSeoForTypo3.' . $_EXTKEY,
-        'help',
+        'web',
         'seo_plugin',
         '',
         array(
-            'Module' => 'edit, save',
+            'Module' => 'edit, dashboard, save, settings, saveSettings',
         ),
         array(
             'access' => 'user,group',

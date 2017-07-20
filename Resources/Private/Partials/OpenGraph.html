@@ -1,4 +1,4 @@
-<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" data-namespace-typo3-fluid="true">
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" xmlns:yoast="http://typo3.org/ns/YoastSeoForTypo3/YoastSeo/ViewHelpers" data-namespace-typo3-fluid="true">
     <f:if condition="{data.tx_yoastseo_facebook_title}">
         <f:then>
             <meta property="og:title" content="{data.tx_yoastseo_facebook_title}">
@@ -20,9 +20,16 @@
         </f:else>
     </f:if>
 
-    <f:for each="{openGraphImages}" as="openGraphImage" iteration="iteration">
-        <f:if condition="{iteration.cycle} <= {settings.og.image.count}">
-            <meta property="og:image" content="{f:uri.image(image: openGraphImage, width: settings.og.image.width, height: settings.og.image.height, absolute: 1)}">
-        </f:if>
-    </f:for>
+    <f:if condition="{openGraphImages}">
+        <f:then>
+            <f:for each="{openGraphImages}" as="openGraphImage" iteration="iteration">
+                <f:if condition="{iteration.cycle} <= {settings.og.image.count}">
+                    <meta property="og:image" content="{f:uri.image(image: openGraphImage, width: settings.og.image.width, height: settings.og.image.height, absolute: 1)}">
+                </f:if>
+            </f:for>
+        </f:then>
+        <f:else>
+            <meta property="og:image" content="{f:uri.image(src: '{yoast:socialMediaImage(uid: \'0\', field: \'tx_yoastseo_settings_facebook_image\', table: \'tx_yoastseo_settings\')}', treatIdAsReference: 1, width: settings.og.image.width, height: settings.og.image.height, absolute: 1)}">
+        </f:else>
+    </f:if>
 </html>

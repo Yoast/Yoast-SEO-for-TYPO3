@@ -728,21 +728,23 @@ button.yoast-tooltip {
   max-width: 100%; }
 
 .snippet-editor__preview {
-  max-width: 100%;
-  padding: 5px 20px 0px; }
+  max-width: 100%; }
   .snippet-editor__preview .snippet-editor__container {
     max-width: 640px; }
+
+.down_arrow {
+  display: none !important; }
 
 #snippet_preview {
   border-radius: 0;
   border: 0; }
 
 .yoastSeo--small .snippet-editor__preview {
-  padding: 15px; }
+  padding: 0px; }
 
-.yoastSeo.yoastSeo--small #snippet_preview {
-  border: 1px solid #cdcdcd;
-  background-color: #fff; }
+.yoastSeo--large .snippet-editor__view {
+  padding: 15px;
+  border: 1px solid #cccccc; }
 
 .yoastSeo--small .snippet-editor__container {
   cursor: default; }
@@ -762,6 +764,9 @@ button.yoast-tooltip {
     position: absolute;
     top: 16px;
     right: 20px; }
+
+.yoastSeo--small .yoastPanel {
+  padding: 15px; }
 
 .snippet_container .title {
   white-space: nowrap; }
@@ -815,6 +820,9 @@ progress {
 
 .snippet-editor__view-toggle {
   display: none; }
+
+.snippet-editor__form {
+  padding: 20px 0; }
 
 .yoastSeo--small .snippet-editor__form {
   display: none; }

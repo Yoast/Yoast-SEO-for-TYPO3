@@ -175,11 +175,11 @@ class PageLayoutHeader
             $returnUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl('web_layout', array('id' => (int) $pageLayoutController->id));
 
             $parameters = array(
-                'tx_yoastseo_help_yoastseoseoplugin[id]' => (int) $pageLayoutController->id,
-                'tx_yoastseo_help_yoastseoseoplugin[language]' => (int) $pageLayoutController->current_sys_language,
-                'tx_yoastseo_help_yoastseoseoplugin[returnUrl]' => rawurlencode($returnUrl)
+                'tx_yoastseo_web_yoastseoseoplugin[id]' => (int) $pageLayoutController->id,
+                'tx_yoastseo_web_yoastseoseoplugin[language]' => (int) $pageLayoutController->current_sys_language,
+                'tx_yoastseo_web_yoastseoseoplugin[returnUrl]' => rawurlencode($returnUrl)
             );
-            $seoUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl('help_YoastSeoSeoPlugin', $parameters);
+            $seoUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl('web_YoastSeoSeoPlugin', $parameters);
 
             return '<div class="t3-page-column-header">
                     <div class="t3-page-column-header-icons btn-group btn-group-sm">

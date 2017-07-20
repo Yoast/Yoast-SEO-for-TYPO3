@@ -2,10 +2,12 @@
 namespace YoastSeoForTypo3\YoastSeo\Frontend\PageRenderer;
 
 use TYPO3\CMS\Core\SingletonInterface;
-use TYPO3\CMS\Core\TypoScript\TemplateService;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Configuration\ConfigurationManager;
+use TYPO3\CMS\Extbase\Object\ObjectManager;
 use TYPO3\CMS\Extbase\Reflection\ObjectAccess;
+use TYPO3\CMS\Extbase\Service\TypoScriptService;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use YoastSeoForTypo3\YoastSeo;
 
 class PageMetaRenderer implements SingletonInterface
@@ -28,12 +30,19 @@ class PageMetaRenderer implements SingletonInterface
          * The content object renderer of TSFE is used to render FLUIDTEMPLATE
          * after `plugin.tx_yoastseo.settings` is merged with `plugin.tx_yoastseo.view.settings`
          */
-        if ($GLOBALS['TSFE'] instanceof TypoScriptFrontendController
-            && is_array($GLOBALS['TSFE']->config)
-            && ObjectAccess::getPropertyPath($GLOBALS['TSFE']->config, 'config.yoast_seo.enabled') !== null
-            && $GLOBALS['TSFE']->tmpl instanceof TemplateService
-            && ObjectAccess::getPropertyPath($GLOBALS['TSFE']->tmpl->setup, 'plugin.tx_yoastseo.settings') !== null
-            && ObjectAccess::getPropertyPath($GLOBALS['TSFE']->tmpl->setup, 'plugin.tx_yoastseo.view') !== null
+        $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
+
+        $configManager = $objectManager->get(\TYPO3\CMS\Extbase\Configuration\ConfigurationManager::class);
+
+        /** @var TypoScriptService $typoScriptService */
+        $typoScriptService = $objectManager->get(TypoScriptService::class);
+
+        $config = $typoScriptService->convertTypoScriptArrayToPlainArray($configManager->getConfiguration(ConfigurationManager::CONFIGURATION_TYPE_FULL_TYPOSCRIPT));
+
+        if (is_array($config)
+            && ObjectAccess::getPropertyPath($config, 'config.yoast_seo.enabled') !== null
+            && ObjectAccess::getPropertyPath($config, 'plugin.tx_yoastseo.settings') !== null
+            && ObjectAccess::getPropertyPath($config, 'plugin.tx_yoastseo.view') !== null
             && $GLOBALS['TSFE']->cObj instanceof ContentObjectRenderer
         ) {
             $parameters['metaTags'][] = $GLOBALS['TSFE']->cObj->cObjGetSingle(

@@ -16,6 +16,7 @@ use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
+use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
 use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
 
 class ModuleController extends ActionController
@@ -87,6 +88,7 @@ class ModuleController extends ActionController
             return;
         }
 
+        $this->createMenu();
         $this->makeLanguageMenu();
         $this->registerDocheaderButtons();
     }
@@ -112,6 +114,20 @@ class ModuleController extends ActionController
     /**
      * @return void
      */
+    public function dashboardAction()
+    {
+    }
+
+    /**
+     * @return void
+     */
+    public function settingsAction()
+    {
+    }
+
+    /**
+     * @return void
+     */
     public function editAction()
     {
         $pageId = 0;
@@ -119,7 +135,14 @@ class ModuleController extends ActionController
 
         if ($this->request->hasArgument('id')) {
             $pageId = $this->request->getArgument('id');
+        } elseif ((int)GeneralUtility::_GET('id')) {
+            $pageId = (int)GeneralUtility::_GET('id');
         }
+
+        if ($pageId === 0) {
+            $this->redirect('dashboard');
+        }
+
         if ($this->request->hasArgument('language')) {
             $languageId = $this->request->getArgument('language');
         }
@@ -379,6 +402,101 @@ class ModuleController extends ActionController
         $this->redirect('edit', null, null, array('id' => $pageId, 'language' => $languageId, 'returnUrl' => $returnUrl));
     }
 
+    public function saveSettingsAction()
+    {
+        $pageId = (int)$this->request->getArgument('id');
+        $languageId = (int)$this->request->getArgument('language');
+        $lang = $this->getLanguageService();
+
+        if ($this->request->hasArgument('twitterImage')) {
+            $twitterImage = $this->request->getArgument('twitterImage');
+
+            if ($this->request->hasArgument('twitterDeleteImage') ||
+                (array_key_exists('tmp_name', $twitterImage) && !empty($twitterImage['tmp_name']))) {
+                $GLOBALS['TYPO3_DB']->exec_UPDATEquery('sys_file_reference', 'fieldname="tx_yoastseo_settings_twitter_image" AND uid_foreign=' . $pageId, ['deleted' => 1]);
+            }
+            if (array_key_exists('tmp_name', $twitterImage) && !empty($twitterImage['tmp_name'])) {
+                $resourceFactory = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
+                $storage = $resourceFactory->getDefaultStorage();
+
+                if ($storage instanceof ResourceStorage) {
+                    $newFile = $storage->addFile(
+                        $twitterImage['tmp_name'],
+                        $storage->getDefaultFolder(),
+                        $twitterImage['name']
+                    );
+
+                    $newId = 'NEW1234';
+                    $extraTableRecords['sys_file_reference'][$newId] = [
+                        'table_local' => 'sys_file',
+                        'uid_local' => $newFile->getUid(),
+                        'tablenames' => 'tx_yoastseo_settings',
+                        'uid_foreign' => $pageId,
+                        'fieldname' => 'tx_yoastseo_settings_twitter_image',
+                        'pid' => $pageId
+                    ];
+                }
+            }
+        }
+
+        if ($this->request->hasArgument('facebookImage')) {
+            $facebookImage = $this->request->getArgument('facebookImage');
+
+            if ($this->request->hasArgument('facebookDeleteImage') ||
+                (array_key_exists('tmp_name', $facebookImage) && !empty($facebookImage['tmp_name']))) {
+                $GLOBALS['TYPO3_DB']->exec_UPDATEquery('sys_file_reference', 'fieldname="tx_yoastseo_settings_facebook_image" AND uid_foreign=' . $pageId, ['deleted' => 1]);
+            }
+            if (array_key_exists('tmp_name', $facebookImage) && !empty($facebookImage['tmp_name'])) {
+                $resourceFactory = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
+                $storage = $resourceFactory->getDefaultStorage();
+
+                if ($storage instanceof ResourceStorage) {
+                    $newFile = $storage->addFile(
+                        $facebookImage['tmp_name'],
+                        $storage->getDefaultFolder(),
+                        $facebookImage['name']
+                    );
+
+                    $newId = 'NEW1234';
+                    $extraTableRecords['sys_file_reference'][$newId] = [
+                        'table_local' => 'sys_file',
+                        'uid_local' => $newFile->getUid(),
+                        'tablenames' => 'tx_yoastseo_settings',
+                        'uid_foreign' => $pageId,
+                        'fieldname' => 'tx_yoastseo_settings_facebook_image',
+                        'pid' => $pageId
+                    ];
+                }
+            }
+        }
+
+        $tce = GeneralUtility::makeInstance(DataHandler::class);
+        $tce->reverseOrder = 1;
+        $tce->start($extraTableRecords, array());
+        $tce->process_datamap();
+        $tce->clear_cacheCmd('pages');
+
+        $message = GeneralUtility::makeInstance(
+            FlashMessage::class,
+            $lang->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:saved.description'),
+            $lang->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:saved.title'),
+            FlashMessage::OK,
+            true
+        );
+
+        $flashMessageService = $this->objectManager->get(\TYPO3\CMS\Core\Messaging\FlashMessageService::class);
+        $messageQueue = $flashMessageService->getMessageQueueByIdentifier();
+        $messageQueue->addMessage($message);
+
+
+        $returnUrl = '';
+        if ($this->request->hasArgument('returnUrl')) {
+            $returnUrl = $this->request->getArgument('returnUrl');
+        }
+
+        $this->redirect('settings', null, null, array('id' => $pageId, 'language' => $languageId));
+    }
+
     /**
      * @param array $fields
      * @param string $key
@@ -422,7 +540,8 @@ class ModuleController extends ActionController
         $shortcutName = $this->getLanguageService()->sL('LLL:EXT:beuser/Resources/Private/Language/locallang.xml:backendUsers');
         if ($currentRequest->getControllerName() === 'Module') {
             if ($currentRequest->getControllerActionName() === 'edit') {
-                if ($currentRequest->hasArgument('returnUrl')) {
+                if ($currentRequest->hasArgument('returnUrl') &&
+                    $currentRequest->getArgument('returnUrl')) {
                     // CLOSE button:
                     $closeButton = $buttonBar->makeLinkButton()
                         ->setHref(urldecode($currentRequest->getArgument('returnUrl')))
@@ -450,8 +569,22 @@ class ModuleController extends ActionController
 
                 $buttonBar->addButton($saveButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
             }
-            if ($currentRequest->getControllerActionName() === 'online') {
-                $shortcutName = $this->getLanguageService()->sL('LLL:EXT:beuser/Resources/Private/Language/locallang.xml:onlineUsers');
+            if ($currentRequest->getControllerActionName() === 'settings') {
+                // SAVE button:
+                $saveButton = $buttonBar->makeInputButton()
+                    ->setTitle($lang->sL('LLL:EXT:lang/locallang_core.xlf:rm.saveDoc'))
+                    ->setName($modulePrefix . '[submit]')
+                    ->setValue('Save')
+                    ->setForm('editYoastSettings')
+                    ->setIcon($this->view->getModuleTemplate()->getIconFactory()->getIcon(
+                        'actions-document-save',
+                        Icon::SIZE_SMALL
+                    ))
+                    ->setShowLabelText(true);
+
+
+                $buttonBar->addButton($saveButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
+
             }
         }
         $shortcutButton = $buttonBar->makeShortcutButton()
@@ -487,6 +620,32 @@ class ModuleController extends ActionController
         }
     }
 
+    /**
+     * Create menu
+     *
+     */
+    protected function createMenu()
+    {
+        $lang = $this->getLanguageService();
+        $uriBuilder = $this->objectManager->get(UriBuilder::class);
+        $uriBuilder->setRequest($this->request);
+        $menu = $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->makeMenu();
+        $menu->setIdentifier('yoast-seo');
+        $actions = [
+            ['action' => 'dashboard', 'label' => 'dashboard'],
+            ['action' => 'edit', 'label' => 'edit'],
+            ['action' => 'settings', 'label' => 'settings']
+        ];
+        foreach ($actions as $action) {
+            $item = $menu->makeMenuItem()
+                ->setTitle($lang->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:action.' . $action['label']))
+                ->setHref($uriBuilder->reset()->uriFor($action['action'], [], 'Module'))
+                ->setActive($this->request->getControllerActionName() === $action['action']);
+
+            $menu->addMenuItem($item);
+        }
+        $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->addMenu($menu);
+    }
     /**
      * @return DatabaseConnection
      */

@@ -30,6 +30,9 @@
 			<trans-unit id="facebook.image">
 				<source>Image</source>
 			</trans-unit>
+			<trans-unit id="facebook.image.default">
+				<source>Default image</source>
+			</trans-unit>
 			<trans-unit id="facebook.image.new">
 				<source>New image</source>
 			</trans-unit>
@@ -56,6 +59,9 @@
 			</trans-unit>
 			<trans-unit id="twitter.image">
 				<source>Image</source>
+			</trans-unit>
+			<trans-unit id="twitter.image.default">
+				<source>Default image</source>
 			</trans-unit>
 			<trans-unit id="twitter.image.new">
 				<source>New image</source>
@@ -95,6 +101,39 @@
 			</trans-unit>
 			<trans-unit id="saved.description">
 				<source>The SEO information is saved</source>
+			</trans-unit>
+			<trans-unit id="action.dashboard">
+				<source>Dashboard</source>
+			</trans-unit>
+			<trans-unit id="action.edit">
+				<source>Analyse page</source>
+			</trans-unit>
+			<trans-unit id="action.settings">
+				<source>Settings</source>
+			</trans-unit>
+			<trans-unit id="dashboard">
+				<source>Dashboard</source>
+			</trans-unit>
+			<trans-unit id="dashboard.intro">
+				<source>This plugin integrates text analysis and assessment from YoastSEO.js. Content analysis can generate interesting metrics about a text and give you an assessment which can be used to improve the text.</source>
+			</trans-unit>
+			<trans-unit id="dashboard.credits">
+				<source>Credits</source>
+			</trans-unit>
+			<trans-unit id="dashboard.credits.description">
+				<source>This plugin is mainly maintained by Yoast and MaxServ. Besides these contributors, also several other developers helped with enhancing the plugin.</source>
+			</trans-unit>
+			<trans-unit id="dashboard.help">
+				<source>Need help?</source>
+			</trans-unit>
+			<trans-unit id="dashboard.help.description">
+				<source>If you need any support on using or configuring this plugin, please contact us by %s in the channel #yoast-seo-for-typo3</source>
+			</trans-unit>
+			<trans-unit id="settings">
+				<source>Settings</source>
+			</trans-unit>
+			<trans-unit id="settings.intro">
+				<source>The following settings are fallback settings. If you don't specify specific settings on a page, this information will be used as a default.</source>
 			</trans-unit>
 		</body>
 	</file>
