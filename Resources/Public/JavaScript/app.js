@@ -11,7 +11,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
         if (type == 'seo') {
             focusKeyword = '<span class="yoastPanel__focusKeyword" data-panel-focus-keyword>' + tx_yoast_seo.settings.focusKeyword + '</span>';
-            focusKeywordField = '<div class="form-group form-group__focusKeyword" data-panel-focus-keyword-field><label for="' + elementIdPrefix + '_focusKeyword">' + tx_yoast_seo.settings.focusKeywordLabel + '</label><input type="text" class="form-control" value="' + tx_yoast_seo.settings.focusKeyword + '" id="' + elementIdPrefix+ '_focusKeyword" name="tx_yoastseo_help_yoastseoseoplugin[focusKeyword]" /></div>';
+            focusKeywordField = '<div class="form-group form-group__focusKeyword" data-panel-focus-keyword-field><label for="' + elementIdPrefix + '_focusKeyword">' + tx_yoast_seo.settings.focusKeywordLabel + '</label><input type="text" class="form-control" value="' + tx_yoast_seo.settings.focusKeyword + '" id="' + elementIdPrefix+ '_focusKeyword" name="tx_yoastseo_web_yoastseoseoplugin[focusKeyword]" /></div>';
         }
 
         if (tx_yoast_seo.settings.editable == 0) {
@@ -140,7 +140,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 var $inputField = $(this).find('.snippet-editor__input').detach();
 
                 $inputField.addClass('form-control').removeClass('snippet-editor__input');
-                $inputField.attr('name', 'tx_yoastseo_help_yoastseoseoplugin[' + $inputField.attr('id') + ']');
+                $inputField.attr('name', 'tx_yoastseo_web_yoastseoseoplugin[' + $inputField.attr('id') + ']');
 
                 $(this).removeClass('snippet-editor__label');
                 $(this).after($inputField);
