@@ -582,9 +582,7 @@ class ModuleController extends ActionController
                     ))
                     ->setShowLabelText(true);
 
-
                 $buttonBar->addButton($saveButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
-
             }
         }
         $shortcutButton = $buttonBar->makeShortcutButton()
