@@ -134,6 +134,7 @@ yoast_seo_preview {
                 30.search = ]]>
                 30.replace =
             }
+            required = 1
         }
 
         wrap = <content>|</content>

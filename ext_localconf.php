@@ -63,7 +63,18 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = array(
             'sv' => 'sv_SE',
             'tr' => 'tr_TR'
         )
-    )
+    ),
+    'menuActions' => array(
+        ['action' => 'dashboard', 'label' => 'dashboard'],
+        ['action' => 'edit', 'label' => 'edit'],
+        ['action' => 'settings', 'label' => 'settings']
+    ),
+    'viewSettings' => array(
+        'showAnalysisTab' => true,
+        'showSocialTab' => true,
+        'showAdvancedTab' => true
+    ),
+    'previewUrlTemplate' => '/index.php?id=%d&type=%d&L=%d'
 );
 
 // allow social meta fields to be overlaid
