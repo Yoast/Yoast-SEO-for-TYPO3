@@ -28,7 +28,7 @@
 												</f:then>
 												<f:else>
 													<div>
-														<img src="//placehold.it/{settings.og.image.width}x{settings.og.image.height}?text={f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.image.no')}" class="img-responsive" />
+														<f:image class="img-responsive" src="EXT:yoast_seo/Resources/Public/Images/default-placeholder.png" alt="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.image.no')}" width="{settings.og.image.width}" height="{settings.og.image.height}" />
 													</div>
 												</f:else>
 											</f:if>
@@ -61,7 +61,7 @@
 												</f:then>
 												<f:else>
 													<div>
-														<img src="//placehold.it/{settings.twitter.image.width}x{settings.twitter.image.height}?text={f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.image.no')}" class="img-responsive" />
+														<f:image class="img-responsive" src="EXT:yoast_seo/Resources/Public/Images/default-placeholder.png" alt="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.image.no')}" width="{settings.og.image.width}" height="{settings.og.image.height}" />
 													</div>
 												</f:else>
 											</f:if>
