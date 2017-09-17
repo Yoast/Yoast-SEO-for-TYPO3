@@ -22,6 +22,10 @@
     }
   ],
   "homepage": "https://yoast.com",
+  "replace": {
+    "yoast_seo": "self.version",
+    "typo3-ter/yoast-seo": "self.version"
+  },
   "autoload": {
     "psr-4": {
       "YoastSeoForTypo3\\YoastSeo\\": "Classes/"
