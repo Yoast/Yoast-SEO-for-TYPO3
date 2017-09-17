@@ -150,14 +150,14 @@ class ModuleController extends ActionController
 
         $currentPage = BackendUtility::getRecord(
             'pages',
-            (int) $pageId
+            (int)$pageId
         );
 
         if ($languageId > 0) {
             $overlayRecords = BackendUtility::getRecordLocalization(
                 'pages',
-                (int) $pageId,
-                (int) $languageId
+                (int)$pageId,
+                (int)$languageId
             );
 
             if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
@@ -170,7 +170,7 @@ class ModuleController extends ActionController
         $previewDataUrl = vsprintf(
             $domain . '/index.php?id=%d&type=%d&L=%d',
             array(
-                (int) $pageId,
+                (int)$pageId,
                 static::FE_PREVIEW_TYPE,
                 $languageId
             )
@@ -339,8 +339,8 @@ class ModuleController extends ActionController
 
             $overlayRecords = BackendUtility::getRecordLocalization(
                 'pages',
-                (int) $pageId,
-                (int) $languageId
+                (int)$pageId,
+                (int)$languageId
             );
 
             if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {

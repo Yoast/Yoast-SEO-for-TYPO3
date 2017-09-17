@@ -74,21 +74,21 @@ class PageLayoutHeader
             . 'Resources/Public/';
 
         if ($pageLayoutController instanceof CMS\Backend\Controller\PageLayoutController
-            && (int) $pageLayoutController->id > 0
-            && (int) $pageLayoutController->current_sys_language === 0
+            && (int)$pageLayoutController->id > 0
+            && (int)$pageLayoutController->current_sys_language === 0
         ) {
             $currentPage = CMS\Backend\Utility\BackendUtility::getRecord(
                 'pages',
-                (int) $pageLayoutController->id
+                (int)$pageLayoutController->id
             );
         } elseif ($pageLayoutController instanceof CMS\Backend\Controller\PageLayoutController
-            && (int) $pageLayoutController->id > 0
-            && (int) $pageLayoutController->current_sys_language > 0
+            && (int)$pageLayoutController->id > 0
+            && (int)$pageLayoutController->current_sys_language > 0
         ) {
             $overlayRecords = CMS\Backend\Utility\BackendUtility::getRecordLocalization(
                 'pages',
-                (int) $pageLayoutController->id,
-                (int) $pageLayoutController->current_sys_language
+                (int)$pageLayoutController->id,
+                (int)$pageLayoutController->current_sys_language
             );
 
             if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
@@ -172,11 +172,11 @@ class PageLayoutHeader
                 $publicResourcesPath . 'CSS/yoast-seo.min.css'
             );
 
-            $returnUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl('web_layout', array('id' => (int) $pageLayoutController->id));
+            $returnUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl('web_layout', array('id' => (int)$pageLayoutController->id));
 
             $parameters = array(
-                'tx_yoastseo_web_yoastseoseoplugin[id]' => (int) $pageLayoutController->id,
-                'tx_yoastseo_web_yoastseoseoplugin[language]' => (int) $pageLayoutController->current_sys_language,
+                'tx_yoastseo_web_yoastseoseoplugin[id]' => (int)$pageLayoutController->id,
+                'tx_yoastseo_web_yoastseoseoplugin[language]' => (int)$pageLayoutController->current_sys_language,
                 'tx_yoastseo_web_yoastseoseoplugin[returnUrl]' => rawurlencode($returnUrl)
             );
             $seoUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl('web_YoastSeoSeoPlugin', $parameters);
