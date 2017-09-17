@@ -2,3 +2,5 @@
 node_modules
 *.mo
 *.po
+vendor
+composer.lock
