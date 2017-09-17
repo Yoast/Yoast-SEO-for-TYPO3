@@ -98,8 +98,8 @@ class PageLayoutHeader
             }
         }
 
-        if (is_array($currentPage) && array_key_exists(self::COLUMN_NAME, $currentPage)) {
-            $focusKeyword = $currentPage[self::COLUMN_NAME];
+        if (is_array($currentPage) && array_key_exists(static::COLUMN_NAME, $currentPage)) {
+            $focusKeyword = $currentPage[static::COLUMN_NAME];
 
             $recordId = $currentPage['uid'];
 
@@ -108,7 +108,7 @@ class PageLayoutHeader
                 $domain . '/index.php?id=%d&type=%d&L=%d',
                 array(
                     $pageLayoutController->id,
-                    self::FE_PREVIEW_TYPE,
+                    static::FE_PREVIEW_TYPE,
                     $pageLayoutController->current_sys_language
                 )
             );
@@ -123,7 +123,7 @@ class PageLayoutHeader
 
             if ($interfaceLocale !== null
                 && ($translationFilePath = sprintf(
-                    self::APP_TRANSLATION_FILE_PATTERN,
+                    static::APP_TRANSLATION_FILE_PATTERN,
                     $interfaceLocale
                 )) !== false
                 && ($translationFilePath = CMS\Core\Utility\GeneralUtility::getFileAbsFileName(
@@ -266,7 +266,8 @@ class PageLayoutHeader
      */
     protected function getAllowedDoktypes()
     {
-        $allowedDoktypes = [1];     // By default only add normal pages
+        // By default only add normal pages
+        $allowedDoktypes = [1];
 
         /** @var CMS\Extbase\Object\ObjectManager $objectManager */
         $objectManager = CMS\Core\Utility\GeneralUtility::makeInstance(CMS\Extbase\Object\ObjectManager::class);
@@ -276,7 +277,7 @@ class PageLayoutHeader
 
         if (is_array($configuration) && array_key_exists('allowedDoktypes', $configuration)
         ) {
-            foreach ($configuration['allowedDoktypes'] as $key => $doktype) {
+            foreach ($configuration['allowedDoktypes'] as $doktype) {
                 if (!in_array($doktype, $allowedDoktypes)) {
                     $allowedDoktypes[] = (int)$doktype;
                 }

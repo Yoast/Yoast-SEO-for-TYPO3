@@ -164,14 +164,14 @@ class ModuleController extends ActionController
                 $currentPage = $overlayRecords[0];
             }
         }
-        $focusKeyword = $currentPage[self::FOCUS_KEYWORD_COLUMN_NAME];
+        $focusKeyword = $currentPage[static::FOCUS_KEYWORD_COLUMN_NAME];
 
         $domain = BackendUtility::getViewDomain($currentPage['uid']);
         $previewDataUrl = vsprintf(
             $domain . '/index.php?id=%d&type=%d&L=%d',
             array(
                 (int) $pageId,
-                self::FE_PREVIEW_TYPE,
+                static::FE_PREVIEW_TYPE,
                 $languageId
             )
         );
@@ -180,7 +180,7 @@ class ModuleController extends ActionController
 
         if ($interfaceLocale !== null
             && ($translationFilePath = sprintf(
-                self::APP_TRANSLATION_FILE_PATTERN,
+                static::APP_TRANSLATION_FILE_PATTERN,
                 $interfaceLocale
             )) !== false
             && ($translationFilePath = GeneralUtility::getFileAbsFileName(
