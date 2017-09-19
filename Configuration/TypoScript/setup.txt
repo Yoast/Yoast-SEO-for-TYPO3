@@ -126,6 +126,12 @@ yoast_seo_preview {
         renderObj.stdWrap.replacement {
             10.search.char = 10
             10.replace =
+
+            20.search = <![CDATA
+            20.replace = &lt;![CDATA
+
+            30.search = ]]>
+            30.replace = ]]&gt;
         }
 
         wrap = <content>|</content>
