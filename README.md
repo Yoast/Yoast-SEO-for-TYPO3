@@ -1,6 +1,7 @@
 Yoast SEO for TYPO3
 ======================
 
+[![Build Status](https://travis-ci.org/Yoast/Yoast-SEO-for-TYPO3.svg?branch=master)](https://travis-ci.org/Yoast/Yoast-SEO-for-TYPO3)
 [![Stable Version](https://poser.pugx.org/yoast-seo-for-typo3/yoast_seo/v/stable.svg)](https://packagist.org/packages/yoast-seo-for-typo3/yoast_seo)
 [![License](https://poser.pugx.org/yoast-seo-for-typo3/yoast_seo/license.svg)](https://packagist.org/packages/yoast-seo-for-typo3/yoast_seo)
 
