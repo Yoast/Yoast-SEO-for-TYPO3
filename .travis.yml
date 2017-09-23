@@ -16,6 +16,7 @@ matrix:
 before_script:
   - if php -i | grep -q xdebug; then phpenv config-rm xdebug.ini; fi
   - composer require typo3/cms=$TYPO3_VERSION
+  - git diff --name-only --diff-filter=ACMRTUXB $TRAVIS_COMMIT_RANGE
 
 script:
   - >
