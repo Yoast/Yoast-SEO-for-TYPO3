@@ -7,135 +7,159 @@
 		<div role="tabpanel">
 			<f:form action="save" enctype="multipart/form-data" arguments="{id: pageId, language: languageId, returnUrl: returnUrl}" id="editYoastSettings">
 				<ul class="nav nav-tabs t3js-tabs" role="tablist" id="tabs-tab" data-store-last-tab="1">
-					<li role="presentation" class="t3js-tabmenu-item  active">
-						<a href="#tab-analysis" title="" aria-controls="tab-analysis" role="tab" data-toggle="tab">
-							<i class="fa fa-eye"></i> <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:analysis" />
-						</a>
-					</li>
-					<li role="presentation" class="t3js-tabmenu-item ">
-						<a href="#tab-2" title="" aria-controls="tab-2" role="tab" data-toggle="tab">
-							<i class="fa fa-share-alt"></i> <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:social" />
-						</a>
-					</li>
-					<li role="presentation" class="t3js-tabmenu-item ">
-						<a href="#tab-3" title="" aria-controls="tab-3" role="tab" data-toggle="tab">
-							<i class="fa fa-cog"></i> <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:advanced" />
-						</a>
-					</li>
+					<f:if condition="{viewSettings.showAnalysisTab}">
+						<f:then>
+							<li role="presentation" class="t3js-tabmenu-item  active">
+								<a href="#tab-analysis" title="" aria-controls="tab-analysis" role="tab" data-toggle="tab">
+									<i class="fa fa-eye"></i><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:analysis"/>
+								</a>
+							</li>
+						</f:then>
+					</f:if>
+					<f:if condition="{viewSettings.showSocialTab}">
+						<f:then>
+							<li role="presentation" class="t3js-tabmenu-item ">
+								<a href="#tab-2" title="" aria-controls="tab-2" role="tab" data-toggle="tab">
+									<i class="fa fa-share-alt"></i><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:social"/>
+								</a>
+							</li>
+						</f:then>
+					</f:if>
+					<f:if condition="{viewSettings.showAdvancedTab}">
+						<f:then>
+							<li role="presentation" class="t3js-tabmenu-item ">
+								<a href="#tab-3" title="" aria-controls="tab-3" role="tab" data-toggle="tab">
+									<i class="fa fa-cog"></i><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:advanced"/>
+								</a>
+							</li>
+						</f:then>
+					</f:if>
 				</ul>
 				<div class="tab-content">
-					<div role="tabpanel" class="tab-pane active" id="tab-analysis">
-						<div class="panel panel-tab">
-							<div class="panel-body">
-								<div id="{targetElementId}" class="yoastSeo--large">
-									<!-- {targetElementId} -->
-									<div class="spinner">
-										<div class="bounce1"></div>
-										<div class="bounce2"></div>
-										<div class="bounce3"></div>
+					<f:if condition="{viewSettings.showAnalysisTab}">
+						<f:then>
+							<div role="tabpanel" class="tab-pane active" id="tab-analysis">
+								<div class="panel panel-tab">
+									<div class="panel-body">
+										<div id="{targetElementId}" class="yoastSeo--large">
+											<!-- {targetElementId} -->
+											<div class="spinner">
+												<div class="bounce1"></div>
+												<div class="bounce2"></div>
+												<div class="bounce3"></div>
+											</div>
+										</div>
 									</div>
 								</div>
 							</div>
-						</div>
-					</div>
-					<div role="tabpanel" class="tab-pane" id="tab-2">
-						<div class="panel panel-tab">
-							<div class="panel-body">
-								<h3><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook" /></h3>
-								<div class="form-group">
-									<label for="facebookTitle"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.title" /></label>
-									<f:form.textfield type="text" class="form-control" id="facebookTitle" name="facebookTitle" value="{page.tx_yoastseo_facebook_title}" placeholder="{page.title}" />
-								</div>
-								<div class="form-group">
-									<label for="facebookDescription"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.description" /></label>
-									<f:form.textfield type="text" class="form-control" id="facebookDescription" name="facebookDescription" value="{page.tx_yoastseo_facebook_description}" placeholder="{page.description}" />
-								</div>
-								<div class="form-group">
-									<label><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.image" /></label>
-									<div class="row">
-										<div class="col-sm-3">
-											<f:if condition="{yoast:socialMediaImage(uid: '{page.uid}', field: 'tx_yoastseo_facebook_image')}">
-												<f:then>
-													<f:image class="img-responsive" src="{yoast:socialMediaImage(uid: '{page.uid}', field: 'tx_yoastseo_facebook_image')}" treatIdAsReference="true" width="{settings.og.image.width}" height="{settings.og.image.height}" />
-												</f:then>
-												<f:else>
-													<div>
-														<f:image class="img-responsive" src="EXT:yoast_seo/Resources/Public/Images/default-placeholder.png" alt="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.image.no')}" width="{settings.og.image.width}" height="{settings.og.image.height}" />
+						</f:then>
+					</f:if>
+					<f:if condition="{viewSettings.showSocialTab}">
+						<f:then>
+							<div role="tabpanel" class="tab-pane" id="tab-2">
+								<div class="panel panel-tab">
+									<div class="panel-body">
+										<h3><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook"/></h3>
+										<div class="form-group">
+											<label for="facebookTitle"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.title"/></label>
+											<f:form.textfield type="text" class="form-control" id="facebookTitle" name="facebookTitle" value="{page.tx_yoastseo_facebook_title}" placeholder="{page.title}"/>
+										</div>
+										<div class="form-group">
+											<label for="facebookDescription"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.description"/></label>
+											<f:form.textfield type="text" class="form-control" id="facebookDescription" name="facebookDescription" value="{page.tx_yoastseo_facebook_description}" placeholder="{page.description}"/>
+										</div>
+										<div class="form-group">
+											<label><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.image"/></label>
+											<div class="row">
+												<div class="col-sm-3">
+													<f:if condition="{yoast:socialMediaImage(uid: '{page.uid}', field: 'tx_yoastseo_facebook_image')}">
+														<f:then>
+															<f:image class="img-responsive" src="{yoast:socialMediaImage(uid: '{page.uid}', field: 'tx_yoastseo_facebook_image')}" treatIdAsReference="true" width="{settings.og.image.width}" height="{settings.og.image.height}"/>
+														</f:then>
+														<f:else>
+															<div>
+																<f:image class="img-responsive" src="EXT:yoast_seo/Resources/Public/Images/default-placeholder.png" alt="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.image.no')}" width="{settings.og.image.width}" height="{settings.og.image.height}"/>
+															</div>
+														</f:else>
+													</f:if>
+												</div>
+												<div class="col-sm-9">
+													<div class="form-group">
+														<label for="facebookImage"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.image.new"/></label>
+														<p><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.image.newDescription"/></p>
+														<input type="file" id="facebookImage" name="tx_yoastseo_web_yoastseoseoplugin[facebookImage]"/>
 													</div>
-												</f:else>
-											</f:if>
-										</div>
-										<div class="col-sm-9">
-											<div class="form-group">
-												<label for="facebookImage"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.image.new" /></label>
-												<p><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.image.newDescription" /></p>
-												<input type="file" id="facebookImage" name="tx_yoastseo_web_yoastseoseoplugin[facebookImage]" />
-											</div>
 
-											<div class="form-group">
-												<label for="facebookDeleteImage"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.image.delete" /></label>
-												<p><input type="checkbox" id="facebookDeleteImage" name="tx_yoastseo_web_yoastseoseoplugin[facebookDeleteImage]" /> <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.image.deleteDescription" /></p>
-											</div>
-										</div>
-									</div>
-
-								</div>
-								<h3><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter" /></h3>
-								<div class="form-group">
-									<label for="twitterTitle"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.title" /></label>
-									<f:form.textfield type="text" class="form-control" id="twitterTitle" name="twitterTitle" value="{page.tx_yoastseo_twitter_title}" placeholder="{page.title}" />
-								</div>
-								<div class="form-group">
-									<label for="twitterDescription"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.description" /></label>
-									<f:form.textfield type="text" class="form-control" id="twitterDescription" name="twitterDescription" value="{page.tx_yoastseo_twitter_description}" placeholder="{page.description}" />
-								</div>
-								<div class="form-group">
-									<label><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.image" /></label>
-									<div class="row">
-										<div class="col-sm-3">
-											<f:if condition="{yoast:socialMediaImage(uid: '{page.uid}', field: 'tx_yoastseo_twitter_image')}">
-												<f:then>
-													<f:image class="img-responsive" src="{yoast:socialMediaImage(uid: '{page.uid}', field: 'tx_yoastseo_twitter_image')}" treatIdAsReference="true" width="{settings.twitter.image.width}" height="{settings.twitter.image.height}" />
-												</f:then>
-												<f:else>
-													<div>
-														<f:image class="img-responsive" src="EXT:yoast_seo/Resources/Public/Images/default-placeholder.png" alt="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.image.no')}" width="{settings.og.image.width}" height="{settings.og.image.height}" />
+													<div class="form-group">
+														<label for="facebookDeleteImage"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.image.delete"/></label>
+														<p><input type="checkbox" id="facebookDeleteImage" name="tx_yoastseo_web_yoastseoseoplugin[facebookDeleteImage]"/><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.image.deleteDescription"/></p>
 													</div>
-												</f:else>
-											</f:if>
-										</div>
-										<div class="col-sm-9">
-											<div class="form-group">
-												<label for="twitterImage"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.image.new" /></label>
-												<p><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.image.newDescription" /></p>
-												<input type="file" id="twitterImage" name="tx_yoastseo_web_yoastseoseoplugin[twitterImage]" />
+												</div>
 											</div>
 
-											<div class="form-group">
-												<label for="twitterDeleteImage"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.image.delete" /></label>
-												<p><input type="checkbox" id="twitterDeleteImage" name="tx_yoastseo_web_yoastseoseoplugin[twitterDeleteImage]" /> <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.image.deleteDescription" /></p>
+										</div>
+										<h3><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter"/></h3>
+										<div class="form-group">
+											<label for="twitterTitle"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.title"/></label>
+											<f:form.textfield type="text" class="form-control" id="twitterTitle" name="twitterTitle" value="{page.tx_yoastseo_twitter_title}" placeholder="{page.title}"/>
+										</div>
+										<div class="form-group">
+											<label for="twitterDescription"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.description"/></label>
+											<f:form.textfield type="text" class="form-control" id="twitterDescription" name="twitterDescription" value="{page.tx_yoastseo_twitter_description}" placeholder="{page.description}"/>
+										</div>
+										<div class="form-group">
+											<label><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.image"/></label>
+											<div class="row">
+												<div class="col-sm-3">
+													<f:if condition="{yoast:socialMediaImage(uid: '{page.uid}', field: 'tx_yoastseo_twitter_image')}">
+														<f:then>
+															<f:image class="img-responsive" src="{yoast:socialMediaImage(uid: '{page.uid}', field: 'tx_yoastseo_twitter_image')}" treatIdAsReference="true" width="{settings.twitter.image.width}" height="{settings.twitter.image.height}"/>
+														</f:then>
+														<f:else>
+															<div>
+																<f:image class="img-responsive" src="EXT:yoast_seo/Resources/Public/Images/default-placeholder.png" alt="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.image.no')}" width="{settings.og.image.width}" height="{settings.og.image.height}"/>
+															</div>
+														</f:else>
+													</f:if>
+												</div>
+												<div class="col-sm-9">
+													<div class="form-group">
+														<label for="twitterImage"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.image.new"/></label>
+														<p><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.image.newDescription"/></p>
+														<input type="file" id="twitterImage" name="tx_yoastseo_web_yoastseoseoplugin[twitterImage]"/>
+													</div>
+
+													<div class="form-group">
+														<label for="twitterDeleteImage"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.image.delete"/></label>
+														<p><input type="checkbox" id="twitterDeleteImage" name="tx_yoastseo_web_yoastseoseoplugin[twitterDeleteImage]"/><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.image.deleteDescription"/></p>
+													</div>
+												</div>
 											</div>
+
 										</div>
 									</div>
-
 								</div>
 							</div>
-						</div>
-					</div>
-					<div role="tabpanel" class="tab-pane" id="tab-3">
-						<div class="panel panel-tab">
-							<div class="panel-body">
-								<div class="form-group">
-									<label for="canonical"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:canonical" /></label>
-									<f:form.textfield type="text" class="form-control" id="canonical" name="canonical" value="{page.tx_yoastseo_canonical_url}" />
-								</div>
-								<div class="form-group">
-									<label for="robotInstructions"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:robotInstructions" /></label>
-									<f:form.select class="form-control" id="robotInstructions" name="robotInstructions" value="{page.tx_yoastseo_robot_instructions}" options="{0: 'index, follow', 1: 'noindex, nofollow', 2: 'noindex, follow', 3: 'index, nofollow'}"/>
+						</f:then>
+					</f:if>
+					<f:if condition="{viewSettings.showAdvancedTab}">
+						<f:then>
+							<div role="tabpanel" class="tab-pane" id="tab-3">
+								<div class="panel panel-tab">
+									<div class="panel-body">
+										<div class="form-group">
+											<label for="canonical"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:canonical"/></label>
+											<f:form.textfield type="text" class="form-control" id="canonical" name="canonical" value="{page.tx_yoastseo_canonical_url}"/>
+										</div>
+										<div class="form-group">
+											<label for="robotInstructions"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:robotInstructions"/></label>
+											<f:form.select class="form-control" id="robotInstructions" name="robotInstructions" value="{page.tx_yoastseo_robot_instructions}" options="{0: 'index, follow', 1: 'noindex, nofollow', 2: 'noindex, follow', 3: 'index, nofollow'}"/>
+										</div>
+									</div>
 								</div>
 							</div>
-						</div>
-					</div>
+						</f:then>
+					</f:if>
 				</div>
 			</f:form>
 		</div>
