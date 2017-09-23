@@ -1,6 +1,8 @@
 <?php
 namespace YoastSeoForTypo3\YoastSeo\Backend;
 
+use TYPO3\CMS\Core\Utility\ArrayUtility;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS;
 
 class PageLayoutHeader
@@ -28,7 +30,11 @@ class PageLayoutHeader
         'translations' => array(
             'availableLocales' => array(),
             'languageKeyToLocaleMapping' => array()
-        )
+        ),
+        'menuActions' => array(),
+        'previewDomain' => null,
+        'previewUrlTemplate' => '',
+        'viewSettings' => array()
     );
 
     /**
@@ -49,7 +55,7 @@ class PageLayoutHeader
         if (array_key_exists('yoast_seo', $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'])
             && is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'])
         ) {
-            $this->configuration = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'];
+            ArrayUtility::mergeRecursiveWithOverrule($this->configuration, $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']);
         }
 
         $this->localeService = CMS\Core\Utility\GeneralUtility::makeInstance(CMS\Core\Localization\Locales::class);
@@ -104,8 +110,25 @@ class PageLayoutHeader
             $recordId = $currentPage['uid'];
 
             $domain = CMS\Backend\Utility\BackendUtility::getViewDomain($currentPage['uid']);
+
+            // Allow Overwrite of the domain via ExtConf
+            if (array_key_exists('previewDomain', $this->configuration) && $this->configuration['previewDomain']) {
+                try {
+                    $protocol = GeneralUtility::getIndpEnv('TYPO3_SSL') ? 'https' : 'http';
+                } catch (\UnexpectedValueException $e) {
+                    $protocol = 'http';
+                }
+
+                if (strpos($this->configuration['previewDomain'], '://') !== false) {
+                    list($protocol, $domainName) = explode('://', $this->configuration['previewDomain']);
+                } else {
+                    $domainName = $this->configuration['previewDomain'];
+                }
+                $domain = $protocol . '://' . $domainName;
+            }
+
             $previewDataUrl = vsprintf(
-                $domain . '/index.php?id=%d&type=%d&L=%d',
+                $domain . $this->configuration['previewUrlTemplate'],
                 array(
                     $pageLayoutController->id,
                     static::FE_PREVIEW_TYPE,

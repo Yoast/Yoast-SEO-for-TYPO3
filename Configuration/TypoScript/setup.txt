@@ -122,10 +122,19 @@ yoast_seo_preview {
             orderBy = sorting
         }
         renderObj =< tt_content
-        renderObj.stdWrap.wrap = <element><![CDATA[|]]></element>
-        renderObj.stdWrap.replacement {
-            10.search.char = 10
-            10.replace =
+        renderObj.stdWrap {
+            wrap = <element><![CDATA[|]]></element>
+            replacement {
+                10.search.char = 10
+                10.replace =
+
+                # remove CDATA Objects inside the element, see Issue #85
+                20.search = <![CDATA[
+                20.replace =
+                30.search = ]]>
+                30.replace =
+            }
+            required = 1
         }
 
         wrap = <content>|</content>

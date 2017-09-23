@@ -12,6 +12,7 @@ use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
+use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
@@ -65,7 +66,11 @@ class ModuleController extends ActionController
         'translations' => array(
             'availableLocales' => array(),
             'languageKeyToLocaleMapping' => array()
-        )
+        ),
+        'menuActions' => array(),
+        'previewDomain' => null,
+        'previewUrlTemplate' => '',
+        'viewSettings' => array()
     );
 
     /**
@@ -98,7 +103,7 @@ class ModuleController extends ActionController
         if (array_key_exists('yoast_seo', $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'])
             && is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'])
         ) {
-            $this->configuration = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'];
+            ArrayUtility::mergeRecursiveWithOverrule($this->configuration, $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']);
         }
 
         parent::initializeAction();
@@ -167,8 +172,25 @@ class ModuleController extends ActionController
         $focusKeyword = $currentPage[static::FOCUS_KEYWORD_COLUMN_NAME];
 
         $domain = BackendUtility::getViewDomain($currentPage['uid']);
+
+        // Allow Overwrite of the domain via ExtConf
+        if (array_key_exists('previewDomain', $this->configuration) && $this->configuration['previewDomain']) {
+            try {
+                $protocol = GeneralUtility::getIndpEnv('TYPO3_SSL') ? 'https' : 'http';
+            } catch (\UnexpectedValueException $e) {
+                $protocol = 'http';
+            }
+
+            if (strpos($this->configuration['previewDomain'], '://') !== false) {
+                list($protocol, $domainName) = explode('://', $this->configuration['previewDomain']);
+            } else {
+                $domainName = $this->configuration['previewDomain'];
+            }
+            $domain = $protocol . '://' . $domainName;
+        }
+
         $previewDataUrl = vsprintf(
-            $domain . '/index.php?id=%d&type=%d&L=%d',
+            $domain . $this->configuration['previewUrlTemplate'],
             array(
                 (int)$pageId,
                 static::FE_PREVIEW_TYPE,
@@ -241,6 +263,7 @@ class ModuleController extends ActionController
         $this->view->assign('languageId', $languageId);
         $this->view->assign('targetElementId', $targetElementId);
         $this->view->assign('returnUrl', $returnUrl);
+        $this->view->assign('viewSettings', $this->configuration['viewSettings']);
     }
 
     public function saveAction()
@@ -629,11 +652,8 @@ class ModuleController extends ActionController
         $uriBuilder->setRequest($this->request);
         $menu = $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->makeMenu();
         $menu->setIdentifier('yoast-seo');
-        $actions = [
-            ['action' => 'dashboard', 'label' => 'dashboard'],
-            ['action' => 'edit', 'label' => 'edit'],
-            ['action' => 'settings', 'label' => 'settings']
-        ];
+        $actions = $this->configuration['menuActions'];
+
         foreach ($actions as $action) {
             $item = $menu->makeMenuItem()
                 ->setTitle($lang->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:action.' . $action['label']))

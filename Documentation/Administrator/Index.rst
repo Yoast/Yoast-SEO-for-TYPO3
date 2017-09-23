@@ -26,9 +26,14 @@ After installing it's necessary to flush the system caches and possibly the "Com
 
 Configuration
 -------------
+There is no need for configuration although it is recommended to remove all other SEO related plugins creating metatags in frontend.
 
-If you select an image for the render Open Graph or Twitter Cards <meta /> tags you can specify the dimensions of the
-image shared.
+However, a few things can still be configured using an extension that overwrites the `EXTCONF` of `yoast_seo` or by TypoScript.
+
+Open Graph / Twitter cards
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+If you select an image for Open Graph or Twitter Cards <meta /> tags you can specify the dimensions of the
+image shared. You can change the width and height by TypoScript.
 
 .. code-block:: typoscript
 
@@ -41,12 +46,16 @@ image shared.
         }
     }
 
+Disable rendering Yoast SEO meta tags on specific page types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 If you use a specific page type for something like a print-only template you can disable the rendering of additional markup.
 
 .. code-block:: typoscript
 
     printPage.config.yoast_seo.enabled = 0
 
+Enable snippet preview on specific page types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 By default, the snippet preview is only shown on pages with doktype 1 (Standard page) and 6 (Backend user section). You can
 add your own doktypes like the example below.
 
@@ -59,3 +68,76 @@ add your own doktypes like the example below.
             }
         }
     }
+
+Make your extension overwrite yoast_seo
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+For some settings you need to extend the `yoast_seo` extension with your own extension. To load your extension in the
+right order, you need to set a dependency on `yoast_seo` in your extension. See the example `ext_emconf.php` below:
+
+.. code-block:: php
+
+    'constraints' =>
+        [
+            'depends' =>
+                [
+                    'typo3' => '7.6.0-8.7.99',
+                    'yoast_seo' => '*'
+                ],
+            'conflicts' => [],
+            'suggests' => [],
+        ],
+
+Now, you can simply add the the `EXTCONF` settings to the `ext_localconf.php` of your own extension and change them
+according to your needs.
+
+Show / Hide tabs in backend module
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+You can completely hide certain tabs from the backend module. To do so, you have to override the `viewSettings`
+array in the `ext_localconf.php` of your own extension. See the example below to hide the advanced tab.
+
+.. note::
+    **This is only a usability change and won't properly protect the access to the functionalities of the respective
+    tabs in a secure way!**
+
+
+.. code-block:: php
+    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['viewSettings'] = array (
+        'showAnalysisTab' => true,
+        'showSocialTab'   => true,
+        'showAdvancedTab' => false  //Hide tab Advanced
+    );
+
+Show / Hide menu entries in backend module
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+You can completely hide certain entries from the top menu of the backend module. To do this, you can override the
+`menuActions` array in your own extensions `ext_localconf.php`.
+
+.. note::
+    **This is only a usability change and won't properly protect the access to the functionalities of the respective
+    tabs in a secure way!**
+
+
+.. code-block:: php
+    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['menuActions'] = array (
+         ['action' => 'edit', 'label' => 'edit'],
+        //['action' => 'dashboard', 'label' => 'dashboard'],    This will hide the dashboard menu item
+        ['action' => 'settings', 'label' => 'settings']
+    );
+
+
+Overwrite the PreviewDomain to a custom value
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+You can change the domain which is used for analysing the content. The default behaviour is, that `yoast_seo` will get
+the domain from `sys_domain`, just like the normal preview functionality of TYPO3. If you want to alter the preview
+domain, you can add this setting to your `ext_localconf.php`. See the example below.
+
+.. code-block:: php
+    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewDomain'] = 'demo.typo3.local';
+
+
+Change the PreviewURL Template
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+You can change the script-path of the preview, e.g. usable for SPAs.
+
+.. code-block:: php
+$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewUrlTemplate'] = '/#%d&type=%d&L=%d';
