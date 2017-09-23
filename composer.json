@@ -40,5 +40,11 @@
   "config": {
     "vendor-dir": ".Build/vendor",
     "bin-dir": ".Build/bin"
+  },
+  "extra": {
+    "typo3/cms": {
+      "cms-package-dir": "{$vendor-dir}/typo3/cms",
+      "web-dir": ".Build/Web"
+    }
   }
 }
