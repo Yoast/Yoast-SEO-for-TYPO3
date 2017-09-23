@@ -9,7 +9,7 @@ plugin.tx_yoastseo {
     }
     view {
         file = EXT:yoast_seo/Resources/Private/Templates/Meta.html
-        partialRootPaths.tx_yoastseo = EXT:yoast_seo/Resources/Private/Partials/
+        partialRootPaths.0 = EXT:yoast_seo/Resources/Private/Partials/
         dataProcessing {
             10 = TYPO3\CMS\Frontend\DataProcessing\FilesProcessor
             10 {
