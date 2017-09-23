@@ -21,4 +21,4 @@ script:
   - >
     echo;
     echo "Running PHP Coding Standards Fixer checks";
-    .Build/bin/php-cs-fixer fix -v --dry-run --using-cache=no --path-mode=intersection `git diff --name-only --diff-filter=ACMRTUXB $COMMIT_RANGE`
+    .Build/bin/php-cs-fixer fix -v --dry-run --using-cache=no `git diff --name-only --diff-filter=ACMRTUXB $COMMIT_RANGE`
