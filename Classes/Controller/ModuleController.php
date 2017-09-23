@@ -48,7 +48,6 @@ class ModuleController extends ActionController
      */
     const FOCUS_KEYWORD_COLUMN_NAME = 'tx_yoastseo_focuskeyword';
 
-
     /**
      * @var int
      */
@@ -77,7 +76,6 @@ class ModuleController extends ActionController
      * @var Locales
      */
     protected $localeService;
-
 
     /**
      * @param ViewInterface $view
@@ -356,7 +354,6 @@ class ModuleController extends ActionController
             }
         }
 
-
         if ($languageId > 0) {
             $table = 'pages_language_overlay';
 
@@ -383,7 +380,6 @@ class ModuleController extends ActionController
                 $fields['tx_realurl_pathoverride'] = 1;
             }
         }
-
 
         $data = array(
             $table => array(
@@ -415,7 +411,6 @@ class ModuleController extends ActionController
         $flashMessageService = $this->objectManager->get(\TYPO3\CMS\Core\Messaging\FlashMessageService::class);
         $messageQueue = $flashMessageService->getMessageQueueByIdentifier();
         $messageQueue->addMessage($message);
-
 
         $returnUrl = '';
         if ($this->request->hasArgument('returnUrl')) {
@@ -511,7 +506,6 @@ class ModuleController extends ActionController
         $messageQueue = $flashMessageService->getMessageQueueByIdentifier();
         $messageQueue->addMessage($message);
 
-
         $returnUrl = '';
         if ($this->request->hasArgument('returnUrl')) {
             $returnUrl = $this->request->getArgument('returnUrl');
@@ -588,7 +582,6 @@ class ModuleController extends ActionController
                         Icon::SIZE_SMALL
                     ))
                     ->setShowLabelText(true);
-
 
                 $buttonBar->addButton($saveButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
             }
@@ -672,7 +665,6 @@ class ModuleController extends ActionController
         return $GLOBALS['TYPO3_DB'];
     }
 
-
     /**
      * Returns LanguageService
      *
@@ -682,7 +674,6 @@ class ModuleController extends ActionController
     {
         return $GLOBALS['LANG'];
     }
-
 
     /**
      * Try to resolve a supported locale based on the user settings

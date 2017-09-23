@@ -8,7 +8,6 @@ use TYPO3\CMS\Extbase\Object\ObjectManager;
 use TYPO3\CMS\Extbase\Reflection\ObjectAccess;
 use TYPO3\CMS\Extbase\Service\TypoScriptService;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
-use YoastSeoForTypo3\YoastSeo;
 
 class PageMetaRenderer implements SingletonInterface
 {

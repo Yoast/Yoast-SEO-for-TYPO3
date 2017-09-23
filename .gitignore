@@ -4,3 +4,5 @@ node_modules
 *.po
 vendor
 composer.lock
+.Build
+!.Build/.php_cs
