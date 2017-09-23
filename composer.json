@@ -22,6 +22,12 @@
     }
   ],
   "homepage": "https://yoast.com",
+  "require": {
+    "typo3/cms-core": "^7.6 || ^8.7"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^2.0"
+  },
   "replace": {
     "yoast_seo": "self.version",
     "typo3-ter/yoast-seo": "self.version"
@@ -31,10 +37,8 @@
       "YoastSeoForTypo3\\YoastSeo\\": "Classes/"
     }
   },
-  "require": {
-    "typo3/cms-core": "^7.6 || ^8.7"
-  },
-  "require-dev": {
-    "friendsofphp/php-cs-fixer": "^2.0"
+  "config": {
+    "vendor-dir": ".Build/vendor",
+    "bin-dir": ".Build/bin"
   }
 }
