@@ -737,4 +737,5 @@ class ModuleController extends ActionController
 
         return $locale;
     }
+
 }
