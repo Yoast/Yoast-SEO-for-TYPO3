@@ -1,21 +1,7 @@
 <?php
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][] = \YoastSeoForTypo3\YoastSeo\Frontend\PageRenderer\PageMetaRenderer::class . '->render';
 
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['cms/layout/db_layout.php']['drawHeaderHook'][] = \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::class . '->render';
-
-\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScriptConstants(
-    'config.yoast_seo.fe_preview_type = '
-        . \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::FE_PREVIEW_TYPE
-);
-
-\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
-    'YoastSeo',
-    'setup',
-    '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/setup.txt">',
-    'defaultContentRendering'
-);
-
-$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = array(
+$confArr = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['yoast_seo']);
+$arrStaticConf = array(
     'translations' => array(
         'availableLocales' => array(
             'bg_BG',
@@ -75,6 +61,25 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = array(
         'showAdvancedTab' => true
     ),
     'previewUrlTemplate' => '/index.php?id=%d&type=%d&L=%d'
+);
+// merge static configuration with configuration available in Extension Manager
+\TYPO3\CMS\Core\Utility\ArrayUtility::mergeRecursiveWithOverrule($arrStaticConf, $confArr);
+$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = $arrStaticConf;
+
+// register hooks for Frontend and page module in backend
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][] = \YoastSeoForTypo3\YoastSeo\Frontend\PageRenderer\PageMetaRenderer::class . '->render';
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['cms/layout/db_layout.php']['drawHeaderHook'][] = \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::class . '->render';
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScriptConstants(
+    'config.yoast_seo.fe_preview_type = '
+    . \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::FE_PREVIEW_TYPE
+);
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
+    'YoastSeo',
+    'setup',
+    '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/setup.txt">',
+    'defaultContentRendering'
 );
 
 // allow social meta fields to be overlaid

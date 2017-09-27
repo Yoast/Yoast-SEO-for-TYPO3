@@ -1,0 +1,2 @@
+# cat=General; type=boolean; label=Display SRP entry in page module header
+displaySRPEntryPreview = 1

@@ -67,6 +67,10 @@ class PageLayoutHeader
      */
     public function render()
     {
+        // do nothing if page-module SRP preview is disabled
+        if (!$this->configuration['displaySRPEntryPreview'] ) {
+            return '';
+        }
         /** @var CMS\Backend\Controller\PageLayoutController $pageLayoutController */
         $pageLayoutController = $GLOBALS['SOBE'];
 
