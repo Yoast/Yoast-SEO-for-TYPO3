@@ -67,6 +67,11 @@ class PageLayoutHeader
      */
     public function render()
     {
+        if (!$GLOBALS['BE_USER'] instanceof CMS\Core\Authentication\BackendUserAuthentication ||
+            !$GLOBALS['BE_USER']->check('modules', 'web_YoastSeoSeoPlugin')) {
+            return '';
+        }
+
         /** @var CMS\Backend\Controller\PageLayoutController $pageLayoutController */
         $pageLayoutController = $GLOBALS['SOBE'];
 
