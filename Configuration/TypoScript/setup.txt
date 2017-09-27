@@ -38,6 +38,9 @@ module.tx_yoastseo {
 
         og < plugin.tx_yoastseo.settings.og
         twitter < plugin.tx_yoastseo.settings.twitter
+
+        titleFieldName = {$plugin.tx_yoastseo.titleField}
+        canonicalTagFieldName = {$plugin.tx_yoastseo.canonicalTagField}
     }
 }
 
@@ -80,7 +83,7 @@ yoast_seo_preview {
         }
 
         20 = TEXT
-        20.field = tx_yoastseo_title // title
+        20.field = {$plugin.tx_yoastseo.titleField} // title
         20.wrap = <title><![CDATA[|]]></title>
 
         30 = TEXT

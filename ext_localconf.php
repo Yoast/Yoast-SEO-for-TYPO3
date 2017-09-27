@@ -10,6 +10,12 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['cms/layout/db_layout.php']['drawHeade
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
     'YoastSeo',
+    'constants',
+    '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/constants.txt">',
+    'defaultContentRendering'
+);
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
+    'YoastSeo',
     'setup',
     '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/setup.txt">',
     'defaultContentRendering'

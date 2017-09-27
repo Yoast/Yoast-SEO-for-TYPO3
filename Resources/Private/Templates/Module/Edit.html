@@ -149,7 +149,7 @@
 									<div class="panel-body">
 										<div class="form-group">
 											<label for="canonical"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:canonical"/></label>
-											<f:form.textfield type="text" class="form-control" id="canonical" name="canonical" value="{page.tx_yoastseo_canonical_url}"/>
+											<f:form.textfield type="text" class="form-control" id="canonical" name="canonical" value="{yoast:keyValue(obj: page, prop: '{settings.canonicalTagFieldName}')}"/>
 										</div>
 										<div class="form-group">
 											<label for="robotInstructions"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:robotInstructions"/></label>

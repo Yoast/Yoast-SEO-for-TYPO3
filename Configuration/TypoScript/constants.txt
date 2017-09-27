@@ -1,0 +1,4 @@
+plugin.tx_yoastseo {
+	titleField = tx_yoastseo_title
+	canonicalTagField = tx_yoastseo_canonical_url
+}
