@@ -39,7 +39,7 @@ class PageMetaRenderer implements SingletonInterface
         $config = $typoScriptService->convertTypoScriptArrayToPlainArray($configManager->getConfiguration(ConfigurationManager::CONFIGURATION_TYPE_FULL_TYPOSCRIPT));
 
         if (is_array($config)
-            && ObjectAccess::getPropertyPath($config, 'config.yoast_seo.enabled') !== null
+            && (int) ObjectAccess::getPropertyPath($config, 'config.yoast_seo.enabled') !== 0
             && ObjectAccess::getPropertyPath($config, 'plugin.tx_yoastseo.settings') !== null
             && ObjectAccess::getPropertyPath($config, 'plugin.tx_yoastseo.view') !== null
             && $GLOBALS['TSFE']->cObj instanceof ContentObjectRenderer
