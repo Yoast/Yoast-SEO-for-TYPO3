@@ -22,14 +22,14 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
  */
 class YoastUtilityTest extends UnitTestCase
 {
-/**
- * ###############################
- *
- * TESTS
- *
- * ###############################
- */
 
+    /**
+     * ###############################
+     *
+     * TESTS
+     *
+     * ###############################
+     */
 
     /**
      * Check if the YoastUtility::getAllowedDoktypes method returns the right doktypes from the extension
@@ -59,13 +59,13 @@ class YoastUtilityTest extends UnitTestCase
         $this->assertEquals($expected, $actual);
     }
 
-/**
- * ###############################
- *
- * DATAPROVIDERS
- *
- * ###############################
- */
+    /**
+     * ###############################
+     *
+     * DATAPROVIDERS
+     *
+     * ###############################
+     */
 
     /**
      * Dataprovider for areTheRightDoktypesExtractedFromConfiguration test method
