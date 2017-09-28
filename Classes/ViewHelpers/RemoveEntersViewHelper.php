@@ -10,13 +10,13 @@ use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper;
 class RemoveEntersViewHelper extends AbstractViewHelper
 {
     /**
-     * @var boolean
+     * @var bool
      */
     protected $escapeOutput = false;
 
     /**
      * @param string $string
-     * @return null
+     * @return string
      */
     public function render($string = '')
     {
