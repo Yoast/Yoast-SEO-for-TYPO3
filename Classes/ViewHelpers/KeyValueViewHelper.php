@@ -19,7 +19,6 @@ class KeyValueViewHelper extends AbstractViewHelper
 
     public function render()
     {
-
         $obj = $this->arguments['obj'];
         $prop = $this->arguments['prop'];
         $sep = $this->arguments['sep'];
