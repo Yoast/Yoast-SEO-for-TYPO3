@@ -110,6 +110,10 @@ class PageLayoutHeader
             }
         }
 
+        if (!YoastUtility::snippetPreviewEnabled($currentPage['uid'])) {
+            return '';
+        }
+
         if (is_array($currentPage) && array_key_exists(static::COLUMN_NAME, $currentPage)) {
             $focusKeyword = $currentPage[static::COLUMN_NAME];
 

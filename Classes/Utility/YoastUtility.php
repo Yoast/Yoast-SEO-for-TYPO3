@@ -54,4 +54,31 @@ class YoastUtility
 
         return $allowedDoktypes;
     }
+
+    /**
+     * @param $pageId
+     * @param array $pageTs
+     *
+     * @return bool
+     */
+    public static function snippetPreviewEnabled($pageId, $pageTs = null)
+    {
+        $showPreview = true;
+        if ($pageTs === null) {
+            $pageTs = CMS\Backend\Utility\BackendUtility::getPagesTSconfig($pageId);
+        }
+
+        if (is_array($pageTs) &&
+            array_key_exists('mod.', $pageTs) &&
+            is_array($pageTs['mod.']) &&
+            array_key_exists('web_SeoPlugin.', $pageTs['mod.']) &&
+            is_array($pageTs['mod.']['web_SeoPlugin.']) &&
+            array_key_exists('disableSnippetPreview', $pageTs['mod.']['web_SeoPlugin.']) &&
+            (int)$pageTs['mod.']['web_SeoPlugin.']['disableSnippetPreview'] === 1
+        ) {
+            $showPreview = false;
+        }
+
+        return $showPreview;
+    }
 }
