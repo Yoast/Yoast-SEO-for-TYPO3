@@ -1,10 +1,10 @@
 <html xmlns:yoast="http://typo3.org/ns/YoastSeoForTypo3/YoastSeo/ViewHelpers" data-namespace-typo3-fluid="true">
-    <f:if condition="{data.tx_yoastseo_title}">
-        <f:then>
-            <title>{data.tx_yoastseo_title}</title>
-        </f:then>
-        <f:else>
-            <title>{data.title}</title>
-        </f:else>
-    </f:if>
+<title><f:if condition="{settings.titlePrepend}">
+    <f:then>{settings.titlePrepend} </f:then>
+</f:if><f:if condition="{yoast:keyValue(obj: data, prop: '{settings.titleFieldName}')}">
+        <f:then>{yoast:keyValue(obj: data, prop: '{settings.titleFieldName}')}</f:then>
+        <f:else>{data.title}</f:else>
+    </f:if><f:if condition="{settings.titleAppend}">
+    <f:then> {settings.titleAppend}</f:then>
+</f:if></title>
 </html>

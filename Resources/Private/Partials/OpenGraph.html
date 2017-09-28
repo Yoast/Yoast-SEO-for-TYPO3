@@ -1,11 +1,18 @@
 <html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" xmlns:yoast="http://typo3.org/ns/YoastSeoForTypo3/YoastSeo/ViewHelpers" data-namespace-typo3-fluid="true">
     <f:if condition="{data.tx_yoastseo_facebook_title}">
         <f:then>
-            <meta property="og:title" content="{data.tx_yoastseo_facebook_title}">
+            <meta property="og:title" content="{f:if(condition: '{settings.titlePrepend}', then: '{settings.titlePrepend} ', else: '')}{data.tx_yoastseo_facebook_title}{f:if(condition: '{settings.titleAppend}', then: ' {settings.titleAppend}', else: '')}">
         </f:then>
         <f:else>
             <f:if condition="{data.title}">
-                <meta property="og:title" content="{data.title}">
+                <f:if condition="{yoast:keyValue(obj: data, prop: '{settings.titleFieldName}')}">
+                    <f:then>
+                        <meta property="og:title" content="{f:if(condition: '{settings.titlePrepend}', then: '{settings.titlePrepend} ', else: '')}{yoast:keyValue(obj: data, prop: '{settings.titleFieldName}')}{f:if(condition: '{settings.titleAppend}', then: ' {settings.titleAppend}', else: '')}">
+                    </f:then>
+                    <f:else>
+                        <meta property="og:title" content="{f:if(condition: '{settings.titlePrepend}', then: '{settings.titlePrepend} ', else: '')}{data.title}{f:if(condition: '{settings.titleAppend}', then: ' {settings.titleAppend}', else: '')}">
+                    </f:else>
+                </f:if>
             </f:if>
         </f:else>
     </f:if>
@@ -14,8 +21,8 @@
             <meta property="og:description" content="{data.tx_yoastseo_facebook_description}">
         </f:then>
         <f:else>
-            <f:if condition="{data.description}">
-                <meta property="og:description" content="{data.description}">
+            <f:if condition="{yoast:keyValue(obj: data, prop: '{settings.descriptionFieldName}')}">
+                <meta property="og:description" content="{yoast:keyValue(obj: data, prop: '{settings.descriptionFieldName}')}">
             </f:if>
         </f:else>
     </f:if>
