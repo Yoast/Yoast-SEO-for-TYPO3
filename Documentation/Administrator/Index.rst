@@ -69,6 +69,32 @@ add your own doktypes like the example below.
         }
     }
 
+Set fields to be used as title, description and canonical
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+By default the extension adds own fields for title, description and the canonical. In an installation where you already have
+fields for this options and maybe even an extension providing data for these fields, you can now configure which fields to
+use for title, description and canonical urls. You can do this in the constants part of TypoScript.
+
+.. code-block:: typoscript
+
+    plugin.tx_yoastseo {
+        titleField = your_own_title_field
+        descriptionField = your_own_description_field
+        canonicalTagField = your_own_canonical_field
+    }
+
+Prepend and append text to the title of a page
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Sometimes you want the title of the page to be prepended or appended with a specific text. You can prepend and append the
+title by using these constants in TypoScript:
+
+.. code-block:: typoscript
+
+    plugin.tx_yoastseo {
+        titlePrepend = append example -
+        titleAppend = - name of company
+    }
+
 Make your extension overwrite yoast_seo
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 For some settings you need to extend the `yoast_seo` extension with your own extension. To load your extension in the
