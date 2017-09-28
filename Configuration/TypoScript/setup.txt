@@ -40,6 +40,7 @@ module.tx_yoastseo {
         twitter < plugin.tx_yoastseo.settings.twitter
 
         titleFieldName = {$plugin.tx_yoastseo.titleField}
+        descriptionFieldName = {$plugin.tx_yoastseo.descriptionField}
         canonicalTagFieldName = {$plugin.tx_yoastseo.canonicalTagField}
     }
 }

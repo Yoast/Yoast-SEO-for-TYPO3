@@ -271,7 +271,7 @@ class ModuleController extends ActionController
 
         $fields = array();
         $this->addFieldToArray($fields, $this->settings['titleFieldName'], 'snippet-editor-title');
-        $this->addFieldToArray($fields, 'description', 'snippet-editor-meta-description');
+        $this->addFieldToArray($fields, $this->settings['descriptionFieldName'], 'snippet-editor-meta-description');
         $this->addFieldToArray($fields, 'tx_yoastseo_facebook_title', 'facebookTitle');
         $this->addFieldToArray($fields, 'tx_yoastseo_facebook_description', 'facebookDescription');
         $this->addFieldToArray($fields, 'tx_yoastseo_twitter_title', 'twitterTitle');
