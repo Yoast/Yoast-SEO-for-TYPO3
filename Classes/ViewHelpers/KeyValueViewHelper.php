@@ -1,12 +1,10 @@
 <?php
-
 namespace YoastSeoForTypo3\YoastSeo\ViewHelpers;
 
 use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper;
 
 /**
  * Class KeyValueViewHelper
- *
  * @package YoastSeoForTypo3\YoastSeo\ViewHelpers
  */
 class KeyValueViewHelper extends AbstractViewHelper
