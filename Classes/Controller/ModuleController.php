@@ -270,13 +270,13 @@ class ModuleController extends ActionController
         $languageId = (int)$this->request->getArgument('language');
 
         $fields = array();
-        $this->addFieldToArray($fields, 'tx_yoastseo_title', 'snippet-editor-title');
-        $this->addFieldToArray($fields, 'description', 'snippet-editor-meta-description');
+        $this->addFieldToArray($fields, $this->settings['titleFieldName'], 'snippet-editor-title');
+        $this->addFieldToArray($fields, $this->settings['descriptionFieldName'], 'snippet-editor-meta-description');
         $this->addFieldToArray($fields, 'tx_yoastseo_facebook_title', 'facebookTitle');
         $this->addFieldToArray($fields, 'tx_yoastseo_facebook_description', 'facebookDescription');
         $this->addFieldToArray($fields, 'tx_yoastseo_twitter_title', 'twitterTitle');
         $this->addFieldToArray($fields, 'tx_yoastseo_twitter_description', 'twitterDescription');
-        $this->addFieldToArray($fields, 'tx_yoastseo_canonical_url', 'canonical');
+        $this->addFieldToArray($fields, $this->settings['canonicalTagFieldName'], 'canonical');
         $this->addFieldToArray($fields, 'tx_yoastseo_robot_instructions', 'robotInstructions');
         $this->addFieldToArray($fields, 'tx_yoastseo_focuskeyword', 'focusKeyword');
 
@@ -657,6 +657,7 @@ class ModuleController extends ActionController
         }
         $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->addMenu($menu);
     }
+
     /**
      * @return DatabaseConnection
      */

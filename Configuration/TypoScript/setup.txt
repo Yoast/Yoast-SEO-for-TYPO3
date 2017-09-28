@@ -6,6 +6,12 @@ plugin.tx_yoastseo {
         og.image.height = 480c
         twitter.image.width = 640c
         twitter.image.height = 480c
+
+        titleFieldName = {$plugin.tx_yoastseo.titleField}
+        descriptionFieldName = {$plugin.tx_yoastseo.descriptionField}
+        canonicalTagFieldName = {$plugin.tx_yoastseo.canonicalTagField}
+        titlePrepend = {$plugin.tx_yoastseo.titlePrepend}
+        titleAppend = {$plugin.tx_yoastseo.titleAppend}
     }
     view {
         file = EXT:yoast_seo/Resources/Private/Templates/Meta.html
@@ -38,6 +44,10 @@ module.tx_yoastseo {
 
         og < plugin.tx_yoastseo.settings.og
         twitter < plugin.tx_yoastseo.settings.twitter
+
+        titleFieldName = {$plugin.tx_yoastseo.titleField}
+        descriptionFieldName = {$plugin.tx_yoastseo.descriptionField}
+        canonicalTagFieldName = {$plugin.tx_yoastseo.canonicalTagField}
     }
 }
 
@@ -79,12 +89,25 @@ yoast_seo_preview {
             wrap = <url>|</url>
         }
 
-        20 = TEXT
-        20.field = tx_yoastseo_title // title
-        20.wrap = <title><![CDATA[|]]></title>
+        20 = COA
+        20 {
+            10 = TEXT
+            10.value = {$plugin.tx_yoastseo.titlePrepend}
+            10.stdWrap.noTrimWrap = || |
+
+            20 = TEXT
+            20.field = {$plugin.tx_yoastseo.titleField} // title
+
+            30 = TEXT
+            30.value = {$plugin.tx_yoastseo.titleAppend}
+            30.stdWrap.noTrimWrap = | ||
+
+            stdWrap.trim = 1
+            stdWrap.wrap = <title><![CDATA[|]]></title>
+        }
 
         30 = TEXT
-        30.field = description
+        30.field = {$plugin.tx_yoastseo.descriptionField}
         30.wrap = <description><![CDATA[|]]></description>
 
         40 = TEXT
