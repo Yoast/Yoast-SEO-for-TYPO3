@@ -1,5 +1,5 @@
-<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" data-namespace-typo3-fluid="true">
-	<f:if condition="{data.description}">
-		<meta name="description" content="{data.description}">
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" xmlns:yoast="http://typo3.org/ns/YoastSeoForTypo3/YoastSeo/ViewHelpers" data-namespace-typo3-fluid="true">
+	<f:if condition="{yoast:keyValue(obj: data, prop: '{settings.descriptionFieldName}')}">
+		<meta name="description" content="{yoast:keyValue(obj: data, prop: '{settings.descriptionFieldName}')}">
 	</f:if>
 </html>
