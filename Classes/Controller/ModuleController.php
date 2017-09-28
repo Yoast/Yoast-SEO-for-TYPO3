@@ -657,6 +657,7 @@ class ModuleController extends ActionController
         }
         $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->addMenu($menu);
     }
+
     /**
      * @return DatabaseConnection
      */

@@ -90,16 +90,21 @@ yoast_seo_preview {
         }
 
         20 = COA
-        20.10 = TEXT
-        20.10.value = {$plugin.tx_yoastseo.titlePrepend}
-        20.10.stdWrap.noTrimWrap = || |
-        20.20 = TEXT
-        20.20.field = {$plugin.tx_yoastseo.titleField} // title
-        20.30 = TEXT
-        20.30.value = {$plugin.tx_yoastseo.titleAppend}
-        20.30.stdWrap.noTrimWrap = | ||
-        20.stdWrap.trim = 1
-        20.stdWrap.wrap = <title><![CDATA[|]]></title>
+        20 {
+            10 = TEXT
+            10.value = {$plugin.tx_yoastseo.titlePrepend}
+            10.stdWrap.noTrimWrap = || |
+
+            20 = TEXT
+            20.field = {$plugin.tx_yoastseo.titleField} // title
+
+            30 = TEXT
+            30.value = {$plugin.tx_yoastseo.titleAppend}
+            30.stdWrap.noTrimWrap = | ||
+
+            stdWrap.trim = 1
+            stdWrap.wrap = <title><![CDATA[|]]></title>
+        }
 
         30 = TEXT
         30.field = {$plugin.tx_yoastseo.descriptionField}
