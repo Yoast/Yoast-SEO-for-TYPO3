@@ -26,7 +26,8 @@
     "typo3/cms-core": "^7.6 || ^8.7"
   },
   "require-dev": {
-    "friendsofphp/php-cs-fixer": "^2.0"
+    "friendsofphp/php-cs-fixer": "^2.0",
+    "nimut/testing-framework": "^2.0"
   },
   "replace": {
     "yoast_seo": "self.version",
