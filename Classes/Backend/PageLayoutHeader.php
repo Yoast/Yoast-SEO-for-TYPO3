@@ -4,6 +4,7 @@ namespace YoastSeoForTypo3\YoastSeo\Backend;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS;
+use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class PageLayoutHeader
 {
@@ -142,7 +143,7 @@ class PageLayoutHeader
             );
         }
 
-        $allowedDoktypes = $this->getAllowedDoktypes();
+        $allowedDoktypes = YoastUtility::getAllowedDoktypes();
         if (is_array($currentPage) &&
             array_key_exists('doktype', $currentPage) &&
             in_array((int)$currentPage['doktype'], $allowedDoktypes, true)
@@ -287,31 +288,5 @@ class PageLayoutHeader
         }
 
         return $locale;
-    }
-
-    /**
-     * @return array
-     */
-    protected function getAllowedDoktypes()
-    {
-        // By default only add normal pages
-        $allowedDoktypes = [1];
-
-        /** @var CMS\Extbase\Object\ObjectManager $objectManager */
-        $objectManager = CMS\Core\Utility\GeneralUtility::makeInstance(CMS\Extbase\Object\ObjectManager::class);
-        /** @var CMS\Extbase\Configuration\ConfigurationManager $configurationManager */
-        $configurationManager = $objectManager->get(CMS\Extbase\Configuration\ConfigurationManager::class);
-        $configuration = $configurationManager->getConfiguration(CMS\Extbase\Configuration\ConfigurationManagerInterface::CONFIGURATION_TYPE_SETTINGS, 'yoastseo');
-
-        if (is_array($configuration) && array_key_exists('allowedDoktypes', $configuration)
-        ) {
-            foreach ($configuration['allowedDoktypes'] as $doktype) {
-                if (!in_array($doktype, $allowedDoktypes)) {
-                    $allowedDoktypes[] = (int)$doktype;
-                }
-            }
-        }
-
-        return $allowedDoktypes;
     }
 }
