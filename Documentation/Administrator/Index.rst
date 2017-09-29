@@ -77,11 +77,11 @@ also disable the snippet preview based on PageTs. Below an example to hide page 
 
 .. code-block:: typoscript
 
-[PIDupinRootline = 4]
-    mod.web_SeoPlugin {
-        disableSnippetPreview = 1
-    }
-[global]
+    [PIDupinRootline = 4]
+        mod.web_SeoPlugin {
+            disableSnippetPreview = 1
+        }
+    [global]
 
 Set fields to be used as title, description and canonical
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -141,6 +141,7 @@ array in the `ext_localconf.php` of your own extension. See the example below to
 
 
 .. code-block:: php
+
     $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['viewSettings'] = array (
         'showAnalysisTab' => true,
         'showSocialTab'   => true,
@@ -158,6 +159,7 @@ You can completely hide certain entries from the top menu of the backend module.
 
 
 .. code-block:: php
+
     $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['menuActions'] = array (
          ['action' => 'edit', 'label' => 'edit'],
         //['action' => 'dashboard', 'label' => 'dashboard'],    This will hide the dashboard menu item
@@ -172,6 +174,7 @@ the domain from `sys_domain`, just like the normal preview functionality of TYPO
 domain, you can add this setting to your `ext_localconf.php`. See the example below.
 
 .. code-block:: php
+
     $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewDomain'] = 'demo.typo3.local';
 
 
@@ -180,4 +183,5 @@ Change the PreviewURL Template
 You can change the script-path of the preview, e.g. usable for SPAs.
 
 .. code-block:: php
-$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewUrlTemplate'] = '/#%d&type=%d&L=%d';
+
+    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewUrlTemplate'] = '/#%d&type=%d&L=%d';
