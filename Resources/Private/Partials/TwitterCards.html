@@ -1,7 +1,7 @@
 <html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" xmlns:yoast="http://typo3.org/ns/YoastSeoForTypo3/YoastSeo/ViewHelpers" data-namespace-typo3-fluid="true">
     <f:if condition="{data.tx_yoastseo_twitter_title}">
         <f:then>
-            <meta property="twitter:title" content="{f:if(condition: '{settings.titlePrepend}', then: '{settings.titlePrepend} ', else: '')}{data.tx_yoastseo_twitter_title}{f:if(condition: '{settings.titleAppend}', then: ' {settings.titleAppend}}'">
+            <meta property="twitter:title" content="{f:if(condition: '{settings.titlePrepend}', then: '{settings.titlePrepend} ', else: '')}{data.tx_yoastseo_twitter_title}{f:if(condition: '{settings.titleAppend}', then: ' {settings.titleAppend}')}'">
         </f:then>
         <f:else>
             <f:if condition="{data.title}">
