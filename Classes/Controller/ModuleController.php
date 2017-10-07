@@ -316,7 +316,7 @@ class ModuleController extends ActionController
                         'pid' => $pageId
                     ];
 
-                    $extraTableRecords['pages'][$pageId]['tx_yoastseo_twitter_image'] = $newId;
+                    $fields['tx_yoastseo_twitter_image'] = $newId;
                 }
             }
         }
@@ -349,7 +349,7 @@ class ModuleController extends ActionController
                         'pid' => $pageId
                     ];
 
-                    $extraTableRecords['pages'][$pageId]['tx_yoastseo_facebook_image'] = $newId;
+                    $fields['tx_yoastseo_facebook_image'] = $newId;
                 }
             }
         }
