@@ -135,6 +135,12 @@
 			<trans-unit id="settings.intro">
 				<source>The following settings are fallback settings. If you don't specify specific settings on a page, this information will be used as a default.</source>
 			</trans-unit>
+			<trans-unit id="usersettings.title">
+				<source>Yoast SEO</source>
+			</trans-unit>
+			<trans-unit id="usersettings.hideYoastInPageModule">
+				<source>Hide Yoast SEO content analysis in page module</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>
