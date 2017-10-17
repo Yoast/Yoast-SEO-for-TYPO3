@@ -73,6 +73,10 @@ class PageLayoutHeader
             return '';
         }
 
+        if ((bool)$GLOBALS['BE_USER']->uc['hideYoastInPageModule']) {
+            return '';
+        }
+
         /** @var CMS\Backend\Controller\PageLayoutController $pageLayoutController */
         $pageLayoutController = $GLOBALS['SOBE'];
 
