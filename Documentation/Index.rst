@@ -56,4 +56,5 @@ Yoast SEO for TYPO3
     :titlesonly:
 
     Introduction/Index
+    User/Index
     Administrator/Index
