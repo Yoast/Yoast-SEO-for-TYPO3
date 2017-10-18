@@ -2,6 +2,12 @@
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns(
     'pages_language_overlay',
     array(
+        'tx_yoastseo_title' => array(
+            'label' => 'SEO title',
+            'config' => array(
+                'type' => 'input'
+            )
+        ),
         'tx_yoastseo_focuskeyword' => array(
             'label' => 'SEO focus keyword',
             'config' => array(
@@ -140,7 +146,7 @@
     'pages_language_overlay',
     'metatags',
     '
-    --linebreak--, tx_yoastseo_focuskeyword, tx_yoastseo_canonical_url, tx_yoastseo_robot_instructions,
+    --linebreak--, tx_yoastseo_title, tx_yoastseo_focuskeyword, tx_yoastseo_canonical_url, tx_yoastseo_robot_instructions,
      --linebreak--, tx_yoastseo_facebook_title, 
      --linebreak--, tx_yoastseo_facebook_description, 
      --linebreak--, tx_yoastseo_facebook_image,
