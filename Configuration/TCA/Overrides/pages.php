@@ -2,6 +2,12 @@
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns(
     'pages',
     array(
+        'tx_yoastseo_dont_use' => array(
+            'label' => 'Hide Yoast SEO in frontend',
+            'config' => array(
+                'type' => 'check'
+            )
+        ),
         'tx_yoastseo_focuskeyword' => array(
             'label' => 'SEO focus keyword',
             'config' => array(
@@ -152,6 +158,7 @@
     --linebreak--, tx_yoastseo_facebook_image, 
     --linebreak--, tx_yoastseo_twitter_title, 
     --linebreak--, tx_yoastseo_twitter_description, 
-    --linebreak--, tx_yoastseo_twitter_image
+    --linebreak--, tx_yoastseo_twitter_image,
+    --linebreak--, tx_yoastseo_dont_use
     '
 );

@@ -12,6 +12,7 @@ CREATE TABLE pages (
 	tx_yoastseo_twitter_title varchar(255) DEFAULT '' NOT NULL,
 	tx_yoastseo_twitter_description varchar(255) DEFAULT '' NOT NULL,
 	tx_yoastseo_twitter_image int(11) DEFAULT '0' NOT NULL,
+	tx_yoastseo_dont_use tinyint(3) DEFAULT '0' NOT NULL,
 );
 
 #
@@ -28,4 +29,5 @@ CREATE TABLE pages_language_overlay (
 	tx_yoastseo_twitter_title varchar(255) DEFAULT '' NOT NULL,
 	tx_yoastseo_twitter_description varchar(255) DEFAULT '' NOT NULL,
 	tx_yoastseo_twitter_image int(11) DEFAULT '0' NOT NULL,
+	tx_yoastseo_dont_use tinyint(3) DEFAULT '0' NOT NULL,
 );
