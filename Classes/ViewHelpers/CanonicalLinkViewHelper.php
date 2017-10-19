@@ -12,6 +12,11 @@ use TYPO3\CMS\Frontend;
  */
 class CanonicalLinkViewHelper extends Fluid\Core\ViewHelper\AbstractTagBasedViewHelper
 {
+    /**
+     * @var \TYPO3\CMS\Frontend\Page\CacheHashCalculator
+     * @inject
+     */
+    protected $cHashCalculator;
 
     /**
      * Name of the tag to be created by this view helper
@@ -36,10 +41,23 @@ class CanonicalLinkViewHelper extends Fluid\Core\ViewHelper\AbstractTagBasedView
         ) {
             $uriBuilder = $this->controllerContext->getUriBuilder();
 
-            $uri = $uriBuilder->reset()
+            $uriBuilder->reset()
                 ->setCreateAbsoluteUri(true)
                 ->setTargetPageUid($GLOBALS['TSFE']->contentPid)
-                ->build();
+                ->setUseCacheHash(false);
+            if (Core\Utility\GeneralUtility::_GET('cHash') !== null) {
+                $parameter = $this->cHashCalculator->getRelevantParameters(
+                    Core\Utility\GeneralUtility::getIndpEnv('QUERY_STRING')
+                );
+                if (!empty($parameter)) {
+                    unset($parameter['encryptionKey']);
+                    unset($parameter['id']);
+                    // Add query parameter, if cHash was found and parameter for cHash exists
+                    $uriBuilder->setUseCacheHash(true)
+                        ->setArguments($parameter);
+                }
+            }
+            $uri = $uriBuilder->build();
 
             $this->tag->addAttribute('href', $uri);
         }
