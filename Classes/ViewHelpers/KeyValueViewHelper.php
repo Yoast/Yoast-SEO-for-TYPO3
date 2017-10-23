@@ -1,7 +1,9 @@
 <?php
 namespace YoastSeoForTypo3\YoastSeo\ViewHelpers;
 
+use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
 use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper;
+use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
 /**
  * Class KeyValueViewHelper
@@ -9,30 +11,55 @@ use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper;
  */
 class KeyValueViewHelper extends AbstractViewHelper
 {
+
+    /**
+     * @var ConfigurationManagerInterface
+     */
+    protected $configurationManager;
+
+    /**
+     * Inject configuration manager
+     *
+     * @param ConfigurationManagerInterface $configurationManager
+     * @return void
+     */
+    public function injectConfigurationManager(ConfigurationManagerInterface $configurationManager)
+    {
+        $this->configurationManager = $configurationManager;
+    }
+
     public function initializeArguments()
     {
         $this->registerArgument('obj', 'mixed', '');
         $this->registerArgument('prop', 'mixed', '');
-        $this->registerArgument('sep', 'mixed', '');
     }
 
     public function render()
     {
         $obj = $this->arguments['obj'];
         $prop = $this->arguments['prop'];
-        $sep = $this->arguments['sep'];
 
-        if (is_array($prop)) {
-            $prop = implode($sep, $prop);
-        }
-
+        $data = [];
         if (is_object($obj)) {
-            return $obj->$prop;
+            $data = get_object_vars($obj);
         } elseif (is_array($obj)) {
-            if (array_key_exists($prop, $obj)) {
-                return $obj[$prop];
-            }
+            $data = $obj;
         }
-        return null;
+
+        return $this->getContentObject($data)->getData($prop, $data);
+    }
+
+    /**
+     * @param array $data
+     * @return ContentObjectRenderer
+     */
+    protected function getContentObject(array $data)
+    {
+        $contentObjectRenderer = $this->configurationManager->getContentObject();
+        if ($contentObjectRenderer === null) {
+            $contentObjectRenderer = $this->objectManager->get(ContentObjectRenderer::class);
+            $contentObjectRenderer->start($data);
+        }
+        return $contentObjectRenderer;
     }
 }
