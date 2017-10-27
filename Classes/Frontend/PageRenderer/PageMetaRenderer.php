@@ -2,11 +2,6 @@
 namespace YoastSeoForTypo3\YoastSeo\Frontend\PageRenderer;
 
 use TYPO3\CMS\Core\SingletonInterface;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Configuration\ConfigurationManager;
-use TYPO3\CMS\Extbase\Object\ObjectManager;
-use TYPO3\CMS\Extbase\Reflection\ObjectAccess;
-use TYPO3\CMS\Extbase\Service\TypoScriptService;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
 class PageMetaRenderer implements SingletonInterface
@@ -29,20 +24,15 @@ class PageMetaRenderer implements SingletonInterface
          * The content object renderer of TSFE is used to render FLUIDTEMPLATE
          * after `plugin.tx_yoastseo.settings` is merged with `plugin.tx_yoastseo.view.settings`
          */
-        $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
-
-        $configManager = $objectManager->get(\TYPO3\CMS\Extbase\Configuration\ConfigurationManager::class);
-
-        /** @var TypoScriptService $typoScriptService */
-        $typoScriptService = $objectManager->get(TypoScriptService::class);
-
-        $config = $typoScriptService->convertTypoScriptArrayToPlainArray($configManager->getConfiguration(ConfigurationManager::CONFIGURATION_TYPE_FULL_TYPOSCRIPT));
-
+        $config = isset($GLOBALS['TSFE']->tmpl->setup) ? $GLOBALS['TSFE']->tmpl->setup : [];
         if (is_array($config)
             && !(bool)$GLOBALS['TSFE']->page['tx_yoastseo_dont_use']
-            && (int) ObjectAccess::getPropertyPath($config, 'config.yoast_seo.enabled') !== 0
-            && ObjectAccess::getPropertyPath($config, 'plugin.tx_yoastseo.settings') !== null
-            && ObjectAccess::getPropertyPath($config, 'plugin.tx_yoastseo.view') !== null
+            && isset(
+                $config['plugin.']['tx_yoastseo.']['settings.'],
+                $config['plugin.']['tx_yoastseo.']['view.'],
+                $config['config.']['yoast_seo.']['enabled']
+            )
+            && (int) $config['config.']['yoast_seo.']['enabled'] !== 0
             && $GLOBALS['TSFE']->cObj instanceof ContentObjectRenderer
         ) {
             $parameters['metaTags'][] = $GLOBALS['TSFE']->cObj->cObjGetSingle(
