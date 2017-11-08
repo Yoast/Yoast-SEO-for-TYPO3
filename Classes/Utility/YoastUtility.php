@@ -57,13 +57,15 @@ class YoastUtility
 
     /**
      * @param $pageId
+     * @param array $pageRecord
      * @param array $pageTs
      *
      * @return bool
      */
-    public static function snippetPreviewEnabled($pageId, $pageTs = null)
+    public static function snippetPreviewEnabled($pageId, array $pageRecord, $pageTs = null)
     {
-        $showPreview = true;
+        $showPreview = !$pageRecord['tx_yoastseo_dont_use'];
+
         if ($pageTs === null) {
             $pageTs = CMS\Backend\Utility\BackendUtility::getPagesTSconfig($pageId);
         }

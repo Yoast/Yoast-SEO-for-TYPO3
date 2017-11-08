@@ -114,7 +114,7 @@ class PageLayoutHeader
             }
         }
 
-        if (!YoastUtility::snippetPreviewEnabled((int)$pageLayoutController->current_sys_language == 0 ? $currentPage['uid'] : $currentPage['pid'])) {
+        if (!YoastUtility::snippetPreviewEnabled(((int)$pageLayoutController->current_sys_language == 0 ? $currentPage['uid'] : $currentPage['pid']), $currentPage)) {
             return '';
         }
 
