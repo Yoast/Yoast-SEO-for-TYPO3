@@ -84,8 +84,11 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = array(
 );
 
 // allow social meta fields to be overlaid
-$GLOBALS['TYPO3_CONF_VARS']['FE']['pageOverlayFields'] .= ',tx_yoastseo_title'
+$GLOBALS['TYPO3_CONF_VARS']['FE']['pageOverlayFields'] .=
+      ',tx_yoastseo_canonical_url'
     . ',tx_yoastseo_facebook_title'
     . ',tx_yoastseo_facebook_description'
+    . ',tx_yoastseo_robot_instructions'
+    . ',tx_yoastseo_title'
     . ',tx_yoastseo_twitter_title'
     . ',tx_yoastseo_twitter_description';
