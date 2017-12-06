@@ -845,5 +845,4 @@ class ModuleController extends ActionController
     {
         return $GLOBALS['BE_USER'];
     }
-
 }
