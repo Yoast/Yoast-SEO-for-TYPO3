@@ -5,7 +5,9 @@ use TYPO3\CMS\Backend\Template\Components\ButtonBar;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Backend\View\BackendTemplateView;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\DatabaseConnection;
+use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Localization\Locales;
@@ -15,6 +17,7 @@ use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Versioning\VersionState;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
 use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
@@ -57,6 +60,11 @@ class ModuleController extends ActionController
      * @var string
      */
     const APP_TRANSLATION_FILE_PATTERN = 'EXT:yoast_seo/Resources/Private/Language/wordpress-seo-%s.json';
+
+    /**
+     * @var array
+     */
+    protected $MOD_MENU;
 
     /**
      * @var array
@@ -615,22 +623,120 @@ class ModuleController extends ActionController
      */
     protected function makeLanguageMenu()
     {
+        $lang = $this->getLanguageService();
+
+        $this->MOD_MENU = [
+            'language' => [
+                0 => $lang->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:defaultLanguage')
+            ]
+        ];
+        // First, select all pages_language_overlay records on the current page. Each represents a possibility for a language on the page. Add these to language selector.
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_language');
+        $queryBuilder->getRestrictions()->removeAll();
+        if ((int)GeneralUtility::_GP('id')) {
+            $queryBuilder->select('sys_language.uid AS uid', 'sys_language.title AS title')
+                ->from('sys_language')
+                ->join(
+                    'sys_language',
+                    'pages_language_overlay',
+                    'pages_language_overlay',
+                    $queryBuilder->expr()->eq(
+                        'sys_language.uid',
+                        $queryBuilder->quoteIdentifier('pages_language_overlay.sys_language_uid')
+                    )
+                )
+                ->where(
+                    $queryBuilder->expr()->eq(
+                        'pages_language_overlay.deleted',
+                        $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT)
+                    ),
+                    $queryBuilder->expr()->eq(
+                        'pages_language_overlay.pid',
+                        $queryBuilder->createNamedParameter((int)GeneralUtility::_GP('id'), \PDO::PARAM_INT)
+                    ),
+                    $queryBuilder->expr()->orX(
+                        $queryBuilder->expr()->gte(
+                            'pages_language_overlay.t3ver_state',
+                            $queryBuilder->createNamedParameter(
+                                (string)new VersionState(VersionState::DEFAULT_STATE),
+                                \PDO::PARAM_INT
+                            )
+                        ),
+                        $queryBuilder->expr()->eq(
+                            'pages_language_overlay.t3ver_wsid',
+                            $queryBuilder->createNamedParameter($this->getBackendUser()->workspace, \PDO::PARAM_INT)
+                        )
+                    )
+                )
+                ->groupBy(
+                    'pages_language_overlay.sys_language_uid',
+                    'sys_language.uid',
+                    'sys_language.pid',
+                    'sys_language.tstamp',
+                    'sys_language.hidden',
+                    'sys_language.title',
+                    'sys_language.language_isocode',
+                    'sys_language.static_lang_isocode',
+                    'sys_language.flag',
+                    'sys_language.sorting'
+                )
+                ->orderBy('sys_language.sorting');
+            if (!$this->getBackendUser()->isAdmin()) {
+                $queryBuilder->andWhere(
+                    $queryBuilder->expr()->eq(
+                        'sys_language.hidden',
+                        $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT)
+                    )
+                );
+            }
+            $statement = $queryBuilder->execute();
+        } else {
+            $queryBuilder->getRestrictions()->add(GeneralUtility::makeInstance(HiddenRestriction::class));
+            $statement = $queryBuilder->select('uid', 'title')
+                ->from('sys_language')
+                ->orderBy('sorting')
+                ->execute();
+        }
+        while ($lRow = $statement->fetch()) {
+            if ($this->getBackendUser()->checkLanguageAccess($lRow['uid'])) {
+                $this->MOD_MENU['language'][$lRow['uid']] = $lRow['title'];
+            }
+        }
+
         if (count($this->MOD_MENU['language']) > 1) {
+            if ($this->request->hasArgument('id')) {
+                $pageId = $this->request->getArgument('id');
+            } elseif ((int)GeneralUtility::_GET('id')) {
+                $pageId = (int)GeneralUtility::_GET('id');
+            }
+
             $lang = $this->getLanguageService();
-            $languageMenu = $this->moduleTemplate->getDocHeaderComponent()->getMenuRegistry()->makeMenu();
+            $languageMenu = $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->makeMenu();
             $languageMenu->setIdentifier('languageMenu');
             $languageMenu->setLabel($lang->sL('LLL:EXT:lang/locallang_general.xlf:LGL.language', true));
+            $returnUrl = ($this->request->hasArgument('returnUrl')) ? $this->request->getArgument('returnUrl') : '';
+
             foreach ($this->MOD_MENU['language'] as $key => $language) {
+                $parameters = array(
+                    'tx_yoastseo_web_yoastseoseoplugin[id]' => $pageId,
+                    'tx_yoastseo_web_yoastseoseoplugin[language]' => $key,
+                    'tx_yoastseo_web_yoastseoseoplugin[returnUrl]' => $returnUrl
+                );
+                $url = BackendUtility::getModuleUrl('web_YoastSeoSeoPlugin', $parameters);
+
+
                 $menuItem = $languageMenu
                     ->makeMenuItem()
                     ->setTitle($language)
-                    ->setHref(BackendUtility::getModuleUrl($this->moduleName) . '&id=' . $this->id . '&SET[language]=' . $key);
-                if ((int)$this->current_sys_language === $key) {
+                    ->setHref($url);
+                if ($this->request->hasArgument('language') &&
+                    (int)$this->request->getArgument('language') === $key) {
                     $menuItem->setActive(true);
                 }
                 $languageMenu->addMenuItem($menuItem);
             }
-            $this->moduleTemplate->getDocHeaderComponent()->getMenuRegistry()->addMenu($languageMenu);
+
+            $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->addMenu($languageMenu);
         }
     }
 
@@ -729,4 +835,15 @@ class ModuleController extends ActionController
 
         return $locale;
     }
+
+    /**
+     * Returns the current BE user.
+     *
+     * @return \TYPO3\CMS\Core\Authentication\BackendUserAuthentication
+     */
+    protected function getBackendUser()
+    {
+        return $GLOBALS['BE_USER'];
+    }
+
 }
