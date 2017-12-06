@@ -724,7 +724,6 @@ class ModuleController extends ActionController
                 );
                 $url = BackendUtility::getModuleUrl('web_YoastSeoSeoPlugin', $parameters);
 
-
                 $menuItem = $languageMenu
                     ->makeMenuItem()
                     ->setTitle($language)
