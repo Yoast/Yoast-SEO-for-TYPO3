@@ -625,91 +625,47 @@ class ModuleController extends ActionController
     {
         $lang = $this->getLanguageService();
 
+        $pageId = 0;
+        if ($this->request->hasArgument('id')) {
+            $pageId = $this->request->getArgument('id');
+        } elseif ((int)GeneralUtility::_GET('id')) {
+            $pageId = (int)GeneralUtility::_GET('id');
+        }
+
         $this->MOD_MENU = [
             'language' => [
                 0 => $lang->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:defaultLanguage')
             ]
         ];
-        // First, select all pages_language_overlay records on the current page. Each represents a possibility for a language on the page. Add these to language selector.
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_language');
-        $queryBuilder->getRestrictions()->removeAll();
-        if ((int)GeneralUtility::_GP('id')) {
-            $queryBuilder->select('sys_language.uid AS uid', 'sys_language.title AS title')
-                ->from('sys_language')
-                ->join(
-                    'sys_language',
-                    'pages_language_overlay',
-                    'pages_language_overlay',
-                    $queryBuilder->expr()->eq(
-                        'sys_language.uid',
-                        $queryBuilder->quoteIdentifier('pages_language_overlay.sys_language_uid')
-                    )
-                )
-                ->where(
-                    $queryBuilder->expr()->eq(
-                        'pages_language_overlay.deleted',
-                        $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT)
-                    ),
-                    $queryBuilder->expr()->eq(
-                        'pages_language_overlay.pid',
-                        $queryBuilder->createNamedParameter((int)GeneralUtility::_GP('id'), \PDO::PARAM_INT)
-                    ),
-                    $queryBuilder->expr()->orX(
-                        $queryBuilder->expr()->gte(
-                            'pages_language_overlay.t3ver_state',
-                            $queryBuilder->createNamedParameter(
-                                (string)new VersionState(VersionState::DEFAULT_STATE),
-                                \PDO::PARAM_INT
-                            )
-                        ),
-                        $queryBuilder->expr()->eq(
-                            'pages_language_overlay.t3ver_wsid',
-                            $queryBuilder->createNamedParameter($this->getBackendUser()->workspace, \PDO::PARAM_INT)
-                        )
-                    )
-                )
-                ->groupBy(
-                    'pages_language_overlay.sys_language_uid',
-                    'sys_language.uid',
-                    'sys_language.pid',
-                    'sys_language.tstamp',
-                    'sys_language.hidden',
-                    'sys_language.title',
-                    'sys_language.language_isocode',
-                    'sys_language.static_lang_isocode',
-                    'sys_language.flag',
-                    'sys_language.sorting'
-                )
-                ->orderBy('sys_language.sorting');
-            if (!$this->getBackendUser()->isAdmin()) {
-                $queryBuilder->andWhere(
-                    $queryBuilder->expr()->eq(
-                        'sys_language.hidden',
-                        $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT)
-                    )
-                );
-            }
-            $statement = $queryBuilder->execute();
+
+        if ((int)$pageId) {
+            $exQ = BackendUtility::deleteClause('pages_language_overlay') .
+                ($this->getBackendUser()->isAdmin() ? '' : ' AND sys_language.hidden=0');
+            $rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+                'sys_language.uid, sys_language.title',
+                'pages_language_overlay,sys_language',
+                'pages_language_overlay.sys_language_uid=sys_language.uid AND pages_language_overlay.pid=' . (int)$pageId . $exQ .
+                BackendUtility::versioningPlaceholderClause('pages_language_overlay'),
+                'pages_language_overlay.sys_language_uid,sys_language.uid,sys_language.pid,sys_language.tstamp,sys_language.hidden,sys_language.title,sys_language.language_isocode,sys_language.static_lang_isocode,sys_language.flag',
+                'sys_language.title'
+            );
         } else {
-            $queryBuilder->getRestrictions()->add(GeneralUtility::makeInstance(HiddenRestriction::class));
-            $statement = $queryBuilder->select('uid', 'title')
-                ->from('sys_language')
-                ->orderBy('sorting')
-                ->execute();
+            $rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+                'uid, title',
+                'sys_language',
+                'hidden=0',
+                '',
+                'sorting'
+            );
         }
-        while ($lRow = $statement->fetch()) {
+
+        foreach ($rows as $lRow) {
             if ($this->getBackendUser()->checkLanguageAccess($lRow['uid'])) {
                 $this->MOD_MENU['language'][$lRow['uid']] = $lRow['title'];
             }
         }
 
         if (count($this->MOD_MENU['language']) > 1) {
-            if ($this->request->hasArgument('id')) {
-                $pageId = $this->request->getArgument('id');
-            } elseif ((int)GeneralUtility::_GET('id')) {
-                $pageId = (int)GeneralUtility::_GET('id');
-            }
-
             $lang = $this->getLanguageService();
             $languageMenu = $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->makeMenu();
             $languageMenu->setIdentifier('languageMenu');
