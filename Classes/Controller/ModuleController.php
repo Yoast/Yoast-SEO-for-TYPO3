@@ -139,6 +139,7 @@ class ModuleController extends ActionController
     {
         $pageId = 0;
         $languageId = 0;
+        $table = 'pages';
 
         if ($this->request->hasArgument('id')) {
             $pageId = $this->request->getArgument('id');
@@ -169,6 +170,7 @@ class ModuleController extends ActionController
 
             if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
                 $currentPage = $overlayRecords[0];
+                $table = 'pages_language_overlay';
             }
         }
         $focusKeyword = $currentPage[static::FOCUS_KEYWORD_COLUMN_NAME];
@@ -222,6 +224,13 @@ class ModuleController extends ActionController
         }
         $publicResourcesPath = ExtensionManagementUtility::extRelPath('yoast_seo') . 'Resources/Public/';
 
+        $disableSlug = true;
+        if (ExtensionManagementUtility::isLoaded('realurl')) {
+            if ($GLOBALS['BE_USER']->check('non_exclude_fields', $table . ':tx_realurl_pathsegment')) {
+                $disableSlug = false;
+            }
+        }
+
         $this->pageRenderer->addJsInlineCode(
             'YoastSEO settings',
             'var tx_yoast_seo = tx_yoast_seo || {};'
@@ -235,7 +244,7 @@ class ModuleController extends ActionController
                     'recordTable' => '',
                     'targetElementId' => $targetElementId,
                     'editable' => 1,
-                    'disableSlug' => ExtensionManagementUtility::isLoaded('realurl') ? 0 : 1
+                    'disableSlug' => $disableSlug
                 )
             )
             . ';'
@@ -262,6 +271,7 @@ class ModuleController extends ActionController
 
         $this->view->assign('page', $currentPage);
         $this->view->assign('pageId', $pageId);
+        $this->view->assign('table', $table);
         $this->view->assign('languageId', $languageId);
         $this->view->assign('targetElementId', $targetElementId);
         $this->view->assign('returnUrl', $returnUrl);

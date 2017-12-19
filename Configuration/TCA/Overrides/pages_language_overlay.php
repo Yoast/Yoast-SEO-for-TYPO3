@@ -10,30 +10,35 @@
         ],
         'tx_yoastseo_focuskeyword' => [
             'label' => 'SEO focus keyword',
+            'exclude' => true,
             'config' => [
                 'type' => 'input'
             ]
         ],
         'tx_yoastseo_canonical_url' => [
             'label' => 'Canonical URL',
+            'exclude' => true,
             'config' => [
                 'type' => 'input'
             ]
         ],
         'tx_yoastseo_facebook_title' => [
             'label' => 'Facebook title',
+            'exclude' => true,
             'config' => [
                 'type' => 'input'
             ]
         ],
         'tx_yoastseo_facebook_description' => [
             'label' => 'Facebook description',
+            'exclude' => true,
             'config' => [
                 'type' => 'input'
             ]
         ],
         'tx_yoastseo_robot_instructions' => [
             'label' => 'Robot instructions',
+            'exclude' => true,
             'config' => [
                 'type' => 'select',
                 'renderType' => 'selectSingle',
@@ -47,6 +52,7 @@
         ],
         'tx_yoastseo_facebook_image' => [
             'label' => 'Facebook image',
+            'exclude' => true,
             'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig(
                 'tx_yoastseo_facebook_image',
                 [
@@ -88,18 +94,21 @@
         ],
         'tx_yoastseo_twitter_title' => [
             'label' => 'Twitter title',
+            'exclude' => true,
             'config' => [
                 'type' => 'input'
             ]
         ],
         'tx_yoastseo_twitter_description' => [
             'label' => 'Twitter description',
+            'exclude' => true,
             'config' => [
                 'type' => 'input'
             ]
         ],
         'tx_yoastseo_twitter_image' => [
             'label' => 'Twitter image',
+            'exclude' => true,
             'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig(
                 'tx_yoastseo_twitter_image',
                 [
