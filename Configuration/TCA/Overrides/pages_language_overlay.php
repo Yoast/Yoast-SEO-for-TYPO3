@@ -1,145 +1,145 @@
 <?php
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns(
     'pages_language_overlay',
-    array(
-        'tx_yoastseo_title' => array(
+    [
+        'tx_yoastseo_title' => [
             'label' => 'SEO title',
-            'config' => array(
+            'config' => [
                 'type' => 'input'
-            )
-        ),
-        'tx_yoastseo_focuskeyword' => array(
+            ]
+        ],
+        'tx_yoastseo_focuskeyword' => [
             'label' => 'SEO focus keyword',
-            'config' => array(
+            'config' => [
                 'type' => 'input'
-            )
-        ),
-        'tx_yoastseo_canonical_url' => array(
+            ]
+        ],
+        'tx_yoastseo_canonical_url' => [
             'label' => 'Canonical URL',
-            'config' => array(
+            'config' => [
                 'type' => 'input'
-            )
-        ),
-        'tx_yoastseo_facebook_title' => array(
+            ]
+        ],
+        'tx_yoastseo_facebook_title' => [
             'label' => 'Facebook title',
-            'config' => array(
+            'config' => [
                 'type' => 'input'
-            )
-        ),
-        'tx_yoastseo_facebook_description' => array(
+            ]
+        ],
+        'tx_yoastseo_facebook_description' => [
             'label' => 'Facebook description',
-            'config' => array(
+            'config' => [
                 'type' => 'input'
-            )
-        ),
-        'tx_yoastseo_robot_instructions' => array(
+            ]
+        ],
+        'tx_yoastseo_robot_instructions' => [
             'label' => 'Robot instructions',
-            'config' => array(
+            'config' => [
                 'type' => 'select',
                 'renderType' => 'selectSingle',
-                'items' => array(
-                    array('index, follow', 0),
-                    array('noindex, nofollow', 1),
-                    array('noindex, follow', 2),
-                    array('index, nofollow', 3),
-                )
-            )
-        ),
-        'tx_yoastseo_facebook_image' => array(
+                'items' => [
+                    ['index, follow', 0],
+                    ['noindex, nofollow', 1],
+                    ['noindex, follow', 2],
+                    ['index, nofollow', 3],
+                ]
+            ]
+        ],
+        'tx_yoastseo_facebook_image' => [
             'label' => 'Facebook image',
             'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig(
                 'tx_yoastseo_facebook_image',
-                array(
+                [
                     // Use the imageoverlayPalette instead of the basicoverlayPalette
-                    'foreign_types' => array(
-                        '0' => array(
+                    'foreign_types' => [
+                        '0' => [
                             'showitem' => '
                                 --palette--;LLL:EXT:lang/locallang_tca.xlf:sys_file_reference.imageoverlayPalette;imageoverlayPalette,
                                 --palette--;;filePalette'
-                        ),
-                        \TYPO3\CMS\Core\Resource\File::FILETYPE_TEXT => array(
+                        ],
+                        \TYPO3\CMS\Core\Resource\File::FILETYPE_TEXT => [
                             'showitem' => '
                                 --palette--;LLL:EXT:lang/locallang_tca.xlf:sys_file_reference.imageoverlayPalette;imageoverlayPalette,
                                 --palette--;;filePalette'
-                        ),
-                        \TYPO3\CMS\Core\Resource\File::FILETYPE_IMAGE => array(
+                        ],
+                        \TYPO3\CMS\Core\Resource\File::FILETYPE_IMAGE => [
                             'showitem' => '
                                 --palette--;LLL:EXT:lang/locallang_tca.xlf:sys_file_reference.imageoverlayPalette;imageoverlayPalette,
                                 --palette--;;filePalette'
-                        ),
-                        \TYPO3\CMS\Core\Resource\File::FILETYPE_AUDIO => array(
+                        ],
+                        \TYPO3\CMS\Core\Resource\File::FILETYPE_AUDIO => [
                             'showitem' => '
                                 --palette--;LLL:EXT:lang/locallang_tca.xlf:sys_file_reference.audioOverlayPalette;audioOverlayPalette,
                                 --palette--;;filePalette'
-                        ),
-                        \TYPO3\CMS\Core\Resource\File::FILETYPE_VIDEO => array(
+                        ],
+                        \TYPO3\CMS\Core\Resource\File::FILETYPE_VIDEO => [
                             'showitem' => '
                                 --palette--;LLL:EXT:lang/locallang_tca.xlf:sys_file_reference.videoOverlayPalette;videoOverlayPalette,
                                 --palette--;;filePalette'
-                        ),
-                        \TYPO3\CMS\Core\Resource\File::FILETYPE_APPLICATION => array(
+                        ],
+                        \TYPO3\CMS\Core\Resource\File::FILETYPE_APPLICATION => [
                             'showitem' => '
                                 --palette--;LLL:EXT:lang/locallang_tca.xlf:sys_file_reference.imageoverlayPalette;imageoverlayPalette,
                                 --palette--;;filePalette'
-                        )
-                    )
-                )
+                        ]
+                    ]
+                ]
             )
-        ),
-        'tx_yoastseo_twitter_title' => array(
+        ],
+        'tx_yoastseo_twitter_title' => [
             'label' => 'Twitter title',
-            'config' => array(
+            'config' => [
                 'type' => 'input'
-            )
-        ),
-        'tx_yoastseo_twitter_description' => array(
+            ]
+        ],
+        'tx_yoastseo_twitter_description' => [
             'label' => 'Twitter description',
-            'config' => array(
+            'config' => [
                 'type' => 'input'
-            )
-        ),
-        'tx_yoastseo_twitter_image' => array(
+            ]
+        ],
+        'tx_yoastseo_twitter_image' => [
             'label' => 'Twitter image',
             'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig(
                 'tx_yoastseo_twitter_image',
-                array(
+                [
                     // Use the imageoverlayPalette instead of the basicoverlayPalette
-                    'foreign_types' => array(
-                        '0' => array(
+                    'foreign_types' => [
+                        '0' => [
                             'showitem' => '
                                 --palette--;LLL:EXT:lang/locallang_tca.xlf:sys_file_reference.imageoverlayPalette;imageoverlayPalette,
                                 --palette--;;filePalette'
-                        ),
-                        \TYPO3\CMS\Core\Resource\File::FILETYPE_TEXT => array(
+                        ],
+                        \TYPO3\CMS\Core\Resource\File::FILETYPE_TEXT => [
                             'showitem' => '
                                 --palette--;LLL:EXT:lang/locallang_tca.xlf:sys_file_reference.imageoverlayPalette;imageoverlayPalette,
                                 --palette--;;filePalette'
-                        ),
-                        \TYPO3\CMS\Core\Resource\File::FILETYPE_IMAGE => array(
+                        ],
+                        \TYPO3\CMS\Core\Resource\File::FILETYPE_IMAGE => [
                             'showitem' => '
                                 --palette--;LLL:EXT:lang/locallang_tca.xlf:sys_file_reference.imageoverlayPalette;imageoverlayPalette,
                                 --palette--;;filePalette'
-                        ),
-                        \TYPO3\CMS\Core\Resource\File::FILETYPE_AUDIO => array(
+                        ],
+                        \TYPO3\CMS\Core\Resource\File::FILETYPE_AUDIO => [
                             'showitem' => '
                                 --palette--;LLL:EXT:lang/locallang_tca.xlf:sys_file_reference.audioOverlayPalette;audioOverlayPalette,
                                 --palette--;;filePalette'
-                        ),
-                        \TYPO3\CMS\Core\Resource\File::FILETYPE_VIDEO => array(
+                        ],
+                        \TYPO3\CMS\Core\Resource\File::FILETYPE_VIDEO => [
                             'showitem' => '
                                 --palette--;LLL:EXT:lang/locallang_tca.xlf:sys_file_reference.videoOverlayPalette;videoOverlayPalette,
                                 --palette--;;filePalette'
-                        ),
-                        \TYPO3\CMS\Core\Resource\File::FILETYPE_APPLICATION => array(
+                        ],
+                        \TYPO3\CMS\Core\Resource\File::FILETYPE_APPLICATION => [
                             'showitem' => '
                                 --palette--;LLL:EXT:lang/locallang_tca.xlf:sys_file_reference.imageoverlayPalette;imageoverlayPalette,
                                 --palette--;;filePalette'
-                        )
-                    )
-                )
+                        ]
+                    ]
+                ]
             )
-        )
-    )
+        ]
+    ]
 );
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
