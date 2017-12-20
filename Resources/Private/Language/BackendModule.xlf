@@ -105,6 +105,12 @@
 			<trans-unit id="saved.description">
 				<source>The SEO information is saved</source>
 			</trans-unit>
+			<trans-unit id="failed.imageExtensions.description">
+				<source>The uploaded image is not in a proper format. Please upload a file with one of the following extensions: %s</source>
+			</trans-unit>
+			<trans-unit id="failed.imageExtensions.title">
+				<source>Upload of image for %s is failed!</source>
+			</trans-unit>
 			<trans-unit id="action.dashboard">
 				<source>Dashboard</source>
 			</trans-unit>
