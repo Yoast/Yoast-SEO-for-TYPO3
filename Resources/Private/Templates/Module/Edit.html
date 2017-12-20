@@ -101,11 +101,11 @@
 										<h3><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter"/></h3>
 										<div class="form-group">
 											<label for="twitterTitle"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.title"/></label>
-											<f:form.textfield type="text" class="form-control" id="twitterTitle" name="twitterTitle" value="{page.tx_yoastseo_twitter_title}" placeholder="{page.title}"/>
+											<f:form.textfield type="text" class="form-control" id="twitterTitle" maxlength="70" name="twitterTitle" value="{page.tx_yoastseo_twitter_title}" placeholder="{page.title}"/>
 										</div>
 										<div class="form-group">
 											<label for="twitterDescription"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.description"/></label>
-											<f:form.textfield type="text" class="form-control" id="twitterDescription" name="twitterDescription" value="{page.tx_yoastseo_twitter_description}" placeholder="{page.description}"/>
+											<f:form.textfield type="text" class="form-control" id="twitterDescription" maxlength="300" name="twitterDescription" value="{page.tx_yoastseo_twitter_description}" placeholder="{page.description}"/>
 										</div>
 										<div class="form-group">
 											<label><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.image"/></label>
@@ -135,7 +135,6 @@
 													</div>
 												</div>
 											</div>
-
 										</div>
 									</div>
 								</div>

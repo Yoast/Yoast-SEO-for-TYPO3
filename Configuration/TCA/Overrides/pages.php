@@ -78,12 +78,14 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
         'tx_yoastseo_twitter_title' => [
             'label' => $llPrefix . 'twitter.title',
             'config' => [
+                'max' => 70,
                 'type' => 'input'
             ]
         ],
         'tx_yoastseo_twitter_description' => [
             'label' => $llPrefix . 'twitter.description',
             'config' => [
+                'max' => 200,
                 'type' => 'input'
             ]
         ],
