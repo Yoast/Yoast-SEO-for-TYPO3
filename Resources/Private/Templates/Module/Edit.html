@@ -108,13 +108,13 @@
 										<f:if condition="{yoast:hasAccessToField(field: 'tx_yoastseo_twitter_title', table: table)}">
 											<div class="form-group">
 												<label for="twitterTitle"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.title"/></label>
-												<f:form.textfield type="text" class="form-control" id="twitterTitle" name="twitterTitle" value="{page.tx_yoastseo_twitter_title}" placeholder="{page.title}"/>
+												<f:form.textfield type="text" class="form-control" id="twitterTitle" maxlength="70" name="twitterTitle" value="{page.tx_yoastseo_twitter_title}" placeholder="{page.title}"/>
 											</div>
 										</f:if>
 										<f:if condition="{yoast:hasAccessToField(field: 'tx_yoastseo_twitter_description', table: table)}">
 											<div class="form-group">
 												<label for="twitterDescription"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.description"/></label>
-												<f:form.textfield type="text" class="form-control" id="twitterDescription" name="twitterDescription" value="{page.tx_yoastseo_twitter_description}" placeholder="{page.description}"/>
+												<f:form.textfield type="text" class="form-control" id="twitterDescription" maxlength="300" name="twitterDescription" value="{page.tx_yoastseo_twitter_description}" placeholder="{page.description}"/>
 											</div>
 										</f:if>
 										<f:if condition="{yoast:hasAccessToField(field: 'tx_yoastseo_twitter_image', table: table)}">
