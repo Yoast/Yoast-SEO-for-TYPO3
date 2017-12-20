@@ -5,6 +5,17 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## 1.4.0 December 20th, 2017
+### Changed
+* Updated YoastSEO.js to version 1.28 which contains several enhancements. The most important is "The upper boundary of the meta description length has been changed from 156 to 320 characters"
+* We now make sure you can't insert a too long title and description for your Twitter cards.
+
+### Added
+* Added translations for backend fields
+
+### Fixed
+* TypoScript is now always loaded at the right time
+
 ## 1.3.0 December 13th, 2017
 ### Changed
 * We improved the notifications when something went wrong analysing the content. It will close automatically after
