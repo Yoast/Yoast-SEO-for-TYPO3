@@ -18,6 +18,12 @@
 			<trans-unit id="noPageSelected.description">
 				<target>Selecteer een pagina om de SEO eigenschappen te bewerken</target>
 			</trans-unit>
+			<trans-unit id="seoTitle">
+				<target>SEO Titel</target>
+			</trans-unit>
+			<trans-unit id="seoFocusKeyword">
+				<target>SEO Focustrefwoord</target>
+			</trans-unit>
 			<trans-unit id="facebook">
 				<target>Facebook</target>
 			</trans-unit>
@@ -95,6 +101,9 @@
 			</trans-unit>
 			<trans-unit id="saved.description">
 				<target>De SEO-informatie is opgeslagen</target>
+			</trans-unit>
+			<trans-unit id="hideYoastInFrontend">
+				<target>Yoast SEO in de frontend uitschakelen</target>
 			</trans-unit>
 		</body>
 	</file>

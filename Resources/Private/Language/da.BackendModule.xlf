@@ -23,6 +23,10 @@
 				<source>Please select a page to edit the SEO properties</source>
 				<target state="translated">Vælg venligst en side for at redigere SEO indstillinger</target>
 			</trans-unit>
+			<trans-unit id="seoTitle">
+				<source>SEO Title</source>
+				<target state="translated">SEO Titel</target>
+			</trans-unit>
 			<trans-unit id="facebook">
 				<source>Facebook</source>
 				<target state="translated">Facebook</target>
