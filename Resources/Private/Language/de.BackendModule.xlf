@@ -15,6 +15,9 @@
 			<trans-unit id="noPageSelected.title">
 				<target>Keine Seite ausgewählt</target>
 			</trans-unit>
+			<trans-unit id="seoTitle">
+				<target>SEO Titel</target>
+			</trans-unit>
 			<trans-unit id="facebook">
 				<target>Facebook</target>
 			</trans-unit>

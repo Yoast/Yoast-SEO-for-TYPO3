@@ -1,43 +1,45 @@
 <?php
+$llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
+
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns(
     'pages_language_overlay',
     [
         'tx_yoastseo_title' => [
-            'label' => 'SEO title',
+            'label' => $llPrefix . 'seoTitle',
             'config' => [
                 'type' => 'input'
             ]
         ],
         'tx_yoastseo_focuskeyword' => [
-            'label' => 'SEO focus keyword',
+            'label' => $llPrefix . 'seoFocusKeyword',
             'exclude' => true,
             'config' => [
                 'type' => 'input'
             ]
         ],
         'tx_yoastseo_canonical_url' => [
-            'label' => 'Canonical URL',
+            'label' => $llPrefix . 'canonical',
             'exclude' => true,
             'config' => [
                 'type' => 'input'
             ]
         ],
         'tx_yoastseo_facebook_title' => [
-            'label' => 'Facebook title',
+            'label' => $llPrefix . 'facebook.title',
             'exclude' => true,
             'config' => [
                 'type' => 'input'
             ]
         ],
         'tx_yoastseo_facebook_description' => [
-            'label' => 'Facebook description',
+            'label' => $llPrefix . 'facebook.description',
             'exclude' => true,
             'config' => [
                 'type' => 'input'
             ]
         ],
         'tx_yoastseo_robot_instructions' => [
-            'label' => 'Robot instructions',
+            'label' => $llPrefix . 'robotInstructions',
             'exclude' => true,
             'config' => [
                 'type' => 'select',
@@ -51,7 +53,7 @@
             ]
         ],
         'tx_yoastseo_facebook_image' => [
-            'label' => 'Facebook image',
+            'label' => $llPrefix . 'facebook.image',
             'exclude' => true,
             'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig(
                 'tx_yoastseo_facebook_image',
@@ -74,21 +76,21 @@
             )
         ],
         'tx_yoastseo_twitter_title' => [
-            'label' => 'Twitter title',
+            'label' => $llPrefix . 'twitter.title',
             'exclude' => true,
             'config' => [
                 'type' => 'input'
             ]
         ],
         'tx_yoastseo_twitter_description' => [
-            'label' => 'Twitter description',
+            'label' => $llPrefix . 'twitter.description',
             'exclude' => true,
             'config' => [
                 'type' => 'input'
             ]
         ],
         'tx_yoastseo_twitter_image' => [
-            'label' => 'Twitter image',
+            'label' => $llPrefix . 'twitter.image',
             'exclude' => true,
             'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig(
                 'tx_yoastseo_twitter_image',
@@ -118,11 +120,32 @@
     'metatags',
     '
     --linebreak--, tx_yoastseo_title, tx_yoastseo_focuskeyword, tx_yoastseo_canonical_url, tx_yoastseo_robot_instructions,
-     --linebreak--, tx_yoastseo_facebook_title, 
-     --linebreak--, tx_yoastseo_facebook_description, 
-     --linebreak--, tx_yoastseo_facebook_image,
-     --linebreak--, tx_yoastseo_twitter_title, 
-     --linebreak--, tx_yoastseo_twitter_description, 
-     --linebreak--, tx_yoastseo_twitter_image
     '
+);
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+    'pages_language_overlay',
+    'social-facebook',
+    '
+    --linebreak--, tx_yoastseo_facebook_title, 
+    --linebreak--, tx_yoastseo_facebook_description, 
+    --linebreak--, tx_yoastseo_facebook_image 
+    '
+);
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+    'pages_language_overlay',
+    'social-twitter',
+    '
+    --linebreak--, tx_yoastseo_twitter_title, 
+    --linebreak--, tx_yoastseo_twitter_description, 
+    --linebreak--, tx_yoastseo_twitter_image 
+    '
+);
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
+    'pages_language_overlay',
+    '
+        --palette--;' . $llPrefix . 'facebook;social-facebook,
+        --palette--;' . $llPrefix . 'twitter;social-twitter,
+    ',
+    '',
+    'after:tx_yoastseo_robot_instructions'
 );
