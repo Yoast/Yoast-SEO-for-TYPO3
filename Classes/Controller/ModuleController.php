@@ -270,6 +270,13 @@ class ModuleController extends ActionController
 
     public function saveAction()
     {
+        $flashMessageService = $this->objectManager->get(\TYPO3\CMS\Core\Messaging\FlashMessageService::class);
+        $messageQueue = $flashMessageService->getMessageQueueByIdentifier();
+        $lang = $this->getLanguageService();
+        $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
+
+        $imageExtensions = GeneralUtility::trimExplode(',', strtolower($GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']));
+
         $pageId = (int)$this->request->getArgument('id');
         $languageId = (int)$this->request->getArgument('language');
 
@@ -300,27 +307,40 @@ class ModuleController extends ActionController
                 $GLOBALS['TYPO3_DB']->exec_UPDATEquery('sys_file_reference', 'fieldname="tx_yoastseo_twitter_image" AND uid_foreign=' . $pageId, ['deleted' => 1]);
             }
             if (array_key_exists('tmp_name', $twitterImage) && !empty($twitterImage['tmp_name'])) {
-                $resourceFactory = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
-                $storage = $resourceFactory->getDefaultStorage();
+                $pathInfo = pathinfo($twitterImage['name']);
 
-                if ($storage instanceof ResourceStorage) {
-                    $newFile = $storage->addFile(
-                        $twitterImage['tmp_name'],
-                        $storage->getDefaultFolder(),
-                        $twitterImage['name']
+                if (in_array(strtolower($pathInfo['extension']), $imageExtensions)) {
+                    $resourceFactory = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
+                    $storage = $resourceFactory->getDefaultStorage();
+
+                    if ($storage instanceof ResourceStorage) {
+                        $newFile = $storage->addFile(
+                            $twitterImage['tmp_name'],
+                            $storage->getDefaultFolder(),
+                            $twitterImage['name']
+                        );
+
+                        $newId = 'NEW1234TWITTER';
+                        $extraTableRecords['sys_file_reference'][$newId] = [
+                            'table_local' => 'sys_file',
+                            'uid_local' => $newFile->getUid(),
+                            'tablenames' => 'pages',
+                            'uid_foreign' => $pageId,
+                            'fieldname' => 'tx_yoastseo_twitter_image',
+                            'pid' => $pageId
+                        ];
+
+                        $fields['tx_yoastseo_twitter_image'] = $newId;
+                    }
+                } else {
+                    $messageFileUpload = GeneralUtility::makeInstance(
+                        FlashMessage::class,
+                        sprintf($lang->sL($llPrefix . 'failed.imageExtensions.description'), $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']),
+                        sprintf($lang->sL($llPrefix . 'failed.imageExtensions.title'), 'Twitter'),
+                        FlashMessage::WARNING,
+                        true
                     );
-
-                    $newId = 'NEW1234';
-                    $extraTableRecords['sys_file_reference'][$newId] = [
-                        'table_local' => 'sys_file',
-                        'uid_local' => $newFile->getUid(),
-                        'tablenames' => 'pages',
-                        'uid_foreign' => $pageId,
-                        'fieldname' => 'tx_yoastseo_twitter_image',
-                        'pid' => $pageId
-                    ];
-
-                    $fields['tx_yoastseo_twitter_image'] = $newId;
+                    $messageQueue->addMessage($messageFileUpload);
                 }
             }
         }
@@ -333,27 +353,40 @@ class ModuleController extends ActionController
                 $GLOBALS['TYPO3_DB']->exec_UPDATEquery('sys_file_reference', 'fieldname="tx_yoastseo_facebook_image" AND uid_foreign=' . $pageId, ['deleted' => 1]);
             }
             if (array_key_exists('tmp_name', $facebookImage) && !empty($facebookImage['tmp_name'])) {
-                $resourceFactory = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
-                $storage = $resourceFactory->getDefaultStorage();
+                $pathInfo = pathinfo($facebookImage['name']);
 
-                if ($storage instanceof ResourceStorage) {
-                    $newFile = $storage->addFile(
-                        $facebookImage['tmp_name'],
-                        $storage->getDefaultFolder(),
-                        $facebookImage['name']
+                if (in_array(strtolower($pathInfo['extension']), $imageExtensions)) {
+                    $resourceFactory = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
+                    $storage = $resourceFactory->getDefaultStorage();
+
+                    if ($storage instanceof ResourceStorage) {
+                        $newFile = $storage->addFile(
+                            $facebookImage['tmp_name'],
+                            $storage->getDefaultFolder(),
+                            $facebookImage['name']
+                        );
+
+                        $newId = 'NEW1234FACEBOOK';
+                        $extraTableRecords['sys_file_reference'][$newId] = [
+                            'table_local' => 'sys_file',
+                            'uid_local' => $newFile->getUid(),
+                            'tablenames' => 'pages',
+                            'uid_foreign' => $pageId,
+                            'fieldname' => 'tx_yoastseo_facebook_image',
+                            'pid' => $pageId
+                        ];
+
+                        $fields['tx_yoastseo_facebook_image'] = $newId;
+                    }
+                } else {
+                    $messageFileUpload = GeneralUtility::makeInstance(
+                        FlashMessage::class,
+                        sprintf($lang->sL($llPrefix . 'failed.imageExtensions.description'), $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']),
+                        sprintf($lang->sL($llPrefix . 'failed.imageExtensions.title'), 'Facebook'),
+                        FlashMessage::WARNING,
+                        true
                     );
-
-                    $newId = 'NEW1234';
-                    $extraTableRecords['sys_file_reference'][$newId] = [
-                        'table_local' => 'sys_file',
-                        'uid_local' => $newFile->getUid(),
-                        'tablenames' => 'pages',
-                        'uid_foreign' => $pageId,
-                        'fieldname' => 'tx_yoastseo_facebook_image',
-                        'pid' => $pageId
-                    ];
-
-                    $fields['tx_yoastseo_facebook_image'] = $newId;
+                    $messageQueue->addMessage($messageFileUpload);
                 }
             }
         }
@@ -402,18 +435,13 @@ class ModuleController extends ActionController
         BackendUtility::setUpdateSignal('updatePageTree');
         $tce->clear_cacheCmd('pages');
 
-        $lang = $this->getLanguageService();
-
         $message = GeneralUtility::makeInstance(
             FlashMessage::class,
-            $lang->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:saved.description'),
-            $lang->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:saved.title'),
+            $lang->sL($llPrefix . 'saved.description'),
+            $lang->sL($llPrefix . 'saved.title'),
             FlashMessage::OK,
             true
         );
-
-        $flashMessageService = $this->objectManager->get(\TYPO3\CMS\Core\Messaging\FlashMessageService::class);
-        $messageQueue = $flashMessageService->getMessageQueueByIdentifier();
         $messageQueue->addMessage($message);
 
         $returnUrl = '';
