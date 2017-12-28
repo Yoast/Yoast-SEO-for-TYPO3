@@ -159,6 +159,21 @@
 			<trans-unit id="hideYoastInFrontend">
 				<source>Hide Yoast SEO in frontend</source>
 			</trans-unit>
+			<trans-unit id="pages.tabs.seo">
+				<source>SEO</source>
+			</trans-unit>
+			<trans-unit id="pages.palettes.metadata">
+				<source>Metadata</source>
+			</trans-unit>
+			<trans-unit id="pages.palettes.og">
+				<source>Open Graph (Facebook)</source>
+			</trans-unit>
+			<trans-unit id="pages.palettes.twitter">
+				<source>Twitter Cards</source>
+			</trans-unit>
+			<trans-unit id="pages.palettes.focuskeyword">
+				<source>Focus keyword</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>
