@@ -21,7 +21,21 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
             'label' => $llPrefix . 'canonical',
             'exclude' => true,
             'config' => [
-                'type' => 'input'
+                'type' => 'input',
+                'renderType' => 'inputLink',
+                'size' => 50,
+                'max' => 1024,
+                'eval' => 'trim',
+                'fieldControl' => [
+                    'linkPopup' => [
+                        'options' => [
+                            'title' => $llPrefix.'canonical',
+                            'blindLinkOptions' => 'file,mail,spec,folder',
+                            'blindLinkFields' => 'class,params,target,title'
+                        ],
+                    ],
+                ],
+                'softref' => 'typolink'
             ]
         ],
         'tx_yoastseo_facebook_title' => [
@@ -117,14 +131,39 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
     'pages_language_overlay',
-    'metatags',
+    'yoast-metadata',
     '
-    --linebreak--, tx_yoastseo_title, tx_yoastseo_focuskeyword, tx_yoastseo_canonical_url, tx_yoastseo_robot_instructions,
+    --linebreak--, tx_yoastseo_title,
+    --linebreak--, description,
+    '
+);
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+    'pages_language_overlay',
+    'yoast-focuskeyword',
+    '
+    --linebreak--, tx_yoastseo_focuskeyword
+    '
+);
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+    'pages_language_overlay',
+    'yoast-robot',
+    '
+    --linebreak--, tx_yoastseo_robot_instructions
+    '
+);
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+    'pages_language_overlay',
+    'yoast-advanced',
+    '
+    --linebreak--, tx_yoastseo_canonical_url,
     '
 );
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
     'pages_language_overlay',
-    'social-facebook',
+    'yoast-social-og',
     '
     --linebreak--, tx_yoastseo_facebook_title, 
     --linebreak--, tx_yoastseo_facebook_description, 
@@ -133,19 +172,28 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
 );
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
     'pages_language_overlay',
-    'social-twitter',
+    'yoast-social-twitter',
     '
     --linebreak--, tx_yoastseo_twitter_title, 
     --linebreak--, tx_yoastseo_twitter_description, 
     --linebreak--, tx_yoastseo_twitter_image 
     '
 );
+
+$GLOBALS['TCA']['pages_language_overlay']['palettes']['metatags']['showitem'] =
+    preg_replace('/description(.*,|.*$)/', '', $GLOBALS['TCA']['pages_language_overlay']['palettes']['metatags']['showitem']);
+
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
     'pages_language_overlay',
     '
-        --palette--;' . $llPrefix . 'facebook;social-facebook,
-        --palette--;' . $llPrefix . 'twitter;social-twitter,
+    --div--;' . $llPrefix . 'pages.tabs.seo,
+        --palette--;' . $llPrefix . 'pages.palettes.metadata;yoast-metadata,
+        --palette--;' . $llPrefix . 'pages.palettes.focuskeyword;yoast-focuskeyword,
+        --palette--;' . $llPrefix . 'pages.palettes.og;yoast-social-og,
+        --palette--;' . $llPrefix . 'pages.palettes.twitter;yoast-social-twitter,
+        --palette--;' . $llPrefix . 'pages.palettes.robot;yoast-robot,
+        --palette--;' . $llPrefix . 'pages.palettes.advanced;yoast-advanced,
     ',
     '',
-    'after:tx_yoastseo_robot_instructions'
+    'after:subtitle'
 );
