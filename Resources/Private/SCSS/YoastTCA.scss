@@ -29,3 +29,15 @@ $color_typo3_orange: #ff8700;
 .snippet-editor__view-icon-mobile, .snippet-editor__view-icon-mobile:hover, .snippet-editor__view-icon-mobile:focus {
 	background-image: url('../../Public/Icons/Mobile.svg');
 }
+
+.snippet-editor__is-scrollable-hintwrapper {
+	display: none;
+}
+
+.snippet-editor__container {
+	cursor: default;
+}
+
+.snippet-editor__form {
+	display: none;
+}
