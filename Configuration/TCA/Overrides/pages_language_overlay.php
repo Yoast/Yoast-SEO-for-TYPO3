@@ -22,18 +22,23 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
             'exclude' => true,
             'config' => [
                 'type' => 'input',
-                'renderType' => 'inputLink',
                 'size' => 50,
                 'max' => 1024,
                 'eval' => 'trim',
-                'fieldControl' => [
-                    'linkPopup' => [
-                        'options' => [
-                            'title' => $llPrefix.'canonical',
-                            'blindLinkOptions' => 'file,mail,spec,folder',
-                            'blindLinkFields' => 'class,params,target,title'
+                'wizards' => [
+                    'link' => [
+                        'type' => 'popup',
+                        'title' => $llPrefix.'canonical',
+                        'icon' => 'actions-wizard-link',
+                        'module' => [
+                            'name' => 'wizard_link',
                         ],
-                    ],
+                        'params' => [
+                            'blindLinkOptions' => 'file, folder, mail, spec',
+                            'blindLinkFields' => '',
+                        ],
+                        'JSopenParams' => 'height=300,width=500,status=0,menubar=0,scrollbars=1'
+                    ]
                 ],
                 'softref' => 'typolink'
             ]
