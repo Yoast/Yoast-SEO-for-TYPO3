@@ -160,7 +160,7 @@
 				<source>Hide Yoast SEO in frontend</source>
 			</trans-unit>
 			<trans-unit id="pages.tabs.seo">
-				<source>SEO</source>
+				<source>Yoast SEO</source>
 			</trans-unit>
 			<trans-unit id="pages.palettes.metadata">
 				<source>Metadata</source>
@@ -179,6 +179,9 @@
 			</trans-unit>
 			<trans-unit id="pages.palettes.advanced">
 				<source>Advanced settings</source>
+			</trans-unit>
+			<trans-unit id="snippetPreview">
+				<source>Snippet preview</source>
 			</trans-unit>
 		</body>
 	</file>

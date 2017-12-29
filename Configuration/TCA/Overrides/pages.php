@@ -4,6 +4,17 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns(
     'pages',
     [
+        'tx_yoastseo_snippetpreview' => [
+            'label' => $llPrefix . 'snippetPreview',
+            'config' => [
+                'type' => 'text',
+                'renderType' => 'snippetPreview',
+                'settings' => [
+                    'titleField' => 'tx_yoastseo_title',
+                    'descriptionField' => 'description'
+                ]
+            ]
+        ],
         'tx_yoastseo_dont_use' => [
             'label' => $llPrefix . 'hideYoastInFrontend',
             'exclude' => true,
@@ -147,6 +158,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     'pages',
     'yoast-metadata',
     '
+    --linebreak--, tx_yoastseo_snippetpreview,
     --linebreak--, tx_yoastseo_title,
     --linebreak--, description,
     '

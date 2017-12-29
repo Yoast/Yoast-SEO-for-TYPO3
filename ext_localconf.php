@@ -19,6 +19,12 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['cms/layout/db_layout.php']['drawHeade
     '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/setup.txt">'
 );
 
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514550050] = array(
+    'nodeName' => 'snippetPreview',
+    'priority' => 40,
+    'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\SnippetPreview::class,
+);
+
 $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = array(
     'translations' => array(
         'availableLocales' => array(
