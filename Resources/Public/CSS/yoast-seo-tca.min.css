@@ -716,5 +716,5 @@ button.yoast-tooltip {
 .snippet-editor__container {
   cursor: default; }
 
-.snippet-editor__form {
-  display: none; }
+.yoast-progressbars {
+  width: 100%; }
