@@ -704,6 +704,9 @@ button.yoast-tooltip {
 .snippet-editor__view-icon:hover, .snippet-editor__view-icon:focus {
   border-color: #ff8700; }
 
+.snippet-editor__view .snippet_container .down_arrow {
+  display: none; }
+
 .snippet-editor__view-icon-desktop, .snippet-editor__view-icon-desktop:hover, .snippet-editor__view-icon-desktop:focus {
   background-image: url("../../Public/Icons/Desktop.svg"); }
 
@@ -715,6 +718,9 @@ button.yoast-tooltip {
 
 .snippet-editor__container {
   cursor: default; }
+
+.snippet-editor__form {
+  display: none; }
 
 .yoast-progressbars[value] {
   appearance: none;

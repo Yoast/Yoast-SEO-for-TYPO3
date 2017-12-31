@@ -29,6 +29,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 },
                 baseURL: $metaSection.find('url').text().replace($metaSection.find('slug').text(), '/'),
                 placeholder: {
+                    title: $metaSection.find('title').text(),
                     urlPath: $metaSection.find('slug').text().replace(/^\/|\/$/g, '')
                 },
                 targetElement: $snippetPreview.get(0),
@@ -40,6 +41,8 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                     }
                 }
             });
+
+            $("*[data-formengine-input-name='" + $titleTcaSelector + "']").attr('placeholder', $metaSection.find('title').text());
 
             var app = new YoastSEO.App({
                 snippetPreview: snippetPreview,
@@ -75,11 +78,18 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 snippetPreview.changedInput();
             });
 
+            $("*[data-formengine-input-name='" + $titleTcaSelector + "']").on('focus', updateProgressBars());
+            $("*[data-formengine-input-name='" + $descriptionTcaSelector + "']").on('focus', updateProgressBars());
+
+            $('.snippet-editor__view-toggle').on('click', function() {
+                snippetPreview.changedInput();
+                updateProgressBars();
+            });
+
             $("*[data-formengine-input-name='" + $titleTcaSelector + "']").parent('.form-control-clearable').after("<div class='yoast-progressbars-container'><progress id='yoast-progress-title' class='yoast-progressbars'></progress></div>");
             $("*[data-formengine-input-name='" + $descriptionTcaSelector + "']").after("<div class='yoast-progressbars-container'><progress id='yoast-progress-description' class='yoast-progressbars'></progress></div>");
 
             updateProgressBars();
-
         });
 
         function updateProgressBars() {
@@ -92,6 +102,10 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
             $('#yoast-progress-description').attr('class', $('progress.snippet-editor__progress-meta-description').attr('class'));
             $('#yoast-progress-description').addClass('yoast-progressbars');
             $('#yoast-progress-description').val($('progress.snippet-editor__progress-meta-description').val());
+
+            setTimeout(function() {
+                updateProgressBars();
+            }, 2000);
         }
 
         previewRequest.fail(function (jqXHR) {
