@@ -3,10 +3,10 @@
 define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Backend/Notification', 'TYPO3/CMS/Backend/PageActions'], function ($, YoastSEO, AjaxDataHandler, Notification, PageActions) {
     'use strict';
 
-    var previewRequest = $.get(previewUrl);
+    var previewRequest = $.get(tx_yoast_seo.previewUrl);
 
     $(function () {
-        var $targetElement = $('#' + previewTargetId);
+        var $targetElement = $('#' + tx_yoast_seo.previewTargetId);
 
         previewRequest.done(function (previewDocument) {
             var $snippetPreview = $targetElement.append('<div class="snippetPreview yoastPanel" />').find('.snippetPreview');
@@ -63,7 +63,8 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                     saveContentScore: function (score) {
                     }
                 },
-                locale: $metaSection.find('locale').text()
+                locale: $metaSection.find('locale').text(),
+                translations: (window.tx_yoast_seo !== undefined && window.tx_yoast_seo !== null && window.tx_yoast_seo.translations !== undefined ? window.tx_yoast_seo.translations : null)
             });
 
             $("*[data-formengine-input-name='" + $titleTcaSelector + "']").on('input', function() {
@@ -109,7 +110,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
         }
 
         previewRequest.fail(function (jqXHR) {
-            var text = 'We got an error ' + jqXHR.status + ' (' + jqXHR.statusText + ') when requesting ' + previewUrl + ' to analyse your content. Please check your javascript console for more information.';
+            var text = 'We got an error ' + jqXHR.status + ' (' + jqXHR.statusText + ') when requesting ' + tx_yoast_seo.previewUrl + ' to analyse your content. Please check your javascript console for more information.';
             var shortText = 'We got an error ' + jqXHR.status + ' (' + jqXHR.statusText + ') when analysing your content';
 
             Notification.error('Loading the page content preview failed', shortText, 5);

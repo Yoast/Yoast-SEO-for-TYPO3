@@ -1,11 +1,13 @@
 <html data-namespace-typo3-fluid="true">
 	<script>
 		<f:format.raw>
-			previewUrl = '{previewUrl}';
-			previewTargetId = '{previewTargetId}';
+		var tx_yoast_seo = tx_yoast_seo || {};
+        tx_yoast_seo.previewUrl = '{previewUrl}';
+        tx_yoast_seo.previewTargetId = '{previewTargetId}';
+        tx_yoast_seo.translations = {translations};
 
-			$titleTcaSelector = '{titleFieldSelector}';
-			$descriptionTcaSelector = '{descriptionFieldSelector}';
+		$titleTcaSelector = '{titleFieldSelector}';
+		$descriptionTcaSelector = '{descriptionFieldSelector}';
 		</f:format.raw>
 	</script>
 
