@@ -38,6 +38,18 @@ $color_typo3_orange: #ff8700;
 	cursor: default;
 }
 
-.yoast-progressbars {
+.yoast-progressbars[value] {
+	appearance: none;
+	-webkit-appearance: none;
+
+	margin-top: 2px;
 	width: 100%;
+
+	&::-webkit-progress-bar {
+		background-color: $color_progress_background;
+	}
+
+	&--fallback {
+		background-color: $color_progress_background;
+	}
 }

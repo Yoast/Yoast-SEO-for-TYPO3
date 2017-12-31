@@ -716,5 +716,12 @@ button.yoast-tooltip {
 .snippet-editor__container {
   cursor: default; }
 
-.yoast-progressbars {
+.yoast-progressbars[value] {
+  appearance: none;
+  -webkit-appearance: none;
+  margin-top: 2px;
   width: 100%; }
+  .yoast-progressbars[value]::-webkit-progress-bar {
+    background-color: #f7f7f7; }
+  .yoast-progressbars[value]--fallback {
+    background-color: #f7f7f7; }

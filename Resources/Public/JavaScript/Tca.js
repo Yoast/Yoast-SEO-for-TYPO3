@@ -75,8 +75,8 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 snippetPreview.changedInput();
             });
 
-            $("*[data-formengine-input-name='" + $titleTcaSelector + "']").parent('.form-control-clearable').after("<progress id='yoast-progress-title' class='yoast-progressbars'></progress>");
-            $("*[data-formengine-input-name='" + $descriptionTcaSelector + "']").after("<progress id='yoast-progress-description' class='yoast-progressbars'></progress>");
+            $("*[data-formengine-input-name='" + $titleTcaSelector + "']").parent('.form-control-clearable').after("<div class='yoast-progressbars-container'><progress id='yoast-progress-title' class='yoast-progressbars'></progress></div>");
+            $("*[data-formengine-input-name='" + $descriptionTcaSelector + "']").after("<div class='yoast-progressbars-container'><progress id='yoast-progress-description' class='yoast-progressbars'></progress></div>");
 
             updateProgressBars();
 
@@ -84,9 +84,13 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
         function updateProgressBars() {
             $('#yoast-progress-title').attr('max', $('progress.snippet-editor__progress-title').attr('max'));
+            $('#yoast-progress-title').attr('class', $('progress.snippet-editor__progress-title').attr('class'));
+            $('#yoast-progress-title').addClass('yoast-progressbars');
             $('#yoast-progress-title').val($('progress.snippet-editor__progress-title').val());
 
             $('#yoast-progress-description').attr('max', $('progress.snippet-editor__progress-meta-description').attr('max'));
+            $('#yoast-progress-description').attr('class', $('progress.snippet-editor__progress-meta-description').attr('class'));
+            $('#yoast-progress-description').addClass('yoast-progressbars');
             $('#yoast-progress-description').val($('progress.snippet-editor__progress-meta-description').val());
         }
 
