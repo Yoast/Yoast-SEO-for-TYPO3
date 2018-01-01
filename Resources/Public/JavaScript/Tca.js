@@ -80,17 +80,23 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                     saveScores: function (score) {
                         $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().removeClass('good ok bad');
                         $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().addClass(YoastSEO.scoreToRating(score / 10));
+                        $('#yoastSeo-score-headline-focuskeyword').removeClass('good ok bad');
+                        $('#yoastSeo-score-headline-focuskeyword').addClass(YoastSEO.scoreToRating(score / 10));
                     },
                     saveContentScore: function (score) {
                         $('#yoastSeo-score-bar-readability').find('.wpseo-score-icon').first().removeClass('good ok bad');
                         $('#yoastSeo-score-bar-readability').find('.wpseo-score-icon').first().addClass(YoastSEO.scoreToRating(score / 10));
+                        $('#yoastSeo-score-headline-readability').removeClass('good ok bad');
+                        $('#yoastSeo-score-headline-readability').addClass(YoastSEO.scoreToRating(score / 10));
                     }
                 },
                 locale: $metaSection.find('locale').text(),
                 translations: (window.tx_yoast_seo !== undefined && window.tx_yoast_seo !== null && window.tx_yoast_seo.translations !== undefined ? window.tx_yoast_seo.translations : null)
             });
 
-            $('form[name="editform"]').find('h1').after('<div class="yoastSeo-score-bar"><div class="yoastSeo-score-bar--item" id="yoastSeo-score-bar-readability"><span class="wpseo-score-icon"></span> Readability</div><div class="yoastSeo-score-bar--item" id="yoastSeo-score-bar-focuskeyword"><span class="wpseo-score-icon"></span> Focus keyword</div></div>');
+            $('form[name="editform"]').find('h1').after('<div class="yoastSeo-score-bar"><div class="yoastSeo-score-bar--item" id="yoastSeo-score-bar-readability"><span class="wpseo-score-icon"></span> ' + (app.i18n.dgettext('js-text-analysis', 'Readability')) + '</div><div class="yoastSeo-score-bar--item" id="yoastSeo-score-bar-focuskeyword"><span class="wpseo-score-icon"></span> ' + (app.i18n.dgettext('js-text-analysis', 'Focus keyword')) + '</div></div>');
+            $('#yoastseo-analysis-focuskeyword').parents('.form-section').find('h4').prepend('<span class="wpseo-score-icon" id="yoastSeo-score-headline-focuskeyword"></span>');
+            $('#yoastseo-analysis-readability').parents('.form-section').find('h4').prepend('<span class="wpseo-score-icon" id="yoastSeo-score-headline-readability"></span>');
 
             $("*[data-formengine-input-name='" + $titleTcaSelector + "']").on('input', function() {
                 var $titleElement = $targetElement.find('#snippet-editor-title');
