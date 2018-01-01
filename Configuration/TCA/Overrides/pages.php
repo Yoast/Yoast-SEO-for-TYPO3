@@ -35,7 +35,18 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
             'label' => $llPrefix . 'seoFocusKeyword',
             'exclude' => true,
             'config' => [
-                'type' => 'input'
+                'type' => 'input',
+            ]
+        ],
+        'tx_yoastseo_focuskeyword_analysis' => [
+            'label' => $llPrefix . 'analysis',
+            'exclude' => true,
+            'config' => [
+                'type' => 'input',
+                'renderType' => 'focusKeywordAnalysis',
+                'settings' => [
+                    'focusKeywordField' => 'tx_yoastseo_focuskeyword',
+                ]
             ]
         ],
         'tx_yoastseo_title' => [
@@ -186,7 +197,8 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     'pages',
     'yoast-focuskeyword',
     '
-    --linebreak--, tx_yoastseo_focuskeyword
+    --linebreak--, tx_yoastseo_focuskeyword,
+    --linebreak--, tx_yoastseo_focuskeyword_analysis
     '
 );
 

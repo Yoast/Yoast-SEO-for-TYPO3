@@ -18,6 +18,11 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
             var $metaSection = $previewDocument.find('meta');
             var $contentElements = $previewDocument.find('content>element');
 
+            var focusKeyword = '';
+            if (tx_yoast_seo.focusKeywordField) {
+                focusKeyword = $("*[data-formengine-input-name='" + tx_yoast_seo.focusKeywordField + "']").val();
+            }
+
             var pageContent = '';
             $contentElements.each(function (index, element) {
                 pageContent += element.textContent;
@@ -52,13 +57,15 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                     'id-of-title-element'
                 ],
                 targets: {
+                    output: 'yoastseo-analysis-focuskeyword',
                     contentOutput: 'yoastseo-analysis-readability'
                 },
                 callbacks: {
                     getData: function () {
                         return {
                             title: $metaSection.find('title').text(),
-                            text: pageContent
+                            text: pageContent,
+                            keyword: focusKeyword
                         };
                     },
                     saveScores: function (score) {

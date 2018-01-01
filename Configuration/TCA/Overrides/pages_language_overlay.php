@@ -15,6 +15,14 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
                 ]
             ]
         ],
+        'tx_yoastseo_readability_analysis' => [
+            'label' => $llPrefix . 'analysis',
+            'exclude' => true,
+            'config' => [
+                'type' => 'text',
+                'renderType' => 'readabilityAnalysis'
+            ]
+        ],
         'tx_yoastseo_title' => [
             'label' => $llPrefix . 'seoTitle',
             'config' => [
@@ -26,6 +34,17 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
             'exclude' => true,
             'config' => [
                 'type' => 'input'
+            ]
+        ],
+        'tx_yoastseo_focuskeyword_analysis' => [
+            'label' => $llPrefix . 'analysis',
+            'exclude' => true,
+            'config' => [
+                'type' => 'input',
+                'renderType' => 'focusKeywordAnalysis',
+                'settings' => [
+                    'focusKeywordField' => 'tx_yoastseo_focuskeyword',
+                ]
             ]
         ],
         'tx_yoastseo_canonical_url' => [
@@ -157,9 +176,18 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
     'pages_language_overlay',
+    'yoast-readability',
+    '
+    --linebreak--, tx_yoastseo_readability_analysis
+    '
+);
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+    'pages_language_overlay',
     'yoast-focuskeyword',
     '
-    --linebreak--, tx_yoastseo_focuskeyword
+    --linebreak--, tx_yoastseo_focuskeyword,
+    --linebreak--, tx_yoastseo_focuskeyword_analysis
     '
 );
 
@@ -206,6 +234,7 @@ $GLOBALS['TCA']['pages_language_overlay']['palettes']['metatags']['showitem'] =
     --div--;' . $llPrefix . 'pages.tabs.seo,
         --palette--;' . $llPrefix . 'pages.palettes.metadata;yoast-metadata,
         --palette--;' . $llPrefix . 'pages.palettes.focuskeyword;yoast-focuskeyword,
+        --palette--;' . $llPrefix . 'pages.palettes.readability;yoast-readability,
         --palette--;' . $llPrefix . 'pages.palettes.og;yoast-social-og,
         --palette--;' . $llPrefix . 'pages.palettes.twitter;yoast-social-twitter,
         --palette--;' . $llPrefix . 'pages.palettes.robot;yoast-robot,

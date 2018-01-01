@@ -734,3 +734,6 @@ button.yoast-tooltip {
 
 .yoastSeo-analysis ul {
   padding-left: 0; }
+
+.yoastSeo-analysis a {
+  font-weight: bold; }

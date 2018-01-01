@@ -31,6 +31,12 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514728465] = a
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\ReadabilityAnalysis::class,
 );
 
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514830899] = array(
+    'nodeName' => 'focusKeywordAnalysis',
+    'priority' => 40,
+    'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\FocusKeywordAnalysis::class,
+);
+
 $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = array(
     'translations' => array(
         'availableLocales' => array(
