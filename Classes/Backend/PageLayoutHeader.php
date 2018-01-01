@@ -211,16 +211,20 @@ class PageLayoutHeader
 
             $returnUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl('web_layout', array('id' => (int)$pageLayoutController->id));
 
-            $parameters = array(
-                'tx_yoastseo_web_yoastseoseoplugin[id]' => (int)$pageLayoutController->id,
-                'tx_yoastseo_web_yoastseoseoplugin[language]' => (int)$pageLayoutController->current_sys_language,
-                'tx_yoastseo_web_yoastseoseoplugin[returnUrl]' => rawurlencode($returnUrl)
-            );
-            $seoUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl('web_YoastSeoSeoPlugin', $parameters);
+            $urlParameters = [
+                'edit' => [
+                    'pages' => [
+                        (int)$pageLayoutController->id => 'edit'
+                    ]
+                ],
+                'switchToYoast' => 1,
+                'returnUrl' => $returnUrl
+            ];
+            $url = CMS\Backend\Utility\BackendUtility::getModuleUrl('record_edit', $urlParameters);
 
             return '<div class="t3-page-column-header">
                     <div class="t3-page-column-header-icons btn-group btn-group-sm">
-                        <a href="' . $seoUrl . '" title="" class="btn btn-default">
+                        <a href="' . $url . '" title="" class="btn btn-default">
                             <span class="t3js-icon icon icon-size-small icon-state-default icon-actions-document-open" data-identifier="actions-document-open">
                                 <span class="icon-markup">
                                     <img src="/typo3/sysext/core/Resources/Public/Icons/T3Icons/actions/actions-document-open.svg" width="16" height="16">

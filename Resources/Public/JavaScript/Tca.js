@@ -71,7 +71,6 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 },
                 callbacks: {
                     getData: function () {
-                        console.log('getData');
                         return {
                             title: $metaSection.find('title').text(),
                             text: pageContent,
@@ -126,6 +125,22 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 updateProgressBars(snippetPreview);
             }, 2000);
         }
+
+        function switchToYoast() {
+            var sPageURL = window.location.search.substring(1);
+            var sURLVariables = sPageURL.split('&');
+            for (var i = 0; i < sURLVariables.length; i++)
+            {
+                var sParameterName = sURLVariables[i].split('=');
+                if (sParameterName[0] == 'switchToYoast')
+                {
+                    var id = $targetElement.parents('.tab-pane').attr('id');
+                    $('a[href="#' + id + '"]').tab('show');
+                }
+            }
+        }
+
+        switchToYoast();
 
         previewRequest.fail(function (jqXHR) {
             var text = 'We got an error ' + jqXHR.status + ' (' + jqXHR.statusText + ') when requesting ' + tx_yoast_seo.previewUrl + ' to analyse your content. Please check your javascript console for more information.';
