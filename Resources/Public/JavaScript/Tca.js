@@ -7,20 +7,25 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
     $(function () {
         var $targetElement = $('#' + tx_yoast_seo.previewTargetId);
-        $("*[data-formengine-input-name='" + $titleTcaSelector + "']").parents('.form-wizards-element').append("<div class='yoast-progressbars-container'><progress id='yoast-progress-title' class='yoast-progressbars'></progress></div>");
+        if ($("*[data-formengine-input-name='" + $titleTcaSelector + "']").parents('.form-wizards-element').length) {
+            $("*[data-formengine-input-name='" + $titleTcaSelector + "']").parents('.form-wizards-element').append("<div class='yoast-progressbars-container'><progress id='yoast-progress-title' class='yoast-progressbars'></progress></div>");
+        } else {
+            $("*[data-formengine-input-name='" + $titleTcaSelector + "']").parents('.form-control-wrap').append("<div class='yoast-progressbars-container'><progress id='yoast-progress-title' class='yoast-progressbars'></progress></div>");
+        }
+
         $("*[data-formengine-input-name='" + $descriptionTcaSelector + "']").after("<div class='yoast-progressbars-container'><progress id='yoast-progress-description' class='yoast-progressbars'></progress></div>");
 
         previewRequest.done(function (previewDocument) {
-            var $snippetPreview = $targetElement.append('<div class="snippetPreview yoastPanel" />').find('.snippetPreview');
+            var $snippetPreviewElement = $targetElement.append('<div class="snippetPreview yoastPanel" />').find('.snippetPreview');
 
             // the preview is an XML document, for easy traversal convert it to a jQuery object
             var $previewDocument = $(previewDocument);
             var $metaSection = $previewDocument.find('meta');
             var $contentElements = $previewDocument.find('content>element');
 
-            var focusKeyword = '';
+            var $focusKeywordElement = '';
             if (tx_yoast_seo.focusKeywordField) {
-                focusKeyword = $("*[data-formengine-input-name='" + tx_yoast_seo.focusKeywordField + "']").val();
+                $focusKeywordElement = $("*[data-formengine-input-name='" + tx_yoast_seo.focusKeywordField + "']");
             }
 
             var pageContent = '';
@@ -39,17 +44,21 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                     title: $metaSection.find('title').text(),
                     urlPath: $metaSection.find('slug').text().replace(/^\/|\/$/g, '')
                 },
-                targetElement: $snippetPreview.get(0),
+                targetElement: $snippetPreviewElement.get(0),
                 callbacks: {
                     saveSnippetData: function() {
                         setTimeout(function() {
-                            updateProgressBars();
+                            updateProgressBars(snippetPreview);
                         }, 500);
                     }
                 }
             });
 
             $("*[data-formengine-input-name='" + $titleTcaSelector + "']").attr('placeholder', $metaSection.find('title').text());
+
+            $focusKeywordElement.on('input', function() {
+                snippetPreview.changedInput.bind( snippetPreview );
+            } );
 
             var app = new YoastSEO.App({
                 snippetPreview: snippetPreview,
@@ -62,10 +71,11 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 },
                 callbacks: {
                     getData: function () {
+                        console.log('getData');
                         return {
                             title: $metaSection.find('title').text(),
                             text: pageContent,
-                            keyword: focusKeyword
+                            keyword: $focusKeywordElement.val()
                         };
                     },
                     saveScores: function (score) {
@@ -89,18 +99,19 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 snippetPreview.changedInput();
             });
 
-            $("*[data-formengine-input-name='" + $titleTcaSelector + "']").on('focus', updateProgressBars());
-            $("*[data-formengine-input-name='" + $descriptionTcaSelector + "']").on('focus', updateProgressBars());
+            $("*[data-formengine-input-name='" + $titleTcaSelector + "']").on('focus', updateProgressBars(snippetPreview));
+            $("*[data-formengine-input-name='" + $descriptionTcaSelector + "']").on('focus', updateProgressBars(snippetPreview));
 
             $('.snippet-editor__view-toggle').on('click', function() {
-                snippetPreview.changedInput();
-                updateProgressBars();
+                updateProgressBars(snippetPreview);
             });
 
-            updateProgressBars();
+            updateProgressBars(snippetPreview);
         });
 
-        function updateProgressBars() {
+        function updateProgressBars(snippetPreview) {
+            snippetPreview.changedInput();
+
             $('#yoast-progress-title').attr('max', $('progress.snippet-editor__progress-title').attr('max'));
             $('#yoast-progress-title').attr('class', $('progress.snippet-editor__progress-title').attr('class'));
             $('#yoast-progress-title').addClass('yoast-progressbars');
@@ -112,7 +123,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
             $('#yoast-progress-description').val($('progress.snippet-editor__progress-meta-description').val());
 
             setTimeout(function() {
-                updateProgressBars();
+                updateProgressBars(snippetPreview);
             }, 2000);
         }
 
