@@ -25,6 +25,12 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514550050] = a
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\SnippetPreview::class,
 );
 
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514728465] = array(
+    'nodeName' => 'readabilityAnalysis',
+    'priority' => 40,
+    'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\ReadabilityAnalysis::class,
+);
+
 $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = array(
     'translations' => array(
         'availableLocales' => array(

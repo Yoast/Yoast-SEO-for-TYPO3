@@ -7,6 +7,8 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
     $(function () {
         var $targetElement = $('#' + tx_yoast_seo.previewTargetId);
+        $("*[data-formengine-input-name='" + $titleTcaSelector + "']").parents('.form-wizards-element').append("<div class='yoast-progressbars-container'><progress id='yoast-progress-title' class='yoast-progressbars'></progress></div>");
+        $("*[data-formengine-input-name='" + $descriptionTcaSelector + "']").after("<div class='yoast-progressbars-container'><progress id='yoast-progress-description' class='yoast-progressbars'></progress></div>");
 
         previewRequest.done(function (previewDocument) {
             var $snippetPreview = $targetElement.append('<div class="snippetPreview yoastPanel" />').find('.snippetPreview');
@@ -50,6 +52,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                     'id-of-title-element'
                 ],
                 targets: {
+                    contentOutput: 'yoastseo-analysis-readability'
                 },
                 callbacks: {
                     getData: function () {
@@ -86,9 +89,6 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 snippetPreview.changedInput();
                 updateProgressBars();
             });
-
-            $("*[data-formengine-input-name='" + $titleTcaSelector + "']").parent('.form-control-clearable').after("<div class='yoast-progressbars-container'><progress id='yoast-progress-title' class='yoast-progressbars'></progress></div>");
-            $("*[data-formengine-input-name='" + $descriptionTcaSelector + "']").after("<div class='yoast-progressbars-container'><progress id='yoast-progress-description' class='yoast-progressbars'></progress></div>");
 
             updateProgressBars();
         });

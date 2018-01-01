@@ -731,3 +731,6 @@ button.yoast-tooltip {
     background-color: #f7f7f7; }
   .yoast-progressbars[value]--fallback {
     background-color: #f7f7f7; }
+
+.yoastSeo-analysis ul {
+  padding-left: 0; }

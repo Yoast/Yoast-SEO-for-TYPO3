@@ -4,7 +4,9 @@
 		var tx_yoast_seo = tx_yoast_seo || {};
         tx_yoast_seo.previewUrl = '{previewUrl}';
         tx_yoast_seo.previewTargetId = '{previewTargetId}';
+        <f:if condition="{translations}">
         tx_yoast_seo.translations = {translations};
+		</f:if>
 
 		$titleTcaSelector = '{titleFieldSelector}';
 		$descriptionTcaSelector = '{descriptionFieldSelector}';

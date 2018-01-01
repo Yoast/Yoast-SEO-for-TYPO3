@@ -177,11 +177,17 @@
 			<trans-unit id="pages.palettes.robot">
 				<source>Robot instructions</source>
 			</trans-unit>
+			<trans-unit id="pages.palettes.readability">
+				<source>Readability</source>
+			</trans-unit>
 			<trans-unit id="pages.palettes.advanced">
 				<source>Advanced settings</source>
 			</trans-unit>
 			<trans-unit id="snippetPreview">
 				<source>Snippet preview</source>
+			</trans-unit>
+			<trans-unit id="analysis">
+				<source>Analysis</source>
 			</trans-unit>
 		</body>
 	</file>
