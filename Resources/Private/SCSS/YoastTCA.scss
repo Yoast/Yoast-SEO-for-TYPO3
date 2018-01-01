@@ -71,3 +71,22 @@ $color_typo3_orange: #ff8700;
 		font-weight: bold;
 	}
 }
+
+.wpseo-score-icon {
+	float: left;
+	width: 12px;
+	height: 12px;
+	margin: 3px 10px 0 0;
+	border-radius: 50%;
+	background: #888;
+}
+
+.yoastSeo-score-bar {
+	margin-top: -15px;
+	margin-bottom: 15px;
+
+	&--item {
+		display: inline-block;
+		margin-right: 20px;
+	}
+}

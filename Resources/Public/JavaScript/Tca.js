@@ -78,13 +78,19 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                         };
                     },
                     saveScores: function (score) {
+                        $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().removeClass('good ok bad');
+                        $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().addClass(YoastSEO.scoreToRating(score / 10));
                     },
                     saveContentScore: function (score) {
+                        $('#yoastSeo-score-bar-readability').find('.wpseo-score-icon').first().removeClass('good ok bad');
+                        $('#yoastSeo-score-bar-readability').find('.wpseo-score-icon').first().addClass(YoastSEO.scoreToRating(score / 10));
                     }
                 },
                 locale: $metaSection.find('locale').text(),
                 translations: (window.tx_yoast_seo !== undefined && window.tx_yoast_seo !== null && window.tx_yoast_seo.translations !== undefined ? window.tx_yoast_seo.translations : null)
             });
+
+            $('form[name="editform"]').find('h1').after('<div class="yoastSeo-score-bar"><div class="yoastSeo-score-bar--item" id="yoastSeo-score-bar-readability"><span class="wpseo-score-icon"></span> Readability</div><div class="yoastSeo-score-bar--item" id="yoastSeo-score-bar-focuskeyword"><span class="wpseo-score-icon"></span> Focus keyword</div></div>');
 
             $("*[data-formengine-input-name='" + $titleTcaSelector + "']").on('input', function() {
                 var $titleElement = $targetElement.find('#snippet-editor-title');
