@@ -41,13 +41,13 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 },
                 baseURL: $metaSection.find('url').text().replace($metaSection.find('slug').text(), '/'),
                 placeholder: {
-                    title: $metaSection.find('title').text(),
+                    title: $metaSection.find('pageTitle').text(),
                     urlPath: $metaSection.find('slug').text().replace(/^\/|\/$/g, '')
                 },
                 targetElement: $snippetPreviewElement.get(0)
             });
 
-            $("*[data-formengine-input-name='" + $titleTcaSelector + "']").attr('placeholder', $metaSection.find('title').text());
+            $("*[data-formengine-input-name='" + $titleTcaSelector + "']").attr('placeholder', $metaSection.find('pageTitle').text());
 
             $focusKeywordElement.on('input', function() {
                 snippetPreview.changedInput.bind( snippetPreview );
@@ -93,7 +93,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
             $("*[data-formengine-input-name='" + $titleTcaSelector + "']").on('input', function() {
                 var $titleElement = $targetElement.find('#snippet-editor-title');
-                $titleElement.val($(this).val());
+                $titleElement.val($metaSection.find('pageTitlePrepend').text() + $(this).val() + $metaSection.find('pageTitleAppend').text());
                 snippetPreview.changedInput();
             });
 

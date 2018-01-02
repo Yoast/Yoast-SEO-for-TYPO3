@@ -31,12 +31,95 @@ plugin.tx_yoastseo {
                 as = twitterCardsImages
             }
         }
+        variables {
+            currentURL =< lib.yoastSEO.currentURL
+            pageTitle =< lib.yoastSEO.pageTitleComplete
+            description =< lib.yoastSEO.description
+        }
         settings {
             og.image.count = 2
         }
     }
 }
 
+lib.yoastSEO {
+    currentURL = TEXT
+    currentURL {
+        stdWrap.typolink {
+            parameter = #
+            returnLast = url
+            forceAbsoluteUrl = 1
+            useCacheHash = 1
+        }
+
+        htmlSpecialChars = 1
+    }
+
+    pageTitle = TEXT
+    pageTitle.field = {$plugin.tx_yoastseo.titleField} // title
+
+    pageTitleComplete = COA
+    pageTitleComplete {
+        10 = TEXT
+        10.value = {$plugin.tx_yoastseo.titlePrepend}
+        10.stdWrap.noTrimWrap = || |
+
+        20 = TEXT
+        20.field = {$plugin.tx_yoastseo.titleField} // title
+
+        30 = TEXT
+        30.value = {$plugin.tx_yoastseo.titleAppend}
+        30.stdWrap.noTrimWrap = | ||
+
+        stdWrap.trim = 1
+    }
+
+    pageTitlePrepend = COA
+    pageTitlePrepend {
+        10 = TEXT
+        10 {
+            value = {$plugin.tx_yoastseo.titlePrepend}
+            stdWrap.noTrimWrap = || |
+        }
+    }
+
+    pageTitleAppend = COA
+    pageTitleAppend {
+        10 = TEXT
+        10 {
+            value = {$plugin.tx_yoastseo.titleAppend}
+            stdWrap.noTrimWrap = | ||
+        }
+    }
+
+    description = TEXT
+    description {
+        field = {$plugin.tx_yoastseo.descriptionField}
+    }
+
+    locale = TEXT
+    locale {
+        data = TSFE:config|config|locale_all
+        htmlSpecialChars = 1
+    }
+
+    slug = TEXT
+    slug {
+        stdWrap.typolink {
+            parameter = #
+            returnLast = url
+            forceAbsoluteUrl = 0
+            useCacheHash = 1
+        }
+
+        htmlSpecialChars = 1
+    }
+
+    pathOverride = TEXT
+    pathOverride {
+        field = tx_realurl_pathsegment
+    }
+}
 
 module.tx_yoastseo {
     settings {
@@ -78,63 +161,40 @@ yoast_seo_preview {
 
     20 = COA
     20 {
-        10 = TEXT
-        10 {
-            stdWrap.typolink {
-                parameter = #
-                returnLast = url
-                forceAbsoluteUrl = 1
-                useCacheHash = 1
-            }
+        10 < lib.yoastSEO.currentURL
+        10.wrap = <url>|</url>
 
-            htmlSpecialChars = 1
-
-            wrap = <url>|</url>
-        }
-
-        20 = COA
+        20 < lib.yoastSEO.pageTitleComplete
         20 {
-            10 = TEXT
-            10.value = {$plugin.tx_yoastseo.titlePrepend}
-            10.stdWrap.noTrimWrap = || |
-
-            20 = TEXT
-            20.field = {$plugin.tx_yoastseo.titleField} // title
-
-            30 = TEXT
-            30.value = {$plugin.tx_yoastseo.titleAppend}
-            30.stdWrap.noTrimWrap = | ||
-
-            stdWrap.trim = 1
             stdWrap.wrap = <title><![CDATA[|]]></title>
         }
 
-        30 = TEXT
-        30.field = {$plugin.tx_yoastseo.descriptionField}
-        30.wrap = <description><![CDATA[|]]></description>
-
-        40 = TEXT
-        40.data = TSFE:config|config|locale_all
-        40.htmlSpecialChars = 1
-        40.wrap = <locale>|</locale>
-
-        50 = TEXT
-        50 {
-            stdWrap.typolink {
-                parameter = #
-                returnLast = url
-                forceAbsoluteUrl = 0
-                useCacheHash = 1
-            }
-
-            htmlSpecialChars = 1
-
-            wrap = <slug>|</slug>
+        30 < lib.yoastSEO.pageTitle
+        30 {
+            stdWrap.wrap = <pageTitle><![CDATA[|]]></pageTitle>
         }
 
-        60 = TEXT
-        60.field = tx_realurl_pathsegment
-        60.wrap = <pathOverride>|</pathOverride>
+        31 < lib.yoastSEO.pageTitlePrepend
+        31 {
+            stdWrap.wrap = <pageTitlePrepend><![CDATA[|]]></pageTitlePrepend>
+        }
+
+        32 < lib.yoastSEO.pageTitleAppend
+        32 {
+            stdWrap.wrap = <pageTitleAppend><![CDATA[|]]></pageTitleAppend>
+        }
+
+        40 < lib.yoastSEO.description
+        40.wrap = <description><![CDATA[|]]></description>
+
+        50 < lib.yoastSEO.locale
+        50.wrap = <locale>|</locale>
+
+        60 < lib.yoastSEO.slug
+        60.wrap = <slug>|</slug>
+
+        70 < lib.yoastSEO.pathOverride
+        70.wrap = <pathOverride>|</pathOverride>
 
         wrap = <meta>|</meta>
     }

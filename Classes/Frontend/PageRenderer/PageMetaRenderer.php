@@ -1,6 +1,7 @@
 <?php
 namespace YoastSeoForTypo3\YoastSeo\Frontend\PageRenderer;
 
+use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
@@ -9,10 +10,10 @@ class PageMetaRenderer implements SingletonInterface
 
     /**
      * @param array $parameters
-     *
+     * @param PageRenderer $pageRenderer
      * @return string
      */
-    public function render(array $parameters)
+    public function render(array $parameters, &$pageRenderer)
     {
         /**
          * Check if `config.yoast_seo` is true before any rendering takes place
