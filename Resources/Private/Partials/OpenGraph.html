@@ -1,42 +1,50 @@
 <html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" xmlns:yoast="http://typo3.org/ns/YoastSeoForTypo3/YoastSeo/ViewHelpers" data-namespace-typo3-fluid="true">
-    <f:if condition="{data.tx_yoastseo_facebook_title}">
-        <f:then>
-            <meta property="og:title" content="{f:if(condition: '{settings.titlePrepend}', then: '{settings.titlePrepend} ', else: '')}{data.tx_yoastseo_facebook_title}{f:if(condition: '{settings.titleAppend}', then: ' {settings.titleAppend}', else: '')}">
-        </f:then>
-        <f:else>
-            <f:if condition="{data.title}">
-                <f:if condition="{yoast:keyValue(obj: data, prop: '{settings.titleFieldName}')}">
-                    <f:then>
-                        <meta property="og:title" content="{f:if(condition: '{settings.titlePrepend}', then: '{settings.titlePrepend} ', else: '')}{yoast:keyValue(obj: data, prop: '{settings.titleFieldName}')}{f:if(condition: '{settings.titleAppend}', then: ' {settings.titleAppend}', else: '')}">
-                    </f:then>
-                    <f:else>
-                        <meta property="og:title" content="{f:if(condition: '{settings.titlePrepend}', then: '{settings.titlePrepend} ', else: '')}{data.title}{f:if(condition: '{settings.titleAppend}', then: ' {settings.titleAppend}', else: '')}">
-                    </f:else>
+    <f:spaceless>
+        <f:if condition="{data.tx_yoastseo_facebook_title}">
+            <f:then>
+                <meta property="og:title" content="{f:if(condition: '{settings.titlePrepend}', then: '{settings.titlePrepend} ', else: '')}{data.tx_yoastseo_facebook_title}{f:if(condition: '{settings.titleAppend}', then: ' {settings.titleAppend}', else: '')}">
+            </f:then>
+            <f:else>
+                <f:if condition="{data.title}">
+                    <f:if condition="{yoast:keyValue(obj: data, prop: '{settings.titleFieldName}')}">
+                        <f:then>
+                            <meta property="og:title" content="{f:if(condition: '{settings.titlePrepend}', then: '{settings.titlePrepend} ', else: '')}{yoast:keyValue(obj: data, prop: '{settings.titleFieldName}')}{f:if(condition: '{settings.titleAppend}', then: ' {settings.titleAppend}', else: '')}">
+                        </f:then>
+                        <f:else>
+                            <meta property="og:title" content="{f:if(condition: '{settings.titlePrepend}', then: '{settings.titlePrepend} ', else: '')}{data.title}{f:if(condition: '{settings.titleAppend}', then: ' {settings.titleAppend}', else: '')}">
+                        </f:else>
+                    </f:if>
                 </f:if>
-            </f:if>
-        </f:else>
-    </f:if>
-    <f:if condition="{data.tx_yoastseo_facebook_description}">
-        <f:then>
-            <meta property="og:description" content="{data.tx_yoastseo_facebook_description}">
-        </f:then>
-        <f:else>
-            <f:if condition="{yoast:keyValue(obj: data, prop: '{settings.descriptionFieldName}')}">
-                <meta property="og:description" content="{yoast:keyValue(obj: data, prop: '{settings.descriptionFieldName}')}">
-            </f:if>
-        </f:else>
-    </f:if>
-
-    <f:if condition="{openGraphImages}">
-        <f:then>
-            <f:for each="{openGraphImages}" as="openGraphImage" iteration="iteration">
-                <f:if condition="{iteration.cycle} <= {settings.og.image.count}">
-                    <meta property="og:image" content="{f:uri.image(image: openGraphImage, width: settings.og.image.width, height: settings.og.image.height, absolute: 1)}">
+            </f:else>
+        </f:if>
+    </f:spaceless>
+    <f:spaceless>
+        <f:if condition="{data.tx_yoastseo_facebook_description}">
+            <f:then>
+                <meta property="og:description" content="{data.tx_yoastseo_facebook_description}">
+            </f:then>
+            <f:else>
+                <f:if condition="{yoast:keyValue(obj: data, prop: '{settings.descriptionFieldName}')}">
+                    <meta property="og:description" content="{yoast:keyValue(obj: data, prop: '{settings.descriptionFieldName}')}">
                 </f:if>
-            </f:for>
-        </f:then>
-        <f:else>
-            <meta property="og:image" content="{f:uri.image(src: '{yoast:socialMediaImage(uid: \'0\', field: \'tx_yoastseo_settings_facebook_image\', table: \'tx_yoastseo_settings\')}', treatIdAsReference: 1, width: settings.og.image.width, height: settings.og.image.height, absolute: 1)}">
-        </f:else>
-    </f:if>
+            </f:else>
+        </f:if>
+    </f:spaceless>
+    <f:spaceless>
+        <f:if condition="{openGraphImages}">
+            <f:then>
+                <f:for each="{openGraphImages}" as="openGraphImage" iteration="iteration">
+                    <f:if condition="{iteration.cycle} <= {settings.og.image.count}">
+                        <meta property="og:image" content="{f:uri.image(image: openGraphImage, width: settings.og.image.width, height: settings.og.image.height, absolute: 1)}">
+                    </f:if>
+                </f:for>
+            </f:then>
+            <f:else>
+                <f:variable name="image" value="{yoast:socialMediaImage(uid: '0', field: 'tx_yoastseo_settings_facebook_image', table: 'tx_yoastseo_settings')}" />
+                <f:if condition="{image}">
+                    <meta property="og:image" content="{f:uri.image(src: '{image}', treatIdAsReference: 1, width: settings.og.image.width, height: settings.og.image.height, absolute: 1)}">
+                </f:if>
+            </f:else>
+        </f:if>
+    </f:spaceless>
 </html>
