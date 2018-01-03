@@ -44,7 +44,12 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                     title: $metaSection.find('pageTitle').text(),
                     urlPath: $metaSection.find('slug').text().replace(/^\/|\/$/g, '')
                 },
-                targetElement: $snippetPreviewElement.get(0)
+                targetElement: $snippetPreviewElement.get(0),
+                callbacks: {
+                    saveSnippetData: function() {
+                        updateProgressBars(snippetPreview);
+                    }
+                }
             });
 
             $("*[data-formengine-input-name='" + $titleTcaSelector + "']").attr('placeholder', $metaSection.find('pageTitle').text());
@@ -52,6 +57,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
             $focusKeywordElement.on('input', function() {
                 $('#yoastSeo-score-bar-focuskeyword-text').html($focusKeywordElement.val());
                 snippetPreview.changedInput.bind( snippetPreview );
+                updateProgressBars(snippetPreview);
             } );
 
             var app = new YoastSEO.App({
@@ -107,6 +113,12 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
             $("*[data-formengine-input-name='" + $titleTcaSelector + "']").on('focus', updateProgressBars(snippetPreview));
             $("*[data-formengine-input-name='" + $descriptionTcaSelector + "']").on('focus', updateProgressBars(snippetPreview));
 
+            $("a[role='tab']").on('click', function() {
+                setTimeout(function() {
+                    updateProgressBars(snippetPreview);
+                }, 1000);
+            });
+
             $('.snippet-editor__view-toggle').on('click', function() {
                 updateProgressBars(snippetPreview);
             });
@@ -126,10 +138,6 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
             $('#yoast-progress-description').attr('class', $('progress.snippet-editor__progress-meta-description').attr('class'));
             $('#yoast-progress-description').addClass('yoast-progressbars');
             $('#yoast-progress-description').val($('progress.snippet-editor__progress-meta-description').val());
-
-            setTimeout(function() {
-                updateProgressBars(snippetPreview);
-            }, 2000);
         }
 
         function switchToYoast() {

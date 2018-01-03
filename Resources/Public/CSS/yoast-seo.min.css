@@ -718,7 +718,8 @@ button.yoast-tooltip {
   margin: 15px 0; }
 
 .yoastSeo {
-  padding: 15px; }
+  padding: 15px;
+  margin-bottom: 15px; }
 
 #snippet,
 .yoastPanel {

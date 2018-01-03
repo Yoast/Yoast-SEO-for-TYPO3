@@ -702,7 +702,7 @@ button.yoast-tooltip {
   padding-top: 15px; }
 
 .snippet-editor__view-icon:hover, .snippet-editor__view-icon:focus {
-  border-color: #ff8700; }
+  border-color: #555555; }
 
 .snippet-editor__view .snippet_container .down_arrow {
   display: none; }
