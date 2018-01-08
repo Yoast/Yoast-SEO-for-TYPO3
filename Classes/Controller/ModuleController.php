@@ -281,7 +281,14 @@ class ModuleController extends ActionController
         $languageId = (int)$this->request->getArgument('language');
 
         $fields = array();
-        $this->addFieldToArray($fields, $this->settings['titleFieldName'], 'snippet-editor-title');
+        if ($this->request->hasArgument('snippet-editor-title')) {
+            $title = $this->request->getArgument('snippet-editor-title');
+
+            $title = preg_replace('/^' . preg_quote($this->settings['titlePrepend'], '/'). '/', '', $title);
+            $title = preg_replace('/' . preg_quote($this->settings['titleAppend'], '/'). '$/', '', $title);
+
+            $fields[$this->settings['titleFieldName']] = trim($title);
+        }
         $this->addFieldToArray($fields, $this->settings['descriptionFieldName'], 'snippet-editor-meta-description');
         $this->addFieldToArray($fields, 'tx_yoastseo_facebook_title', 'facebookTitle');
         $this->addFieldToArray($fields, 'tx_yoastseo_facebook_description', 'facebookDescription');
