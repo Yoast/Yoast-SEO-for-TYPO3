@@ -284,8 +284,8 @@ class ModuleController extends ActionController
         if ($this->request->hasArgument('snippet-editor-title')) {
             $title = $this->request->getArgument('snippet-editor-title');
 
-            $title = preg_replace('/^' . preg_quote($this->settings['titlePrepend'], '/'). '/', '', $title);
-            $title = preg_replace('/' . preg_quote($this->settings['titleAppend'], '/'). '$/', '', $title);
+            $title = preg_replace('/^' . preg_quote($this->settings['titlePrepend'], '/') . '/', '', $title);
+            $title = preg_replace('/' . preg_quote($this->settings['titleAppend'], '/') . '$/', '', $title);
 
             $fields[$this->settings['titleFieldName']] = trim($title);
         }
