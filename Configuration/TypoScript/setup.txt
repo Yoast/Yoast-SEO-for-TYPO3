@@ -51,6 +51,9 @@ module.tx_yoastseo {
         titleFieldName = {$plugin.tx_yoastseo.titleField}
         descriptionFieldName = {$plugin.tx_yoastseo.descriptionField}
         canonicalTagFieldName = {$plugin.tx_yoastseo.canonicalTagField}
+
+        titlePrepend = {$plugin.tx_yoastseo.titlePrepend}
+        titleAppend = {$plugin.tx_yoastseo.titleAppend}
     }
 }
 
