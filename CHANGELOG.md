@@ -5,6 +5,11 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## 1.4.1 January 8th, 2018
+### Fixed
+* Fixed syntax of Twitter cards
+* Remove title prepend and append when saving the title in the snippet preview.
+
 ## 1.4.0 December 20th, 2017
 ### Changed
 * Updated YoastSEO.js to version 1.28 which contains several enhancements. The most important is "The upper boundary of the meta description length has been changed from 156 to 320 characters"
