@@ -13,6 +13,7 @@ use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 use TYPO3\CMS\Extbase\Utility\ExtensionUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
+use TYPO3\CMS\Frontend\Page\CacheHashCalculator;
 use TYPO3\CMS\Frontend\Page\PageRepository;
 
 class SnippetPreview extends AbstractNode
@@ -170,8 +171,8 @@ class SnippetPreview extends AbstractNode
     protected function getPreviewUrl()
     {
         $currentPageId = $this->data['effectivePid'];
-
-        $recordArray = BackendUtility::getRecord($this->table, $this->data['vanillaUid']);
+        $recordId = $this->data['vanillaUid'];
+        $recordArray = BackendUtility::getRecord($this->table, $recordId);
 
         $pageTsConfig = BackendUtility::getPagesTSconfig($currentPageId);
         $previewConfiguration = isset($pageTsConfig['TCEMAIN.']['preview.'][$this->table . '.'])
@@ -210,7 +211,6 @@ class SnippetPreview extends AbstractNode
         }
 
         $linkParameters = [
-            'no_cache' => 1,
             'type' => self::FE_PREVIEW_TYPE
         ];
 
@@ -251,6 +251,16 @@ class SnippetPreview extends AbstractNode
                 $previewConfiguration['additionalGetParameters.']
             );
             $linkParameters = array_replace($linkParameters, $additionalGetParameters);
+        }
+
+        if (!empty($previewConfiguration['useCacheHash'])) {
+            /** @var CacheHashCalculator */
+            $cacheHashCalculator = GeneralUtility::makeInstance(CacheHashCalculator::class);
+            $fullLinkParameters = GeneralUtility::implodeArrayForUrl('', array_merge($linkParameters, ['id' => $previewPageId]));
+            $cacheHashParameters = $cacheHashCalculator->getRelevantParameters($fullLinkParameters);
+            $linkParameters['cHash'] = $cacheHashCalculator->calculateCacheHash($cacheHashParameters);
+        } else {
+            $linkParameters['no_cache'] = 1;
         }
 
         $previewDomain = BackendUtility::getViewDomain($previewPageId);

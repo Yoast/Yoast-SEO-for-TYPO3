@@ -56,15 +56,14 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
             $focusKeywordElement.on('input', function() {
                 $('#yoastSeo-score-bar-focuskeyword-text').html($focusKeywordElement.val());
-                snippetPreview.changedInput.bind( snippetPreview );
+
+                app.getData();
+                app.runAnalyzer();
                 updateProgressBars(snippetPreview);
             } );
 
             var app = new YoastSEO.App({
                 snippetPreview: snippetPreview,
-                elementTargets: [
-                    'id-of-title-element'
-                ],
                 targets: {
                     output: 'yoastseo-analysis-focuskeyword',
                     contentOutput: 'yoastseo-analysis-readability'
@@ -102,12 +101,20 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 var $titleElement = $targetElement.find('#snippet-editor-title');
                 $titleElement.val($metaSection.find('pageTitlePrepend').text() + $(this).val() + $metaSection.find('pageTitleAppend').text());
                 snippetPreview.changedInput();
+
+                setTimeout(function() {
+                    app.getData();
+                    app.runAnalyzer();
+                }, 1000);
             });
 
             $("*[data-formengine-input-name='" + $descriptionTcaSelector + "']").on('input', function() {
                 var $descriptionElement = $targetElement.find('#snippet-editor-meta-description');
                 $descriptionElement.val($(this).val());
                 snippetPreview.changedInput();
+
+                app.getData();
+                app.runAnalyzer();
             });
 
             $("*[data-formengine-input-name='" + $titleTcaSelector + "']").on('focus', updateProgressBars(snippetPreview));

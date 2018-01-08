@@ -30,3 +30,10 @@ CREATE TABLE pages_language_overlay (
 	tx_yoastseo_twitter_description varchar(255) DEFAULT '' NOT NULL,
 	tx_yoastseo_twitter_image int(11) DEFAULT '0' NOT NULL
 );
+
+#
+# Table structure for table 'tx_news_domain_model_news'
+
+CREATE TABLE tx_news_domain_model_news (
+	tx_yoastseo_focuskeyword varchar(32) DEFAULT '' NOT NULL,
+);

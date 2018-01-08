@@ -33,8 +33,15 @@ plugin.tx_yoastseo {
         }
         variables {
             currentURL =< lib.yoastSEO.currentURL
-            pageTitle =< lib.yoastSEO.pageTitleComplete
+            pageTitleComplete =< lib.yoastSEO.pageTitleComplete
+            pageTitle =< lib.yoastSEO.pageTitle
             description =< lib.yoastSEO.description
+            ogTitle =< lib.yoastSEO.og.title
+            ogType =< lib.yoastSEO.og.type
+            ogDescription =< lib.yoastSEO.og.description
+            twitterCard =< lib.yoastSEO.twitter.card
+            twitterTitle =< lib.yoastSEO.twitter.title
+            twitterDescription =< lib.yoastSEO.twitter.description
         }
         settings {
             og.image.count = 2
@@ -49,6 +56,8 @@ lib.yoastSEO {
             parameter = #
             returnLast = url
             forceAbsoluteUrl = 1
+            addQueryString = 1
+            addQueryString.exclude = type
             useCacheHash = 1
         }
 
@@ -64,8 +73,7 @@ lib.yoastSEO {
         10.value = {$plugin.tx_yoastseo.titlePrepend}
         10.stdWrap.noTrimWrap = || |
 
-        20 = TEXT
-        20.field = {$plugin.tx_yoastseo.titleField} // title
+        20 =< lib.yoastSEO.pageTitle
 
         30 = TEXT
         30.value = {$plugin.tx_yoastseo.titleAppend}
@@ -103,13 +111,15 @@ lib.yoastSEO {
         htmlSpecialChars = 1
     }
 
-    slug = TEXT
+    slug < .currentURL
     slug {
         stdWrap.typolink {
             parameter = #
             returnLast = url
             forceAbsoluteUrl = 0
             useCacheHash = 1
+            addQueryString = 1
+            addQueryString.exclude = type
         }
 
         htmlSpecialChars = 1
@@ -118,6 +128,20 @@ lib.yoastSEO {
     pathOverride = TEXT
     pathOverride {
         field = tx_realurl_pathsegment
+    }
+
+    og {
+        type = TEXT
+        type.value =
+        title =< lib.yoastSEO.pageTitle
+        description =< lib.yoastSEO.description
+    }
+
+    twitter {
+        card = TEXT
+        card.value = summary
+        title =< lib.yoastSEO.pageTitle
+        description =< lib.yoastSEO.description
     }
 }
 
@@ -161,39 +185,39 @@ yoast_seo_preview {
 
     20 = COA
     20 {
-        10 < lib.yoastSEO.currentURL
+        10 =< lib.yoastSEO.currentURL
         10.wrap = <url>|</url>
 
-        20 < lib.yoastSEO.pageTitleComplete
+        20 =< lib.yoastSEO.pageTitleComplete
         20 {
             stdWrap.wrap = <title><![CDATA[|]]></title>
         }
 
-        30 < lib.yoastSEO.pageTitle
+        30 =< lib.yoastSEO.pageTitle
         30 {
             stdWrap.wrap = <pageTitle><![CDATA[|]]></pageTitle>
         }
 
-        31 < lib.yoastSEO.pageTitlePrepend
+        31 =< lib.yoastSEO.pageTitlePrepend
         31 {
             stdWrap.wrap = <pageTitlePrepend><![CDATA[|]]></pageTitlePrepend>
         }
 
-        32 < lib.yoastSEO.pageTitleAppend
+        32 =< lib.yoastSEO.pageTitleAppend
         32 {
             stdWrap.wrap = <pageTitleAppend><![CDATA[|]]></pageTitleAppend>
         }
 
-        40 < lib.yoastSEO.description
+        40 =< lib.yoastSEO.description
         40.wrap = <description><![CDATA[|]]></description>
 
-        50 < lib.yoastSEO.locale
+        50 =< lib.yoastSEO.locale
         50.wrap = <locale>|</locale>
 
-        60 < lib.yoastSEO.slug
+        60 =< lib.yoastSEO.slug
         60.wrap = <slug>|</slug>
 
-        70 < lib.yoastSEO.pathOverride
+        70 =< lib.yoastSEO.pathOverride
         70.wrap = <pathOverride>|</pathOverride>
 
         wrap = <meta>|</meta>
@@ -226,3 +250,5 @@ yoast_seo_preview {
         wrap = <content>|</content>
     }
 }
+
+<INCLUDE_TYPOSCRIPT: source="DIR:EXT:yoast_seo/Configuration/TypoScript/Setup/Plugins">

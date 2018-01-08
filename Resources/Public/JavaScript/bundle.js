@@ -8537,6 +8537,7 @@ App.prototype.runAnalyzer = function () {
         this.startTime();
     }
     this.analyzerData = this.modifyData(this.rawData);
+    console.log(this.analyzerData);
     this.snippetPreview.refresh();
     var text = this.analyzerData.text;
     // Insert HTML stripping code

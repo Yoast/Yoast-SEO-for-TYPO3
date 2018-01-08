@@ -2,6 +2,7 @@
 namespace YoastSeoForTypo3\YoastSeo\ViewHelpers;
 
 use TYPO3\CMS\Core;
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 use TYPO3\CMS\Fluid;
 use TYPO3\CMS\Frontend;
 
@@ -34,14 +35,20 @@ class CanonicalLinkViewHelper extends Fluid\Core\ViewHelper\AbstractTagBasedView
         } elseif ($GLOBALS['TSFE'] instanceof Frontend\Controller\TypoScriptFrontendController
             && $GLOBALS['TSFE']->contentPid > 0
         ) {
-            $uriBuilder = $this->controllerContext->getUriBuilder();
+            $contentObject = Core\Utility\GeneralUtility::makeInstance(Frontend\ContentObject\ContentObjectRenderer::class);
+            $content = $contentObject->typoLink_URL(
+                [
+                    'parameter' => '#',
+                    'useCacheHash' => true,
+                    'addQueryString' => true,
+                    'forceAbsoluteUrl' => true,
+                    'addQueryString.' => [
+                        'exclude' => 'type'
+                    ]
+                ]
+            );
 
-            $uri = $uriBuilder->reset()
-                ->setCreateAbsoluteUri(true)
-                ->setTargetPageUid($GLOBALS['TSFE']->contentPid)
-                ->build();
-
-            $this->tag->addAttribute('href', $uri);
+            $this->tag->addAttribute('href', $content);
         }
 
         return $this->tag->hasAttribute('href') ? $this->tag->render() : '';
