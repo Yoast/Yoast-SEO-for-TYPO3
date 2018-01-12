@@ -28,6 +28,6 @@ class NeedConvertViewHelper extends AbstractViewHelper
      */
     public function render()
     {
-        return ConvertUtility::checkIfConvertIsNeeded();
+        return ConvertUtility::convert(true);
     }
 }

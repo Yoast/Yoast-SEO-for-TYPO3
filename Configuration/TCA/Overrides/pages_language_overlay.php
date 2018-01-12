@@ -47,7 +47,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
                 ]
             ]
         ],
-        'tx_yoastseo_canonical_url' => [
+        'canonical_url' => [
             'label' => $llPrefix . 'canonical',
             'exclude' => true,
             'config' => [
@@ -203,7 +203,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     'pages_language_overlay',
     'yoast-advanced',
     '
-    --linebreak--, tx_yoastseo_canonical_url,
+    --linebreak--, canonical_url,
     '
 );
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(

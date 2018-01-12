@@ -56,7 +56,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
                 'type' => 'input'
             ]
         ],
-        'tx_yoastseo_canonical_url' => [
+        'canonical_url' => [
             'label' => $llPrefix . 'canonical',
             'exclude' => true,
             'config' => [
@@ -214,7 +214,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     'pages',
     'yoast-advanced',
     '
-    --linebreak--, tx_yoastseo_canonical_url,
+    --linebreak--, canonical_url,
     --linebreak--, tx_yoastseo_dont_use
     '
 );
