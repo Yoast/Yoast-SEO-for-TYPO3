@@ -2,7 +2,7 @@
 # Table structure for table 'pages'
 #
 CREATE TABLE pages (
-	tx_yoastseo_title varchar(255) DEFAULT '' NOT NULL,
+	seo_title varchar(255) DEFAULT '' NOT NULL,
 	tx_yoastseo_focuskeyword varchar(32) DEFAULT '' NOT NULL,
 	tx_yoastseo_canonical_url varchar(255) DEFAULT '' NOT NULL,
 	tx_yoastseo_robot_instructions int(11) DEFAULT '0' NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE pages (
 # Table structure for table 'pages_language_overlay'
 #
 CREATE TABLE pages_language_overlay (
-	tx_yoastseo_title varchar(255) DEFAULT '' NOT NULL,
+	seo_title varchar(255) DEFAULT '' NOT NULL,
 	tx_yoastseo_focuskeyword varchar(32) DEFAULT '' NOT NULL,
 	tx_yoastseo_canonical_url varchar(255) DEFAULT '' NOT NULL,
 	tx_yoastseo_robot_instructions int(11) DEFAULT '0' NOT NULL,

@@ -1,5 +1,5 @@
 plugin.tx_yoastseo {
-	titleField = tx_yoastseo_title
+	titleField = seo_title
 	descriptionField = description
 	canonicalTagField = tx_yoastseo_canonical_url
 	titlePrepend =

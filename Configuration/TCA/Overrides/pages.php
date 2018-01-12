@@ -11,7 +11,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
                 'type' => 'text',
                 'renderType' => 'snippetPreview',
                 'settings' => [
-                    'titleField' => 'tx_yoastseo_title',
+                    'titleField' => 'seo_title',
                     'descriptionField' => 'description'
                 ]
             ]
@@ -49,7 +49,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
                 ]
             ]
         ],
-        'tx_yoastseo_title' => [
+        'seo_title' => [
             'label' => $llPrefix . 'seoTitle',
             'exclude' => true,
             'config' => [
@@ -180,7 +180,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     'yoast-metadata',
     '
     --linebreak--, tx_yoastseo_snippetpreview,
-    --linebreak--, tx_yoastseo_title,
+    --linebreak--, seo_title,
     --linebreak--, description,
     '
 );

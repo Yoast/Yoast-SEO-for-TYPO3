@@ -126,6 +126,9 @@
 			<trans-unit id="action.settings">
 				<source>Settings</source>
 			</trans-unit>
+			<trans-unit id="action.update">
+				<source>Update</source>
+			</trans-unit>
 			<trans-unit id="dashboard">
 				<source>Dashboard</source>
 			</trans-unit>
@@ -143,6 +146,24 @@
 			</trans-unit>
 			<trans-unit id="dashboard.help.description">
 				<source>If you need any support on using or configuring this plugin, please contact us by %s in the channel #yoast-seo-for-typo3</source>
+			</trans-unit>
+			<trans-unit id="update">
+				<source>Update</source>
+			</trans-unit>
+			<trans-unit id="update.data">
+				<source>Convert data</source>
+			</trans-unit>
+			<trans-unit id="update.data.intro">
+				<source>Some updates of the Yoast SEO for TYPO3 extension may require updates in the datastructure. Most of the times this doesn't need an update of the data itself, but sometimes we can't prevent that. If the data needs an update, you see a button below to update your data.</source>
+			</trans-unit>
+			<trans-unit id="update.data.updateData">
+				<source>Update data</source>
+			</trans-unit>
+			<trans-unit id="update.data.convert.success">
+				<source>Convert succesful</source>
+			</trans-unit>
+			<trans-unit id="update.data.convert.success.description">
+				<source>The data is succesfully converted</source>
 			</trans-unit>
 			<trans-unit id="settings">
 				<source>Settings</source>

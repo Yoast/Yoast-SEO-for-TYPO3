@@ -18,6 +18,7 @@ use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
 use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
 use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
+use YoastSeoForTypo3\YoastSeo\Utility\ConvertUtility;
 
 class ModuleController extends ActionController
 {
@@ -96,7 +97,6 @@ class ModuleController extends ActionController
         }
 
         $this->createMenu();
-        $this->makeLanguageMenu();
         $this->registerDocheaderButtons();
     }
 
@@ -126,340 +126,41 @@ class ModuleController extends ActionController
     }
 
     /**
-     * @return void
+     *
      */
-    public function settingsAction()
+    public function updateAction()
     {
+
     }
 
     /**
-     * @return void
+     *
      */
-    public function editAction()
+    public function doConvertAction()
     {
-        $pageId = 0;
-        $languageId = 0;
-        $table = 'pages';
+        ConvertUtility::convert();
 
-        if ($this->request->hasArgument('id')) {
-            $pageId = $this->request->getArgument('id');
-        } elseif ((int)GeneralUtility::_GET('id')) {
-            $pageId = (int)GeneralUtility::_GET('id');
-        }
-
-        if ($pageId === 0) {
-            $this->redirect('dashboard');
-        }
-
-        if ($this->request->hasArgument('language')) {
-            $languageId = $this->request->getArgument('language');
-        }
-        $targetElementId = uniqid('_YoastSEO_panel_');
-
-        $currentPage = BackendUtility::getRecord(
-            'pages',
-            (int)$pageId
-        );
-
-        if ($languageId > 0) {
-            $overlayRecords = BackendUtility::getRecordLocalization(
-                'pages',
-                (int)$pageId,
-                (int)$languageId
-            );
-
-            if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
-                $currentPage = $overlayRecords[0];
-                $table = 'pages_language_overlay';
-            }
-        }
-        $focusKeyword = $currentPage[static::FOCUS_KEYWORD_COLUMN_NAME];
-
-        $domain = BackendUtility::getViewDomain($currentPage['uid']);
-
-        // Allow Overwrite of the domain via ExtConf
-        if (array_key_exists('previewDomain', $this->configuration) && $this->configuration['previewDomain']) {
-            try {
-                $protocol = GeneralUtility::getIndpEnv('TYPO3_SSL') ? 'https' : 'http';
-            } catch (\UnexpectedValueException $e) {
-                $protocol = 'http';
-            }
-
-            if (strpos($this->configuration['previewDomain'], '://') !== false) {
-                list($protocol, $domainName) = explode('://', $this->configuration['previewDomain']);
-            } else {
-                $domainName = $this->configuration['previewDomain'];
-            }
-            $domain = $protocol . '://' . $domainName;
-        }
-
-        $previewDataUrl = vsprintf(
-            $domain . $this->configuration['previewUrlTemplate'],
-            array(
-                (int)$pageId,
-                static::FE_PREVIEW_TYPE,
-                $languageId
-            )
-        );
-
-        $interfaceLocale = $this->getInterfaceLocale();
-
-        if ($interfaceLocale !== null
-            && ($translationFilePath = sprintf(
-                static::APP_TRANSLATION_FILE_PATTERN,
-                $interfaceLocale
-            )) !== false
-            && ($translationFilePath = GeneralUtility::getFileAbsFileName(
-                $translationFilePath
-            )) !== false
-            && file_exists($translationFilePath)
-        ) {
-            $this->pageRenderer->addJsInlineCode(
-                md5($translationFilePath),
-                'var tx_yoast_seo = tx_yoast_seo || {};'
-                . ' tx_yoast_seo.translations = '
-                . file_get_contents($translationFilePath)
-                . ';'
-            );
-        }
-        $publicResourcesPath = ExtensionManagementUtility::extRelPath('yoast_seo') . 'Resources/Public/';
-
-        $disableSlug = true;
-        if (ExtensionManagementUtility::isLoaded('realurl')) {
-            if ($GLOBALS['BE_USER']->check('non_exclude_fields', $table . ':tx_realurl_pathsegment')) {
-                $disableSlug = false;
-            }
-        }
-
-        $this->pageRenderer->addJsInlineCode(
-            'YoastSEO settings',
-            'var tx_yoast_seo = tx_yoast_seo || {};'
-            . ' tx_yoast_seo.settings = '
-            . json_encode(
-                array(
-                    'focusKeyword' => $focusKeyword,
-                    'focusKeywordLabel' => LocalizationUtility::translate('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:focusKeyword', 'yoast_seo'),
-                    'preview' => $previewDataUrl,
-                    'recordId' => '',
-                    'recordTable' => '',
-                    'targetElementId' => $targetElementId,
-                    'editable' => 1,
-                    'disableSlug' => $disableSlug
-                )
-            )
-            . ';'
-        );
-
-        $this->pageRenderer->addRequireJsConfiguration(
-            array(
-                'paths' => array(
-                    'YoastSEO' => $publicResourcesPath . 'JavaScript/'
-                )
-            )
-        );
-
-        $this->pageRenderer->loadRequireJsModule('YoastSEO/app');
-
-        $this->pageRenderer->addCssFile(
-            $publicResourcesPath . 'CSS/yoast-seo.min.css'
-        );
-
-        $returnUrl = '';
-        if ($this->request->hasArgument('returnUrl')) {
-            $returnUrl = $this->request->getArgument('returnUrl');
-        }
-
-        $this->view->assign('page', $currentPage);
-        $this->view->assign('pageId', $pageId);
-        $this->view->assign('table', $table);
-        $this->view->assign('languageId', $languageId);
-        $this->view->assign('targetElementId', $targetElementId);
-        $this->view->assign('returnUrl', $returnUrl);
-        $this->view->assign('viewSettings', $this->configuration['viewSettings']);
-    }
-
-    public function saveAction()
-    {
         $flashMessageService = $this->objectManager->get(\TYPO3\CMS\Core\Messaging\FlashMessageService::class);
         $messageQueue = $flashMessageService->getMessageQueueByIdentifier();
         $lang = $this->getLanguageService();
         $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
 
-        $imageExtensions = GeneralUtility::trimExplode(',', strtolower($GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']));
-
-        $pageId = (int)$this->request->getArgument('id');
-        $languageId = (int)$this->request->getArgument('language');
-
-        $fields = array();
-        $this->addFieldToArray($fields, $this->settings['titleFieldName'], 'snippet-editor-title');
-        $this->addFieldToArray($fields, $this->settings['descriptionFieldName'], 'snippet-editor-meta-description');
-        $this->addFieldToArray($fields, 'tx_yoastseo_facebook_title', 'facebookTitle');
-        $this->addFieldToArray($fields, 'tx_yoastseo_facebook_description', 'facebookDescription');
-        $this->addFieldToArray($fields, 'tx_yoastseo_twitter_title', 'twitterTitle');
-        $this->addFieldToArray($fields, 'tx_yoastseo_twitter_description', 'twitterDescription');
-        $this->addFieldToArray($fields, $this->settings['canonicalTagFieldName'], 'canonical');
-        $this->addFieldToArray($fields, 'tx_yoastseo_robot_instructions', 'robotInstructions');
-        $this->addFieldToArray($fields, 'tx_yoastseo_focuskeyword', 'focusKeyword');
-
-        if (ExtensionManagementUtility::isLoaded('realurl')) {
-            $this->addFieldToArray($fields, 'tx_realurl_pathsegment', 'snippet-editor-slug', ['/^\/|\/$/', '']);
-        }
-
-        $table = 'pages';
-        $extraTableRecords = [];
-        $recordId = $pageId;
-
-        if ($this->request->hasArgument('twitterImage')) {
-            $twitterImage = $this->request->getArgument('twitterImage');
-
-            if ($this->request->hasArgument('twitterDeleteImage') ||
-                (array_key_exists('tmp_name', $twitterImage) && !empty($twitterImage['tmp_name']))) {
-                $GLOBALS['TYPO3_DB']->exec_UPDATEquery('sys_file_reference', 'fieldname="tx_yoastseo_twitter_image" AND uid_foreign=' . $pageId, ['deleted' => 1]);
-            }
-            if (array_key_exists('tmp_name', $twitterImage) && !empty($twitterImage['tmp_name'])) {
-                $pathInfo = pathinfo($twitterImage['name']);
-
-                if (in_array(strtolower($pathInfo['extension']), $imageExtensions)) {
-                    $resourceFactory = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
-                    $storage = $resourceFactory->getDefaultStorage();
-
-                    if ($storage instanceof ResourceStorage) {
-                        $newFile = $storage->addFile(
-                            $twitterImage['tmp_name'],
-                            $storage->getDefaultFolder(),
-                            $twitterImage['name']
-                        );
-
-                        $newId = 'NEW1234TWITTER';
-                        $extraTableRecords['sys_file_reference'][$newId] = [
-                            'table_local' => 'sys_file',
-                            'uid_local' => $newFile->getUid(),
-                            'tablenames' => 'pages',
-                            'uid_foreign' => $pageId,
-                            'fieldname' => 'tx_yoastseo_twitter_image',
-                            'pid' => $pageId
-                        ];
-
-                        $fields['tx_yoastseo_twitter_image'] = $newId;
-                    }
-                } else {
-                    $messageFileUpload = GeneralUtility::makeInstance(
-                        FlashMessage::class,
-                        sprintf($lang->sL($llPrefix . 'failed.imageExtensions.description'), $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']),
-                        sprintf($lang->sL($llPrefix . 'failed.imageExtensions.title'), 'Twitter'),
-                        FlashMessage::WARNING,
-                        true
-                    );
-                    $messageQueue->addMessage($messageFileUpload);
-                }
-            }
-        }
-
-        if ($this->request->hasArgument('facebookImage')) {
-            $facebookImage = $this->request->getArgument('facebookImage');
-
-            if ($this->request->hasArgument('facebookDeleteImage') ||
-                (array_key_exists('tmp_name', $facebookImage) && !empty($facebookImage['tmp_name']))) {
-                $GLOBALS['TYPO3_DB']->exec_UPDATEquery('sys_file_reference', 'fieldname="tx_yoastseo_facebook_image" AND uid_foreign=' . $pageId, ['deleted' => 1]);
-            }
-            if (array_key_exists('tmp_name', $facebookImage) && !empty($facebookImage['tmp_name'])) {
-                $pathInfo = pathinfo($facebookImage['name']);
-
-                if (in_array(strtolower($pathInfo['extension']), $imageExtensions)) {
-                    $resourceFactory = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
-                    $storage = $resourceFactory->getDefaultStorage();
-
-                    if ($storage instanceof ResourceStorage) {
-                        $newFile = $storage->addFile(
-                            $facebookImage['tmp_name'],
-                            $storage->getDefaultFolder(),
-                            $facebookImage['name']
-                        );
-
-                        $newId = 'NEW1234FACEBOOK';
-                        $extraTableRecords['sys_file_reference'][$newId] = [
-                            'table_local' => 'sys_file',
-                            'uid_local' => $newFile->getUid(),
-                            'tablenames' => 'pages',
-                            'uid_foreign' => $pageId,
-                            'fieldname' => 'tx_yoastseo_facebook_image',
-                            'pid' => $pageId
-                        ];
-
-                        $fields['tx_yoastseo_facebook_image'] = $newId;
-                    }
-                } else {
-                    $messageFileUpload = GeneralUtility::makeInstance(
-                        FlashMessage::class,
-                        sprintf($lang->sL($llPrefix . 'failed.imageExtensions.description'), $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']),
-                        sprintf($lang->sL($llPrefix . 'failed.imageExtensions.title'), 'Facebook'),
-                        FlashMessage::WARNING,
-                        true
-                    );
-                    $messageQueue->addMessage($messageFileUpload);
-                }
-            }
-        }
-
-        if ($languageId > 0) {
-            $table = 'pages_language_overlay';
-
-            $overlayRecords = BackendUtility::getRecordLocalization(
-                'pages',
-                (int)$pageId,
-                (int)$languageId
-            );
-
-            if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
-                $recordId = $overlayRecords[0]['uid'];
-            }
-
-            if (array_key_exists('tx_realurl_pathsegment', $fields) && !empty($fields['tx_realurl_pathsegment'])) {
-                $extraTableRecords['pages'] =
-                    [
-                        $pageId => [
-                            'tx_realurl_pathoverride' => 1
-                        ]
-                    ];
-            }
-        } else {
-            if (array_key_exists('tx_realurl_pathsegment', $fields) && !empty($fields['tx_realurl_pathsegment'])) {
-                $fields['tx_realurl_pathoverride'] = 1;
-            }
-        }
-
-        $data = array(
-            $table => array(
-                $recordId => $fields
-            ),
-        );
-
-        if (!empty($extraTableRecords)) {
-            $data = array_merge($data, $extraTableRecords);
-        }
-
-        $tce = GeneralUtility::makeInstance(DataHandler::class);
-        $tce->reverseOrder = 1;
-        $tce->start($data, array());
-        $tce->process_datamap();
-        BackendUtility::setUpdateSignal('updatePageTree');
-        $tce->clear_cacheCmd('pages');
-
-        $message = GeneralUtility::makeInstance(
+        $messageFileUpload = GeneralUtility::makeInstance(
             FlashMessage::class,
-            $lang->sL($llPrefix . 'saved.description'),
-            $lang->sL($llPrefix . 'saved.title'),
+            $lang->sL($llPrefix . 'update.data.convert.success.description'),
+            $lang->sL($llPrefix . 'update.data.convert.success'),
             FlashMessage::OK,
             true
         );
-        $messageQueue->addMessage($message);
+        $messageQueue->addMessage($messageFileUpload);
+        $this->redirect('update');
+    }
 
-        $returnUrl = '';
-        if ($this->request->hasArgument('returnUrl')) {
-            $returnUrl = $this->request->getArgument('returnUrl');
-        }
-
-        $this->redirect('edit', null, null, array('id' => $pageId, 'language' => $languageId, 'returnUrl' => $returnUrl));
+    /**
+     * @return void
+     */
+    public function settingsAction()
+    {
     }
 
     public function saveSettingsAction()
@@ -648,85 +349,6 @@ class ModuleController extends ActionController
             ->setDisplayName($shortcutName)
             ->setGetVariables(array('id' => (int)GeneralUtility::_GP('id')));
         $buttonBar->addButton($shortcutButton);
-    }
-
-    /**
-     * Make the LanguageMenu
-     *
-     * @return void
-     */
-    protected function makeLanguageMenu()
-    {
-        $lang = $this->getLanguageService();
-
-        $pageId = 0;
-        if ($this->request->hasArgument('id')) {
-            $pageId = $this->request->getArgument('id');
-        } elseif ((int)GeneralUtility::_GET('id')) {
-            $pageId = (int)GeneralUtility::_GET('id');
-        }
-
-        $this->MOD_MENU = [
-            'language' => [
-                0 => $lang->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:defaultLanguage')
-            ]
-        ];
-
-        if ((int)$pageId) {
-            $exQ = BackendUtility::deleteClause('pages_language_overlay') .
-                ($this->getBackendUser()->isAdmin() ? '' : ' AND sys_language.hidden=0');
-            $rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
-                'sys_language.uid, sys_language.title',
-                'pages_language_overlay,sys_language',
-                'pages_language_overlay.sys_language_uid=sys_language.uid AND pages_language_overlay.pid=' . (int)$pageId . $exQ .
-                BackendUtility::versioningPlaceholderClause('pages_language_overlay'),
-                'pages_language_overlay.sys_language_uid,sys_language.uid,sys_language.pid,sys_language.tstamp,sys_language.hidden,sys_language.title,sys_language.language_isocode,sys_language.static_lang_isocode,sys_language.flag',
-                'sys_language.title'
-            );
-        } else {
-            $rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
-                'uid, title',
-                'sys_language',
-                'hidden=0',
-                '',
-                'sorting'
-            );
-        }
-
-        foreach ($rows as $lRow) {
-            if ($this->getBackendUser()->checkLanguageAccess($lRow['uid'])) {
-                $this->MOD_MENU['language'][$lRow['uid']] = $lRow['title'];
-            }
-        }
-
-        if (count($this->MOD_MENU['language']) > 1) {
-            $lang = $this->getLanguageService();
-            $languageMenu = $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->makeMenu();
-            $languageMenu->setIdentifier('languageMenu');
-            $languageMenu->setLabel($lang->sL('LLL:EXT:lang/locallang_general.xlf:LGL.language', true));
-            $returnUrl = ($this->request->hasArgument('returnUrl')) ? $this->request->getArgument('returnUrl') : '';
-
-            foreach ($this->MOD_MENU['language'] as $key => $language) {
-                $parameters = array(
-                    'tx_yoastseo_web_yoastseoseoplugin[id]' => $pageId,
-                    'tx_yoastseo_web_yoastseoseoplugin[language]' => $key,
-                    'tx_yoastseo_web_yoastseoseoplugin[returnUrl]' => $returnUrl
-                );
-                $url = BackendUtility::getModuleUrl('web_YoastSeoSeoPlugin', $parameters);
-
-                $menuItem = $languageMenu
-                    ->makeMenuItem()
-                    ->setTitle($language)
-                    ->setHref($url);
-                if ($this->request->hasArgument('language') &&
-                    (int)$this->request->getArgument('language') === $key) {
-                    $menuItem->setActive(true);
-                }
-                $languageMenu->addMenuItem($menuItem);
-            }
-
-            $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->addMenu($languageMenu);
-        }
     }
 
     /**
