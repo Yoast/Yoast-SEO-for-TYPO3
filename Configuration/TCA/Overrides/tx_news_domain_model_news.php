@@ -4,6 +4,7 @@
     [
         'tx_yoastseo_snippetpreview' => [
             'label' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:snippetPreview',
+            'exclude' => true,
             'displayCond' => 'REC:NEW:false',
             'config' => [
                 'type' => 'text',
