@@ -36,7 +36,7 @@ class PageMetaRenderer implements SingletonInterface
             && (int) $config['config.']['yoast_seo.']['enabled'] !== 0
             && $GLOBALS['TSFE']->cObj instanceof ContentObjectRenderer
         ) {
-            $parameters['metaTags'][] = $GLOBALS['TSFE']->cObj->cObjGetSingle(
+            $yoastMeta = $GLOBALS['TSFE']->cObj->cObjGetSingle(
                 'FLUIDTEMPLATE',
                 array_merge_recursive(
                     $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_yoastseo.']['view.'],
@@ -45,6 +45,23 @@ class PageMetaRenderer implements SingletonInterface
                     )
                 )
             );
+
+            // Remove metatags that are already set and now will be set by Yoast SEO
+            if (preg_match_all('/\<meta (name|property)="([a-z0-9:]*)"/', $yoastMeta, $matches)) {
+                $metaTags = array_filter($parameters['metaTags'], function ($metaTag) use ($matches) {
+                    foreach ((array)$matches[0] as $k => $v) {
+                        $tagStart = '<meta ' . $matches[1][$k] . '="' . $matches[2][$k] . '"';
+
+                        if (strpos($metaTag, $tagStart) !== false) {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+                $parameters['metaTags'] = $metaTags;
+            }
+
+            $parameters['metaTags'][] = $yoastMeta;
         }
     }
 }
