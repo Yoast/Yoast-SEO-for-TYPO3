@@ -4,6 +4,7 @@ namespace YoastSeoForTypo3\YoastSeo\Backend;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS;
+use YoastSeoForTypo3\YoastSeo\Utility\ConvertUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class PageLayoutHeader
@@ -222,6 +223,13 @@ class PageLayoutHeader
             ];
             $url = CMS\Backend\Utility\BackendUtility::getModuleUrl('record_edit', $urlParameters);
 
+            $needUpdateText = '';
+            if (ConvertUtility::convert(true)) {
+                $updateUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl('web_YoastSeoSeoPlugin', ['tx_yoastseo_web_yoastseoseoplugin' => ['action' => 'update']]);
+                $needUpdateText = '<a href="' . $updateUrl .'" style="margin-left: 10px; color: #f00">';
+                $needUpdateText .= $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:data.needUpdate');
+                $needUpdateText .= '</a>';
+            }
             return '<div class="t3-page-column-header">
                     <div class="t3-page-column-header-icons btn-group btn-group-sm">
                         <a href="' . $url . '" title="" class="btn btn-default">
@@ -232,7 +240,7 @@ class PageLayoutHeader
                             </span>
                         </a>
                     </div>
-                    <div class="t3-page-column-header-label">Yoast SEO</div>
+                    <div class="t3-page-column-header-label">Yoast SEO ' . $needUpdateText . '</div>
                 </div>
                 <input id="focusKeyword" style="display: none" />
                 <div id="' . $targetElementId . '" class="t3-grid-cell yoastSeo yoastSeo--small">

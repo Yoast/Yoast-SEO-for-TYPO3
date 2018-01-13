@@ -73,15 +73,15 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
                 'softref' => 'typolink'
             ]
         ],
-        'tx_yoastseo_facebook_title' => [
-            'label' => $llPrefix . 'facebook.title',
+        'og_title' => [
+            'label' => $llPrefix . 'og.title',
             'exclude' => true,
             'config' => [
                 'type' => 'input'
             ]
         ],
-        'tx_yoastseo_facebook_description' => [
-            'label' => $llPrefix . 'facebook.description',
+        'og_description' => [
+            'label' => $llPrefix . 'og.description',
             'exclude' => true,
             'config' => [
                 'type' => 'input'
@@ -101,11 +101,11 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
                 ]
             ]
         ],
-        'tx_yoastseo_facebook_image' => [
-            'label' => $llPrefix . 'facebook.image',
+        'og_image' => [
+            'label' => $llPrefix . 'og.image',
             'exclude' => true,
             'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig(
-                'tx_yoastseo_facebook_image',
+                'og_image',
                 [
                     // Use the imageoverlayPalette instead of the basicoverlayPalette
                     'foreign_types' => [
@@ -210,8 +210,8 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     'pages_language_overlay',
     'yoast-social-og',
     '
-    --linebreak--, tx_yoastseo_facebook_title, 
-    --linebreak--, tx_yoastseo_facebook_description, 
+    --linebreak--, og_title, 
+    --linebreak--, og_description, 
     --linebreak--, tx_yoastseo_facebook_image 
     '
 );

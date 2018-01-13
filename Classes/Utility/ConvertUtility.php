@@ -25,9 +25,19 @@ class ConvertUtility
 {
     protected static $fieldsToRename = [
         'tx_yoastseo_title' => 'seo_title',
-        'tx_yoastseo_canonical_url' => 'canonical_url'
+        'tx_yoastseo_canonical_url' => 'canonical_url',
+        'tx_yoastseo_facebook_title' => 'og_title',
+        'tx_yoastseo_facebook_description' => 'og_description',
+        'tx_yoastseo_facebook_image' => 'og_image',
+        'tx_yoastseo_twitter_title' => 'twitter_title',
+        'tx_yoastseo_twitter_description' => 'twitter_description',
+        'tx_yoastseo_twitter_image' => 'twitter_image',
     ];
 
+    protected static $imageFieldsToUpdate = [
+        'tx_yoastseo_facebook_image' => 'og_image',
+        'tx_yoastseo_twitter_image' => 'twitter_image',
+    ];
 
     /**
      * @param bool $dryRun
@@ -36,6 +46,17 @@ class ConvertUtility
      */
     public static function convert($dryRun = false)
     {
+        // Update images
+        foreach (self::$imageFieldsToUpdate as $oldValue => $newValue) {
+            if (self::imagesNeedsUpdate($oldValue)) {
+                if ($dryRun) {
+                    return true;
+                }
+
+                self::updateImageRecords($oldValue, $newValue);
+            }
+        }
+
         // Rename fields
         foreach (self::$fieldsToRename as $srcField => $dstField) {
             if (self::fieldNeedsUpdate($dstField, $srcField)) {
@@ -134,22 +155,59 @@ class ConvertUtility
     protected static function fieldNeedsUpdate($newField, $oldField, $tables = ['pages', 'pages_language_overlay'])
     {
         $numberOfPageRecords = 0;
-
         foreach ($tables as $table) {
-            try {
-                $field = self::getOldField($table, $oldField);
+            $field = self::getOldField($table, $oldField);
+            if ($field && self::fieldExistsInDb($table, $newField)) {
                 $numberOfPageRecords += $GLOBALS['TYPO3_DB']->exec_SELECTcountRows('uid', $table, $field . ' != "" AND ' . $newField . ' = ""');
-            } catch (Exception $e) {
-                return false;
             }
         }
         return (bool)$numberOfPageRecords;
     }
 
     /**
+     * @param string $oldValue
+     * @return bool
+     */
+    protected static function imagesNeedsUpdate($oldValue)
+    {
+        $numberOfPageRecords = 0;
+
+        $table = 'sys_file_reference';
+
+        $numberOfPageRecords += $GLOBALS['TYPO3_DB']->exec_SELECTcountRows('uid', $table, 'deleted=0 AND fieldname="' . $oldValue . '"');
+
+        return (bool)$numberOfPageRecords;
+    }
+
+    /**
+     * @param string $newValue
+     * @param string $oldValue
+     * @return bool
+     */
+    protected static function updateImageRecords($oldValue, $newValue)
+    {
+        $table = 'sys_file_reference';
+
+//        $GLOBALS['TYPO3_DB']->exec_UPDATEquery($table, 'fieldname="' . $oldField . '"', ['fieldname' => $newField]);
+
+        /** @var DataHandler $tce */
+        $tce = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\DataHandling\\DataHandler');
+
+        $rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('uid', $table, 'deleted=0 AND fieldname="' . $oldValue . '"');
+        foreach ($rows as $row) {
+            $data = [];
+            $data[$table][$row['uid']]['fieldname'] = $newValue;
+
+            $tce->start($data, []);
+            $tce->process_datamap();
+        }
+
+        return true;
+    }
+
+    /**
      * @param $table
      * @return mixed|string
-     * @throws \TYPO3\CMS\Core\Exception
      */
     protected static function getOldField($table, $field)
     {
@@ -157,16 +215,25 @@ class ConvertUtility
         $fieldsToTest = [$field, 'zzz_deleted_' . $field];
 
         foreach ($fieldsToTest as $fieldToTest) {
-            /** @var \mysqli_result $test */
-            $test = $GLOBALS['TYPO3_DB']->sql_query('SHOW COLUMNS FROM `'. $table . '` LIKE \'' . $fieldToTest . '\';');
-            if ($test->num_rows) {
+            if (self::fieldExistsInDb($table, $fieldToTest)) {
                 $oldField = $fieldToTest;
             }
         }
 
-        if (!$oldField) {
-            throw new Exception('No SEO title field found');
-        }
         return $oldField;
+    }
+
+    /**
+     * @param $field
+     * @return bool
+     */
+    protected static function fieldExistsInDb($table, $field)
+    {
+        /** @var \mysqli_result $test */
+        $test = $GLOBALS['TYPO3_DB']->sql_query('SHOW COLUMNS FROM `'. $table . '` LIKE \'' . $field . '\';');
+        if ($test->num_rows) {
+            return true;
+        }
+        return false;
     }
 }
