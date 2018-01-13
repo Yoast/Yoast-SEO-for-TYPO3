@@ -1,0 +1,90 @@
+
+yoast_seo_preview = PAGE
+yoast_seo_preview {
+    typeNum = {$config.yoast_seo.fe_preview_type}
+    config {
+        disableAllHeaderCode = 1
+        absRefPrefix = /
+
+        no_cache = 1
+
+        additionalHeaders {
+            10 {
+                header = Content-type: text/xml; charset=UTF-8
+            }
+
+            20 {
+                header = Access-Control-Allow-Origin: *
+            }
+        }
+    }
+
+    wrap = <?xml version="1.0" encoding="UTF-8"?><preview>|</preview>
+
+    20 = COA
+    20 {
+        10 =< lib.yoastSEO.currentURL
+        10.wrap = <url>|</url>
+
+        20 =< lib.yoastSEO.pageTitleComplete
+        20 {
+            stdWrap.wrap = <title><![CDATA[|]]></title>
+        }
+
+        30 =< lib.yoastSEO.pageTitle
+        30 {
+            stdWrap.wrap = <pageTitle><![CDATA[|]]></pageTitle>
+        }
+
+        31 =< lib.yoastSEO.pageTitlePrepend
+        31 {
+            stdWrap.wrap = <pageTitlePrepend><![CDATA[|]]></pageTitlePrepend>
+        }
+
+        32 =< lib.yoastSEO.pageTitleAppend
+        32 {
+            stdWrap.wrap = <pageTitleAppend><![CDATA[|]]></pageTitleAppend>
+        }
+
+        40 =< lib.yoastSEO.description
+        40.wrap = <description><![CDATA[|]]></description>
+
+        50 =< lib.yoastSEO.locale
+        50.wrap = <locale>|</locale>
+
+        60 =< lib.yoastSEO.slug
+        60.wrap = <slug>|</slug>
+
+        70 =< lib.yoastSEO.pathOverride
+        70.wrap = <pathOverride>|</pathOverride>
+
+        wrap = <meta>|</meta>
+    }
+
+    30 = CONTENT
+    30 {
+        table = tt_content
+
+        select {
+            where = colPos >= 0
+            orderBy = sorting
+        }
+        renderObj =< tt_content
+        renderObj.stdWrap {
+            wrap = <element><![CDATA[|]]></element>
+            replacement {
+                10.search.char = 10
+                10.replace =
+
+                # remove CDATA Objects inside the element, see Issue #85
+                20.search = <![CDATA[
+                20.replace =
+                30.search = ]]>
+                30.replace =
+            }
+            required = 1
+        }
+
+        wrap = <content>|</content>
+    }
+}

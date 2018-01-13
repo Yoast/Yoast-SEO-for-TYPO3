@@ -1,0 +1,45 @@
+plugin.tx_yoastseo {
+    settings {
+        og.image.width = 640c
+        og.image.height = 480c
+        twitter.image.width = 640c
+        twitter.image.height = 480c
+
+        titleFieldName = {$plugin.tx_yoastseo.titleField}
+        descriptionFieldName = {$plugin.tx_yoastseo.descriptionField}
+        canonicalTagFieldName = {$plugin.tx_yoastseo.canonicalTagField}
+        titlePrepend = {$plugin.tx_yoastseo.titlePrepend}
+        titleAppend = {$plugin.tx_yoastseo.titleAppend}
+    }
+    view {
+        file = EXT:yoast_seo/Resources/Private/Templates/Meta.html
+        partialRootPaths.0 = EXT:yoast_seo/Resources/Private/Partials/
+        dataProcessing {
+            10 = TYPO3\CMS\Frontend\DataProcessing\FilesProcessor
+            10 {
+                references.fieldName = tx_yoastseo_facebook_image
+                as = openGraphImages
+            }
+            20 < .10
+            20 {
+                references.fieldName = tx_yoastseo_twitter_image
+                as = twitterCardsImages
+            }
+        }
+        variables {
+            currentURL =< lib.yoastSEO.currentURL
+            pageTitleComplete =< lib.yoastSEO.pageTitleComplete
+            pageTitle =< lib.yoastSEO.pageTitle
+            description =< lib.yoastSEO.description
+            ogTitle =< lib.yoastSEO.og.title
+            ogType =< lib.yoastSEO.og.type
+            ogDescription =< lib.yoastSEO.og.description
+            twitterCard =< lib.yoastSEO.twitter.card
+            twitterTitle =< lib.yoastSEO.twitter.title
+            twitterDescription =< lib.yoastSEO.twitter.description
+        }
+        settings {
+            og.image.count = 2
+        }
+    }
+}
