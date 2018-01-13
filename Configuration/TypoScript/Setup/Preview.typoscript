@@ -1,4 +1,3 @@
-
 yoast_seo_preview = PAGE
 yoast_seo_preview {
     typeNum = {$config.yoast_seo.fe_preview_type}

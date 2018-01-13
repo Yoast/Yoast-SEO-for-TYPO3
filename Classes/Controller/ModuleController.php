@@ -2,7 +2,6 @@
 namespace YoastSeoForTypo3\YoastSeo\Controller;
 
 use TYPO3\CMS\Backend\Template\Components\ButtonBar;
-use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Backend\View\BackendTemplateView;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
@@ -12,12 +11,10 @@ use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
-use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
 use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
-use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\ConvertUtility;
 
 class ModuleController extends ActionController
@@ -130,7 +127,6 @@ class ModuleController extends ActionController
      */
     public function updateAction()
     {
-
     }
 
     /**

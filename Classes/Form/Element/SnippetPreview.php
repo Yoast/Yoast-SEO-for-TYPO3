@@ -7,11 +7,8 @@ use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
-use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
-use TYPO3\CMS\Extbase\Utility\ExtensionUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use TYPO3\CMS\Frontend\Page\CacheHashCalculator;
 use TYPO3\CMS\Frontend\Page\PageRepository;
@@ -178,7 +175,6 @@ class SnippetPreview extends AbstractNode
         $previewConfiguration = isset($pageTsConfig['TCEMAIN.']['preview.'][$this->table . '.'])
             ? $pageTsConfig['TCEMAIN.']['preview.'][$this->table . '.']
             : [];
-
 
         // find the right preview page id
         $previewPageId = 0;

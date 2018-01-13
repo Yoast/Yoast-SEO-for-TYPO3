@@ -13,7 +13,6 @@ class ReadabilityAnalysis extends AbstractNode
      */
     protected $templateView;
 
-
     /**
      * @param NodeFactory $nodeFactory
      * @param array $data
@@ -25,7 +24,6 @@ class ReadabilityAnalysis extends AbstractNode
         $this->templateView = GeneralUtility::makeInstance(StandaloneView::class);
         $this->templateView->setPartialRootPaths([GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Partials/TCA')]);
         $this->templateView->setTemplatePathAndFilename(GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Templates/TCA/ReadabilityAnalysis.html'));
-
     }
 
     public function render()

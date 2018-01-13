@@ -226,7 +226,7 @@ class PageLayoutHeader
             $needUpdateText = '';
             if (ConvertUtility::convert(true)) {
                 $updateUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl('web_YoastSeoSeoPlugin', ['tx_yoastseo_web_yoastseoseoplugin' => ['action' => 'update']]);
-                $needUpdateText = '<a href="' . $updateUrl .'" style="margin-left: 10px; color: #f00">';
+                $needUpdateText = '<a href="' . $updateUrl . '" style="margin-left: 10px; color: #f00">';
                 $needUpdateText .= $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:data.needUpdate');
                 $needUpdateText .= '</a>';
             }

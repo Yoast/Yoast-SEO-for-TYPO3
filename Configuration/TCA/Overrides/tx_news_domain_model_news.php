@@ -45,7 +45,6 @@
     ]
 );
 
-
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
     'tx_news_domain_model_news',
     'yoast-metadata',
@@ -73,13 +72,11 @@
     '
 );
 
-
 $GLOBALS['TCA']['tx_news_domain_model_news']['palettes']['metatags']['showitem'] =
     preg_replace('/description(.*,|.*$)/', '', $GLOBALS['TCA']['tx_news_domain_model_news']['palettes']['metatags']['showitem']);
 
 $GLOBALS['TCA']['tx_news_domain_model_news']['palettes']['alternativeTitles']['showitem'] =
     preg_replace('/alternative_title(.*,|.*$)/', '', $GLOBALS['TCA']['tx_news_domain_model_news']['palettes']['alternativeTitles']['showitem']);
-
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
     'tx_news_domain_model_news',

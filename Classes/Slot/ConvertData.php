@@ -17,7 +17,6 @@ namespace YoastSeoForTypo3\YoastSeo\Slot;
 use TYPO3\CMS\Extensionmanager\Utility\InstallUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\ConvertUtility;
 
-
 class ConvertData
 {
     public function convert($extensionKey, InstallUtility $installUtility)

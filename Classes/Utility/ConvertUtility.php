@@ -230,7 +230,7 @@ class ConvertUtility
     protected static function fieldExistsInDb($table, $field)
     {
         /** @var \mysqli_result $test */
-        $test = $GLOBALS['TYPO3_DB']->sql_query('SHOW COLUMNS FROM `'. $table . '` LIKE \'' . $field . '\';');
+        $test = $GLOBALS['TYPO3_DB']->sql_query('SHOW COLUMNS FROM `' . $table . '` LIKE \'' . $field . '\';');
         if ($test->num_rows) {
             return true;
         }

@@ -2,7 +2,6 @@
 namespace YoastSeoForTypo3\YoastSeo\ViewHelpers;
 
 use TYPO3\CMS\Core;
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 use TYPO3\CMS\Fluid;
 use TYPO3\CMS\Frontend;
 
