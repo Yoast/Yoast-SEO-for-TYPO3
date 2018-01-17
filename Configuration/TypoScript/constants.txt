@@ -1,7 +1,7 @@
 plugin.tx_yoastseo {
-	titleField = tx_yoastseo_title
-	descriptionField = description
-	canonicalTagField = tx_yoastseo_canonical_url
+	titleField = TSFE:altPageTitle // field:tx_yoastseo_title
+	descriptionField = field:description
+	canonicalTagField = field:tx_yoastseo_canonical_url
 	titlePrepend =
 	titleAppend =
 }
