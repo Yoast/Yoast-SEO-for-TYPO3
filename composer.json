@@ -2,7 +2,7 @@
   "name": "yoast-seo-for-typo3/yoast_seo",
   "description": "Yoast SEO for TYPO3",
   "type": "typo3-cms-extension",
-  "license": "GPL-3.0",
+  "license": "GPL-3.0-or-later",
   "keywords": [
     "TYPO3 CMS",
     "Yoast",
