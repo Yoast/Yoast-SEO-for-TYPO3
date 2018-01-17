@@ -206,10 +206,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
         $('div#snippet_title.snippet_container.snippet-editor__container').off('click');
 
         previewRequest.fail(function (jqXHR) {
-            var text = 'We got an error ' + jqXHR.status + ' (' + jqXHR.statusText + ') when requesting ' + tx_yoast_seo.settings.preview + ' to analyse your content. Please check your javascript console for more information.';
-            var shortText = 'We got an error ' + jqXHR.status + ' (' + jqXHR.statusText + ') when analysing your content';
-
-            Notification.error('Loading the page content preview failed', shortText, 5);
+            var text = 'We got an error ' + jqXHR.status + ' (' + jqXHR.statusText + ') when requesting <a href="' + tx_yoast_seo.settings.preview + '" target="_blank">' + tx_yoast_seo.settings.preview + '</a> to analyse your content. Please check your javascript console for more information.';
 
             $targetElement.find('.spinner').hide();
             $targetElement.html('<div class="callout callout-warning">' + text + '</div>');
