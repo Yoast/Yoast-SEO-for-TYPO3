@@ -24,6 +24,9 @@
 			<trans-unit id="seoTitle">
 				<source>SEO Title</source>
 			</trans-unit>
+			<trans-unit id="seoDescription">
+				<source>SEO Description</source>
+			</trans-unit>
 			<trans-unit id="og">
 				<source>Open Graph</source>
 			</trans-unit>

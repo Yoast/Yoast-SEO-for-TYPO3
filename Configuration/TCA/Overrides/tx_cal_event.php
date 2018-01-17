@@ -1,18 +1,34 @@
 <?php
 $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns(
-    'tx_news_domain_model_news',
+    'tx_cal_event',
     [
+        'seo_title' => [
+            'label' => $llPrefix . 'seoTitle',
+            'exclude' => true,
+            'config' => [
+                'type' => 'input'
+            ]
+        ],
+        'seo_description' => [
+            'exclude' => true,
+            'label' => $llPrefix . 'seoDescription',
+            'config' => [
+                'type' => 'text',
+                'cols' => 30,
+                'rows' => 5,
+            ]
+        ],
         'tx_yoastseo_snippetpreview' => [
-            'label' => $llPrefix . 'snippetPreview',
+            'label' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:snippetPreview',
             'exclude' => true,
             'displayCond' => 'REC:NEW:false',
             'config' => [
                 'type' => 'text',
                 'renderType' => 'snippetPreview',
                 'settings' => [
-                    'titleField' => 'alternative_title',
-                    'descriptionField' => 'description'
+                    'titleField' => 'seo_title',
+                    'descriptionField' => 'seo_description'
                 ]
             ]
         ],
@@ -47,17 +63,17 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
 );
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
-    'tx_news_domain_model_news',
+    'tx_cal_event',
     'yoast-metadata',
     '
     --linebreak--, tx_yoastseo_snippetpreview,
-    --linebreak--, alternative_title,
-    --linebreak--, description,
+    --linebreak--, seo_title,
+    --linebreak--, seo_description,
     '
 );
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
-    'tx_news_domain_model_news',
+    'tx_cal_event',
     'yoast-focuskeyword',
     '
     --linebreak--, tx_yoastseo_focuskeyword,
@@ -66,27 +82,21 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
 );
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
-    'tx_news_domain_model_news',
+    'tx_cal_event',
     'yoast-readability',
     '
     --linebreak--, tx_yoastseo_readability_analysis
     '
 );
 
-$GLOBALS['TCA']['tx_news_domain_model_news']['palettes']['metatags']['showitem'] =
-    preg_replace('/description(.*,|.*$)/', '', $GLOBALS['TCA']['tx_news_domain_model_news']['palettes']['metatags']['showitem']);
-
-$GLOBALS['TCA']['tx_news_domain_model_news']['palettes']['alternativeTitles']['showitem'] =
-    preg_replace('/alternative_title(.*,|.*$)/', '', $GLOBALS['TCA']['tx_news_domain_model_news']['palettes']['alternativeTitles']['showitem']);
-
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
-    'tx_news_domain_model_news',
+    'tx_cal_event',
     '
-    --div--;' . 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:pages.tabs.seo,
+    --div--;' . $llPrefix . 'pages.tabs.seo,
         --palette--;' . $llPrefix . 'pages.palettes.metadata;yoast-metadata,
         --palette--;' . $llPrefix . 'pages.palettes.readability;yoast-readability,
         --palette--;' . $llPrefix . 'pages.palettes.focuskeyword;yoast-focuskeyword,
     ',
     '',
-    'after:bodytext'
+    'after:description'
 );

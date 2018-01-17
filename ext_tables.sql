@@ -37,3 +37,12 @@ CREATE TABLE pages_language_overlay (
 CREATE TABLE tx_news_domain_model_news (
 	tx_yoastseo_focuskeyword varchar(32) DEFAULT '' NOT NULL,
 );
+
+#
+# Table structure for table 'tx_news_domain_model_news'
+
+CREATE TABLE tx_cal_event (
+	seo_title varchar(255) DEFAULT '' NOT NULL,
+	seo_description text,
+	tx_yoastseo_focuskeyword varchar(32) DEFAULT '' NOT NULL,
+);
