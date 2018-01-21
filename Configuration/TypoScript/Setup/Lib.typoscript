@@ -6,11 +6,25 @@ lib.yoastSEO {
             returnLast = url
             forceAbsoluteUrl = 1
             addQueryString = 1
-            addQueryString.exclude = type
+            addQueryString.exclude = type,no_cache
             useCacheHash = 1
         }
 
         htmlSpecialChars = 1
+    }
+
+    canonicalURL = TEXT
+    canonicalURL {
+        stdWrap.typolink {
+            parameter.field = {$plugin.tx_yoastseo.canonicalTagField}
+            parameter.ifEmpty = #
+
+            forceAbsoluteUrl = 1
+            returnLast = url
+            addQueryString = 1
+            addQueryString.exclude = type,no_cache
+            useCacheHash = 1
+        }
     }
 
     pageTitle = TEXT

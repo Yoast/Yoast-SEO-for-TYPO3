@@ -28,6 +28,7 @@ plugin.tx_yoastseo {
         }
         variables {
             currentURL =< lib.yoastSEO.currentURL
+            canonicalURL =< lib.yoastSEO.canonicalURL
             pageTitleComplete =< lib.yoastSEO.pageTitleComplete
             pageTitle =< lib.yoastSEO.pageTitle
             description =< lib.yoastSEO.description
