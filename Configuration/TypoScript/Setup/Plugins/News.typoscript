@@ -10,29 +10,24 @@
 [global]
 
 [globalVar = GP:tx_news_pi1|news > 0] || [globalVar = GP:tx_news_pi1|news_preview > 0]
-    lib.yoastSEO.og.type.value = article
+    lib.yoastSEO {
+        canonicalURL >
+        og >
+        twitter.title >
+        twitter.description >
 
-    lib.yoastSEO.pageTitle >
-    lib.yoastSEO.pageTitle = RECORDS
-    lib.yoastSEO.pageTitle {
-        tables = tx_news_domain_model_news
-        source = {GP:tx_news_pi1|news},{GP:tx_news_pi1|news_preview}
-        source.insertData = 1
+        pageTitle >
+        pageTitle = RECORDS
+        pageTitle {
+            tables = tx_news_domain_model_news
+            source = {GP:tx_news_pi1|news},{GP:tx_news_pi1|news_preview}
+            source.insertData = 1
 
-        conf.tx_news_domain_model_news = TEXT
-        conf.tx_news_domain_model_news.field = alternative_title
-        conf.tx_news_domain_model_news.ifEmpty.field = title
-    }
+            conf.tx_news_domain_model_news = TEXT
+            conf.tx_news_domain_model_news.field = alternative_title
+            conf.tx_news_domain_model_news.ifEmpty.field = title
+        }
 
-    lib.yoastSEO.description >
-    lib.yoastSEO.description = RECORDS
-    lib.yoastSEO.description {
-        tables = tx_news_domain_model_news
-        source = {GP:tx_news_pi1|news},{GP:tx_news_pi1|news_preview}
-        source.insertData = 1
-
-        conf.tx_news_domain_model_news = TEXT
-        conf.tx_news_domain_model_news.field = description
-        conf.tx_news_domain_model_news.ifEmpty.field = teaser
+        description >
     }
 [global]

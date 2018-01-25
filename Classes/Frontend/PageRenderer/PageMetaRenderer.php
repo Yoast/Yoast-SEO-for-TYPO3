@@ -36,32 +36,68 @@ class PageMetaRenderer implements SingletonInterface
             && (int) $config['config.']['yoast_seo.']['enabled'] !== 0
             && $GLOBALS['TSFE']->cObj instanceof ContentObjectRenderer
         ) {
-            $yoastMeta = $GLOBALS['TSFE']->cObj->cObjGetSingle(
-                'FLUIDTEMPLATE',
-                array_merge_recursive(
-                    $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_yoastseo.']['view.'],
-                    array(
-                        'settings.' => $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_yoastseo.']['settings.']
-                    )
-                )
-            );
-
-            // Remove metatags that are already set and now will be set by Yoast SEO
-            if (preg_match_all('/\<meta (name|property)="([a-z0-9:]*)"/', $yoastMeta, $matches)) {
-                $metaTags = array_filter($parameters['metaTags'], function ($metaTag) use ($matches) {
-                    foreach ((array)$matches[0] as $k => $v) {
-                        $tagStart = '<meta ' . $matches[1][$k] . '="' . $matches[2][$k] . '"';
-
-                        if (strpos($metaTag, $tagStart) !== false) {
-                            return false;
-                        }
+            $tagsToRender = [];
+            $tagsArray = $this->getUniqueTagsFromConfig();
+            foreach ($tagsArray as $tag => $v) {
+                if ($content = $this->getTagToRender($tag)) {
+                    $key = $tag;
+                    if (preg_match('/\<meta (name|property)="([a-z0-9:_]*)"/', $content, $matches)) {
+                        $key = $matches[1] . '|' . $matches[2];
                     }
-                    return true;
-                });
-                $parameters['metaTags'] = $metaTags;
+                    $tagsToRender[$key] = $content;
+                }
             }
-
-            $parameters['metaTags'][] = $yoastMeta;
+            $metaTags = array_filter($parameters['metaTags'], function ($metaTag) use ($tagsToRender) {
+                if (preg_match('/\<meta (name|property)="([a-z0-9:_]*)"/', $metaTag, $matches)) {
+                    if (array_key_exists($matches[1] . '|' . $matches[2], $tagsToRender)) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+            $parameters['metaTags'] = array_merge($metaTags, $tagsToRender);
         }
+    }
+
+    /**
+     * @return array
+     */
+    protected function getYoastTagsTypoScript()
+    {
+        return $GLOBALS['TSFE']->tmpl->setup['plugin.']['tx_yoastseo.']['view.']['variables.'] ?: [];
+    }
+
+    /**
+     * @param string $tag
+     * @param array $config
+     * @return string
+     */
+    public function getTagToRender($tag, array $config = [])
+    {
+        if (empty($config)) {
+            $config = $this->getYoastTagsTypoScript();
+        }
+
+        return (string)$GLOBALS['TSFE']->cObj->cObjGetSingle($config[$tag], $config[$tag . '.']);
+    }
+
+    /**
+     * @param array $config
+     * @return array
+     */
+    public function getUniqueTagsFromConfig(array $config = [])
+    {
+        if (empty($config)) {
+            $config = $this->getYoastTagsTypoScript();
+        }
+        $tags = array_filter($config, function($k) {
+            if (preg_match('/\.+$/', $k)) {
+                return false;
+            }
+            return true;
+        },
+        ARRAY_FILTER_USE_KEY);
+
+        return $tags;
     }
 }

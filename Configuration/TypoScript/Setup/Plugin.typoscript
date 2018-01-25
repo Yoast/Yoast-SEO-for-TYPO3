@@ -27,20 +27,79 @@ plugin.tx_yoastseo {
             }
         }
         variables {
-            currentURL =< lib.yoastSEO.currentURL
-            canonicalURL =< lib.yoastSEO.canonicalURL
-            pageTitleComplete =< lib.yoastSEO.pageTitleComplete
-            pageTitle =< lib.yoastSEO.pageTitle
+            canonical =< lib.yoastSEO.canonicalURL
+            canonical.stdWrap.wrap = <link rel="canonical" href="|" />
+
+            title =< lib.yoastSEO.pageTitleComplete
+            title.stdWrap.required = 1
+            title.stdWrap.wrap = <title>|</title>
+
             description =< lib.yoastSEO.description
-            ogTitle =< lib.yoastSEO.og.title
+            description.stdWrap.required = 1
+            description.stdWrap.wrap = <meta name="description" content="|" />
+
             ogType =< lib.yoastSEO.og.type
+            ogType.stdWrap.required = 1
+            ogType.stdWrap.wrap = <meta property="og:type" content="|" />
+
+            ogTitle =< lib.yoastSEO.og.title
+            ogTitle.stdWrap.required = 1
+            ogTitle.stdWrap.wrap = <meta property="og:title" content="|" />
+
             ogDescription =< lib.yoastSEO.og.description
+            ogDescription.stdWrap.required = 1
+            ogDescription.stdWrap.wrap = <meta property="og:description" content="|" />
+
+            ogUrl =< lib.yoastSEO.canonicalURL
+            ogUrl.stdWrap.required = 1
+            ogUrl.stdWrap.wrap = <meta property="og:url" content="|" />
+
+            ogSiteName =< lib.yoastSEO.og.siteName
+            ogSiteName.stdWrap.required = 1
+            ogSiteName.stdWrap.wrap =  <meta property="og:site_name" content="|" />
+
+            ogFbAdmins =< lib.yoastSEO.og.fbAdmins
+            ogFbAdmins.stdWrap.required = 1
+            ogFbAdmins.stdWrap.wrap = <meta property="fb:admins" content="|" />
+
+            ogFbAppId =< lib.yoastSEO.og.fbAppId
+            ogFbAppId.stdWrap.required = 1
+            ogFbAppId.stdWrap.wrap = <meta property="fb:app_id" content="|" />
+
+            ogImages =< lib.yoastSEO.og.images
+            ogImages.renderObj.wrap = <meta property="og:image" content="|" />
+            ogImages.renderObj.typolink.parameter.stdWrap.cObject.file.width < plugin.tx_yoastseo.settings.og.image.width
+            ogImages.renderObj.typolink.parameter.stdWrap.cObject.file.height < plugin.tx_yoastseo.settings.og.image.height
+
+            twitterSite =< lib.yoastSEO.twitter.site
+            twitterSite.stdWrap.required = 1
+            twitterSite.stdWrap.wrap = <meta name="twitter:site" content="|" />
+
             twitterCard =< lib.yoastSEO.twitter.card
+            twitterCard.stdWrap.required = 1
+            twitterCard.stdWrap.wrap = <meta name="twitter:card" content="|" />
+
             twitterTitle =< lib.yoastSEO.twitter.title
+            twitterTitle.stdWrap.required = 1
+            twitterTitle.stdWrap.wrap = <meta name="twitter:title" content="|" />
+
             twitterDescription =< lib.yoastSEO.twitter.description
-        }
-        settings {
-            og.image.count = 2
+            twitterDescription.stdWrap.required = 1
+            twitterDescription.stdWrap.wrap = <meta name="twitter:description" content="|" />
+
+            twitterImages =< lib.yoastSEO.twitter.images
+            twitterImages.renderObj.wrap = <meta name="twitter:image" content="|" />
+            twitterImages.renderObj.typolink.parameter.stdWrap.cObject.file.width < plugin.tx_yoastseo.settings.twitter.image.width
+            twitterImages.renderObj.typolink.parameter.stdWrap.cObject.file.height < plugin.tx_yoastseo.settings.twitter.image.height
         }
     }
 }
+
+[globalString = ENV:HTTPS=on]
+    plugin.tx_yoastseo.view.variables {
+        ogImagesSecure =< lib.yoastSEO.og.images
+        ogImagesSecure.renderObj.wrap = <meta property="og:image:secure_url" content="|" />
+        ogImagesSecure.renderObj.typolink.forceAbsoluteUrl.scheme = https
+    }
+[global]
+

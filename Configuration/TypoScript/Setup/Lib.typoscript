@@ -94,16 +94,85 @@ lib.yoastSEO {
     }
 
     og {
+        siteName = TEXT
+        siteName.value < sitetitle
+
         type = TEXT
-        type.value =
-        title =< lib.yoastSEO.pageTitle
-        description =< lib.yoastSEO.description
+        type.value = website
+
+        title = TEXT
+        title.field = {$plugin.tx_yoastseo.og.titleField} // {$plugin.tx_yoastseo.titleField} // title
+
+        description = TEXT
+        description.field = {$plugin.tx_yoastseo.og.descriptionField} // {$plugin.tx_yoastseo.descriptionField}
+
+        fbAdmins = TEXT
+        fbAdmins.value = {$plugin.tx_yoastseo.og.fbAdmins}
+
+        fbAppId = TEXT
+        fbAppId.value = {$plugin.tx_yoastseo.og.fbAppId}
+
+        images = FILES
+        images {
+            references {
+                table = pages
+                uid.data = page:uid
+                fieldName = {$plugin.tx_yoastseo.og.imageField}
+            }
+            renderObj = TEXT
+            renderObj {
+                typolink {
+                    parameter.stdWrap {
+                        cObject = IMG_RESOURCE
+                        cObject {
+                            file.import.data = file:current:uid
+                            file.treatIdAsReference = 1
+                        }
+                    }
+                    returnLast = url
+                    forceAbsoluteUrl = 1
+                }
+
+            }
+        }
     }
 
     twitter {
+        site = TEXT
+        site.value = {$plugin.tx_yoastseo.twitter.site}
+
         card = TEXT
         card.value = summary
-        title =< lib.yoastSEO.pageTitle
-        description =< lib.yoastSEO.description
+
+        title = TEXT
+        title.field = {$plugin.tx_yoastseo.twitter.titleField} // {$plugin.tx_yoastseo.titleField} // title
+
+        description = TEXT
+        description.field = {$plugin.tx_yoastseo.twitter.descriptionField} // {$plugin.tx_yoastseo.descriptionField}
+
+        images = FILES
+        images {
+            references {
+                table = pages
+                uid.data = page:uid
+                fieldName = {$plugin.tx_yoastseo.twitter.imageField}
+            }
+            maxItems = 1
+            renderObj = TEXT
+            renderObj {
+                typolink {
+                    parameter.stdWrap {
+                        cObject = IMG_RESOURCE
+                        cObject {
+                            file.import.data = file:current:uid
+                            file.treatIdAsReference = 1
+                        }
+                    }
+                    returnLast = url
+                    forceAbsoluteUrl = 1
+                }
+
+            }
+        }
     }
 }
