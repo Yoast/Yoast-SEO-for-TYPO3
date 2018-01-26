@@ -38,7 +38,10 @@ class YoastUtility
             $objectManager = CMS\Core\Utility\GeneralUtility::makeInstance(CMS\Extbase\Object\ObjectManager::class);
             /** @var CMS\Extbase\Configuration\ConfigurationManager $configurationManager */
             $configurationManager = $objectManager->get(CMS\Extbase\Configuration\ConfigurationManager::class);
-            $configuration = $configurationManager->getConfiguration(CMS\Extbase\Configuration\ConfigurationManagerInterface::CONFIGURATION_TYPE_SETTINGS, 'yoastseo');
+            $configuration = $configurationManager->getConfiguration(
+                CMS\Extbase\Configuration\ConfigurationManagerInterface::CONFIGURATION_TYPE_SETTINGS,
+                'yoastseo'
+            );
         }
 
         if (is_array($configuration) &&

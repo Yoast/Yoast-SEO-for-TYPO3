@@ -27,13 +27,23 @@ class FocusKeywordAnalysis extends AbstractNode
         parent::__construct($nodeFactory, $data);
 
         $this->templateView = GeneralUtility::makeInstance(StandaloneView::class);
-        $this->templateView->setPartialRootPaths([GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Partials/TCA')]);
-        $this->templateView->setTemplatePathAndFilename(GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Templates/TCA/FocusKeywordAnalysis.html'));
+        $this->templateView->setPartialRootPaths(
+            [GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Partials/TCA')]
+        );
+        $this->templateView->setTemplatePathAndFilename(
+            GeneralUtility::getFileAbsFileName(
+                'EXT:yoast_seo/Resources/Private/Templates/TCA/FocusKeywordAnalysis.html'
+            )
+        );
 
-        if (array_key_exists('focusKeywordField', (array)$this->data['parameterArray']['fieldConf']['config']['settings']) &&
+        if (array_key_exists(
+            'focusKeywordField',
+            (array)$this->data['parameterArray']['fieldConf']['config']['settings']
+        ) &&
             $this->data['parameterArray']['fieldConf']['config']['settings']['focusKeywordField']
         ) {
-            $this->focusKeywordField = $this->data['parameterArray']['fieldConf']['config']['settings']['focusKeywordField'];
+            $this->focusKeywordField =
+                $this->data['parameterArray']['fieldConf']['config']['settings']['focusKeywordField'];
         }
     }
 

@@ -90,13 +90,16 @@ class PageMetaRenderer implements SingletonInterface
         if (empty($config)) {
             $config = $this->getYoastTagsTypoScript();
         }
-        $tags = array_filter($config, function($k) {
-            if (preg_match('/\.+$/', $k)) {
-                return false;
-            }
-            return true;
-        },
-        ARRAY_FILTER_USE_KEY);
+        $tags = array_filter(
+            $config,
+            function ($k) {
+                if (preg_match('/\.+$/', $k)) {
+                    return false;
+                }
+                return true;
+            },
+            ARRAY_FILTER_USE_KEY
+        );
 
         return $tags;
     }

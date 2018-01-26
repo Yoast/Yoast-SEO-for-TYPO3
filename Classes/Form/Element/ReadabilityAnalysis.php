@@ -22,8 +22,12 @@ class ReadabilityAnalysis extends AbstractNode
         parent::__construct($nodeFactory, $data);
 
         $this->templateView = GeneralUtility::makeInstance(StandaloneView::class);
-        $this->templateView->setPartialRootPaths([GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Partials/TCA')]);
-        $this->templateView->setTemplatePathAndFilename(GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Templates/TCA/ReadabilityAnalysis.html'));
+        $this->templateView->setPartialRootPaths(
+            [GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Partials/TCA')]
+        );
+        $this->templateView->setTemplatePathAndFilename(
+            GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Templates/TCA/ReadabilityAnalysis.html')
+        );
     }
 
     public function render()

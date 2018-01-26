@@ -17,7 +17,8 @@ class SocialMediaImageViewHelper extends AbstractViewHelper
         $row = $this->getDBConnection()->exec_SELECTgetSingleRow(
             'uid',
             'sys_file_reference',
-            'deleted=0 AND hidden=0 AND tablenames="' . $table . '" AND fieldname="' . $field . '" AND uid_foreign=' . $uid,
+            'deleted=0 AND hidden=0 AND tablenames="' .
+                $table . '" AND fieldname="' . $field . '" AND uid_foreign=' . $uid,
             '',
             'sorting'
         );

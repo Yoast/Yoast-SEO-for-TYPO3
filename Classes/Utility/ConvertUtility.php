@@ -82,7 +82,11 @@ class ConvertUtility
         try {
             foreach ($tables as $table) {
                 $field = self::getOldField($table, 'tx_yoastseo_title');
-                $rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('uid, ' . $field, $table, $field . ' != "" AND seo_title = ""');
+                $rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+                    'uid, ' . $field,
+                    $table,
+                    $field . ' != "" AND seo_title = ""'
+                );
                 foreach ($rows as $row) {
                     $data = [];
                     $data[$table][$row['uid']]['seo_title'] = $row[$field];
@@ -110,7 +114,11 @@ class ConvertUtility
         foreach ($tables as $table) {
             try {
                 $field = self::getOldField($table, 'tx_yoastseo_title');
-                $numberOfPageRecords += $GLOBALS['TYPO3_DB']->exec_SELECTcountRows('uid', $table, $field . ' != "" AND seo_title = ""');
+                $numberOfPageRecords += $GLOBALS['TYPO3_DB']->exec_SELECTcountRows(
+                    'uid',
+                    $table,
+                    $field . ' != "" AND seo_title = ""'
+                );
             } catch (Exception $e) {
                 return false;
             }
@@ -132,7 +140,11 @@ class ConvertUtility
         try {
             foreach ($tables as $table) {
                 $field = self::getOldField($table, $oldField);
-                $rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('uid, ' . $field, $table, $field . ' != "" AND ' . $newField . ' = ""');
+                $rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+                    'uid, ' . $field,
+                    $table,
+                    $field . ' != "" AND ' . $newField . ' = ""'
+                );
                 foreach ($rows as $row) {
                     $data = [];
                     $data[$table][$row['uid']][$newField] = $row[$field];
@@ -158,7 +170,11 @@ class ConvertUtility
         foreach ($tables as $table) {
             $field = self::getOldField($table, $oldField);
             if ($field && self::fieldExistsInDb($table, $newField)) {
-                $numberOfPageRecords += $GLOBALS['TYPO3_DB']->exec_SELECTcountRows('uid', $table, $field . ' != "" AND ' . $newField . ' = ""');
+                $numberOfPageRecords += $GLOBALS['TYPO3_DB']->exec_SELECTcountRows(
+                    'uid',
+                    $table,
+                    $field . ' != "" AND ' . $newField . ' = ""'
+                );
             }
         }
         return (bool)$numberOfPageRecords;
@@ -174,7 +190,11 @@ class ConvertUtility
 
         $table = 'sys_file_reference';
 
-        $numberOfPageRecords += $GLOBALS['TYPO3_DB']->exec_SELECTcountRows('uid', $table, 'deleted=0 AND fieldname="' . $oldValue . '"');
+        $numberOfPageRecords += $GLOBALS['TYPO3_DB']->exec_SELECTcountRows(
+            'uid',
+            $table,
+            'deleted=0 AND fieldname="' . $oldValue . '"'
+        );
 
         return (bool)$numberOfPageRecords;
     }
@@ -187,8 +207,6 @@ class ConvertUtility
     protected static function updateImageRecords($oldValue, $newValue)
     {
         $table = 'sys_file_reference';
-
-//        $GLOBALS['TYPO3_DB']->exec_UPDATEquery($table, 'fieldname="' . $oldField . '"', ['fieldname' => $newField]);
 
         /** @var DataHandler $tce */
         $tce = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\DataHandling\\DataHandler');

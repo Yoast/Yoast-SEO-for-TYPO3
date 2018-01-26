@@ -102,7 +102,10 @@ class ModuleController extends ActionController
         if (array_key_exists('yoast_seo', $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'])
             && is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'])
         ) {
-            ArrayUtility::mergeRecursiveWithOverrule($this->configuration, $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']);
+            ArrayUtility::mergeRecursiveWithOverrule(
+                $this->configuration,
+                $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']
+            );
         }
 
         parent::initializeAction();
@@ -170,7 +173,11 @@ class ModuleController extends ActionController
 
             if ($this->request->hasArgument('twitterDeleteImage') ||
                 (array_key_exists('tmp_name', $twitterImage) && !empty($twitterImage['tmp_name']))) {
-                $GLOBALS['TYPO3_DB']->exec_UPDATEquery('sys_file_reference', 'fieldname="tx_yoastseo_settings_twitter_image" AND uid_foreign=' . $pageId, ['deleted' => 1]);
+                $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+                    'sys_file_reference',
+                    'fieldname="tx_yoastseo_settings_twitter_image" AND uid_foreign=' . $pageId,
+                    ['deleted' => 1]
+                );
             }
             if (array_key_exists('tmp_name', $twitterImage) && !empty($twitterImage['tmp_name'])) {
                 $resourceFactory = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
@@ -201,7 +208,11 @@ class ModuleController extends ActionController
 
             if ($this->request->hasArgument('facebookDeleteImage') ||
                 (array_key_exists('tmp_name', $facebookImage) && !empty($facebookImage['tmp_name']))) {
-                $GLOBALS['TYPO3_DB']->exec_UPDATEquery('sys_file_reference', 'fieldname="tx_yoastseo_settings_facebook_image" AND uid_foreign=' . $pageId, ['deleted' => 1]);
+                $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
+                    'sys_file_reference',
+                    'fieldname="tx_yoastseo_settings_facebook_image" AND uid_foreign=' . $pageId,
+                    ['deleted' => 1]
+                );
             }
             if (array_key_exists('tmp_name', $facebookImage) && !empty($facebookImage['tmp_name'])) {
                 $resourceFactory = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
@@ -293,7 +304,9 @@ class ModuleController extends ActionController
 
         $extensionName = $currentRequest->getControllerExtensionName();
         $modulePrefix = strtolower('tx_' . $extensionName . '_' . $moduleName);
-        $shortcutName = $this->getLanguageService()->sL('LLL:EXT:beuser/Resources/Private/Language/locallang.xml:backendUsers');
+        $shortcutName = $this->getLanguageService()->sL(
+            'LLL:EXT:beuser/Resources/Private/Language/locallang.xml:backendUsers'
+        );
         if ($currentRequest->getControllerName() === 'Module') {
             if ($currentRequest->getControllerActionName() === 'edit') {
                 if ($currentRequest->hasArgument('returnUrl') &&
@@ -362,7 +375,11 @@ class ModuleController extends ActionController
 
         foreach ($actions as $action) {
             $item = $menu->makeMenuItem()
-                ->setTitle($lang->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:action.' . $action['label']))
+                ->setTitle(
+                    $lang->sL(
+                        'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:action.' . $action['label']
+                    )
+                )
                 ->setHref($uriBuilder->reset()->uriFor($action['action'], [], 'Module'))
                 ->setActive($this->request->getControllerActionName() === $action['action']);
 
@@ -429,7 +446,8 @@ class ModuleController extends ActionController
             )) !== false
             && count($suitableLanguageKeys) > 0
         ) {
-            $locale = $this->configuration['translations']['languageKeyToLocaleMapping'][array_shift($suitableLanguageKeys)];
+            $locale =
+                $this->configuration['translations']['languageKeyToLocaleMapping'][array_shift($suitableLanguageKeys)];
         }
 
         return $locale;

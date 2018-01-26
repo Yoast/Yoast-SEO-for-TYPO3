@@ -46,6 +46,11 @@ class SnippetPreview extends AbstractNode
     protected $table = 'pages';
 
     /**
+     * @var string
+     */
+    protected $previewUrl = '';
+
+    /**
      * @var int
      */
     protected $languageId = 0;
@@ -81,13 +86,18 @@ class SnippetPreview extends AbstractNode
         if (array_key_exists('yoast_seo', $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'])
             && is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'])
         ) {
-            ArrayUtility::mergeRecursiveWithOverrule($this->configuration, $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']);
+            ArrayUtility::mergeRecursiveWithOverrule(
+                $this->configuration,
+                $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']
+            );
         }
 
         $this->localeService = GeneralUtility::makeInstance(Locales::class);
 
         $this->templateView = GeneralUtility::makeInstance(StandaloneView::class);
-        $this->templateView->setTemplatePathAndFilename(GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Templates/TCA/SnippetPreview.html'));
+        $this->templateView->setTemplatePathAndFilename(
+            GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Templates/TCA/SnippetPreview.html')
+        );
 
         if (array_key_exists('titleField', (array)$this->data['parameterArray']['fieldConf']['config']['settings']) &&
             $this->data['parameterArray']['fieldConf']['config']['settings']['titleField']
@@ -95,10 +105,14 @@ class SnippetPreview extends AbstractNode
             $this->titleField = $this->data['parameterArray']['fieldConf']['config']['settings']['titleField'];
         }
 
-        if (array_key_exists('descriptionField', (array)$this->data['parameterArray']['fieldConf']['config']['settings']) &&
+        if (array_key_exists(
+            'descriptionField',
+            (array)$this->data['parameterArray']['fieldConf']['config']['settings']
+        ) &&
             $this->data['parameterArray']['fieldConf']['config']['settings']['descriptionField']
         ) {
-            $this->descriptionField = $this->data['parameterArray']['fieldConf']['config']['settings']['descriptionField'];
+            $this->descriptionField =
+                $this->data['parameterArray']['fieldConf']['config']['settings']['descriptionField'];
         }
 
         if (array_key_exists('0', (array)$this->data['databaseRow']['sys_language_uid']) &&
@@ -252,7 +266,10 @@ class SnippetPreview extends AbstractNode
         if (!empty($previewConfiguration['useCacheHash'])) {
             /** @var CacheHashCalculator */
             $cacheHashCalculator = GeneralUtility::makeInstance(CacheHashCalculator::class);
-            $fullLinkParameters = GeneralUtility::implodeArrayForUrl('', array_merge($linkParameters, ['id' => $previewPageId]));
+            $fullLinkParameters = GeneralUtility::implodeArrayForUrl(
+                '',
+                array_merge($linkParameters, ['id' => $previewPageId])
+            );
             $cacheHashParameters = $cacheHashCalculator->getRelevantParameters($fullLinkParameters);
             $linkParameters['cHash'] = $cacheHashCalculator->calculateCacheHash($cacheHashParameters);
         } else {
@@ -335,7 +352,8 @@ class SnippetPreview extends AbstractNode
             )) !== false
             && count($suitableLanguageKeys) > 0
         ) {
-            $locale = $this->configuration['translations']['languageKeyToLocaleMapping'][array_shift($suitableLanguageKeys)];
+            $locale =
+                $this->configuration['translations']['languageKeyToLocaleMapping'][array_shift($suitableLanguageKeys)];
         }
 
         return $locale;
