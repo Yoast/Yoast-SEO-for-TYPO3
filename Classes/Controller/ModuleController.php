@@ -393,7 +393,7 @@ class ModuleController extends ActionController
      *
      * @return \TYPO3\CMS\Lang\LanguageService
      */
-    protected function getLanguageService()
+    public function getLanguageService()
     {
         return $GLOBALS['LANG'];
     }
@@ -458,7 +458,7 @@ class ModuleController extends ActionController
      *
      * @return \TYPO3\CMS\Core\Authentication\BackendUserAuthentication
      */
-    protected function getBackendUser()
+    public function getBackendUser()
     {
         return $GLOBALS['BE_USER'];
     }
