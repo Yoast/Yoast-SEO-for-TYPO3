@@ -260,7 +260,6 @@ class ConvertUtility
 
                     $GLOBALS['TYPO3_DB']->exec_UPDATEquery($table, 'uid=' . $row['uid'], [$field => '']);
                 }
-
             }
         }
         return true;
