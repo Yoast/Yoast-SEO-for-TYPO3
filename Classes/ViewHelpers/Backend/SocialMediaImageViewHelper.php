@@ -1,5 +1,5 @@
 <?php
-namespace YoastSeoForTypo3\YoastSeo\ViewHelpers;
+namespace YoastSeoForTypo3\YoastSeo\ViewHelpers\backend;
 
 use TYPO3\CMS\Core\Database\DatabaseConnection;
 use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper;
