@@ -35,7 +35,11 @@ CREATE TABLE pages_language_overlay (
 # Table structure for table 'tx_news_domain_model_news'
 
 CREATE TABLE tx_news_domain_model_news (
+	uid int(11) NOT NULL auto_increment,
+	pid int(11) DEFAULT '0' NOT NULL,
 	tx_yoastseo_focuskeyword varchar(32) DEFAULT '' NOT NULL,
+	PRIMARY KEY (uid),
+	KEY parent (pid)
 );
 
 #
