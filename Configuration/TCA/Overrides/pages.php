@@ -86,18 +86,18 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
                 'softref' => 'typolink'
             ]
         ],
-        'tx_yoastseo_robot_instructions' => [
-            'label' => $llPrefix . 'robotInstructions',
+        'no_index' => [
+            'label' => $llPrefix . 'noIndex',
             'exclude' => true,
             'config' => [
-                'type' => 'select',
-                'renderType' => 'selectSingle',
-                'items' => [
-                    ['index, follow', 0],
-                    ['noindex, nofollow', 1],
-                    ['noindex, follow', 2],
-                    ['index, nofollow', 3],
-                ]
+                'type' => 'check'
+            ]
+        ],
+        'no_follow' => [
+            'label' => $llPrefix . 'noFollow',
+            'exclude' => true,
+            'config' => [
+                'type' => 'check'
             ]
         ],
         'og_title' => [
@@ -210,7 +210,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     'pages',
     'yoast-robot',
     '
-    --linebreak--, tx_yoastseo_robot_instructions
+    --linebreak--, no_index, no_follow
     '
 );
 

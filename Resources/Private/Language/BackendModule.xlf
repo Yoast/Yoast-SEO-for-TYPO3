@@ -93,6 +93,12 @@
 			<trans-unit id="robotInstructions">
 				<source>Robot instructions</source>
 			</trans-unit>
+			<trans-unit id="noIndex">
+				<source>No index</source>
+			</trans-unit>
+			<trans-unit id="noFollow">
+				<source>No follow</source>
+			</trans-unit>
 			<trans-unit id="analysis">
 				<source>Analysis</source>
 			</trans-unit>

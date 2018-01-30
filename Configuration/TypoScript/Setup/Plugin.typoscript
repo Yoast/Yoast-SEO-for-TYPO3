@@ -38,6 +38,10 @@ plugin.tx_yoastseo {
             description.stdWrap.required = 1
             description.stdWrap.wrap = <meta name="description" content="|" />
 
+            robotInstructions =< lib.yoastSEO.robotInstructions
+            robotInstructions.stdWrap.required = 1
+            robotInstructions.stdWrap.wrap = <meta name="robots" content="|" />
+
             ogType =< lib.yoastSEO.og.type
             ogType.stdWrap.required = 1
             ogType.stdWrap.wrap = <meta property="og:type" content="|" />

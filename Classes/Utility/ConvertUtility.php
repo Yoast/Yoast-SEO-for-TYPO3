@@ -67,6 +67,15 @@ class ConvertUtility
                 self::updateRecords($dstField, $srcField);
             }
         }
+
+        // Special fields
+        if (self::robotsNeedsUpdate()) {
+            if ($dryRun) {
+                return true;
+            }
+
+            self::updateRobotInstructions();
+        }
     }
 
     /**
@@ -178,6 +187,83 @@ class ConvertUtility
             }
         }
         return (bool)$numberOfPageRecords;
+    }
+
+    /**
+     * @return bool
+     */
+    protected static function robotsNeedsUpdate($tables = ['pages', 'pages_language_overlay'])
+    {
+        $oldField = 'tx_yoastseo_robot_instructions';
+        $newField1 = 'no_index';
+        $newField2 = 'no_follow';
+
+        $numberOfPageRecords = 0;
+        foreach ($tables as $table) {
+            $field = self::getOldField($table, $oldField);
+            if ($field && self::fieldExistsInDb($table, $newField1) && self::fieldExistsInDb($table, $newField2)) {
+                $numberOfPageRecords += $GLOBALS['TYPO3_DB']->exec_SELECTcountRows(
+                    'uid',
+                    $table,
+                    $field . ' != ""'
+                );
+            }
+        }
+        return (bool)$numberOfPageRecords;
+    }
+
+    /**
+     * @return bool
+     */
+    protected static function updateRobotInstructions($tables = ['pages', 'pages_language_overlay'])
+    {
+        $oldField = 'tx_yoastseo_robot_instructions';
+        $newField1 = 'no_index';
+        $newField2 = 'no_follow';
+
+        /** @var DataHandler $tce */
+        $tce = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\DataHandling\\DataHandler');
+
+        foreach ($tables as $table) {
+            $field = self::getOldField($table, $oldField);
+            if ($field && self::fieldExistsInDb($table, $newField1) && self::fieldExistsInDb($table, $newField2)) {
+                $rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+                    'uid,' . $field,
+                    $table,
+                    $field . ' != ""'
+                );
+
+                foreach ($rows as $row) {
+                    $data = [];
+                    switch ($row[$field]) {
+                        case 1:
+                            $noIndex = 1;
+                            $noFollow = 1;
+                            break;
+                        case 2:
+                            $noIndex = 1;
+                            $noFollow = 0;
+                            break;
+                        case 3:
+                            $noIndex = 0;
+                            $noFollow = 1;
+                            break;
+                        default:
+                            $noIndex = 0;
+                            $noFollow = 0;
+                    }
+                    $data[$table][$row['uid']][$newField1] = $noIndex;
+                    $data[$table][$row['uid']][$newField2] = $noFollow;
+
+                    $tce->start($data, []);
+                    $tce->process_datamap();
+
+                    $GLOBALS['TYPO3_DB']->exec_UPDATEquery($table, 'uid=' . $row['uid'], [$field => '']);
+                }
+
+            }
+        }
+        return true;
     }
 
     /**

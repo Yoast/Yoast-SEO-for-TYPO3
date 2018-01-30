@@ -2,6 +2,8 @@ plugin.tx_yoastseo {
 	titleField = seo_title
 	descriptionField = description
 	canonicalTagField = canonical_url
+	noIndexField = no_index
+	noFollowField = no_follow
 	titlePrepend =
 	titleAppend =
 
