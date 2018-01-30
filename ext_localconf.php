@@ -19,6 +19,24 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['cms/layout/db_layout.php']['drawHeade
     '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/setup.txt">'
 );
 
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514550050] = array(
+    'nodeName' => 'snippetPreview',
+    'priority' => 40,
+    'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\SnippetPreview::class,
+);
+
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514728465] = array(
+    'nodeName' => 'readabilityAnalysis',
+    'priority' => 40,
+    'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\ReadabilityAnalysis::class,
+);
+
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514830899] = array(
+    'nodeName' => 'focusKeywordAnalysis',
+    'priority' => 40,
+    'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\FocusKeywordAnalysis::class,
+);
+
 $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = array(
     'translations' => array(
         'availableLocales' => array(
@@ -70,7 +88,7 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = array(
     ),
     'menuActions' => array(
         ['action' => 'dashboard', 'label' => 'dashboard'],
-        ['action' => 'edit', 'label' => 'edit'],
+        ['action' => 'update', 'label' => 'update'],
         ['action' => 'settings', 'label' => 'settings']
     ),
     'viewSettings' => array(
@@ -90,3 +108,11 @@ $GLOBALS['TYPO3_CONF_VARS']['FE']['pageOverlayFields'] .=
     . ',tx_yoastseo_title'
     . ',tx_yoastseo_twitter_title'
     . ',tx_yoastseo_twitter_description';
+
+$dispatcher = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Extbase\SignalSlot\Dispatcher::class);
+$dispatcher->connect(
+    \TYPO3\CMS\Extensionmanager\Utility\InstallUtility::class,
+    'afterExtensionInstall',
+    \YoastSeoForTypo3\YoastSeo\Slot\ConvertData::class,
+    'convert'
+);

@@ -1,5 +1,5 @@
 <?php
-namespace YoastSeoForTypo3\YoastSeo\ViewHelpers;
+namespace YoastSeoForTypo3\YoastSeo\ViewHelpers\backend;
 
 use TYPO3\CMS\Core\Database\DatabaseConnection;
 use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper;
@@ -17,7 +17,8 @@ class SocialMediaImageViewHelper extends AbstractViewHelper
         $row = $this->getDBConnection()->exec_SELECTgetSingleRow(
             'uid',
             'sys_file_reference',
-            'deleted=0 AND hidden=0 AND tablenames="' . $table . '" AND fieldname="' . $field . '" AND uid_foreign=' . $uid,
+            'deleted=0 AND hidden=0 AND tablenames="' .
+                $table . '" AND fieldname="' . $field . '" AND uid_foreign=' . $uid,
             '',
             'sorting'
         );

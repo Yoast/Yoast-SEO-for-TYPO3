@@ -24,13 +24,16 @@
 			<trans-unit id="seoTitle">
 				<source>SEO Title</source>
 			</trans-unit>
-			<trans-unit id="facebook">
-				<source>Facebook</source>
+			<trans-unit id="seoDescription">
+				<source>SEO Description</source>
 			</trans-unit>
-			<trans-unit id="facebook.title">
+			<trans-unit id="og">
+				<source>Open Graph</source>
+			</trans-unit>
+			<trans-unit id="og.title">
 				<source>Title</source>
 			</trans-unit>
-			<trans-unit id="facebook.description">
+			<trans-unit id="og.description">
 				<source>Description</source>
 			</trans-unit>
 			<trans-unit id="facebook.image">
@@ -126,6 +129,12 @@
 			<trans-unit id="action.settings">
 				<source>Settings</source>
 			</trans-unit>
+			<trans-unit id="data.needUpdate">
+				<source>The data needs to be updated! Click to convert your data</source>
+			</trans-unit>
+			<trans-unit id="action.update">
+				<source>Update</source>
+			</trans-unit>
 			<trans-unit id="dashboard">
 				<source>Dashboard</source>
 			</trans-unit>
@@ -144,6 +153,24 @@
 			<trans-unit id="dashboard.help.description">
 				<source>If you need any support on using or configuring this plugin, please contact us by %s in the channel #yoast-seo-for-typo3</source>
 			</trans-unit>
+			<trans-unit id="update">
+				<source>Update</source>
+			</trans-unit>
+			<trans-unit id="update.data">
+				<source>Convert data</source>
+			</trans-unit>
+			<trans-unit id="update.data.intro">
+				<source>Some updates of the Yoast SEO for TYPO3 extension may require updates in the datastructure. Most of the times this doesn't need an update of the data itself, but sometimes we can't prevent that. If the data needs an update, you see a button below to update your data.</source>
+			</trans-unit>
+			<trans-unit id="update.data.updateData">
+				<source>Update data</source>
+			</trans-unit>
+			<trans-unit id="update.data.convert.success">
+				<source>Convert succesful</source>
+			</trans-unit>
+			<trans-unit id="update.data.convert.success.description">
+				<source>The data is succesfully converted</source>
+			</trans-unit>
 			<trans-unit id="settings">
 				<source>Settings</source>
 			</trans-unit>
@@ -158,6 +185,36 @@
 			</trans-unit>
 			<trans-unit id="hideYoastInFrontend">
 				<source>Hide Yoast SEO in frontend</source>
+			</trans-unit>
+			<trans-unit id="pages.tabs.seo">
+				<source>Yoast SEO</source>
+			</trans-unit>
+			<trans-unit id="pages.palettes.metadata">
+				<source>Metadata</source>
+			</trans-unit>
+			<trans-unit id="pages.palettes.og">
+				<source>Open Graph (Facebook)</source>
+			</trans-unit>
+			<trans-unit id="pages.palettes.twitter">
+				<source>Twitter Cards</source>
+			</trans-unit>
+			<trans-unit id="pages.palettes.focuskeyword">
+				<source>Focus keyword</source>
+			</trans-unit>
+			<trans-unit id="pages.palettes.robot">
+				<source>Robot instructions</source>
+			</trans-unit>
+			<trans-unit id="pages.palettes.readability">
+				<source>Readability</source>
+			</trans-unit>
+			<trans-unit id="pages.palettes.advanced">
+				<source>Advanced settings</source>
+			</trans-unit>
+			<trans-unit id="snippetPreview">
+				<source>Snippet preview</source>
+			</trans-unit>
+			<trans-unit id="analysis">
+				<source>Analysis</source>
 			</trans-unit>
 		</body>
 	</file>

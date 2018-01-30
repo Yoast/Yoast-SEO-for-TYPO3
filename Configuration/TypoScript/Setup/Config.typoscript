@@ -1,0 +1,5 @@
+config.yoast_seo.enabled = 1
+config.noPageTitle = 2
+[page|tx_yoastseo_dont_use = 1]
+    config.noPageTitle = 0
+[global]

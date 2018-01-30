@@ -1,0 +1,33 @@
+[globalVar = GP:tx_news_pi1|news_preview > 0]
+    lib.yoastSEO.currentURL.stdWrap.typolink {
+        addQueryString.exclude = type,tx_news_pi1[news_preview]
+        additionalParams = &tx_news_pi1[news]={GP:tx_news_pi1|news_preview}
+        additionalParams.insertData = 1
+    }
+
+    lib.yoastSEO.slug.stdWrap.typolink < lib.yoastSEO.currentURL.stdWrap.typolink
+    lib.yoastSEO.slug.stdWrap.typolink.forceAbsoluteUrl = 0
+[global]
+
+[globalVar = GP:tx_news_pi1|news > 0] || [globalVar = GP:tx_news_pi1|news_preview > 0]
+    lib.yoastSEO {
+        canonicalURL >
+        og >
+        twitter.title >
+        twitter.description >
+
+        pageTitle >
+        pageTitle = RECORDS
+        pageTitle {
+            tables = tx_news_domain_model_news
+            source = {GP:tx_news_pi1|news},{GP:tx_news_pi1|news_preview}
+            source.insertData = 1
+
+            conf.tx_news_domain_model_news = TEXT
+            conf.tx_news_domain_model_news.field = alternative_title
+            conf.tx_news_domain_model_news.ifEmpty.field = title
+        }
+
+        description >
+    }
+[global]

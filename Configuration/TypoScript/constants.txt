@@ -1,7 +1,25 @@
 plugin.tx_yoastseo {
-	titleField = tx_yoastseo_title
+	titleField = seo_title
 	descriptionField = description
-	canonicalTagField = tx_yoastseo_canonical_url
+	canonicalTagField = canonical_url
 	titlePrepend =
 	titleAppend =
+
+	og {
+		titleField = og_title
+		descriptionField = og_description
+		imageField = og_image
+
+		fbAdmins =
+		fbAppId =
+	}
+
+	twitter {
+		titleField = twitter_title
+		descriptionField = twitter_description
+		imageField = twitter_image
+
+		imageMaxWidth =
+		site =
+	}
 }

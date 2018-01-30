@@ -1,0 +1,36 @@
+[globalVar = GP:tx_cal_controller|uid > 0]
+    lib.yoastSEO.currentURL.stdWrap.typolink {
+        addQueryString.exclude = tx_cal_controller[year],tx_cal_controller[month],tx_cal_controller[day]
+    }
+
+    lib.yoastSEO.slug.stdWrap.typolink < lib.yoastSEO.currentURL.stdWrap.typolink
+    lib.yoastSEO.slug.stdWrap.typolink.forceAbsoluteUrl = 0
+
+
+    lib.yoastSEO.og.type.value = article
+
+    lib.yoastSEO.pageTitle >
+    lib.yoastSEO.pageTitle = RECORDS
+    lib.yoastSEO.pageTitle {
+        tables = tx_cal_event
+        source = {GP:tx_cal_controller|uid}
+        source.insertData = 1
+
+        conf.tx_cal_event = TEXT
+        conf.tx_cal_event.field = seo_title
+        conf.tx_cal_event.ifEmpty.field = title
+    }
+
+    lib.yoastSEO.description >
+    lib.yoastSEO.description = RECORDS
+    lib.yoastSEO.description {
+        tables = tx_cal_event
+        source = {GP:tx_cal_controller|uid}
+        source.insertData = 1
+
+        conf.tx_cal_event = TEXT
+        conf.tx_cal_event.field = seo_description
+        conf.tx_cal_event.ifEmpty.field = description
+        conf.tx_cal_event.stripHtml = 1
+    }
+[global]

@@ -1,5 +1,5 @@
 <?php
-namespace YoastSeoForTypo3\YoastSeo\ViewHelpers;
+namespace YoastSeoForTypo3\YoastSeo\ViewHelpers\Backend;
 
 /*
  * This file is part of the TYPO3 CMS project.
@@ -15,21 +15,19 @@ namespace YoastSeoForTypo3\YoastSeo\ViewHelpers;
  */
 
 use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper;
+use YoastSeoForTypo3\YoastSeo\Utility\ConvertUtility;
 
 /**
  * Class HasAccessToFieldViewHelper
  * @package YoastSeoForTypo3\YoastSeo\ViewHelpers
  */
-class HasAccessToFieldViewHelper extends AbstractViewHelper
+class NeedConvertViewHelper extends AbstractViewHelper
 {
-
     /**
-     * @param string $field
-     * @param string $table
      * @return bool
      */
-    public function render($field, $table = 'pages')
+    public function render()
     {
-        return (bool)$GLOBALS['BE_USER']->check('non_exclude_fields', $table . ':' . $field);
+        return ConvertUtility::convert(true);
     }
 }

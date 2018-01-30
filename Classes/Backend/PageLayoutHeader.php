@@ -4,6 +4,7 @@ namespace YoastSeoForTypo3\YoastSeo\Backend;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS;
+use YoastSeoForTypo3\YoastSeo\Utility\ConvertUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class PageLayoutHeader
@@ -56,7 +57,10 @@ class PageLayoutHeader
         if (array_key_exists('yoast_seo', $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'])
             && is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'])
         ) {
-            ArrayUtility::mergeRecursiveWithOverrule($this->configuration, $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']);
+            ArrayUtility::mergeRecursiveWithOverrule(
+                $this->configuration,
+                $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']
+            );
         }
 
         $this->localeService = CMS\Core\Utility\GeneralUtility::makeInstance(CMS\Core\Localization\Locales::class);
@@ -114,11 +118,15 @@ class PageLayoutHeader
             }
         }
 
-        if (!YoastUtility::snippetPreviewEnabled(((int)$pageLayoutController->current_sys_language == 0 ? $currentPage['uid'] : $currentPage['pid']), $currentPage)) {
+        if (!YoastUtility::snippetPreviewEnabled(
+            (int)$pageLayoutController->current_sys_language === 0 ? $currentPage['uid'] : $currentPage['pid'],
+            $currentPage
+        )
+        ) {
             return '';
         }
 
-        if (is_array($currentPage) && array_key_exists(static::COLUMN_NAME, $currentPage)) {
+        if (\is_array($currentPage) && array_key_exists(static::COLUMN_NAME, $currentPage)) {
             $focusKeyword = $currentPage[static::COLUMN_NAME];
 
             $recordId = $currentPage['uid'];
@@ -209,26 +217,46 @@ class PageLayoutHeader
                 $publicResourcesPath . 'CSS/yoast-seo.min.css'
             );
 
-            $returnUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl('web_layout', array('id' => (int)$pageLayoutController->id));
-
-            $parameters = array(
-                'tx_yoastseo_web_yoastseoseoplugin[id]' => (int)$pageLayoutController->id,
-                'tx_yoastseo_web_yoastseoseoplugin[language]' => (int)$pageLayoutController->current_sys_language,
-                'tx_yoastseo_web_yoastseoseoplugin[returnUrl]' => rawurlencode($returnUrl)
+            $returnUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl(
+                'web_layout',
+                ['id' => (int)$pageLayoutController->id]
             );
-            $seoUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl('web_YoastSeoSeoPlugin', $parameters);
 
+            $urlParameters = [
+                'edit' => [
+                    'pages' => [
+                        (int)$pageLayoutController->id => 'edit'
+                    ]
+                ],
+                'switchToYoast' => 1,
+                'returnUrl' => $returnUrl
+            ];
+            $url = CMS\Backend\Utility\BackendUtility::getModuleUrl('record_edit', $urlParameters);
+
+            $needUpdateText = '';
+            if (ConvertUtility::convert(true)) {
+                $updateUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl(
+                    'web_YoastSeoSeoPlugin',
+                    ['tx_yoastseo_web_yoastseoseoplugin' => ['action' => 'update']]
+                );
+                $needUpdateText = '<a href="' . $updateUrl . '" style="margin-left: 10px; color: #f00">';
+                $needUpdateText .= $GLOBALS['LANG']->sL(
+                    'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:data.needUpdate'
+                );
+                $needUpdateText .= '</a>';
+            }
             return '<div class="t3-page-column-header">
                     <div class="t3-page-column-header-icons btn-group btn-group-sm">
-                        <a href="' . $seoUrl . '" title="" class="btn btn-default">
-                            <span class="t3js-icon icon icon-size-small icon-state-default icon-actions-document-open" data-identifier="actions-document-open">
+                        <a href="' . $url . '" title="" class="btn btn-default">
+                            <span class="t3js-icon icon icon-size-small icon-state-default icon-actions-document-open"
+                                data-identifier="actions-document-open">
                                 <span class="icon-markup">
                                     <img src="/typo3/sysext/core/Resources/Public/Icons/T3Icons/actions/actions-document-open.svg" width="16" height="16">
                                 </span>
                             </span>
                         </a>
                     </div>
-                    <div class="t3-page-column-header-label">Yoast SEO</div>
+                    <div class="t3-page-column-header-label">Yoast SEO ' . $needUpdateText . '</div>
                 </div>
                 <input id="focusKeyword" style="display: none" />
                 <div id="' . $targetElementId . '" class="t3-grid-cell yoastSeo yoastSeo--small">
@@ -292,7 +320,8 @@ class PageLayoutHeader
             )) !== false
             && count($suitableLanguageKeys) > 0
         ) {
-            $locale = $this->configuration['translations']['languageKeyToLocaleMapping'][array_shift($suitableLanguageKeys)];
+            $locale =
+                $this->configuration['translations']['languageKeyToLocaleMapping'][array_shift($suitableLanguageKeys)];
         }
 
         return $locale;

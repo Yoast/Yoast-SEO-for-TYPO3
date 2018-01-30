@@ -7,7 +7,7 @@ if (TYPO3_MODE === 'BE') {
         'seo_plugin',
         '',
         array(
-            'Module' => 'edit, dashboard, save, settings, saveSettings',
+            'Module' => 'dashboard, update, doConvert, dashboard, settings, saveSettings',
         ),
         array(
             'access' => 'user,group',

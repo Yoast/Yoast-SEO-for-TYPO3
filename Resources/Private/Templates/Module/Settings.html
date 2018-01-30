@@ -22,9 +22,9 @@
 									<label><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.image.default" /></label>
 									<div class="row">
 										<div class="col-sm-3">
-											<f:if condition="{yoast:socialMediaImage(uid: '0', field: 'tx_yoastseo_settings_facebook_image', table: 'tx_yoastseo_settings')}">
+											<f:if condition="{yoast:backend.socialMediaImage(uid: '0', field: 'tx_yoastseo_settings_facebook_image', table: 'tx_yoastseo_settings')}">
 												<f:then>
-													<f:image class="img-responsive" src="{yoast:socialMediaImage(uid: '0', field: 'tx_yoastseo_settings_facebook_image', table: 'tx_yoastseo_settings')}" treatIdAsReference="true" width="{settings.og.image.width}" height="{settings.og.image.height}" />
+													<f:image class="img-responsive" src="{yoast:backend.socialMediaImage(uid: '0', field: 'tx_yoastseo_settings_facebook_image', table: 'tx_yoastseo_settings')}" treatIdAsReference="true" width="{settings.og.image.width}" height="{settings.og.image.height}" />
 												</f:then>
 												<f:else>
 													<div>
@@ -40,7 +40,7 @@
 												<input type="file" id="facebookImage" name="tx_yoastseo_web_yoastseoseoplugin[facebookImage]" />
 											</div>
 
-											<f:if condition="{yoast:socialMediaImage(uid: '0', field: 'tx_yoastseo_settings_facebook_image', table: 'tx_yoastseo_settings')}">
+											<f:if condition="{yoast:backend.socialMediaImage(uid: '0', field: 'tx_yoastseo_settings_facebook_image', table: 'tx_yoastseo_settings')}">
 												<div class="form-group">
 													<label for="facebookDeleteImage"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.image.delete" /></label>
 													<p><input type="checkbox" id="facebookDeleteImage" name="tx_yoastseo_web_yoastseoseoplugin[facebookDeleteImage]" /> <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:facebook.image.deleteDescription" /></p>
@@ -55,9 +55,9 @@
 									<label><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.image.default" /></label>
 									<div class="row">
 										<div class="col-sm-3">
-											<f:if condition="{yoast:socialMediaImage(uid: '0', field: 'tx_yoastseo_settings_twitter_image', table: 'tx_yoastseo_settings')}">
+											<f:if condition="{yoast:backend.socialMediaImage(uid: '0', field: 'tx_yoastseo_settings_twitter_image', table: 'tx_yoastseo_settings')}">
 												<f:then>
-													<f:image class="img-responsive" src="{yoast:socialMediaImage(uid: '0', field: 'tx_yoastseo_settings_twitter_image', table: 'tx_yoastseo_settings')}" treatIdAsReference="true" width="{settings.twitter.image.width}" height="{settings.twitter.image.height}" />
+													<f:image class="img-responsive" src="{yoast:backend.socialMediaImage(uid: '0', field: 'tx_yoastseo_settings_twitter_image', table: 'tx_yoastseo_settings')}" treatIdAsReference="true" width="{settings.twitter.image.width}" height="{settings.twitter.image.height}" />
 												</f:then>
 												<f:else>
 													<div>
@@ -73,7 +73,7 @@
 												<input type="file" id="twitterImage" name="tx_yoastseo_web_yoastseoseoplugin[twitterImage]" />
 											</div>
 
-											<f:if condition="{yoast:socialMediaImage(uid: '0', field: 'tx_yoastseo_settings_twitter_image', table: 'tx_yoastseo_settings')}">
+											<f:if condition="{yoast:backend.socialMediaImage(uid: '0', field: 'tx_yoastseo_settings_twitter_image', table: 'tx_yoastseo_settings')}">
 												<div class="form-group">
 													<label for="twitterDeleteImage"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.image.delete" /></label>
 													<p><input type="checkbox" id="twitterDeleteImage" name="tx_yoastseo_web_yoastseoseoplugin[twitterDeleteImage]" /> <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:twitter.image.deleteDescription" /></p>

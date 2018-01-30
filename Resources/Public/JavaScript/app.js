@@ -1,6 +1,6 @@
 /*global define, top, tx_yoast_seo, TYPO3*/
 
-define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Backend/Notification', 'TYPO3/CMS/Backend/PageActions'], function ($, YoastSEO, AjaxDataHandler, Notification, PageActions) {
+define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Backend/Notification', 'TYPO3/CMS/Backend/PageActions', 'TYPO3/CMS/Backend/Modal'], function ($, YoastSEO, AjaxDataHandler, Notification, PageActions, Modal) {
    'use strict';
 
     var previewRequest = $.get(tx_yoast_seo.settings.preview);
@@ -15,12 +15,12 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
         }
 
         if (tx_yoast_seo.settings.editable == 0) {
-            return '<div id="' + elementIdPrefix + '_' + type + '_panel" class="col-sm-6 ' + type + 'Panel">'
+            return '<div id="' + elementIdPrefix + '_' + type + '_panel" class="col-sm-6 ' + type + 'Panel yoastSeoPanel">'
                 + '<h3 class="snippet-editor__heading" data-controls="' + type + '">'
-                + '<span class="wpseo-score-icon"></span>'
+                + '<a href="#"><span class="wpseo-score-icon"></span>'
                 + '<span class="yoastPanel__title" data-panel-title>' + type + '</span>'
                 + focusKeyword
-                + '</h3>'
+                + '</a></h3>'
                 + focusKeywordField
                 + '<div id="' + elementIdPrefix + '_' + type + '_panel_content" data-panel-content class="yoastPanel__content"></div>'
                 + '</div>';
@@ -88,6 +88,20 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
             });
 
             $focusKeywordElement.on('input', snippetPreview.changedInput.bind( snippetPreview ) );
+
+            var cssFile = '<link rel="stylesheet" type="text/css" href="/typo3conf/ext/yoast_seo/Resources/Public/CSS/yoast-seo.min.css?1513745911" media="all">';;
+
+            $('.yoastSeo--small').find('.yoastSeoPanel').on('click', function() {
+                var focusKeyword = '';
+                if ($(this).find('.yoastPanel__focusKeyword').html()) {
+                    focusKeyword = ': ' + $(this).find('.yoastPanel__focusKeyword').html();
+                }
+
+                var title = $(this).find('.yoastPanel__title').text() + focusKeyword;
+                var content = cssFile + $(this).find('.yoastPanel__content').html();
+
+                Modal.show(title, content);
+            });
 
             var app = new YoastSEO.App({
                 snippetPreview: snippetPreview,
@@ -192,10 +206,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
         $('div#snippet_title.snippet_container.snippet-editor__container').off('click');
 
         previewRequest.fail(function (jqXHR) {
-            var text = 'We got an error ' + jqXHR.status + ' (' + jqXHR.statusText + ') when requesting ' + tx_yoast_seo.settings.preview + ' to analyse your content. Please check your javascript console for more information.';
-            var shortText = 'We got an error ' + jqXHR.status + ' (' + jqXHR.statusText + ') when analysing your content';
-
-            Notification.error('Loading the page content preview failed', shortText, 5);
+            var text = 'We got an error ' + jqXHR.status + ' (' + jqXHR.statusText + ') when requesting <a href="' + tx_yoast_seo.settings.preview + '" target="_blank">' + tx_yoast_seo.settings.preview + '</a> to analyse your content. Please check your javascript console for more information.';
 
             $targetElement.find('.spinner').hide();
             $targetElement.html('<div class="callout callout-warning">' + text + '</div>');
