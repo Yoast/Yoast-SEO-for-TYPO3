@@ -108,7 +108,7 @@ lib.yoastSEO {
             forceAbsoluteUrl = 0
             useCacheHash = 1
             addQueryString = 1
-            addQueryString.exclude = type
+            addQueryString.exclude = type,no_cache
         }
 
         htmlSpecialChars = 1
