@@ -1,18 +1,58 @@
 <?php
 
 if (TYPO3_MODE === 'BE') {
+    $GLOBALS['TBE_MODULES'] = array_slice($GLOBALS['TBE_MODULES'], 0, 1, true) +
+        ['yoast' => ''] +
+        array_slice($GLOBALS['TBE_MODULES'], 1, count($GLOBALS['TBE_MODULES']) - 1, true) ;
+
+    $GLOBALS['TBE_MODULES']['_configuration']['yoast'] = [
+        'iconIdentifier' => 'module-yoast',
+        'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf',
+        'name' => 'yoast'
+    ];
+
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
         'YoastSeoForTypo3.' . $_EXTKEY,
-        'web',
-        'seo_plugin',
+        'yoast',
+        'dashboard',
         '',
         array(
-            'Module' => 'dashboard, update, doConvert, dashboard, settings, saveSettings',
+            'Module' => 'dashboard',
         ),
         array(
             'access' => 'user,group',
-            'icon' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Yoast-module.svg',
-            'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/BackendModule.xlf',
+            'icon' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Yoast-module-dashboard.svg',
+            'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/BackendModuleDashboard.xlf',
+        )
+    );
+
+    \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
+        'YoastSeoForTypo3.' . $_EXTKEY,
+        'yoast',
+        'update',
+        '',
+        array(
+            'Module' => 'update, doConvert',
+        ),
+        array(
+            'access' => 'user,group',
+            'icon' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Yoast-module-update.svg',
+            'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/BackendModuleUpdate.xlf',
+        )
+    );
+
+    \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
+        'YoastSeoForTypo3.' . $_EXTKEY,
+        'yoast',
+        'settings',
+        '',
+        array(
+            'Module' => 'settings, saveSettings',
+        ),
+        array(
+            'access' => 'user,group',
+            'icon' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Yoast-module-settings.svg',
+            'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/BackendModuleSettings.xlf',
         )
     );
 

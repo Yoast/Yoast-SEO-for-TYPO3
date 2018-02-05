@@ -108,3 +108,10 @@ $GLOBALS['TYPO3_CONF_VARS']['FE']['pageOverlayFields'] .=
     . ',tx_yoastseo_title'
     . ',tx_yoastseo_twitter_title'
     . ',tx_yoastseo_twitter_description';
+
+$iconRegistry = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Core\Imaging\IconRegistry::class);
+$iconRegistry->registerIcon(
+    'module-yoast',
+    \TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
+    ['source' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Yoast-module-container.svg']
+);

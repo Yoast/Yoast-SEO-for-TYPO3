@@ -93,7 +93,6 @@ class ModuleController extends ActionController
             return;
         }
 
-        $this->createMenu();
         $this->registerDocheaderButtons();
     }
 
@@ -358,34 +357,6 @@ class ModuleController extends ActionController
             ->setDisplayName($shortcutName)
             ->setGetVariables(array('id' => (int)GeneralUtility::_GP('id')));
         $buttonBar->addButton($shortcutButton);
-    }
-
-    /**
-     * Create menu
-     *
-     */
-    protected function createMenu()
-    {
-        $lang = $this->getLanguageService();
-        $uriBuilder = $this->objectManager->get(UriBuilder::class);
-        $uriBuilder->setRequest($this->request);
-        $menu = $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->makeMenu();
-        $menu->setIdentifier('yoast-seo');
-        $actions = $this->configuration['menuActions'];
-
-        foreach ($actions as $action) {
-            $item = $menu->makeMenuItem()
-                ->setTitle(
-                    $lang->sL(
-                        'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:action.' . $action['label']
-                    )
-                )
-                ->setHref($uriBuilder->reset()->uriFor($action['action'], [], 'Module'))
-                ->setActive($this->request->getControllerActionName() === $action['action']);
-
-            $menu->addMenuItem($item);
-        }
-        $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->addMenu($menu);
     }
 
     /**
