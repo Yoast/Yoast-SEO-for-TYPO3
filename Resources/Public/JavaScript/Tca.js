@@ -99,7 +99,9 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
             $("*[data-formengine-input-name='" + $titleTcaSelector + "']").on('input', function() {
                 var $titleElement = $targetElement.find('#snippet-editor-title');
-                $titleElement.val($metaSection.find('pageTitlePrepend').text() + $(this).val() + $metaSection.find('pageTitleAppend').text());
+                var $newTitle = $metaSection.find('pageTitlePrepend').text() + $(this).val() + $metaSection.find('pageTitleAppend').text()
+                $titleElement.val($newTitle.trim());
+
                 snippetPreview.changedInput();
 
                 setTimeout(function() {
