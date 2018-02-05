@@ -870,3 +870,6 @@ progress {
 
 .form-group__focusKeyword--open {
   display: block; }
+
+.snippet-editor__view {
+  overflow: hidden; }

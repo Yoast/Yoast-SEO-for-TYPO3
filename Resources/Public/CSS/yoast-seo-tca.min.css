@@ -717,7 +717,8 @@ button.yoast-tooltip {
   display: none; }
 
 .snippet-editor__container {
-  cursor: default; }
+  cursor: default;
+  padding: 0; }
 
 .snippet-editor__form {
   display: none; }
@@ -752,3 +753,6 @@ button.yoast-tooltip {
   .yoastSeo-score-bar--item {
     display: inline-block;
     margin-right: 20px; }
+
+.snippet-editor__view {
+  overflow: hidden; }

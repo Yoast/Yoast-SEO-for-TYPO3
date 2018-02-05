@@ -45,11 +45,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                     urlPath: $metaSection.find('slug').text().replace(/^\/|\/$/g, '')
                 },
                 targetElement: $snippetPreviewElement.get(0),
-                callbacks: {
-                    saveSnippetData: function() {
-                        updateProgressBars(snippetPreview);
-                    }
-                }
+                previewMode: 'desktop'
             });
 
             $("*[data-formengine-input-name='" + $titleTcaSelector + "']").attr('placeholder', $metaSection.find('pageTitle').text());

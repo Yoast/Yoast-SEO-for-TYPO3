@@ -84,7 +84,8 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 },
                 targetElement: $snippetPreview.get(0),
                 callbacks: {
-                }
+                },
+                previewMode: 'desktop'
             });
 
             $focusKeywordElement.on('input', snippetPreview.changedInput.bind( snippetPreview ) );
