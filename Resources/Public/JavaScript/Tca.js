@@ -77,6 +77,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                         $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().addClass(YoastSEO.scoreToRating(score / 10));
                         $('#yoastSeo-score-headline-focuskeyword').removeClass('good ok bad');
                         $('#yoastSeo-score-headline-focuskeyword').addClass(YoastSEO.scoreToRating(score / 10));
+                        updateProgressBars(snippetPreview);
                     },
                     saveContentScore: function (score) {
                         $('#yoastSeo-score-bar-readability').find('.wpseo-score-icon').first().removeClass('good ok bad');
