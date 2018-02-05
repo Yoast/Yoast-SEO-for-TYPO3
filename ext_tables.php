@@ -3,7 +3,7 @@
 if (TYPO3_MODE === 'BE') {
     $GLOBALS['TBE_MODULES'] = array_slice($GLOBALS['TBE_MODULES'], 0, 1, true) +
         ['yoast' => ''] +
-        array_slice($GLOBALS['TBE_MODULES'], 1, count($GLOBALS['TBE_MODULES']) - 1, true) ;
+        array_slice($GLOBALS['TBE_MODULES'], 1, count($GLOBALS['TBE_MODULES']) - 1, true);
 
     $GLOBALS['TBE_MODULES']['_configuration']['yoast'] = [
         'iconIdentifier' => 'module-yoast',
