@@ -29,5 +29,14 @@
         }
 
         description >
+        description = RECORDS
+        description {
+            tables = tx_news_domain_model_news
+            source = {GP:tx_news_pi1|news},{GP:tx_news_pi1|news_preview}
+            source.insertData = 1
+
+            conf.tx_news_domain_model_news = TEXT
+            conf.tx_news_domain_model_news.field = description
+        }
     }
 [global]
