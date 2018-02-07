@@ -4,6 +4,9 @@ node_modules
 *.po
 vendor
 composer.lock
+.php_cs.cache
+package-lock.json
+yarn.lock
 .Build
 !.Build/.php_cs
 !.Build/create_ter_package.sh
