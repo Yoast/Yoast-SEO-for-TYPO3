@@ -15,16 +15,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
         }
 
         if (tx_yoast_seo.settings.editable == 0) {
-            return '<div id="' + elementIdPrefix + '_' + type + '_panel" class="col-sm-6 ' + type + 'Panel yoastSeoPanel">'
-                + '<h3 class="snippet-editor__heading" data-controls="' + type + '">'
-                + '<a href="#"><span class="wpseo-score-icon"></span>'
-                + '<span class="yoastPanel__title" data-panel-title>' + type + '</span>'
-                + focusKeyword
-                + '</a></h3>'
-                + focusKeywordField
-                + '<div id="' + elementIdPrefix + '_' + type + '_panel_content" data-panel-content class="yoastPanel__content"></div>'
-                + '</div>';
-
+            return '';
         } else {
             return '<div id="' + elementIdPrefix + '_' + type + '_panel" class="yoastPanel ' + type + 'Panel">'
                 + '<h3 class="snippet-editor__heading" data-controls="' + type + '">'
@@ -92,23 +83,11 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
             var cssFile = '<link rel="stylesheet" type="text/css" href="/typo3conf/ext/yoast_seo/Resources/Public/CSS/yoast-seo.min.css?1513745911" media="all">';;
 
-            $('.yoastSeo--small').find('.yoastSeoPanel').on('click', function() {
-                var focusKeyword = '';
-                if ($(this).find('.yoastPanel__focusKeyword').html()) {
-                    focusKeyword = ': ' + $(this).find('.yoastPanel__focusKeyword').html();
-                }
-
-                var title = $(this).find('.yoastPanel__title').text() + focusKeyword;
-                var content = cssFile + $(this).find('.yoastPanel__content').html();
-
-                Modal.show(title, content);
-            });
-
             var app = new YoastSEO.App({
                 snippetPreview: snippetPreview,
                 targets: {
-                    output: $seoPanel.find('[data-panel-content]').attr('id'),
-                    contentOutput: $readabilityPanel.find('[data-panel-content]').attr('id')
+                    output: 'yoastSeo-score-bar-focuskeyword-content',
+                    contentOutput: 'yoastSeo-score-bar-readability-content'
                 },
                 callbacks: {
                     getData: function () {
@@ -119,7 +98,9 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                         };
                     },
                     saveScores: function (score) {
-                        $seoPanel.find('.wpseo-score-icon').first().removeClass('good ok bad')
+                        $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().removeClass('good ok bad');
+                        $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().addClass(YoastSEO.scoreToRating(score / 10));
+                        $('').find('.yoastSeo-score-bar-item--scoreicon').first().removeClass('good ok bad')
                         $seoPanel.find('.wpseo-score-icon').first().addClass(YoastSEO.scoreToRating(score / 10));
 
                         if (tx_yoast_seo.settings.editable == 1) {
@@ -129,21 +110,40 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                             $seoPanel.find('[data-panel-content]').addClass('yoastPanel__content--open');
                             $seoPanel.find('[data-panel-focus-keyword-field]').addClass('form-group__focusKeyword--open');
                         }
+
+                        $('.yoastSeo-score-bar-item').on('click', function() {
+                            var focusKeyword = '';
+                            if ($(this).find('#yoastSeo-score-bar-focuskeyword-text').html()) {
+                                focusKeyword = ': ' + $(this).find('#yoastSeo-score-bar-focuskeyword-text').html();
+                            }
+
+                            var title = $(this).find('.yoastSeo-score-bar-item--title').text() + focusKeyword;
+                            var content = cssFile + $(this).find('.yoastSeo-score-bar-item--content').html();
+
+                            Modal.show(title, content);
+                        });
                     },
                     saveContentScore: function (score) {
-                        $readabilityPanel.find('.wpseo-score-icon').first().addClass(YoastSEO.scoreToRating(score / 10));
-
-                        if (tx_yoast_seo.settings.editable == 1) {
-                            $readabilityPanel.find('.fa-chevron-down').addClass('fa-chevron-up').removeClass('fa-chevron-down');
-                            $readabilityPanel.find('.snippet-editor__heading').addClass('snippet-editor__heading--active');
-                            $readabilityPanel.find('[data-panel-content]').addClass('yoastPanel__content--open');
-                        }
-
+                        var $scoreIconElement = $('#yoastSeo-score-bar-readability').find('.wpseo-score-icon');
+                        $scoreIconElement.first().removeClass('good ok bad');
+                        $scoreIconElement.first().addClass(YoastSEO.scoreToRating(score / 10));
                     }
                 },
                 locale: $metaSection.find('locale').text(),
                 translations: (window.tx_yoast_seo !== undefined && window.tx_yoast_seo !== null && window.tx_yoast_seo.translations !== undefined ? window.tx_yoast_seo.translations : null)
             });
+
+            $('h1.t3js-title-inlineedit').after('' +
+                '<div class="yoastSeo-score-bar">' +
+                '   <div class="yoastSeo-score-bar-item" id="yoastSeo-score-bar-readability">' +
+                '       <span class="wpseo-score-icon"></span> <span class="yoastSeo-score-bar-item--title">' + (app.i18n.dgettext('js-text-analysis', 'Readability')) + '</span>' +
+                '       <div class="yoastSeo-score-bar-item--content" id="yoastSeo-score-bar-readability-content"></div>' +
+                '   </div>' +
+                '   <div class="yoastSeo-score-bar-item" id="yoastSeo-score-bar-focuskeyword">' +
+                '       <span class="wpseo-score-icon"></span> <span class="yoastSeo-score-bar-item--title">' + (app.i18n.dgettext('js-text-analysis', 'Focus keyword')) + '</span>: <span id="yoastSeo-score-bar-focuskeyword-text">' + tx_yoast_seo.settings.focusKeyword + '</span>' +
+                '       <div class="yoastSeo-score-bar-item--content" id="yoastSeo-score-bar-focuskeyword-content"></div>' +
+                '   </div>' +
+                '</div>');
 
             // after bootstrapping the app (with possible translations) update the title of both panels
             $readabilityPanel.find('[data-panel-title]').text((app.i18n.dgettext('js-text-analysis', 'Readability')));
@@ -182,6 +182,31 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 $panel.find('[data-panel-focus-keyword-field]').toggleClass('form-group__focusKeyword--open');
             });
 
+            $('.yoast-collapse').on('click', function() {
+                $('#' + $(this).attr('data-collapse-target')).toggleClass('yoast-collapse--hidden');
+                $(this).find('.icon-markup').toggleClass('yoast-collapse--rotated');
+
+                document.cookie = "hideSnippetPreview=" + $('#' + $(this).attr('data-collapse-target')).hasClass('yoast-collapse--hidden');
+            });
+
+            var yoastCookie = document.cookie.split(';');
+            var cookieName = 'hideSnippetPreview';
+            for (var i = 0; i < yoastCookie.length; i++) {
+                var cookie = yoastCookie[i].trim();
+                if (cookie.indexOf(cookieName) == 0) {
+                    var value = cookie.substring(cookieName.length + 1, cookie.length);
+                    if (value) {
+                        if (value == 'true') {
+                            $('#' + $('.yoast-collapse').attr('data-collapse-target')).addClass('yoast-collapse--hidden');
+                            $('.yoast-collapse').find('.icon-markup').addClass('yoast-collapse--rotated');
+                        }
+                        if (value == 'false') {
+                            $('#' + $('.yoast-collapse').attr('data-collapse-target')).removeClass('yoast-collapse--hidden');
+                            $('.yoast-collapse').find('.icon-markup').removeClass('yoast-collapse--rotated');
+                        }
+                    }
+                }
+            }
             // due to the wacky workaround in typo3_src-7.6.11/typo3/sysext/backend/Resources/Public/JavaScript/PageActions.js:143
             // and the prevention of event propagation forces us to observe EVERY click event
             // depending on the target the actual method is invoked

@@ -696,7 +696,6 @@ button.yoast-tooltip {
 .snippet-editor__heading {
   font-size: 12px;
   line-height: 18px;
-  padding-bottom: 13px;
   margin: 0 -20px;
   color: #000;
   cursor: pointer; }
@@ -718,8 +717,7 @@ button.yoast-tooltip {
   margin: 15px 0; }
 
 .yoastSeo {
-  padding: 15px;
-  margin-bottom: 15px; }
+  padding: 15px; }
 
 #snippet,
 .yoastPanel {
@@ -873,3 +871,61 @@ progress {
 
 .snippet-editor__view {
   overflow: hidden; }
+
+.yoast-pageLayoutHeader-container {
+  border: 1px #cdcdcd solid; }
+
+.yoast-pageLayoutHeader-header {
+  padding: 15px;
+  font-weight: bold;
+  border-bottom: 1px #cdcdcd solid;
+  background-color: #a4276a;
+  color: #fff; }
+  .yoast-pageLayoutHeader-header--rightItem {
+    float: right;
+    margin-left: 10px; }
+  .yoast-pageLayoutHeader-header--collapse {
+    background-color: #fff;
+    width: 10px;
+    height: 100%; }
+  .yoast-pageLayoutHeader-header--collapseOut {
+    background-color: #f00; }
+  .yoast-pageLayoutHeader-header a {
+    color: #fff; }
+
+.yoast-pageLayoutHeader-content {
+  background-color: #f5f5f5; }
+  .yoast-pageLayoutHeader-content--hide {
+    display: none; }
+
+.snippet-editor__is-scrollable-hint {
+  display: none !important; }
+
+.yoastSeo-score-bar {
+  margin-top: -15px;
+  margin-bottom: 15px; }
+
+.yoastSeo-score-bar-item {
+  display: inline-block;
+  margin-right: 20px;
+  cursor: pointer; }
+  .yoastSeo-score-bar-item--content {
+    display: none; }
+  .yoastSeo-score-bar-item:hover {
+    text-decoration: underline; }
+
+.yoast-collapse--hidden {
+  display: none; }
+
+.yoast-collapse--rotated {
+  transform: rotate(-90deg); }
+
+.yoast-snippet-header {
+  padding: 10px;
+  background-color: #eee;
+  color: #000; }
+
+.yoast-snippet-header-icons {
+  float: right; }
+  .yoast-snippet-header-icons a {
+    margin-left: 5px; }

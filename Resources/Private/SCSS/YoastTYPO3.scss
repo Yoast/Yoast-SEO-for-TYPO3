@@ -10,7 +10,6 @@ $color_headings: #000;
 .snippet-editor__heading {
 	font-size: 12px;
 	line-height: 18px;
-	padding-bottom: 13px;
 	margin: 0 -20px;
 	color: $color_headings;
 	cursor: pointer;
@@ -38,7 +37,6 @@ $color_headings: #000;
 
 .yoastSeo {
 	padding: 15px;
-	margin-bottom: 15px;
 }
 
 #snippet,
@@ -238,4 +236,88 @@ progress {
 
 .snippet-editor__view {
 	overflow: hidden;
+}
+
+.yoast-pageLayoutHeader-container {
+	border: 1px #cdcdcd solid;
+}
+
+.yoast-pageLayoutHeader-header {
+	padding: 15px;
+	font-weight: bold;
+	border-bottom: 1px #cdcdcd solid;
+	background-color: #a4276a;
+	color: #fff;
+
+	&--rightItem {
+		float: right;
+		margin-left: 10px;
+	}
+
+	&--collapse {
+		background-color: #fff;
+		width: 10px;
+		height: 100%;
+	}
+
+	&--collapseOut {
+		background-color: #f00;
+	}
+
+	a {
+		color: #fff;
+	}
+}
+
+.yoast-pageLayoutHeader-content {
+	background-color: #f5f5f5;
+
+	&--hide {
+		display:none;
+	}
+}
+
+.snippet-editor__is-scrollable-hint {
+	display: none !important;
+}
+
+.yoastSeo-score-bar {
+	margin-top: -15px;
+	margin-bottom: 15px;
+}
+
+.yoastSeo-score-bar-item {
+	display: inline-block;
+	margin-right: 20px;
+	cursor: pointer;
+
+	&--content {
+		display: none;
+	}
+
+	&:hover {
+		text-decoration: underline;
+	}
+}
+
+.yoast-collapse--hidden {
+	display: none;
+}
+
+.yoast-collapse--rotated {
+	transform: rotate(-90deg);
+}
+
+.yoast-snippet-header {
+	padding: 10px;
+	background-color: #eee;
+	color: $color_headings;
+}
+
+.yoast-snippet-header-icons {
+	float: right;
+
+	a {
+		margin-left: 5px;
+	}
 }

@@ -245,9 +245,18 @@ class PageLayoutHeader
                 );
                 $needUpdateText .= '</a>';
             }
-            return '<div class="t3-page-column-header">
-                    <div class="t3-page-column-header-icons btn-group btn-group-sm">
-                        <a href="' . $url . '" title="" class="btn btn-default">
+            return '
+                <div class="yoast-snippet-header">
+                    <div class="yoast-snippet-header-icons btn-group btn-group-sm">
+                        <a href="#" class="yoast-collapse" data-collapse-target="' . $targetElementId . '">
+                            <span class="t3js-icon icon icon-size-small icon-state-default icon-actions-document-open"
+                                data-identifier="actions-document-open">
+                                <span class="icon-markup">
+                                    <img src="/typo3/sysext/core/Resources/Public/Icons/T3Icons/actions/actions-move-down.svg" width="16" height="16">
+                                </span>
+                            </span>
+                        </a>
+                        <a href="' . $url . '" title="">
                             <span class="t3js-icon icon icon-size-small icon-state-default icon-actions-document-open"
                                 data-identifier="actions-document-open">
                                 <span class="icon-markup">
@@ -256,7 +265,7 @@ class PageLayoutHeader
                             </span>
                         </a>
                     </div>
-                    <div class="t3-page-column-header-label">Yoast SEO ' . $needUpdateText . '</div>
+                    <div class="yoast-snippet-header-label">Yoast SEO ' . $needUpdateText . '</div>
                 </div>
                 <input id="focusKeyword" style="display: none" />
                 <div id="' . $targetElementId . '" class="t3-grid-cell yoastSeo yoastSeo--small">
