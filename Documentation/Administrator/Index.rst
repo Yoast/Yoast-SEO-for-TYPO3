@@ -85,9 +85,9 @@ also disable the snippet preview based on PageTs. Below an example to hide page 
 
 Set fields to be used as title, description and canonical
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-By default the extension adds own fields for title, description and the canonical. In an installation where you already have
+By default the extension adds own fields for the SEO fields. In an installation where you already have
 fields for this options and maybe even an extension providing data for these fields, you can now configure which fields to
-use for title, description and canonical urls. You can do this in the constants part of TypoScript.
+use for the SEO analysis. You can do this in the constants part of TypoScript.
 
 .. code-block:: typoscript
 
@@ -95,6 +95,8 @@ use for title, description and canonical urls. You can do this in the constants 
         titleField = your_own_title_field
         descriptionField = your_own_description_field
         canonicalTagField = your_own_canonical_field
+        noIndexField = your_own_no_index_field
+        noFollowField = your_own_no_follow_field
     }
 
 Prepend and append text to the title of a page
@@ -105,83 +107,11 @@ title by using these constants in TypoScript:
 .. code-block:: typoscript
 
     plugin.tx_yoastseo {
-        titlePrepend = append example -
-        titleAppend = - name of company
+        titlePrepend = prepend title -
+        titleAppend = - append title
     }
 
-Make your extension overwrite yoast_seo
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-For some settings you need to extend the `yoast_seo` extension with your own extension. To load your extension in the
-right order, you need to set a dependency on `yoast_seo` in your extension. See the example `ext_emconf.php` below:
-
-.. code-block:: php
-
-    'constraints' =>
-        [
-            'depends' =>
-                [
-                    'typo3' => '7.6.0-8.7.99',
-                    'yoast_seo' => '*'
-                ],
-            'conflicts' => [],
-            'suggests' => [],
-        ],
-
-Now, you can simply add the the `EXTCONF` settings to the `ext_localconf.php` of your own extension and change them
-according to your needs.
-
-Show / Hide tabs in backend module
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-You can completely hide certain tabs from the backend module. To do so, you have to override the `viewSettings`
-array in the `ext_localconf.php` of your own extension. See the example below to hide the advanced tab.
-
-.. note::
-    **This is only a usability change and won't properly protect the access to the functionalities of the respective
-    tabs in a secure way!**
-
-
-.. code-block:: php
-
-    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['viewSettings'] = array (
-        'showAnalysisTab' => true,
-        'showSocialTab'   => true,
-        'showAdvancedTab' => false  //Hide tab Advanced
-    );
-
-Show / Hide menu entries in backend module
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-You can completely hide certain entries from the top menu of the backend module. To do this, you can override the
-`menuActions` array in your own extensions `ext_localconf.php`.
-
-.. note::
-    **This is only a usability change and won't properly protect the access to the functionalities of the respective
-    tabs in a secure way!**
-
-
-.. code-block:: php
-
-    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['menuActions'] = array (
-         ['action' => 'edit', 'label' => 'edit'],
-        //['action' => 'dashboard', 'label' => 'dashboard'],    This will hide the dashboard menu item
-        ['action' => 'settings', 'label' => 'settings']
-    );
-
-
-Overwrite the PreviewDomain to a custom value
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-You can change the domain which is used for analysing the content. The default behaviour is, that `yoast_seo` will get
-the domain from `sys_domain`, just like the normal preview functionality of TYPO3. If you want to alter the preview
-domain, you can add this setting to your `ext_localconf.php`. See the example below.
-
-.. code-block:: php
-
-    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewDomain'] = 'demo.typo3.local';
-
-
-Change the PreviewURL Template
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-You can change the script-path of the preview, e.g. usable for SPAs.
-
-.. code-block:: php
-
-    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewUrlTemplate'] = '/#%d&type=%d&L=%d';
+Access rights
+~~~~~~~~~~~~~
+Since version 2 of Yoast SEO for TYPO3, you can set permissions by setting the permissions to fields and backend modules
+in the backend group permissions. You don't need specific configuration anymore.
