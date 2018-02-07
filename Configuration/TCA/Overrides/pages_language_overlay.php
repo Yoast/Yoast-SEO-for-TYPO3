@@ -240,6 +240,6 @@ $GLOBALS['TCA']['pages_language_overlay']['palettes']['metatags']['showitem'] =
         --palette--;' . $llPrefix . 'pages.palettes.robot;yoast-robot,
         --palette--;' . $llPrefix . 'pages.palettes.advanced;yoast-advanced,
     ',
-    '',
+    \YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::getAllowedDoktypes(null, true),
     'after:subtitle'
 );

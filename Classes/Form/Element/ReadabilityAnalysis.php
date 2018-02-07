@@ -5,6 +5,7 @@ use TYPO3\CMS\Backend\Form\AbstractNode;
 use TYPO3\CMS\Backend\Form\NodeFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
+use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class ReadabilityAnalysis extends AbstractNode
 {
@@ -34,6 +35,10 @@ class ReadabilityAnalysis extends AbstractNode
     {
         $resultArray = $this->initializeResultArray();
 
+        $allowedDoktypes = YoastUtility::getAllowedDoktypes();
+        if (!\in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
+            $this->templateView->assign('wrongDoktype', true);
+        }
         $resultArray['html'] = $this->templateView->render();
         return $resultArray;
     }

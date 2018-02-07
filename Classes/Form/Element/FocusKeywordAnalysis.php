@@ -5,6 +5,7 @@ use TYPO3\CMS\Backend\Form\AbstractNode;
 use TYPO3\CMS\Backend\Form\NodeFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
+use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class FocusKeywordAnalysis extends AbstractNode
 {
@@ -53,6 +54,11 @@ class FocusKeywordAnalysis extends AbstractNode
 
         if ($this->focusKeywordField) {
             $this->templateView->assign('focusKeywordField', $this->getFieldSelector($this->focusKeywordField));
+        }
+
+        $allowedDoktypes = YoastUtility::getAllowedDoktypes();
+        if (!\in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
+            $this->templateView->assign('wrongDoktype', true);
         }
 
         $resultArray['html'] = $this->templateView->render();

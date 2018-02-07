@@ -12,20 +12,6 @@ plugin.tx_yoastseo {
         titleAppend = {$plugin.tx_yoastseo.titleAppend}
     }
     view {
-        file = EXT:yoast_seo/Resources/Private/Templates/Meta.html
-        partialRootPaths.0 = EXT:yoast_seo/Resources/Private/Partials/
-        dataProcessing {
-            10 = TYPO3\CMS\Frontend\DataProcessing\FilesProcessor
-            10 {
-                references.fieldName = tx_yoastseo_facebook_image
-                as = openGraphImages
-            }
-            20 < .10
-            20 {
-                references.fieldName = tx_yoastseo_twitter_image
-                as = twitterCardsImages
-            }
-        }
         variables {
             canonical =< lib.yoastSEO.canonicalURL
             canonical.stdWrap.wrap = <link rel="canonical" href="|" />

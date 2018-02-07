@@ -6,12 +6,14 @@ use TYPO3\CMS\Backend\Form\NodeFactory;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Localization\Locales;
-use TYPO3\CMS\Core\Utility\ArrayUtility;
+use TYPO3\CMS\Core\Utility\ArrayUtility;;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use TYPO3\CMS\Frontend\Page\CacheHashCalculator;
 use TYPO3\CMS\Frontend\Page\PageRepository;
+use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class SnippetPreview extends AbstractNode
 {
@@ -128,19 +130,24 @@ class SnippetPreview extends AbstractNode
 
     public function render()
     {
-        $publicResourcesPath = PathUtility::getAbsoluteWebPath('../typo3conf/ext/yoast_seo/Resources/Public/');
-
+        $allowedDoktypes = YoastUtility::getAllowedDoktypes();
         $resultArray = $this->initializeResultArray();
-
-        $this->templateView->assign('translations', $this->getTranslations());
-        $this->templateView->assign('previewUrl', $this->previewUrl);
-        $this->templateView->assign('previewTargetId', $this->data['fieldName']);
-        $this->templateView->assign('titleFieldSelector', $this->getFieldSelector($this->titleField));
-        $this->templateView->assign('descriptionFieldSelector', $this->getFieldSelector($this->descriptionField));
-
+        $publicResourcesPath = PathUtility::getAbsoluteWebPath('../typo3conf/ext/yoast_seo/Resources/Public/');
         $resultArray['stylesheetFiles'][] = $publicResourcesPath . 'CSS/yoast-seo-tca.min.css';
-        $resultArray['requireJsModules'] = ['TYPO3/CMS/YoastSeo/Tca'];
+
+        if (in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
+            $this->templateView->assign('translations', $this->getTranslations());
+            $this->templateView->assign('previewUrl', $this->previewUrl);
+            $this->templateView->assign('previewTargetId', $this->data['fieldName']);
+            $this->templateView->assign('titleFieldSelector', $this->getFieldSelector($this->titleField));
+            $this->templateView->assign('descriptionFieldSelector', $this->getFieldSelector($this->descriptionField));
+
+            $resultArray['requireJsModules'] = ['TYPO3/CMS/YoastSeo/Tca'];
+        } else {
+            $this->templateView->assign('wrongDoktype', true);
+        }
         $resultArray['html'] = $this->templateView->render();
+
         return $resultArray;
     }
 

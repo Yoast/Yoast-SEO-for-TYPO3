@@ -222,6 +222,12 @@
 			<trans-unit id="analysis">
 				<source>Analysis</source>
 			</trans-unit>
+			<trans-unit id="wrongDoktype.title">
+				<source>No analysis available</source>
+			</trans-unit>
+			<trans-unit id="wrongDoktype.description">
+				<source>The Yoast SEO analysis is not available for this type of page. Please change the type of page, or make sure your administrator adds the pagetype to the allowed pagetypes for Yoast SEO.</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

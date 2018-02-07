@@ -25,10 +25,11 @@ class YoastUtility
 
     /**
      * @param array $configuration
+     * @param bool $returnInString
      *
      * @return array
      */
-    public static function getAllowedDoktypes($configuration = null)
+    public static function getAllowedDoktypes($configuration = null, $returnInString = false)
     {
         // By default only add normal pages
         $allowedDoktypes = [1];
@@ -55,7 +56,11 @@ class YoastUtility
             }
         }
 
-        return $allowedDoktypes;
+        if ($returnInString) {
+            return implode(',', $allowedDoktypes);
+        } else {
+            return $allowedDoktypes;
+        }
     }
 
     /**

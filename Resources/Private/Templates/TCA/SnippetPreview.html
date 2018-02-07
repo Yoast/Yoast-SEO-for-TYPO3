@@ -1,19 +1,42 @@
 <html data-namespace-typo3-fluid="true">
-	<script>
-		<f:format.raw>
-		var tx_yoast_seo = tx_yoast_seo || {};
-        tx_yoast_seo.previewUrl = '{previewUrl}';
-        tx_yoast_seo.previewTargetId = '{previewTargetId}';
-        tx_yoast_seo.titlePrepend = '{titlePrepend}';
-        tx_yoast_seo.titleAppend = '{titleAppend}';
-        <f:if condition="{translations}">
-        tx_yoast_seo.translations = {translations};
-		</f:if>
+	<f:if condition="{previewUrl}">
+		<f:then>
+			<script>
+                <f:format.raw>
+                var tx_yoast_seo = tx_yoast_seo || {};
+                tx_yoast_seo.previewUrl = '{previewUrl}';
+                tx_yoast_seo.previewTargetId = '{previewTargetId}';
+                tx_yoast_seo.titlePrepend = '{titlePrepend}';
+                tx_yoast_seo.titleAppend = '{titleAppend}';
+                <f:if condition="{translations}">
+                tx_yoast_seo.translations = {translations};
+                </f:if>
 
-		$titleTcaSelector = '{titleFieldSelector}';
-		$descriptionTcaSelector = '{descriptionFieldSelector}';
-		</f:format.raw>
-	</script>
+                $titleTcaSelector = '{titleFieldSelector}';
+                $descriptionTcaSelector = '{descriptionFieldSelector}';
+                </f:format.raw>
+			</script>
 
-	<div id="{previewTargetId}"></div>
+			<div id="{previewTargetId}"></div>
+		</f:then>
+		<f:else>
+			<f:if condition="{wrongDoktype}">
+				<div class="callout callout-warning">
+					<div class="media">
+						<div class="media-left">
+							<span class="fa-stack fa-lg callout-icon">
+								<i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-times fa-stack-1x"></i>
+							</span>
+						</div>
+						<div class="media-body">
+							<h4 class="callout-title"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:wrongDoktype.title" /></h4>
+							<div class="callout-body">
+								<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:wrongDoktype.description" />
+							</div>
+						</div>
+					</div>
+				</div>
+			</f:if>
+		</f:else>
+	</f:if>
 </html>
