@@ -6,3 +6,4 @@ vendor
 composer.lock
 .Build
 !.Build/.php_cs
+!.Build/create_ter_package.sh
