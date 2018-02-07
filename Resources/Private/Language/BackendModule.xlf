@@ -190,7 +190,10 @@
 				<source>Hide Yoast SEO content analysis in page module</source>
 			</trans-unit>
 			<trans-unit id="hideYoastInFrontend">
-				<source>Hide Yoast SEO in frontend</source>
+				<source>Don't render metatags in frontend by Yoast SEO for this page</source>
+			</trans-unit>
+			<trans-unit id="hideSnippetPreview">
+				<source>Hide Yoast SEO snippet preview in page module for this page</source>
 			</trans-unit>
 			<trans-unit id="pages.tabs.seo">
 				<source>Yoast SEO</source>

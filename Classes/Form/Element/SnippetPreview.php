@@ -134,7 +134,7 @@ class SnippetPreview extends AbstractNode
         $publicResourcesPath = PathUtility::getAbsoluteWebPath('../typo3conf/ext/yoast_seo/Resources/Public/');
         $resultArray['stylesheetFiles'][] = $publicResourcesPath . 'CSS/yoast-seo-tca.min.css';
 
-        if (in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
+        if ($this->data['tableName'] != 'pages' || in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
             $this->templateView->assign('translations', $this->getTranslations());
             $this->templateView->assign('previewUrl', $this->previewUrl);
             $this->templateView->assign('previewTargetId', $this->data['fieldName']);

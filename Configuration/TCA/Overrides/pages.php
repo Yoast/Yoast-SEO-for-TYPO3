@@ -7,7 +7,12 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
         'tx_yoastseo_snippetpreview' => [
             'label' => $llPrefix . 'snippetPreview',
             'exclude' => true,
-            'displayCond' => 'FIELD:tx_yoastseo_dont_use:REQ:false',
+            'displayCond' => [
+                'AND' => [
+                    'FIELD:tx_yoastseo_dont_use:REQ:false',
+                    'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false'
+                ]
+            ],
             'config' => [
                 'type' => 'text',
                 'renderType' => 'snippetPreview',
@@ -20,7 +25,12 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
         'tx_yoastseo_readability_analysis' => [
             'label' => $llPrefix . 'analysis',
             'exclude' => true,
-            'displayCond' => 'FIELD:tx_yoastseo_dont_use:REQ:false',
+            'displayCond' => [
+                'AND' => [
+                    'FIELD:tx_yoastseo_dont_use:REQ:false',
+                    'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false'
+                ]
+            ],
             'config' => [
                 'type' => 'text',
                 'renderType' => 'readabilityAnalysis'
@@ -33,10 +43,22 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
                 'type' => 'check'
             ]
         ],
+        'tx_yoastseo_hide_snippet_preview' => [
+            'label' => $llPrefix . 'hideSnippetPreview',
+            'exclude' => true,
+            'config' => [
+                'type' => 'check'
+            ]
+        ],
         'tx_yoastseo_focuskeyword' => [
             'label' => $llPrefix . 'seoFocusKeyword',
             'exclude' => true,
-            'displayCond' => 'FIELD:tx_yoastseo_dont_use:REQ:false',
+            'displayCond' => [
+                'AND' => [
+                    'FIELD:tx_yoastseo_dont_use:REQ:false',
+                    'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false'
+                ]
+            ],
             'config' => [
                 'type' => 'input',
             ]
@@ -44,7 +66,12 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
         'tx_yoastseo_focuskeyword_analysis' => [
             'label' => $llPrefix . 'analysis',
             'exclude' => true,
-            'displayCond' => 'FIELD:tx_yoastseo_dont_use:REQ:false',
+            'displayCond' => [
+                'AND' => [
+                    'FIELD:tx_yoastseo_dont_use:REQ:false',
+                    'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false'
+                ]
+            ],
             'config' => [
                 'type' => 'input',
                 'renderType' => 'focusKeywordAnalysis',
@@ -219,7 +246,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     'yoast-advanced',
     '
     --linebreak--, canonical_url,
-    --linebreak--, tx_yoastseo_dont_use
+    --linebreak--, tx_yoastseo_hide_snippet_preview, tx_yoastseo_dont_use
     '
 );
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
