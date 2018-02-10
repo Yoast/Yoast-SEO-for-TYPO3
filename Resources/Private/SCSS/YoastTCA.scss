@@ -3,10 +3,7 @@
 @import "../../../node_modules/yoastseo/css/analysis";
 @import "../../../node_modules/yoastseo/css/loading-dialog";
 @import "../../../node_modules/yoastseo/css/tooltips";
-
-$color_border: #cccccc;
-$color_headings: #000;
-$color_typo3_orange: #ff8700;
+@import "./Variables";
 
 .snippet-editor__edit-button, .snippet-editor__heading {
 	display: none;

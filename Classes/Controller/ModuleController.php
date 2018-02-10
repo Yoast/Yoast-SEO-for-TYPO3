@@ -11,6 +11,7 @@ use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
@@ -114,6 +115,12 @@ class ModuleController extends ActionController
         if (!($this->pageRenderer instanceof PageRenderer)) {
             $this->pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
         }
+
+        $publicResourcesPath = ExtensionManagementUtility::extRelPath('yoast_seo') . 'Resources/Public/';
+
+        $this->pageRenderer->addCssFile(
+            $publicResourcesPath . 'CSS/yoast-seo-backend.min.css'
+        );
     }
 
     /**
@@ -124,7 +131,7 @@ class ModuleController extends ActionController
     }
 
     /**
-     *
+     * @return void
      */
     public function updateAction()
     {
