@@ -24,7 +24,7 @@ Yoast SEO for TYPO3
         en
 
     :Description:
-        Integrates text analysis and assessment from [YoastSEO.js](https://github.com/Yoast/YoastSEO.js).
+        Integrates text analysis and assessment from `YoastSEO.js <https://github.com/Yoast/YoastSEO.js>`__.
 
     :Keywords:
         SEO, Yoast
@@ -33,7 +33,7 @@ Yoast SEO for TYPO3
         2017
 
     :Author:
-        Yoast SEO for TYPO3
+        MaxServ / Yoast
 
     :Email:
         suppport@maxserv.com
@@ -57,4 +57,5 @@ Yoast SEO for TYPO3
 
     Introduction/Index
     User/Index
+    Integrator/Index
     Administrator/Index
