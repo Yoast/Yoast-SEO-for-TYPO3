@@ -38,6 +38,21 @@ if (TYPO3_MODE === 'BE') {
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
         'YoastSeoForTypo3.' . $_EXTKEY,
         'yoast',
+        'premium',
+        '',
+        array(
+            'Module' => 'premium',
+        ),
+        array(
+            'access' => 'user,group',
+            'icon' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Yoast-module-premium.svg',
+            'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/BackendModulePremium.xlf',
+        )
+    );
+
+    \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
+        'YoastSeoForTypo3.' . $_EXTKEY,
+        'yoast',
         'update',
         '',
         array(
