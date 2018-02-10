@@ -1,4 +1,72 @@
-$yoast_color_headings: #a4286a;
-$color_border: #cccccc;
-$color_headings: #000;
-$color_typo3_orange: #ff8700;
+$yoast_color_headings: 			#a4286a;
+$color_border:					#cccccc;
+$color_headings:				#000;
+$color_typo3_orange: 			#ff8700;
+$color-green:					#77B227;
+$color-orange:					#DC5C04;
+$color-white:					#FFF;
+$color-purple:					#5D237A;
+$color-pink-dark:				#A4286A;
+$color-pink-light:				#D93F69;
+$color-blue:					#0075B3;
+$color-green-blue:				#009288;
+
+$color-orange-hover:			#F58223;
+$color-grey-hover:				#CDCDCD;
+
+$color-pink: 					#D93F69;
+$color-pink-hover:				darken( $color-pink, 5% );
+
+$color-grey-cta:				#DCDCDC;
+$color-grey-line:				#E6E6E6;
+$color-grey-quote:				#8C8C8C;
+$color-grey-text:				#646464;
+$color-grey:					#DCDCDC;
+$color_green_medium:			#008a00;
+
+$color-error:					#dc3232;
+
+$font-stack-icon:				'FontAwesome', 'Open Sans', Arial, sans-serif;
+
+$font-size-default:				1.1em;
+$line-height-default:			1.9;
+
+$text-shadow: 					1px 1px 1px rgba(0,0,0,.4);
+
+$page-width-full-unitless:		63.25;
+
+$page-width-full:				$page-width-full-unitless + rem; // 980px
+$page-width-full-padded:		65.25rem; // $page-width-full-unitless + 2em
+$page-width-medium-plus:		56rem;
+$page-width-medium:				50rem;
+$page-width-small:				30rem;
+$page-width-xsmall:				20rem;
+
+$spacing: 							$line-height-default * 1rem;
+$spacing-quarter: 					$line-height-default * 0.25rem;
+$spacing-half: 						$line-height-default * 0.5rem;
+$spacing-double: 					$line-height-default * 2rem;
+
+$scheme-academy-primary:			$color-purple;
+$scheme-academy-secondary:			$color-pink-dark;
+$scheme-academy-tertiary:			$color-pink-light;
+$scheme-academy-menu-primary:		$color-pink-dark;
+$scheme-academy-menu-secondary:		$color-purple;
+
+$scheme-software-primary:			$color-blue;
+$scheme-software-secondary:			$color-green-blue;
+$scheme-software-tertiary:			$color-green;
+$scheme-software-menu-primary:		$color-green-blue;
+$scheme-software-menu-secondary:	$color-blue;
+
+$scheme-review-primary:				$color-green-blue;
+$scheme-review-secondary:			$color-green;
+$scheme-review-tertiary:			$color-blue;
+$scheme-review-menu-primary:		$color-green-blue;
+$scheme-review-menu-secondary:		$color-green;
+
+$scheme-about-primary:				$color-pink-light;
+$scheme-about-secondary:			$color-pink-dark;
+$scheme-about-tertiary:				$color-purple;
+$scheme-about-menu-primary:			$color-pink-dark;
+$scheme-about-menu-secondary:		$color-pink-light;

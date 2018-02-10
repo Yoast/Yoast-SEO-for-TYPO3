@@ -1,9 +1,79 @@
 @import "./Variables";
+@import "./BackendModule/headings";
+@import "./BackendModule/lists";
+@import "./BackendModule/buttons";
 
-h1 {
-	color: $yoast_color_headings;
+.yoast {
+	line-height: 1.6;
+	letter-spacing: 0.01em;
+	color: #000;
 
-	span {
-		color: #000;
+	$gutter: 32px;
+
+	&-seo {
+		&-premium-extension {
+			margin: 2em 0.5em 1.5em;
+		}
+
+		&-premium-benefits {
+			&__title {
+				font-weight: 600;
+			}
+
+			&__description:before {
+				content: "– "
+			}
+		}
+	}
+
+	&-button {
+
+		&--extension {
+			color: $color-white;
+			text-transform: uppercase;
+			padding-left: 0.8em;
+			padding-right: 0.8em;
+
+			& + &-activated, & + &-not-activated {
+				margin-left: 0;
+			}
+
+			&-buy {
+				&, &:hover {
+					background-color: $color-pink-dark;
+				}
+
+				&:visited {
+					color: $color-white;
+				}
+			}
+
+			&-installed, &-activated, &-not-activated {
+				&:hover {
+					text-decoration: none;
+				}
+			}
+
+			&-installed {
+				margin-right: 0.2rem;
+
+				&, &:hover {
+					background-color: $color_green_medium;
+				}
+			}
+
+			&-not-activated {
+				&, &:hover {
+					background-color: $color-error;
+				}
+			}
+
+			&-activated {
+				&, &:hover {
+					background-color: $color_green_medium;
+				}
+			}
+
+		}
 	}
 }
