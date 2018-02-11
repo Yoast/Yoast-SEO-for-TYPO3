@@ -224,8 +224,8 @@ class PageLayoutHeader
 
             $urlParameters = [
                 'edit' => [
-                    'pages' => [
-                        (int)$pageLayoutController->id => 'edit'
+                    $tableName => [
+                        $recordId => 'edit'
                     ]
                 ],
                 'switchToYoast' => 1,
