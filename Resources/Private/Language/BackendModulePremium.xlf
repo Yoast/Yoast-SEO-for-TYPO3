@@ -12,6 +12,33 @@
 			<trans-unit id="mlang_labels_tablabel">
 				<source>Yoast SEO for TYPO3 - Premium</source>
 			</trans-unit>
+			<trans-unit id="mod_premium_title">
+				<source>Yoast SEO Premium</source>
+			</trans-unit>
+			<trans-unit id="mod_premium_subtitle">
+				<source>, take your optimization to the next level!</source>
+			</trans-unit>
+			<trans-unit id="mod_premium_redirectmanager">
+				<source>Redirect manager</source>
+			</trans-unit>
+			<trans-unit id="mod_premium_redirectmanager_descr">
+				<source>create and manage redirects from within your TYPO3 installation</source>
+			</trans-unit>
+			<trans-unit id="mod_premium_multiple_focus_keywords">
+				<source>Multiple focus keywords</source>
+			</trans-unit>
+			<trans-unit id="mod_premium_multiple_focus_keywords_descr">
+				<source>optimize a single post for up to 5 keywords</source>
+			</trans-unit>
+			<trans-unit id="mod_premium_support">
+				<source>Premium support</source>
+			</trans-unit>
+			<trans-unit id="mod_premium_support_descr">
+				<source>gain access to our 24/7 support team</source>
+			</trans-unit>
+			<trans-unit id="installed">
+				<source>Installed</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>
