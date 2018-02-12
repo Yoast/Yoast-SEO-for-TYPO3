@@ -52,7 +52,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
             function initApps() {
                 $($('.yoastSeo-analysis-focuskeyword').get().reverse()).each(function () {
-                    var focusKeywordElement = $(this).closest('.row').find('input');
+                    var focusKeywordElement = $(this).closest('.row').find('input.form-control');
                     var focusKeyword = focusKeywordElement.val();
 
                     focusKeywordElement.attr('data-yoast-keyword', 'true');
@@ -80,6 +80,11 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
                                 $('#yoastSeo-score-headline-focuskeyword').removeClass('good ok bad');
                                 $('#yoastSeo-score-headline-focuskeyword').addClass(scoreClass);
+
+                                var tmpIconElement = focusKeywordElement.closest('.panel').find('.wpseo-score-icon').first();
+                                tmpIconElement.removeClass('good ok bad');
+                                tmpIconElement.addClass(scoreClass);
+
                                 $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().removeClass('good ok bad');
                                 $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().addClass(scoreClass);
                                 $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-textual').first().html(scoreTextual);
@@ -101,13 +106,56 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
                     cnt++;
                 });
+
+                if (apps.length === 0) {
+                    apps[0] = new YoastSEO.App({
+                        snippetPreview: snippetPreview,
+                        targets: {
+                            contentOutput: 'yoastseo-analysis-readability'
+                        },
+                        callbacks: {
+                            getData: function () {
+                                return {
+                                    title: $metaSection.find('title').text(),
+                                    text: pageContent,
+                                    keyword: tx_yoast_seo.firstFocusKeyword
+                                };
+                            },
+                            saveScores: function (score) {
+                                var scoreClass = YoastSEO.scoreToRating(score / 10);
+                                var scoreTextual = scoreClass.charAt(0).toUpperCase() + scoreClass.slice(1);
+
+                                $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().removeClass('good ok bad');
+                                $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().addClass(scoreClass);
+                                $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-textual').first().html(scoreTextual);
+                            },
+                            saveContentScore: function (score) {
+                                var scoreClass = YoastSEO.scoreToRating(score / 10);
+                                var scoreTextual = scoreClass.charAt(0).toUpperCase() + scoreClass.slice(1);
+
+                                $('#yoastSeo-score-headline-readability').removeClass('good ok bad');
+                                $('#yoastSeo-score-headline-readability').addClass(scoreClass);
+                                $('#yoastSeo-score-bar-readability').find('.wpseo-score-icon').first().removeClass('good ok bad');
+                                $('#yoastSeo-score-bar-readability').find('.wpseo-score-icon').first().addClass(scoreClass);
+                                $('#yoastSeo-score-bar-readability').find('.wpseo-score-textual').first().html(scoreTextual);
+                            }
+                        },
+                        locale: $metaSection.find('locale').text(),
+                        translations: (window.tx_yoast_seo !== undefined && window.tx_yoast_seo !== null && window.tx_yoast_seo.translations !== undefined ? window.tx_yoast_seo.translations : null)
+                    });
+                }
             }
 
             initApps();
+
             $('div[id*="tx_yoastseo_focuskeyword_premium"]').find('.panel').on('click', function () {
                 setTimeout(function() {
                     initApps();
                 }, 500);
+            });
+
+            $('div[id*="tx_yoastseo_focuskeyword_premium"]').find('.panel').each(function () {
+                $(this).find('.icon-tcarecords-tx_yoast_seo_premium_focus_keywords-default .icon-markup').addClass('wpseo-score-icon').removeClass('icon-markup').html('');
             });
 
             $('input[data-yoast-keyword="true"].form-control').on('input', function() {

@@ -135,11 +135,14 @@ class SnippetPreview extends AbstractNode
         $resultArray['stylesheetFiles'][] = $publicResourcesPath . 'CSS/yoast-seo-tca.min.css';
 
         if ($this->data['tableName'] != 'pages' || in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
+            $firstFocusKeyword = YoastUtility::getFocusKeywordOfPage((int)$this->data['databaseRow']['uid'], $this->data['tableName']);
+
             $this->templateView->assign('translations', $this->getTranslations());
             $this->templateView->assign('previewUrl', $this->previewUrl);
             $this->templateView->assign('previewTargetId', $this->data['fieldName']);
             $this->templateView->assign('titleFieldSelector', $this->getFieldSelector($this->titleField));
             $this->templateView->assign('descriptionFieldSelector', $this->getFieldSelector($this->descriptionField));
+            $this->templateView->assign('focusKeyword', $firstFocusKeyword);
 
             $resultArray['requireJsModules'] = ['TYPO3/CMS/YoastSeo/Tca'];
         } else {
