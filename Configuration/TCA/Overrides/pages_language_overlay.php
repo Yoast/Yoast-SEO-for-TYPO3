@@ -234,7 +234,7 @@ $GLOBALS['TCA']['pages_language_overlay']['palettes']['metatags']['showitem'] =
     --div--;' . $llPrefix . 'pages.tabs.seo,
         --palette--;' . $llPrefix . 'pages.palettes.metadata;yoast-metadata,
         --palette--;' . $llPrefix . 'pages.palettes.readability;yoast-readability,
-        --palette--;' . $llPrefix . 'pages.palettes.focuskeyword;yoast-focuskeyword,
+        --palette--;' . $llPrefix . 'pages.palettes.seo;yoast-focuskeyword,
         --palette--;' . $llPrefix . 'pages.palettes.og;yoast-social-og,
         --palette--;' . $llPrefix . 'pages.palettes.twitter;yoast-social-twitter,
         --palette--;' . $llPrefix . 'pages.palettes.robot;yoast-robot,

@@ -22,6 +22,10 @@ use TYPO3\CMS;
  */
 class YoastUtility
 {
+    /**
+     * @var string
+     */
+    const COLUMN_NAME_FOCUSKEYWORD = 'tx_yoastseo_focuskeyword';
 
     /**
      * @param array $configuration
@@ -90,5 +94,37 @@ class YoastUtility
         }
 
         return $showPreview;
+    }
+
+    /**
+     * @param int $uid
+     * @param string $table
+     *
+     * @return string
+     */
+    public static function getFocusKeywordOfPage($uid, $table = 'pages')
+    {
+        $focusKeyword = '';
+        $record = CMS\Backend\Utility\BackendUtility::getRecord($table, $uid);
+        if (array_key_exists(self::COLUMN_NAME_FOCUSKEYWORD, $record)) {
+            $focusKeyword = $record[self::COLUMN_NAME_FOCUSKEYWORD];
+        }
+
+        $params = [
+            'keyword' => $focusKeyword,
+            'table' => $table,
+            'uid' => $uid
+        ];
+
+        if ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['get_focus_keyword']) {
+            foreach ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['get_focus_keyword'] as $_funcRef) {
+                if ($_funcRef) {
+                    $tmp = new \stdClass();
+                    CMS\Core\Utility\GeneralUtility::callUserFunction($_funcRef, $params, $tmp);
+                }
+            }
+        }
+
+        return $params['keyword'];
     }
 }

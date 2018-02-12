@@ -85,7 +85,7 @@ $GLOBALS['TCA']['tx_news_domain_model_news']['palettes']['alternativeTitles']['s
     --div--;' . 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:pages.tabs.seo,
         --palette--;' . $llPrefix . 'pages.palettes.metadata;yoast-metadata,
         --palette--;' . $llPrefix . 'pages.palettes.readability;yoast-readability,
-        --palette--;' . $llPrefix . 'pages.palettes.focuskeyword;yoast-focuskeyword,
+        --palette--;' . $llPrefix . 'pages.palettes.seo;yoast-focuskeyword,
     ',
     '',
     'after:bodytext'

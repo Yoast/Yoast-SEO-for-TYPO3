@@ -11,11 +11,6 @@ class PageLayoutHeader
 {
 
     /**
-     * @var string
-     */
-    const COLUMN_NAME = 'tx_yoastseo_focuskeyword';
-
-    /**
      * @var int
      */
     const FE_PREVIEW_TYPE = 1480321830;
@@ -126,10 +121,10 @@ class PageLayoutHeader
             return '';
         }
 
-        if (\is_array($currentPage) && array_key_exists(static::COLUMN_NAME, $currentPage)) {
-            $focusKeyword = $currentPage[static::COLUMN_NAME];
-
+        if (\is_array($currentPage)) {
             $recordId = $currentPage['uid'];
+
+            $focusKeyword = YoastUtility::getFocusKeywordOfPage($recordId, $tableName);
 
             $domain = CMS\Backend\Utility\BackendUtility::getViewDomain($currentPage['uid']);
 
@@ -224,8 +219,8 @@ class PageLayoutHeader
 
             $urlParameters = [
                 'edit' => [
-                    'pages' => [
-                        (int)$pageLayoutController->id => 'edit'
+                    $tableName => [
+                        $recordId => 'edit'
                     ]
                 ],
                 'switchToYoast' => 1,
