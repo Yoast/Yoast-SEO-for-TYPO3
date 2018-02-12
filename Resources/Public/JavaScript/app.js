@@ -63,6 +63,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
             });
 
             var $focusKeywordElement = $('#' + tx_yoast_seo.settings.targetElementId + '_focusKeyword');
+
             var snippetPreview = new YoastSEO.SnippetPreview({
                 data: {
                     title: $metaSection.find('title').text(),
@@ -93,40 +94,37 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                     getData: function () {
                         return {
                             title: $metaSection.find('title').text(),
-                            keyword: $focusKeywordElement.val(),
+                            keyword: tx_yoast_seo.settings.focusKeyword,
                             text: pageContent
                         };
                     },
                     saveScores: function (score) {
-                        $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().removeClass('good ok bad');
-                        $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().addClass(YoastSEO.scoreToRating(score / 10));
-                        $('').find('.yoastSeo-score-bar-item--scoreicon').first().removeClass('good ok bad')
-                        $seoPanel.find('.wpseo-score-icon').first().addClass(YoastSEO.scoreToRating(score / 10));
+                        var scoreClass = YoastSEO.scoreToRating(score / 10);
+                        var scoreTextual = scoreClass.charAt(0).toUpperCase() + scoreClass.slice(1);
 
-                        if (tx_yoast_seo.settings.editable == 1) {
-                            $seoPanel.find('[data-panel-focus-keyword]').text($focusKeywordElement.val());
-                            $seoPanel.find('.fa-chevron-down').addClass('fa-chevron-up').removeClass('fa-chevron-down');
-                            $seoPanel.find('.snippet-editor__heading').addClass('snippet-editor__heading--active');
-                            $seoPanel.find('[data-panel-content]').addClass('yoastPanel__content--open');
-                            $seoPanel.find('[data-panel-focus-keyword-field]').addClass('form-group__focusKeyword--open');
-                        }
+                        $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().removeClass('good ok bad');
+                        $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().addClass(scoreClass);
+                        $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-textual').first().html(scoreTextual);
 
                         $('.yoastSeo-score-bar-item').on('click', function() {
-                            var focusKeyword = '';
-                            if ($(this).find('#yoastSeo-score-bar-focuskeyword-text').html()) {
-                                focusKeyword = ': ' + $(this).find('#yoastSeo-score-bar-focuskeyword-text').html();
+                            var preContent = '';
+                            if ($(this).attr('id') == 'yoastSeo-score-bar-focuskeyword' && tx_yoast_seo.settings.focusKeyword) {
+                                preContent = '<div style="margin-bottom: 10px;"><strong>' + (app.i18n.dgettext('js-text-analysis', 'Focus keyword')) + '</strong>: ' + tx_yoast_seo.settings.focusKeyword + '</div>';
                             }
 
-                            var title = $(this).find('.yoastSeo-score-bar-item--title').text() + focusKeyword;
-                            var content = cssFile + $(this).find('.yoastSeo-score-bar-item--content').html();
+                            var title = $(this).find('.yoastSeo-score-bar-item--title').text();
+                            var content = cssFile + preContent + $(this).find('.yoastSeo-score-bar-item--content').html();
 
                             Modal.show(title, content);
                         });
                     },
                     saveContentScore: function (score) {
-                        var $scoreIconElement = $('#yoastSeo-score-bar-readability').find('.wpseo-score-icon');
-                        $scoreIconElement.first().removeClass('good ok bad');
-                        $scoreIconElement.first().addClass(YoastSEO.scoreToRating(score / 10));
+                        var scoreClass = YoastSEO.scoreToRating(score / 10);
+                        var scoreTextual = scoreClass.charAt(0).toUpperCase() + scoreClass.slice(1);
+
+                        $('#yoastSeo-score-bar-readability').find('.wpseo-score-icon').first().removeClass('good ok bad');
+                        $('#yoastSeo-score-bar-readability').find('.wpseo-score-icon').first().addClass(scoreClass);
+                        $('#yoastSeo-score-bar-readability').find('.wpseo-score-textual').first().html(scoreTextual);
                     }
                 },
                 locale: $metaSection.find('locale').text(),
@@ -136,11 +134,11 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
             $('h1.t3js-title-inlineedit').after('' +
                 '<div class="yoastSeo-score-bar">' +
                 '   <div class="yoastSeo-score-bar-item" id="yoastSeo-score-bar-readability">' +
-                '       <span class="wpseo-score-icon"></span> <span class="yoastSeo-score-bar-item--title">' + (app.i18n.dgettext('js-text-analysis', 'Readability')) + '</span>' +
+                '       <span class="wpseo-score-icon"></span> <span class="yoastSeo-score-bar-item--title">' + (app.i18n.dgettext('js-text-analysis', 'Readability')) + '</span>: <span class="wpseo-score-textual">-</span>' +
                 '       <div class="yoastSeo-score-bar-item--content" id="yoastSeo-score-bar-readability-content"></div>' +
                 '   </div>' +
                 '   <div class="yoastSeo-score-bar-item" id="yoastSeo-score-bar-focuskeyword">' +
-                '       <span class="wpseo-score-icon"></span> <span class="yoastSeo-score-bar-item--title">' + (app.i18n.dgettext('js-text-analysis', 'Focus keyword')) + '</span>: <span id="yoastSeo-score-bar-focuskeyword-text">' + tx_yoast_seo.settings.focusKeyword + '</span>' +
+                '       <span class="wpseo-score-icon"></span> <span class="yoastSeo-score-bar-item--title">' + (app.i18n.dgettext('js-text-analysis', 'SEO')) + '</span>: <span class="wpseo-score-textual">-</span>' +
                 '       <div class="yoastSeo-score-bar-item--content" id="yoastSeo-score-bar-focuskeyword-content"></div>' +
                 '   </div>' +
                 '</div>');

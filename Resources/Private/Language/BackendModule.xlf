@@ -109,7 +109,7 @@
 				<source>Advanced</source>
 			</trans-unit>
 			<trans-unit id="seoFocusKeyword">
-				<source>SEO Focus keyword</source>
+				<source>Focus keyword</source>
 			</trans-unit>
 			<trans-unit id="focusKeyword">
 				<source>Focus keyword</source>
@@ -207,8 +207,8 @@
 			<trans-unit id="pages.palettes.twitter">
 				<source>Twitter Cards</source>
 			</trans-unit>
-			<trans-unit id="pages.palettes.focuskeyword">
-				<source>Focus keyword</source>
+			<trans-unit id="pages.palettes.seo">
+				<source>SEO</source>
 			</trans-unit>
 			<trans-unit id="pages.palettes.robot">
 				<source>Robot instructions</source>

@@ -23,11 +23,6 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
             var $metaSection = $previewDocument.find('meta');
             var $contentElements = $previewDocument.find('content>element');
 
-            var $focusKeywordElement = '';
-            if (tx_yoast_seo.focusKeywordField) {
-                $focusKeywordElement = $("*[data-formengine-input-name='" + tx_yoast_seo.focusKeywordField + "']");
-            }
-
             var pageContent = '';
             $contentElements.each(function (index, element) {
                 pageContent += element.textContent;
@@ -50,47 +45,77 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
             $("*[data-formengine-input-name='" + $titleTcaSelector + "']").attr('placeholder', $metaSection.find('pageTitle').text());
 
-            $focusKeywordElement.on('input', function() {
-                $('#yoastSeo-score-bar-focuskeyword-text').html($focusKeywordElement.val());
+            var apps = [];
+            var cnt = 0;
+            var firstFocusKeyword = '';
 
-                app.getData();
-                app.runAnalyzer();
-                updateProgressBars(snippetPreview);
-            } );
 
-            var app = new YoastSEO.App({
-                snippetPreview: snippetPreview,
-                targets: {
-                    output: 'yoastseo-analysis-focuskeyword',
-                    contentOutput: 'yoastseo-analysis-readability'
-                },
-                callbacks: {
-                    getData: function () {
-                        return {
-                            title: $metaSection.find('title').text(),
-                            text: pageContent,
-                            keyword: $focusKeywordElement.val()
-                        };
-                    },
-                    saveScores: function (score) {
-                        $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().removeClass('good ok bad');
-                        $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().addClass(YoastSEO.scoreToRating(score / 10));
-                        $('#yoastSeo-score-headline-focuskeyword').removeClass('good ok bad');
-                        $('#yoastSeo-score-headline-focuskeyword').addClass(YoastSEO.scoreToRating(score / 10));
-                        updateProgressBars(snippetPreview);
-                    },
-                    saveContentScore: function (score) {
-                        $('#yoastSeo-score-bar-readability').find('.wpseo-score-icon').first().removeClass('good ok bad');
-                        $('#yoastSeo-score-bar-readability').find('.wpseo-score-icon').first().addClass(YoastSEO.scoreToRating(score / 10));
-                        $('#yoastSeo-score-headline-readability').removeClass('good ok bad');
-                        $('#yoastSeo-score-headline-readability').addClass(YoastSEO.scoreToRating(score / 10));
-                    }
-                },
-                locale: $metaSection.find('locale').text(),
-                translations: (window.tx_yoast_seo !== undefined && window.tx_yoast_seo !== null && window.tx_yoast_seo.translations !== undefined ? window.tx_yoast_seo.translations : null)
+            function initApps() {
+                $($('.yoastSeo-analysis-focuskeyword').get().reverse()).each(function () {
+                    var focusKeywordElement = $(this).closest('.row').find('input');
+                    var focusKeyword = focusKeywordElement.val();
+
+                    focusKeywordElement.attr('data-yoast-keyword', 'true');
+                    focusKeywordElement.attr('data-yoast-app-iterator', cnt);
+
+                    firstFocusKeyword = focusKeyword;
+
+                    apps[cnt] = new YoastSEO.App({
+                        snippetPreview: snippetPreview,
+                        targets: {
+                            output: $(this).attr('id'),
+                            contentOutput: 'yoastseo-analysis-readability'
+                        },
+                        callbacks: {
+                            getData: function () {
+                                return {
+                                    title: $metaSection.find('title').text(),
+                                    text: pageContent,
+                                    keyword: focusKeywordElement.val()
+                                };
+                            },
+                            saveScores: function (score) {
+                                var scoreClass = YoastSEO.scoreToRating(score / 10);
+                                var scoreTextual = scoreClass.charAt(0).toUpperCase() + scoreClass.slice(1);
+
+                                $('#yoastSeo-score-headline-focuskeyword').removeClass('good ok bad');
+                                $('#yoastSeo-score-headline-focuskeyword').addClass(scoreClass);
+                                $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().removeClass('good ok bad');
+                                $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().addClass(scoreClass);
+                                $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-textual').first().html(scoreTextual);
+                            },
+                            saveContentScore: function (score) {
+                                var scoreClass = YoastSEO.scoreToRating(score / 10);
+                                var scoreTextual = scoreClass.charAt(0).toUpperCase() + scoreClass.slice(1);
+
+                                $('#yoastSeo-score-headline-readability').removeClass('good ok bad');
+                                $('#yoastSeo-score-headline-readability').addClass(scoreClass);
+                                $('#yoastSeo-score-bar-readability').find('.wpseo-score-icon').first().removeClass('good ok bad');
+                                $('#yoastSeo-score-bar-readability').find('.wpseo-score-icon').first().addClass(scoreClass);
+                                $('#yoastSeo-score-bar-readability').find('.wpseo-score-textual').first().html(scoreTextual);
+                            }
+                        },
+                        locale: $metaSection.find('locale').text(),
+                        translations: (window.tx_yoast_seo !== undefined && window.tx_yoast_seo !== null && window.tx_yoast_seo.translations !== undefined ? window.tx_yoast_seo.translations : null)
+                    });
+
+                    cnt++;
+                });
+            }
+
+            initApps();
+            $('div[id*="tx_yoastseo_focuskeyword_premium"]').find('.panel').on('click', function () {
+                setTimeout(function() {
+                    initApps();
+                }, 500);
             });
 
-            $('form[name="editform"]').find('h1').after('<div class="yoastSeo-score-bar"><div class="yoastSeo-score-bar--item" id="yoastSeo-score-bar-readability"><span class="wpseo-score-icon"></span> ' + (app.i18n.dgettext('js-text-analysis', 'Readability')) + '</div><div class="yoastSeo-score-bar--item" id="yoastSeo-score-bar-focuskeyword"><span class="wpseo-score-icon"></span> ' + (app.i18n.dgettext('js-text-analysis', 'Focus keyword')) + ': <span id="yoastSeo-score-bar-focuskeyword-text">' + $focusKeywordElement.val() + '</span></div></div>');
+            $('input[data-yoast-keyword="true"].form-control').on('input', function() {
+                updateApp(apps[$(this).attr('data-yoast-app-iterator')], snippetPreview);
+            });
+
+            $('form[name="editform"]').find('h1').after('<div class="yoastSeo-score-bar"><div class="yoastSeo-score-bar--item" id="yoastSeo-score-bar-readability"><span class="wpseo-score-icon"></span> ' + (apps[0].i18n.dgettext('js-text-analysis', 'Readability')) + ': <span class="wpseo-score-textual">-</span></div><div class="yoastSeo-score-bar--item" id="yoastSeo-score-bar-focuskeyword"><span class="wpseo-score-icon"></span> ' + (apps[0].i18n.dgettext('js-text-analysis', 'SEO')) + ': <span class="wpseo-score-textual">-</span></div></div>');
+
             $('#yoastseo-analysis-focuskeyword').parents('.form-section').find('h4').prepend('<span class="wpseo-score-icon" id="yoastSeo-score-headline-focuskeyword"></span>');
             $('#yoastseo-analysis-readability').parents('.form-section').find('h4').prepend('<span class="wpseo-score-icon" id="yoastSeo-score-headline-readability"></span>');
 
@@ -102,9 +127,8 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 snippetPreview.changedInput();
 
                 setTimeout(function() {
-                    app.getData();
-                    app.runAnalyzer();
-                }, 1000);
+                    updateAllApps(apps, snippetPreview);
+                }, 500);
             });
 
             $("*[data-formengine-input-name='" + $descriptionTcaSelector + "']").on('input', function() {
@@ -112,8 +136,9 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 $descriptionElement.val($(this).val());
                 snippetPreview.changedInput();
 
-                app.getData();
-                app.runAnalyzer();
+                setTimeout(function() {
+                    updateAllApps(apps, snippetPreview);
+                }, 500);
             });
 
             $("*[data-formengine-input-name='" + $titleTcaSelector + "']").on('focus', updateProgressBars(snippetPreview));
@@ -131,6 +156,18 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
             updateProgressBars(snippetPreview);
         });
+
+        function updateApp(app, snippetPreview) {
+            app.getData();
+            app.runAnalyzer();
+            updateProgressBars(snippetPreview);
+        }
+
+        function updateAllApps(apps, snippetPreview) {
+            for (var i=apps.length; i>0; i--) {
+                updateApp(apps[(i - 1)], snippetPreview);
+            }
+        }
 
         function updateProgressBars(snippetPreview) {
             snippetPreview.changedInput();
