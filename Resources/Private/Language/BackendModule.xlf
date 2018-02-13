@@ -231,6 +231,15 @@
 			<trans-unit id="wrongDoktype.description">
 				<source>The Yoast SEO analysis is not available for this type of page. Please change the type of page, or make sure your administrator adds the pagetype to the allowed pagetypes for Yoast SEO.</source>
 			</trans-unit>
+			<trans-unit id="labelOk">
+				<source>OK</source>
+			</trans-unit>
+			<trans-unit id="labelBad">
+				<source>Needs improvement</source>
+			</trans-unit>
+			<trans-unit id="labelGood">
+				<source>Good</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>
