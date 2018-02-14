@@ -1,7 +1,7 @@
 @charset "UTF-8";
-h1 {
+.yoast h1 {
   color: #a4286a; }
-  h1 span {
+  .yoast h1 span {
     color: #000; }
 
 .yoast-list--usp {
