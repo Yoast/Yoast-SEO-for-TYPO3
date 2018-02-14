@@ -100,7 +100,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                     },
                     saveScores: function (score) {
                         var scoreClass = YoastSEO.scoreToRating(score / 10);
-                        var scoreTextual = scoreClass.charAt(0).toUpperCase() + scoreClass.slice(1);
+                        var scoreTextual = tx_yoast_scores[scoreClass.toLowerCase()];
 
                         $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().removeClass('good ok bad');
                         $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().addClass(scoreClass);
@@ -120,7 +120,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                     },
                     saveContentScore: function (score) {
                         var scoreClass = YoastSEO.scoreToRating(score / 10);
-                        var scoreTextual = scoreClass.charAt(0).toUpperCase() + scoreClass.slice(1);
+                        var scoreTextual = tx_yoast_scores[scoreClass.toLowerCase()];
 
                         $('#yoastSeo-score-bar-readability').find('.wpseo-score-icon').first().removeClass('good ok bad');
                         $('#yoastSeo-score-bar-readability').find('.wpseo-score-icon').first().addClass(scoreClass);

@@ -124,25 +124,25 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
                 $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']
             )
         ],
-        'tx_yoastseo_twitter_title' => [
+        'twitter_title' => [
             'label' => $llPrefix . 'twitter.title',
             'exclude' => true,
             'config' => [
                 'type' => 'input'
             ]
         ],
-        'tx_yoastseo_twitter_description' => [
+        'twitter_description' => [
             'label' => $llPrefix . 'twitter.description',
             'exclude' => true,
             'config' => [
                 'type' => 'input'
             ]
         ],
-        'tx_yoastseo_twitter_image' => [
+        'twitter_image' => [
             'label' => $llPrefix . 'twitter.image',
             'exclude' => true,
             'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig(
-                'tx_yoastseo_twitter_image',
+                'twitter_image',
                 [
                     // Use the imageoverlayPalette instead of the basicoverlayPalette
                     'foreign_types' => [
@@ -212,16 +212,16 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     '
     --linebreak--, og_title, 
     --linebreak--, og_description, 
-    --linebreak--, tx_yoastseo_facebook_image 
+    --linebreak--, og_image 
     '
 );
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
     'pages_language_overlay',
     'yoast-social-twitter',
     '
-    --linebreak--, tx_yoastseo_twitter_title, 
-    --linebreak--, tx_yoastseo_twitter_description, 
-    --linebreak--, tx_yoastseo_twitter_image 
+    --linebreak--, twitter_title, 
+    --linebreak--, twitter_description, 
+    --linebreak--, twitter_image 
     '
 );
 

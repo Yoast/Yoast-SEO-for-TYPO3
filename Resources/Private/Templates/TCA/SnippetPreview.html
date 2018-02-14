@@ -9,6 +9,12 @@
                 tx_yoast_seo.titlePrepend = '{titlePrepend}';
                 tx_yoast_seo.titleAppend = '{titleAppend}';
                 tx_yoast_seo.firstFocusKeyword = '{focusKeyword}';
+
+                var tx_yoast_scores = new Array();
+                tx_yoast_scores["bad"] = "{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelBad' )}";
+                tx_yoast_scores["ok"] = "{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelOk' )}";
+                tx_yoast_scores["good"] = "{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelGood' )}";
+
                 <f:if condition="{translations}">
                 tx_yoast_seo.translations = {translations};
                 </f:if>
@@ -30,8 +36,8 @@
 							</span>
 						</div>
 						<div class="media-body">
-							<h4 class="callout-title"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:wrongDoktype.title" /></h4>
 							<div class="callout-body">
+								<h4 class="callout-title"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:wrongDoktype.title" /></h4>
 								<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:wrongDoktype.description" />
 							</div>
 						</div>

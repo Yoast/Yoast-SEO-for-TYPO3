@@ -180,9 +180,17 @@ class PageLayoutHeader
                 );
             }
 
+            $labelBad = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelBad');
+            $labelOk = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelOk');
+            $labelGood = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelGood');
+
             $this->pageRenderer->addJsInlineCode(
                 'YoastSEO settings',
                 'var tx_yoast_seo = tx_yoast_seo || {};'
+                . 'var tx_yoast_scores = new Array();'
+                . 'tx_yoast_scores["bad"] = "' . $labelBad . '";'
+                . 'tx_yoast_scores["ok"] = "' . $labelOk . '";'
+                . 'tx_yoast_scores["good"] = "' . $labelGood . '";'
                 . ' tx_yoast_seo.settings = '
                 . json_encode(
                     array(
@@ -231,8 +239,8 @@ class PageLayoutHeader
             $needUpdateText = '';
             if (ConvertUtility::convert(true)) {
                 $updateUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl(
-                    'web_YoastSeoSeoPlugin',
-                    ['tx_yoastseo_web_yoastseoseoplugin' => ['action' => 'update']]
+                    'yoast_YoastSeoUpdate',
+                    []
                 );
                 $needUpdateText = '<a href="' . $updateUrl . '" style="margin-left: 10px; color: #f00">';
                 $needUpdateText .= $GLOBALS['LANG']->sL(

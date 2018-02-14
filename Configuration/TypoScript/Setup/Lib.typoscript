@@ -202,3 +202,20 @@ lib.yoastSEO {
         }
     }
 }
+
+[globalVar = GP:L > 0]
+    lib.yoastSEO {
+        og {
+            images.references.table = pages_language_overlay
+            images.references.uid >
+            images.references.pid.data = page:uid
+        }
+
+        twitter {
+            images.references.table = pages_language_overlay
+            images.references.uid >
+            images.references.pid.data = page:uid
+        }
+    }
+
+[global]
