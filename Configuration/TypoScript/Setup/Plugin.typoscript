@@ -61,6 +61,14 @@ plugin.tx_yoastseo {
             ogImages.renderObj.typolink.parameter.stdWrap.cObject.file.width < plugin.tx_yoastseo.settings.og.image.width
             ogImages.renderObj.typolink.parameter.stdWrap.cObject.file.height < plugin.tx_yoastseo.settings.og.image.height
 
+            ogImages.stdWrap.ifEmpty.cObject = TEXT
+            ogImages.stdWrap.ifEmpty.cObject =< lib.yoastSEO.og.fallBackImages
+            ogImages.stdWrap.ifEmpty.cObject {
+                renderObj.wrap = <meta property="og:image" content="|" />
+                renderObj.typolink.parameter.stdWrap.cObject.file.width < plugin.tx_yoastseo.settings.og.image.width
+                renderObj.typolink.parameter.stdWrap.cObject.file.height < plugin.tx_yoastseo.settings.og.image.height
+            }
+
             twitterSite =< lib.yoastSEO.twitter.site
             twitterSite.stdWrap.required = 1
             twitterSite.stdWrap.wrap = <meta name="twitter:site" content="|" />
@@ -81,6 +89,15 @@ plugin.tx_yoastseo {
             twitterImages.renderObj.wrap = <meta name="twitter:image" content="|" />
             twitterImages.renderObj.typolink.parameter.stdWrap.cObject.file.width < plugin.tx_yoastseo.settings.twitter.image.width
             twitterImages.renderObj.typolink.parameter.stdWrap.cObject.file.height < plugin.tx_yoastseo.settings.twitter.image.height
+
+            twitterImages.stdWrap.ifEmpty.cObject = TEXT
+            twitterImages.stdWrap.ifEmpty.cObject =< lib.yoastSEO.twitter.fallBackImages
+            twitterImages.stdWrap.ifEmpty.cObject {
+                renderObj.wrap = <meta name="twitter:image" content="|" />
+                renderObj.typolink.parameter.stdWrap.cObject.file.width < plugin.tx_yoastseo.settings.og.image.width
+                renderObj.typolink.parameter.stdWrap.cObject.file.height < plugin.tx_yoastseo.settings.og.image.height
+            }
+
         }
     }
 }

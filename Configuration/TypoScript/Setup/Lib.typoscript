@@ -161,6 +161,29 @@ lib.yoastSEO {
 
             }
         }
+
+        fallBackImages = FILES
+        fallBackImages {
+            references {
+                table = pages
+                uid.data = leveluid : 0
+                fieldName = tx_yoastseo_settings_facebook_image
+            }
+            renderObj = TEXT
+            renderObj {
+                typolink {
+                    parameter.stdWrap {
+                        cObject = IMG_RESOURCE
+                        cObject {
+                            file.import.data = file:current:uid
+                            file.treatIdAsReference = 1
+                        }
+                    }
+                    returnLast = url
+                    forceAbsoluteUrl = 1
+                }
+            }
+        }
     }
 
     twitter {
@@ -198,6 +221,29 @@ lib.yoastSEO {
                     forceAbsoluteUrl = 1
                 }
 
+            }
+        }
+
+        fallBackImages = FILES
+        fallBackImages {
+            references {
+                table = pages
+                uid.data = leveluid : 0
+                fieldName = tx_yoastseo_settings_twitter_image
+            }
+            renderObj = TEXT
+            renderObj {
+                typolink {
+                    parameter.stdWrap {
+                        cObject = IMG_RESOURCE
+                        cObject {
+                            file.import.data = file:current:uid
+                            file.treatIdAsReference = 1
+                        }
+                    }
+                    returnLast = url
+                    forceAbsoluteUrl = 1
+                }
             }
         }
     }

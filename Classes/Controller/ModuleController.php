@@ -165,18 +165,26 @@ class ModuleController extends ActionController
      */
     public function settingsAction()
     {
+        $tmp = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow('uid', 'pages', 'deleted=0 AND hidden=0 AND is_siteroot=1');
+        $pageId = (int)$tmp['uid'];
+
+        $this->view->assign('pageId', $pageId);
     }
 
     public function saveSettingsAction()
     {
-        $pageId = (int)$this->request->getArgument('id');
+        $tmp = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow('uid', 'pages', 'deleted=0 AND hidden=0 AND is_siteroot=1');
+        $pageId = (int)$tmp['uid'];
+
         $languageId = (int)$this->request->getArgument('language');
         $lang = $this->getLanguageService();
+
+        $extraTableRecords = [];
 
         if ($this->request->hasArgument('twitterImage')) {
             $twitterImage = $this->request->getArgument('twitterImage');
 
-            if ($this->request->hasArgument('twitterDeleteImage') ||
+            if (($this->request->hasArgument('twitterDeleteImage') && !empty($this->request->getArgument('twitterDeleteImage'))) ||
                 (array_key_exists('tmp_name', $twitterImage) && !empty($twitterImage['tmp_name']))) {
                 $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
                     'sys_file_reference',
@@ -195,11 +203,11 @@ class ModuleController extends ActionController
                         $twitterImage['name']
                     );
 
-                    $newId = 'NEW1234';
+                    $newId = 'NEW12345';
                     $extraTableRecords['sys_file_reference'][$newId] = [
                         'table_local' => 'sys_file',
                         'uid_local' => $newFile->getUid(),
-                        'tablenames' => 'tx_yoastseo_settings',
+                        'tablenames' => 'pages',
                         'uid_foreign' => $pageId,
                         'fieldname' => 'tx_yoastseo_settings_twitter_image',
                         'pid' => $pageId
@@ -210,8 +218,7 @@ class ModuleController extends ActionController
 
         if ($this->request->hasArgument('facebookImage')) {
             $facebookImage = $this->request->getArgument('facebookImage');
-
-            if ($this->request->hasArgument('facebookDeleteImage') ||
+            if (($this->request->hasArgument('facebookDeleteImage') && !empty($this->request->getArgument('facebookDeleteImage'))) ||
                 (array_key_exists('tmp_name', $facebookImage) && !empty($facebookImage['tmp_name']))) {
                 $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
                     'sys_file_reference',
@@ -230,11 +237,11 @@ class ModuleController extends ActionController
                         $facebookImage['name']
                     );
 
-                    $newId = 'NEW1234';
+                    $newId = 'NEW54321';
                     $extraTableRecords['sys_file_reference'][$newId] = [
                         'table_local' => 'sys_file',
                         'uid_local' => $newFile->getUid(),
-                        'tablenames' => 'tx_yoastseo_settings',
+                        'tablenames' => 'pages',
                         'uid_foreign' => $pageId,
                         'fieldname' => 'tx_yoastseo_settings_facebook_image',
                         'pid' => $pageId
