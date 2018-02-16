@@ -5,6 +5,11 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## 2.0.1 February 16, 2018
+### Fixed
+* You can now set fallback images for social sharing again
+* Fixed TypoScript config to make it easier to override width and height of images for social sharing
+
 ## 2.0.0 February 13, 2018
 ### Added
 * Possibility to integrate Yoast SEO for TYPO3 in records of third party plugins
