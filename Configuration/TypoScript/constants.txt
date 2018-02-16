@@ -11,6 +11,8 @@ plugin.tx_yoastseo {
 		titleField = og_title
 		descriptionField = og_description
 		imageField = og_image
+		imageWidth = 1200c
+		imageHeight = 628c
 
 		fbAdmins =
 		fbAppId =
@@ -20,6 +22,8 @@ plugin.tx_yoastseo {
 		titleField = twitter_title
 		descriptionField = twitter_description
 		imageField = twitter_image
+		imageWidth = 1200c
+		imageHeight = 628c
 
 		imageMaxWidth =
 		site =
