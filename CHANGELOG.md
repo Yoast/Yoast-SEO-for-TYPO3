@@ -5,6 +5,11 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## 2.0.2 February 26, 2018
+### Fixed
+* Before showing the snippet preview in the Page module, we will now check if the user has the permissions for the right backend module 
+* Fixed some linting issues causing some CI processes to fail
+
 ## 2.0.1 February 16, 2018
 ### Fixed
 * You can now set fallback images for social sharing again
