@@ -31,9 +31,9 @@ class PageMetaRenderer implements SingletonInterface
             && isset(
                 $config['plugin.']['tx_yoastseo.']['settings.'],
                 $config['plugin.']['tx_yoastseo.']['view.'],
-                $config['config.']['yoast_seo.']['enabled']
+                $GLOBALS['TSFE']->config['config']['yoast_seo.']['enabled']
             )
-            && (int) $config['config.']['yoast_seo.']['enabled'] !== 0
+            && (int) $GLOBALS['TSFE']->config['config']['yoast_seo.']['enabled'] !== 0
             && $GLOBALS['TSFE']->cObj instanceof ContentObjectRenderer
         ) {
             $tagsToRender = [];
