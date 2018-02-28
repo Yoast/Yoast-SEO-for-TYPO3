@@ -108,7 +108,7 @@ class YoastUtility
     {
         $focusKeyword = '';
         $record = CMS\Backend\Utility\BackendUtility::getRecord($table, $uid);
-        if (array_key_exists(self::COLUMN_NAME_FOCUSKEYWORD, $record)) {
+        if (\is_array($record) && array_key_exists(self::COLUMN_NAME_FOCUSKEYWORD, $record)) {
             $focusKeyword = $record[self::COLUMN_NAME_FOCUSKEYWORD];
         }
 
