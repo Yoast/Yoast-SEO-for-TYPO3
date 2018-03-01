@@ -39,6 +39,9 @@
 			<trans-unit id="installed">
 				<source>Installed</source>
 			</trans-unit>
+			<trans-unit id="not_installed">
+				<source>Not installed</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

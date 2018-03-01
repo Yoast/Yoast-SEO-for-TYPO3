@@ -167,6 +167,10 @@ class ModuleController extends ActionController
     {
     }
 
+    public function premiumAction()
+    {
+    }
+
     public function saveSettingsAction()
     {
         $pageId = (int)$this->request->getArgument('id');
