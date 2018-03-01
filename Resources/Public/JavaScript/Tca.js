@@ -148,6 +148,8 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
             initApps();
 
+            $('*[data-yoast-trigger="true"]').trigger('dataReceived', [pageContent, $metaSection.find('locale').text()]);
+
             $('div[id*="tx_yoastseo_focuskeyword_premium"]').find('.panel').on('click', function () {
                 setTimeout(function() {
                     initApps();
