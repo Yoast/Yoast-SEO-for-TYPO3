@@ -45,7 +45,7 @@ If there is no ticket for your issue, submit it first, following the above guide
 
 ## Making Changes
 
-* Fork the repository on GitHub (make sure to use the trunk branch, not master).
+* Fork the repository on GitHub.
 * Make the changes to your forked repository.
 * When committing, reference your issue (if present) and include a note about the fix.
 * Push the changes to your fork and submit a pull request to the 'master' branch of the Yoast SEO for TYPO3 repository.
