@@ -243,6 +243,9 @@
 			<trans-unit id="labelGood">
 				<source>Good</source>
 			</trans-unit>
+			<trans-unit id="thisPageIsCornerstoneContent">
+				<source><![CDATA[This page is <a href="%s" target="_blank">cornerstone content</a>]]></source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>
