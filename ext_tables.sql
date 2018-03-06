@@ -16,6 +16,10 @@ CREATE TABLE pages (
 	tx_yoastseo_hide_snippet_preview tinyint(3) DEFAULT '0' NOT NULL,
 	no_index tinyint(3) DEFAULT '0' NOT NULL,
 	no_follow tinyint(3) DEFAULT '0' NOT NULL,
+	tx_yoastseo_cornerstone tinyint(3) DEFAULT '0' NOT NULL,
+	tx_yoastseo_score_readability varchar(50) DEFAULT '' NOT NULL,
+	tx_yoastseo_score_seo varchar(50) DEFAULT '' NOT NULL,
+	KEY tx_yoastseo_cornerstone (tx_yoastseo_cornerstone),
 );
 
 #
@@ -32,8 +36,12 @@ CREATE TABLE pages_language_overlay (
 	twitter_title varchar(255) DEFAULT '' NOT NULL,
 	twitter_description varchar(255) DEFAULT '' NOT NULL,
 	twitter_image int(11) DEFAULT '0' NOT NULL,
+	tx_yoastseo_cornerstone tinyint(3) DEFAULT '0' NOT NULL,
+	tx_yoastseo_score_readability varchar(50) DEFAULT '' NOT NULL,
+	tx_yoastseo_score_seo varchar(50) DEFAULT '' NOT NULL,
 	no_index tinyint(3) DEFAULT '0' NOT NULL,
 	no_follow tinyint(3) DEFAULT '0' NOT NULL,
+	KEY tx_yoastseo_cornerstone (tx_yoastseo_cornerstone),
 );
 
 #

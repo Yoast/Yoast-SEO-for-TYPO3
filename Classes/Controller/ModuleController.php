@@ -171,6 +171,10 @@ class ModuleController extends ActionController
         $this->view->assign('pageId', $pageId);
     }
 
+    public function premiumAction()
+    {
+    }
+
     public function saveSettingsAction()
     {
         $tmp = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow('uid', 'pages', 'deleted=0 AND hidden=0 AND is_siteroot=1');

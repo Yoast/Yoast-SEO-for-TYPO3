@@ -160,6 +160,24 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
                 ],
                 $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']
             )
+        ],
+        'tx_yoastseo_cornerstone' => [
+            'label' => '',
+            'exclude' => true,
+            'config' => [
+                'type' => 'text',
+                'renderType' => 'cornerstone'
+            ]
+        ],
+        'tx_yoastseo_score_readability' => [
+            'config' => [
+                'type' => 'passthrough'
+            ]
+        ],
+        'tx_yoastseo_score_seo' => [
+            'config' => [
+                'type' => 'passthrough'
+            ]
         ]
     ]
 );
@@ -171,6 +189,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     --linebreak--, tx_yoastseo_snippetpreview,
     --linebreak--, seo_title,
     --linebreak--, description,
+    --linebreak--, tx_yoastseo_cornerstone
     '
 );
 
