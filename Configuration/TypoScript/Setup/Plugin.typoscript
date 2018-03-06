@@ -1,9 +1,9 @@
 plugin.tx_yoastseo {
     settings {
-        og.image.width = 640c
-        og.image.height = 480c
-        twitter.image.width = 640c
-        twitter.image.height = 480c
+        og.image.width = {$plugin.tx_yoastseo.og.imageWidth}
+        og.image.height = {$plugin.tx_yoastseo.og.imageHeight}
+        twitter.image.width = {$plugin.tx_yoastseo.twitter.imageWidth}
+        twitter.image.height = {$plugin.tx_yoastseo.twitter.imageHeight}
 
         titleFieldName = {$plugin.tx_yoastseo.titleField}
         descriptionFieldName = {$plugin.tx_yoastseo.descriptionField}
@@ -58,8 +58,16 @@ plugin.tx_yoastseo {
 
             ogImages =< lib.yoastSEO.og.images
             ogImages.renderObj.wrap = <meta property="og:image" content="|" />
-            ogImages.renderObj.typolink.parameter.stdWrap.cObject.file.width < plugin.tx_yoastseo.settings.og.image.width
-            ogImages.renderObj.typolink.parameter.stdWrap.cObject.file.height < plugin.tx_yoastseo.settings.og.image.height
+            ogImages.renderObj.typolink.parameter.stdWrap.cObject.file.width = {$plugin.tx_yoastseo.og.imageWidth}
+            ogImages.renderObj.typolink.parameter.stdWrap.cObject.file.height = {$plugin.tx_yoastseo.og.imageHeight}
+
+            ogImages.stdWrap.ifEmpty.cObject = TEXT
+            ogImages.stdWrap.ifEmpty.cObject =< lib.yoastSEO.og.fallBackImages
+            ogImages.stdWrap.ifEmpty.cObject {
+                renderObj.wrap = <meta property="og:image" content="|" />
+                renderObj.typolink.parameter.stdWrap.cObject.file.width = {$plugin.tx_yoastseo.og.imageWidth}
+                renderObj.typolink.parameter.stdWrap.cObject.file.height = {$plugin.tx_yoastseo.og.imageHeight}
+            }
 
             twitterSite =< lib.yoastSEO.twitter.site
             twitterSite.stdWrap.required = 1
@@ -79,8 +87,17 @@ plugin.tx_yoastseo {
 
             twitterImages =< lib.yoastSEO.twitter.images
             twitterImages.renderObj.wrap = <meta name="twitter:image" content="|" />
-            twitterImages.renderObj.typolink.parameter.stdWrap.cObject.file.width < plugin.tx_yoastseo.settings.twitter.image.width
-            twitterImages.renderObj.typolink.parameter.stdWrap.cObject.file.height < plugin.tx_yoastseo.settings.twitter.image.height
+            twitterImages.renderObj.typolink.parameter.stdWrap.cObject.file.width = {$plugin.tx_yoastseo.twitter.imageWidth}
+            twitterImages.renderObj.typolink.parameter.stdWrap.cObject.file.height = {$plugin.tx_yoastseo.twitter.imageHeight}
+
+            twitterImages.stdWrap.ifEmpty.cObject = TEXT
+            twitterImages.stdWrap.ifEmpty.cObject =< lib.yoastSEO.twitter.fallBackImages
+            twitterImages.stdWrap.ifEmpty.cObject {
+                renderObj.wrap = <meta name="twitter:image" content="|" />
+                renderObj.typolink.parameter.stdWrap.cObject.file.width = {$plugin.tx_yoastseo.twitter.imageWidth}
+                renderObj.typolink.parameter.stdWrap.cObject.file.height = {$plugin.tx_yoastseo.twitter.imageHeight}
+            }
+
         }
     }
 }

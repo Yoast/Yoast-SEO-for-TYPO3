@@ -36,7 +36,7 @@ class YoastUtility
     public static function getAllowedDoktypes($configuration = null, $returnInString = false)
     {
         // By default only add normal pages
-        $allowedDoktypes = [1];
+        $allowedDoktypes = [];
 
         if ($configuration === null) {
             /** @var CMS\Extbase\Object\ObjectManager $objectManager */
@@ -59,6 +59,8 @@ class YoastUtility
                 }
             }
         }
+
+        $allowedDoktypes = ($allowedDoktypes) ?: [1];
 
         if ($returnInString) {
             return implode(',', $allowedDoktypes);
@@ -106,7 +108,7 @@ class YoastUtility
     {
         $focusKeyword = '';
         $record = CMS\Backend\Utility\BackendUtility::getRecord($table, $uid);
-        if (array_key_exists(self::COLUMN_NAME_FOCUSKEYWORD, $record)) {
+        if (\is_array($record) && array_key_exists(self::COLUMN_NAME_FOCUSKEYWORD, $record)) {
             $focusKeyword = $record[self::COLUMN_NAME_FOCUSKEYWORD];
         }
 

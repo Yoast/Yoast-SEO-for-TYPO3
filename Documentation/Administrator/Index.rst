@@ -111,6 +111,32 @@ title by using these constants in TypoScript:
         titleAppend = - append title
     }
 
+Set different fallback images for each site
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+There is a settings panel which you can use to set fallback images for opengraph and Twitter. These will then be used for
+your site. If you have multiple sites however, there is a need to set different fallback images for each site. This is
+possible by using the opengraph and Twitter image fields on the root page of each respective site. You can then use the
+following TypoScript to use those images as fallback images:
+
+.. code-block:: typoscript
+
+    lib.yoastSEO {
+        og {
+            fallBackImages {
+                references {
+                    fieldName = og_image
+                }
+            }
+        }
+        twitter {
+            fallBackImages {
+                references {
+                    fieldName = twitter_image
+                }
+            }
+        }
+    }
+
 Access rights
 ~~~~~~~~~~~~~
 Since version 2 of Yoast SEO for TYPO3, you can set permissions by setting the permissions to fields and backend modules

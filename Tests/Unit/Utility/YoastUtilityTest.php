@@ -105,7 +105,7 @@ class YoastUtilityTest extends UnitTestCase
                         'backend_user_section' => 6
                     ]
                 ],
-                [1, 6]
+                [6]
             ],
             [
                 [

@@ -36,6 +36,9 @@
 			<trans-unit id="og.description">
 				<source>Description</source>
 			</trans-unit>
+			<trans-unit id="og.image">
+				<source>Image</source>
+			</trans-unit>
 			<trans-unit id="facebook.image">
 				<source>Image</source>
 			</trans-unit>

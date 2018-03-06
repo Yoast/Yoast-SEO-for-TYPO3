@@ -1,7 +1,9 @@
-h1 {
-	color: $yoast_color_headings;
+.yoast {
+	h1 {
+		color: $yoast_color_headings;
 
-	span {
-		color: #000;
+		span {
+			color: #000;
+		}
 	}
 }
