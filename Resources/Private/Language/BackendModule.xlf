@@ -87,6 +87,9 @@
 			<trans-unit id="twitter.image.no">
 				<source>No image set</source>
 			</trans-unit>
+			<trans-unit id="cornerstoneContent">
+				<source>This page is cornerstone content</source>
+			</trans-unit>
 			<trans-unit id="canonical">
 				<source>Canonical URL</source>
 			</trans-unit>

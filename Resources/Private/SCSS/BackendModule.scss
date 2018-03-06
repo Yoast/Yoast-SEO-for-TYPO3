@@ -1,4 +1,6 @@
 @import "./Variables";
+@import "../../../node_modules/yoastseo/css/colors";
+@import "../../../node_modules/yoastseo/css/analysis";
 @import "./BackendModule/headings";
 @import "./BackendModule/lists";
 @import "./BackendModule/buttons";
@@ -76,4 +78,20 @@
 
 		}
 	}
+
+	&-overview {
+		&-filters {
+			margin-bottom: 20px;
+		}
+	}
+}
+
+
+.wpseo-score-icon {
+	float: left;
+	width: 12px;
+	height: 12px;
+	margin: 3px 10px 0 0;
+	border-radius: 50%;
+	background: #888;
 }

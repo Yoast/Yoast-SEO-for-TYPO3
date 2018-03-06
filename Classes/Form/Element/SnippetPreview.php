@@ -142,6 +142,9 @@ class SnippetPreview extends AbstractNode
             $this->templateView->assign('previewTargetId', $this->data['fieldName']);
             $this->templateView->assign('titleFieldSelector', $this->getFieldSelector($this->titleField));
             $this->templateView->assign('descriptionFieldSelector', $this->getFieldSelector($this->descriptionField));
+            $this->templateView->assign('scoreReadabilityFieldSelector', $this->getFieldSelector('tx_yoastseo_score_readability'));
+            $this->templateView->assign('databaseRow', $this->data['databaseRow']);
+            $this->templateView->assign('scoreSeoFieldSelector', $this->getFieldSelector('tx_yoastseo_score_seo'));
             $this->templateView->assign('focusKeyword', $firstFocusKeyword);
 
             $resultArray['requireJsModules'] = ['TYPO3/CMS/YoastSeo/Tca'];

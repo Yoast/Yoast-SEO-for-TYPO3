@@ -1,0 +1,103 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+		xmlns:core="http://typo3.org/ns/TYPO3/CMS/Core/ViewHelpers"
+		data-namespace-typo3-fluid="true"><f:if condition="{configuration.insertAbove}">
+
+	<f:render section="paginator" arguments="{pagination: pagination, configuration: configuration}" />
+</f:if>
+<f:renderChildren arguments="{contentArguments}" />
+
+<f:if condition="{configuration.insertBelow}">
+	<f:render section="paginator" arguments="{pagination: pagination, configuration: configuration}" />
+</f:if>
+
+<f:section name="paginator">
+	<tr>
+		<td class="col-title col-responsive nowrap" colspan="6">
+			<nav class="pagination-wrap">
+				<ul class="pagination pagination-block">
+					<f:if condition="{pagination.current} > 1">
+						<f:then>
+							<li>
+								<f:widget.link addQueryStringMethod="{configuration.addQueryStringMethod}" section="{configuration.section}">
+									<core:icon identifier="actions-view-paging-first" />
+								</f:widget.link>
+							</li>
+							<li>
+								<f:widget.link rel="prev" arguments="{currentPage: pagination.previousPage}" addQueryStringMethod="{configuration.addQueryStringMethod}" section="{configuration.section}" >
+									<core:icon identifier="actions-view-paging-previous" />
+								</f:widget.link>
+							</li>
+						</f:then>
+						<f:else>
+							<li class="disabled">
+								<span>
+									<core:icon identifier="actions-view-paging-first" />
+								</span>
+							</li>
+							<li class="disabled">
+								<span>
+									<core:icon identifier="actions-view-paging-previous" />
+								</span>
+							</li>
+						</f:else>
+					</f:if>
+					<f:if condition="{pagination.hasLessPages}">
+						<li><span>…</span></li>
+					</f:if>
+					<f:for each="{pagination.pages}" as="page">
+						<f:if condition="{page.isCurrent}">
+							<f:then>
+								<li class="current">
+									<span><strong>{page.number}</strong></span>
+								</li>
+							</f:then>
+							<f:else>
+								<li>
+									<f:if condition="{page.number} > 1">
+										<f:then>
+											<f:widget.link arguments="{currentPage: page.number}" addQueryStringMethod="{configuration.addQueryStringMethod}" section="{configuration.section}">{page.number}</f:widget.link>
+										</f:then>
+										<f:else>
+											<f:widget.link addQueryStringMethod="{configuration.addQueryStringMethod}" section="{configuration.section}">{page.number}</f:widget.link>
+										</f:else>
+									</f:if>
+								</li>
+							</f:else>
+						</f:if>
+					</f:for>
+					<f:if condition="{pagination.hasMorePages}">
+						<li><span>…</span></li>
+					</f:if>
+					<f:if condition="{pagination.nextPage}">
+						<f:then>
+							<li>
+								<f:widget.link rel="next" arguments="{currentPage: pagination.nextPage}" addQueryStringMethod="{configuration.addQueryStringMethod}" section="{configuration.section}">
+									<core:icon identifier="actions-view-paging-next" />
+								</f:widget.link>
+							</li>
+							<li>
+								<f:widget.link arguments="{currentPage: pagination.numberOfPages}" addQueryStringMethod="{configuration.addQueryStringMethod}" section="{configuration.section}">
+									<core:icon identifier="actions-view-paging-last" />
+								</f:widget.link>
+							</li>
+						</f:then>
+						<f:else>
+							<li class="disabled">
+								<span>
+									<core:icon identifier="actions-view-paging-next" />
+								</span>
+							</li>
+							<li class="disabled">
+								<span>
+									<core:icon identifier="actions-view-paging-last" />
+								</span>
+							</li>
+						</f:else>
+					</f:if>
+				</ul>
+			</nav>
+
+		</td>
+	</tr>
+</f:section>
+</html>

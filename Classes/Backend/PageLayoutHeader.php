@@ -198,6 +198,7 @@ class PageLayoutHeader
                         'preview' => $previewDataUrl,
                         'recordId' => $recordId,
                         'recordTable' => $tableName,
+                        'cornerstone' => $currentPage['tx_yoastseo_cornerstone'],
                         'targetElementId' => $targetElementId,
                         'editable' => 0,
                         'disableSlug' => 1

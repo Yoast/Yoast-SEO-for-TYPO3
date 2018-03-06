@@ -78,6 +78,8 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                                 var scoreClass = YoastSEO.scoreToRating(score / 10);
                                 var scoreTextual = tx_yoast_scores[scoreClass.toLowerCase()];
 
+                                $('*[name="' + $scoreSeoFieldSelector + '"]').val(scoreClass);
+
                                 $('#yoastSeo-score-headline-focuskeyword').removeClass('good ok bad');
                                 $('#yoastSeo-score-headline-focuskeyword').addClass(scoreClass);
 
@@ -93,6 +95,8 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                                 var scoreClass = YoastSEO.scoreToRating(score / 10);
                                 var scoreTextual = tx_yoast_scores[scoreClass.toLowerCase()];
 
+                                $('*[name="' + $scoreReadabilityFieldSelector + '"]').val(scoreClass);
+
                                 $('#yoastSeo-score-headline-readability').removeClass('good ok bad');
                                 $('#yoastSeo-score-headline-readability').addClass(scoreClass);
                                 $('#yoastSeo-score-bar-readability').find('.wpseo-score-icon').first().removeClass('good ok bad');
@@ -104,6 +108,10 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                         translations: (window.tx_yoast_seo !== undefined && window.tx_yoast_seo !== null && window.tx_yoast_seo.translations !== undefined ? window.tx_yoast_seo.translations : null)
                     });
 
+                    var cornerstoneField = $('*[name="' + $cornerstoneFieldSelector + '"]');
+                    if (cornerstoneField.val() == 1) {
+                        apps[cnt].switchAssessors(true);
+                    }
                     cnt++;
                 });
 
@@ -125,6 +133,8 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                                 var scoreClass = YoastSEO.scoreToRating(score / 10);
                                 var scoreTextual = tx_yoast_scores[scoreClass.toLowerCase()];
 
+                                $('*[name="' + $scoreSeoFieldSelector + '"]').val(scoreClass);
+
                                 $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().removeClass('good ok bad');
                                 $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-icon').first().addClass(scoreClass);
                                 $('#yoastSeo-score-bar-focuskeyword').find('.wpseo-score-textual').first().html(scoreTextual);
@@ -132,6 +142,8 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                             saveContentScore: function (score) {
                                 var scoreClass = YoastSEO.scoreToRating(score / 10);
                                 var scoreTextual = tx_yoast_scores[scoreClass.toLowerCase()];
+
+                                $('*[name="' + $scoreReadabilityFieldSelector + '"]').val(scoreClass);
 
                                 $('#yoastSeo-score-headline-readability').removeClass('good ok bad');
                                 $('#yoastSeo-score-headline-readability').addClass(scoreClass);
@@ -143,6 +155,12 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                         locale: $metaSection.find('locale').text(),
                         translations: (window.tx_yoast_seo !== undefined && window.tx_yoast_seo !== null && window.tx_yoast_seo.translations !== undefined ? window.tx_yoast_seo.translations : null)
                     });
+
+                    var cornerstoneField = $('*[name="' + $cornerstoneFieldSelector + '"]');
+                    if (cornerstoneField.val() == 1) {
+                        apps[0].switchAssessors(true);
+                    }
+
                 }
             }
 
@@ -191,6 +209,10 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 }, 500);
             });
 
+            $("*[data-formengine-input-name='" + $cornerstoneFieldSelector + "']").on('change', function() {
+                updateAllApps(apps, snippetPreview);
+            });
+
             $("*[data-formengine-input-name='" + $titleTcaSelector + "']").on('focus', updateProgressBars(snippetPreview));
             $("*[data-formengine-input-name='" + $descriptionTcaSelector + "']").on('focus', updateProgressBars(snippetPreview));
 
@@ -208,6 +230,13 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
         });
 
         function updateApp(app, snippetPreview) {
+            var cornerstoneField = $('*[name="' + $cornerstoneFieldSelector + '"]');
+            if (cornerstoneField.val() == 1) {
+                app.switchAssessors(true);
+            } else {
+                app.switchAssessors(false);
+            }
+
             app.getData();
             app.runAnalyzer();
             updateProgressBars(snippetPreview);

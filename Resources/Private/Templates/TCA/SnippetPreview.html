@@ -21,10 +21,14 @@
 
                 $titleTcaSelector = '{titleFieldSelector}';
                 $descriptionTcaSelector = '{descriptionFieldSelector}';
+                $scoreReadabilityFieldSelector = '{scoreReadabilityFieldSelector}';
+                $scoreSeoFieldSelector = '{scoreSeoFieldSelector}';
                 </f:format.raw>
 			</script>
 
 			<div id="{previewTargetId}"></div>
+			<input type="hidden" name="{scoreReadabilityFieldSelector}" value="{databaseRow.tx_yoastseo_score_readability}">
+			<input type="hidden" name="{scoreSeoFieldSelector}" value="{databaseRow.tx_yoastseo_score_seo}">
 		</f:then>
 		<f:else>
 			<f:if condition="{wrongDoktype}">

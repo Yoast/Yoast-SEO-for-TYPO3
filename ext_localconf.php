@@ -37,9 +37,17 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514830899] = a
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\FocusKeywordAnalysis::class,
 );
 
-$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = array(
-    'translations' => array(
-        'availableLocales' => array(
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1520291507] = array(
+    'nodeName' => 'cornerstone',
+    'priority' => 40,
+    'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\Cornerstone::class,
+);
+
+$llFolder = 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/';
+
+$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = [
+    'translations' => [
+        'availableLocales' => [
             'bg_BG',
             'ca',
             'da_DK',
@@ -65,8 +73,8 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = array(
             'sk_SK',
             'sv_SE',
             'tr_TR'
-        ),
-        'languageKeyToLocaleMapping' => array(
+        ],
+        'languageKeyToLocaleMapping' => [
             'bg' => 'bg_BG',
             'da' => 'da_DK',
             'de' => 'de_DE',
@@ -84,20 +92,34 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = array(
             'sk' => 'sk_SK',
             'sv' => 'sv_SE',
             'tr' => 'tr_TR'
-        )
-    ),
-    'menuActions' => array(
+        ]
+    ],
+    'menuActions' => [
         ['action' => 'dashboard', 'label' => 'dashboard'],
         ['action' => 'update', 'label' => 'update'],
         ['action' => 'settings', 'label' => 'settings']
-    ),
-    'viewSettings' => array(
+    ],
+    'viewSettings' => [
         'showAnalysisTab' => true,
         'showSocialTab' => true,
         'showAdvancedTab' => true
-    ),
-    'previewUrlTemplate' => '/index.php?id=%d&type=%d&L=%d'
-);
+    ],
+    'previewUrlTemplate' => '/index.php?id=%d&type=%d&L=%d',
+    'overview_filters' => [
+        '10' => [
+            'key' => 'cornerstone',
+            'label' => $llFolder . 'BackendModuleOverview.xlf:cornerstoneContent',
+            'dataProvider' => \YoastSeoForTypo3\YoastSeo\DataProviders\CornerstoneOverviewDataProvider::class . '->process',
+            'countProvider' => \YoastSeoForTypo3\YoastSeo\DataProviders\CornerstoneOverviewDataProvider::class . '->numberOfItems'
+        ],
+        '20' => [
+            'key' => 'withoutSEOTitle',
+            'label' => $llFolder . 'BackendModuleOverview.xlf:withoutSEOTitle',
+            'dataProvider' => YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutSeoTitleOverviewDataProvider::class . '->process',
+            'countProvider' => YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutSeoTitleOverviewDataProvider::class . '->numberOfItems'
+        ],
+    ]
+];
 
 // allow social meta fields to be overlaid
 $GLOBALS['TYPO3_CONF_VARS']['FE']['pageOverlayFields'] .=

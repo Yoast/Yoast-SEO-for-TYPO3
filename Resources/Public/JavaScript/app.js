@@ -131,6 +131,12 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 translations: (window.tx_yoast_seo !== undefined && window.tx_yoast_seo !== null && window.tx_yoast_seo.translations !== undefined ? window.tx_yoast_seo.translations : null)
             });
 
+            if (tx_yoast_seo.settings.cornerstone == 1) {
+                app.switchAssessors(true);
+            } else {
+                app.switchAssessors(false);
+            }
+
             $('h1.t3js-title-inlineedit').after('' +
                 '<div class="yoastSeo-score-bar">' +
                 '   <div class="yoastSeo-score-bar-item" id="yoastSeo-score-bar-readability">' +

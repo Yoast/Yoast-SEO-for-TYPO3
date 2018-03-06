@@ -795,3 +795,8 @@ button.yoast-tooltip {
 
 .assessment-results {
   padding-left: 0; }
+
+.cornerstone_label {
+  font-weight: normal; }
+  .cornerstone_label a {
+    font-weight: bold; }
