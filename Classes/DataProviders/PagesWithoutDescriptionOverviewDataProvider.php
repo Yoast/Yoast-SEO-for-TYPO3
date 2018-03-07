@@ -17,10 +17,10 @@ namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 /**
- * Class PagesWithoutSeoTitleOverviewDataProvider
+ * Class PagesWithoutDescriptionOverviewDataProvider
  * @package YoastSeoForTypo3\YoastSeo\DataProviders
  */
-class PagesWithoutSeoTitleOverviewDataProvider extends AbstractOverviewDataProvider
+class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataProvider
 {
 
     /**

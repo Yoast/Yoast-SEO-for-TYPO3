@@ -15,14 +15,20 @@
 			<trans-unit id="cornerstoneContent">
 				<source>Cornerstone content</source>
 			</trans-unit>
-			<trans-unit id="withoutSEOTitle">
-				<source>Pages without SEO title</source>
+			<trans-unit id="cornerstoneContent.description">
+				<source><![CDATA[Mark the most important pages as 'cornerstone content' to improve your site structure. <a href="%s" target="_blank">Learn more about cornerstone content.</a>]]></source>
+			</trans-unit>
+			<trans-unit id="withoutDescription">
+				<source>Pages without meta description</source>
+			</trans-unit>
+			<trans-unit id="withoutDescription.description">
+				<source><![CDATA[Optimizing the meta description is a very important aspect of on-page SEO. Consider adding a meta description to these pages. <a href="%s">Learn more about writing the right meta description.</a>]]></source>
 			</trans-unit>
 			<trans-unit id="no_pages.title">
 				<source>No pages found</source>
 			</trans-unit>
 			<trans-unit id="no_pages.message">
-				<source>No pages found with the current filter.</source>
+				<source>No pages found with the current filter, consider adding a description to promote this page</source>
 			</trans-unit>
 			<trans-unit id="edit">
 				<source>Edit page</source>

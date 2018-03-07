@@ -125,6 +125,8 @@ class OverviewController extends ActionController
             'activeFilter' => $this->activeFilter,
             'params' => $params,
             'subtitle' => $this->getLanguageService()->sL($this->currentFilter['label']),
+            'description' => $this->currentFilter['description'],
+            'link' => $this->currentFilter['link'],
         ]);
     }
 

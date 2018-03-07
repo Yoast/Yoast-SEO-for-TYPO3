@@ -264,8 +264,15 @@ li.score:after {
 .yoast {
   line-height: 1.6;
   letter-spacing: 0.01em;
-  color: #000;
-  max-width: 700px; }
+  color: #000; }
+  .yoast .callout-body a {
+    font-weight: bold; }
+  .yoast-content {
+    max-width: 700px; }
+    .yoast-content p {
+      margin: 1em 0; }
+    .yoast-content .yoast-money-back-guarantee {
+      font-style: italic; }
   .yoast-seo-premium-extension {
     margin: 2em 0.5em 1.5em; }
   .yoast-seo-premium-benefits {

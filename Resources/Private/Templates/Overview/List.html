@@ -6,6 +6,12 @@
 <f:layout name="Overview" />
 
 <f:section name="content">
+	<f:if condition="{description}">
+		<f:be.infobox state="-1" title="{subtitle}">
+			<p><f:format.raw><f:translate key="{description}" arguments="{0: link}" /></f:format.raw></p>
+		</f:be.infobox>
+	</f:if>
+
 	<f:if condition="{items -> f:count()}">
 		<f:then>
 			<f:render section="table" arguments="{_all}" />
@@ -59,8 +65,8 @@
 			<td class="col-icon">
 				<y:recordIcon table="{params.table}" row="{item}" size="small" />
 			</td>
-			<td>{item.title}</td>
-			<td>{item.seo_title}</td>
+			<td>{item.title} [{item.uid}]</td>
+			<td><f:if condition="{item.seo_title}"><f:then>{item.seo_title}</f:then><f:else>{item.title}</f:else></f:if></td>
 			<td>
 				<span class="wpseo-score-icon {item.tx_yoastseo_score_readability}"></span>
 				<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:score.{item.tx_yoastseo_score_readability}" />

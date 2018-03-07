@@ -109,14 +109,18 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = [
         '10' => [
             'key' => 'cornerstone',
             'label' => $llFolder . 'BackendModuleOverview.xlf:cornerstoneContent',
+            'description' => $llFolder . 'BackendModuleOverview.xlf:cornerstoneContent.description',
+            'link' => 'https://yoa.st/1i9',
             'dataProvider' => \YoastSeoForTypo3\YoastSeo\DataProviders\CornerstoneOverviewDataProvider::class . '->process',
             'countProvider' => \YoastSeoForTypo3\YoastSeo\DataProviders\CornerstoneOverviewDataProvider::class . '->numberOfItems'
         ],
         '20' => [
-            'key' => 'withoutSEOTitle',
-            'label' => $llFolder . 'BackendModuleOverview.xlf:withoutSEOTitle',
-            'dataProvider' => YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutSeoTitleOverviewDataProvider::class . '->process',
-            'countProvider' => YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutSeoTitleOverviewDataProvider::class . '->numberOfItems'
+            'key' => 'withoutDescription',
+            'label' => $llFolder . 'BackendModuleOverview.xlf:withoutDescription',
+            'description' => $llFolder . 'BackendModuleOverview.xlf:withoutDescription.description',
+            'link' => 'https://yoast.com/meta-descriptions/',
+            'dataProvider' => YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutDescriptionOverviewDataProvider::class . '->process',
+            'countProvider' => YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutDescriptionOverviewDataProvider::class . '->numberOfItems'
         ],
     ]
 ];
