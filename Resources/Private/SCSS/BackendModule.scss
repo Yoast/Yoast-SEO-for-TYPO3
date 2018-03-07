@@ -11,6 +11,23 @@
 	color: #000;
 
 	$gutter: 32px;
+	.callout-body {
+		a {
+			font-weight: bold;
+		}
+	}
+
+	&-content {
+		max-width: 700px;
+
+		p {
+			margin: 1em 0;
+		}
+
+		.yoast-money-back-guarantee {
+			font-style: italic
+		}
+	}
 
 	&-seo {
 		&-premium-extension {
@@ -18,12 +35,17 @@
 		}
 
 		&-premium-benefits {
+			margin-bottom: 30px;
+
 			&__title {
 				font-weight: 600;
 			}
 
 			&__description:before {
 				content: "– "
+			}
+			&__image {
+				margin: 40px 0;
 			}
 		}
 	}

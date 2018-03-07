@@ -7,10 +7,10 @@
 				<source>Premium</source>
 			</trans-unit>
 			<trans-unit id="mlang_labels_tabdescr">
-				<source>Yoast SEO for TYPO3 - Premium</source>
+				<source>Yoast SEO for TYPO3 Premium</source>
 			</trans-unit>
 			<trans-unit id="mlang_labels_tablabel">
-				<source>Yoast SEO for TYPO3 - Premium</source>
+				<source>Yoast SEO for TYPO3 Premium</source>
 			</trans-unit>
 			<trans-unit id="mod_premium_title">
 				<source>Yoast SEO Premium</source>
@@ -39,8 +39,14 @@
 			<trans-unit id="installed">
 				<source>Installed</source>
 			</trans-unit>
-			<trans-unit id="not_installed">
-				<source>Not installed</source>
+			<trans-unit id="buy_now">
+				<source>BUY YOAST SEO FOR TYPO3 PREMIUM</source>
+			</trans-unit>
+			<trans-unit id="more_information">
+				<source>More information</source>
+			</trans-unit>
+			<trans-unit id="guarantee">
+				<source>Comes with our 30-day no questions asked money back guarantee</source>
 			</trans-unit>
 		</body>
 	</file>
