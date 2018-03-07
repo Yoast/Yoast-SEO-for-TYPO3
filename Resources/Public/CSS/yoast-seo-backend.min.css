@@ -264,13 +264,18 @@ li.score:after {
 .yoast {
   line-height: 1.6;
   letter-spacing: 0.01em;
-  color: #000; }
+  color: #000;
+  max-width: 700px; }
   .yoast-seo-premium-extension {
     margin: 2em 0.5em 1.5em; }
-  .yoast-seo-premium-benefits__title {
-    font-weight: 600; }
-  .yoast-seo-premium-benefits__description:before {
-    content: "– "; }
+  .yoast-seo-premium-benefits {
+    margin-bottom: 30px; }
+    .yoast-seo-premium-benefits__title {
+      font-weight: 600; }
+    .yoast-seo-premium-benefits__description:before {
+      content: "– "; }
+    .yoast-seo-premium-benefits__image {
+      margin: 40px 0; }
   .yoast-button--extension {
     color: #FFF;
     text-transform: uppercase;

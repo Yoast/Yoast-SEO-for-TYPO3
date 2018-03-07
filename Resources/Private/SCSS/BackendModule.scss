@@ -9,6 +9,7 @@
 	line-height: 1.6;
 	letter-spacing: 0.01em;
 	color: #000;
+	max-width: 700px;
 
 	$gutter: 32px;
 
@@ -18,12 +19,17 @@
 		}
 
 		&-premium-benefits {
+			margin-bottom: 30px;
+
 			&__title {
 				font-weight: 600;
 			}
 
 			&__description:before {
 				content: "– "
+			}
+			&__image {
+				margin: 40px 0;
 			}
 		}
 	}
