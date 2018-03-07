@@ -270,9 +270,20 @@ li.score:after {
   .yoast-content {
     max-width: 700px; }
     .yoast-content p {
-      margin: 1em 0; }
+      margin: 1em 0;
+      display: inline;
+      clear: both; }
     .yoast-content .yoast-money-back-guarantee {
       font-style: italic; }
+  .yoast-seo-academy__courses {
+    margin-top: 1em; }
+  .yoast-seo-academy__item {
+    margin-bottom: 20px; }
+    .yoast-seo-academy__item p {
+      display: block;
+      padding: 5px 0;
+      text-align: center;
+      font-weight: bold; }
   .yoast-seo-premium-extension {
     margin: 2em 0.5em 1.5em; }
   .yoast-seo-premium-benefits {

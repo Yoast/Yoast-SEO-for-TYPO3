@@ -22,6 +22,8 @@
 
 		p {
 			margin: 1em 0;
+			display: inline;
+			clear: both;
 		}
 
 		.yoast-money-back-guarantee {
@@ -30,6 +32,23 @@
 	}
 
 	&-seo {
+		&-academy {
+			&__courses {
+				margin-top: 1em;
+			}
+
+			&__item {
+				margin-bottom: 20px;
+
+				p {
+					display: block;
+					padding: 5px 0;
+					text-align: center;
+					font-weight: bold;
+				}
+			}
+		}
+
 		&-premium-extension {
 			margin: 2em 0.5em 1.5em;
 		}

@@ -1,9 +1,9 @@
 <?php
 $EM_CONF[$_EXTKEY] = array(
-    'title' => 'Yoast SEO',
+    'title' => 'Yoast SEO for TYPO3',
     'description' => '',
     'category' => 'misc',
-    'author' => 'Yoast SEO for TYPO3',
+    'author' => 'MaxServ / Yoast',
     'author_company' => 'MaxServ B.V., Yoast',
     'author_email' => '',
     'clearCacheOnLoad' => 0,

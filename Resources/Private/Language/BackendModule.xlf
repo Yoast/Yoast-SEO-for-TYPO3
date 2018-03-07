@@ -153,6 +153,12 @@
 			<trans-unit id="dashboard.intro">
 				<source>This plugin integrates text analysis and assessment from YoastSEO.js. Content analysis can generate interesting metrics about a text and give you an assessment which can be used to improve the text.</source>
 			</trans-unit>
+			<trans-unit id="dashboard.learnMore">
+				<source>Want to learn more about SEO?</source>
+			</trans-unit>
+			<trans-unit id="dashboard.learnMore.description">
+				<source>Check out these training courses on Yoast Academy to get up to speed on the SEO basics or dive deep into specific subjects.</source>
+			</trans-unit>
 			<trans-unit id="dashboard.credits">
 				<source>Credits</source>
 			</trans-unit>
@@ -245,6 +251,24 @@
 			</trans-unit>
 			<trans-unit id="labelGood">
 				<source>Good</source>
+			</trans-unit>
+			<trans-unit id="academy.basic_seo">
+				<source>Basic SEO training</source>
+			</trans-unit>
+			<trans-unit id="academy.seo-copywriting">
+				<source>SEO copywriting training</source>
+			</trans-unit>
+			<trans-unit id="academy.multilingual">
+				<source>Multilingual SEO training</source>
+			</trans-unit>
+			<trans-unit id="academy.site-structure">
+				<source>Site structure training</source>
+			</trans-unit>
+			<trans-unit id="academy.structured-data">
+				<source>Structured data training</source>
+			</trans-unit>
+			<trans-unit id="academy.yoast-seo-academy__it">
+				<source>Technical SEO 1</source>
 			</trans-unit>
 			<trans-unit id="thisPageIsCornerstoneContent">
 				<source><![CDATA[This page is <a href="%s" target="_blank">cornerstone content</a>]]></source>
