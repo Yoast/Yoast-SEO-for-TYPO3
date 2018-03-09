@@ -5,6 +5,17 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## 2.1.0 March 9, 2018
+### Added
+* You can now mark a page as cornerstone content. Cornerstone content have more strict analysis because it are the most important pages on your website.
+
+### Changed
+* Added documentation how to set fallback social images based in multisite setups
+* Updated backend modules and added Premium information
+
+### Fixed
+* Added some missing backend labels
+
 ## 2.0.2 February 26, 2018
 ### Fixed
 * Before showing the snippet preview in the Page module, we will now check if the user has the permissions for the right backend module 
