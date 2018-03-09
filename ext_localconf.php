@@ -127,13 +127,13 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = [
 
 // allow social meta fields to be overlaid
 $GLOBALS['TYPO3_CONF_VARS']['FE']['pageOverlayFields'] .=
-      ',tx_yoastseo_canonical_url'
-    . ',tx_yoastseo_facebook_title'
-    . ',tx_yoastseo_facebook_description'
+    ',canonical_url'
+    . ',og_title'
+    . ',og_description'
     . ',tx_yoastseo_robot_instructions'
-    . ',tx_yoastseo_title'
-    . ',tx_yoastseo_twitter_title'
-    . ',tx_yoastseo_twitter_description';
+    . ',seo_title'
+    . ',twitter_title'
+    . ',twitter_description';
 
 $iconRegistry = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Core\Imaging\IconRegistry::class);
 $iconRegistry->registerIcon(
