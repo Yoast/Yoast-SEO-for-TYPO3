@@ -107,6 +107,10 @@ class YoastUtility
     public static function getFocusKeywordOfPage($uid, $table = 'pages')
     {
         $focusKeyword = '';
+        if (empty((int)$uid)) {
+            return '';
+        }
+
         $record = CMS\Backend\Utility\BackendUtility::getRecord($table, $uid);
         if (\is_array($record) && array_key_exists(self::COLUMN_NAME_FOCUSKEYWORD, $record)) {
             $focusKeyword = $record[self::COLUMN_NAME_FOCUSKEYWORD];
