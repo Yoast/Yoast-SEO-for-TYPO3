@@ -270,11 +270,11 @@ li.score:after {
   .yoast-content {
     max-width: 700px; }
     .yoast-content p {
-      margin: 1em 0;
-      display: inline;
-      clear: both; }
+      margin: 1em 0; }
     .yoast-content .yoast-money-back-guarantee {
       font-style: italic; }
+  .yoast-seo-credits__link {
+    margin-right: 1em; }
   .yoast-seo-academy__courses {
     margin-top: 1em; }
   .yoast-seo-academy__item {
