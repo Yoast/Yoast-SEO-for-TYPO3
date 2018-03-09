@@ -270,6 +270,27 @@
 			<trans-unit id="academy.technical-seo-1">
 				<source>Technical SEO 1</source>
 			</trans-unit>
+			<trans-unit id="dashboard.seoTips">
+				<source>Get free SEO tips!</source>
+			</trans-unit>
+			<trans-unit id="dashboard.seoTips.1">
+				<source>Get weekly tips on how to optimize your website's SEO, usability and conversion</source>
+			</trans-unit>
+			<trans-unit id="dashboard.seoTips.2">
+				<source>Be the first to know about new features and other cool (free) plugins.</source>
+			</trans-unit>
+			<trans-unit id="dashboard.seoTips.3">
+				<source>Get our free 50-page SEO guide right away to help you become an SEO genius.</source>
+			</trans-unit>
+			<trans-unit id="dashboard.seoTips.submit">
+				<source>Yes, give me your free tips</source>
+			</trans-unit>
+			<trans-unit id="dashboard.seoTips.email">
+				<source>Enter your email address...</source>
+			</trans-unit>
+			<trans-unit id="dashboard.seoTips.name">
+				<source>Enter your name...</source>
+			</trans-unit>
 			<trans-unit id="thisPageIsCornerstoneContent">
 				<source><![CDATA[This page is <a href="%s" target="_blank">cornerstone content</a>]]></source>
 			</trans-unit>

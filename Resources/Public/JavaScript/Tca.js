@@ -108,9 +108,11 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                         translations: (window.tx_yoast_seo !== undefined && window.tx_yoast_seo !== null && window.tx_yoast_seo.translations !== undefined ? window.tx_yoast_seo.translations : null)
                     });
 
-                    var cornerstoneField = $('*[name="' + $cornerstoneFieldSelector + '"]');
-                    if (cornerstoneField.val() == 1) {
-                        apps[cnt].switchAssessors(true);
+                    if (typeof $cornerstoneFieldSelector !== 'undefined' && $cornerstoneFieldSelector !== '') {
+                        var cornerstoneField = $('*[name="' + $cornerstoneFieldSelector + '"]');
+                        if (cornerstoneField.val() == 1) {
+                            apps[cnt].switchAssessors(true);
+                        }
                     }
                     cnt++;
                 });
@@ -156,11 +158,12 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                         translations: (window.tx_yoast_seo !== undefined && window.tx_yoast_seo !== null && window.tx_yoast_seo.translations !== undefined ? window.tx_yoast_seo.translations : null)
                     });
 
-                    var cornerstoneField = $('*[name="' + $cornerstoneFieldSelector + '"]');
-                    if (cornerstoneField.val() == 1) {
-                        apps[0].switchAssessors(true);
+                    if (typeof $cornerstoneFieldSelector !== undefined && $cornerstoneFieldSelector !== '') {
+                        var cornerstoneField = $('*[name="' + $cornerstoneFieldSelector + '"]');
+                        if (cornerstoneField.val() == 1) {
+                            apps[0].switchAssessors(true);
+                        }
                     }
-
                 }
             }
 
@@ -209,9 +212,11 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 }, 500);
             });
 
-            $("*[data-formengine-input-name='" + $cornerstoneFieldSelector + "']").on('change', function() {
-                updateAllApps(apps, snippetPreview);
-            });
+            if (typeof $cornerstoneFieldSelector !== 'undefined' && $cornerstoneFieldSelector !== '') {
+                $("*[data-formengine-input-name='" + $cornerstoneFieldSelector + "']").on('change', function () {
+                    updateAllApps(apps, snippetPreview);
+                });
+            }
 
             $("*[data-formengine-input-name='" + $titleTcaSelector + "']").on('focus', updateProgressBars(snippetPreview));
             $("*[data-formengine-input-name='" + $descriptionTcaSelector + "']").on('focus', updateProgressBars(snippetPreview));

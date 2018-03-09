@@ -36,6 +36,12 @@
 			}
 		}
 
+		&-seoTips {
+			&__field {
+				width: 250px !important;
+			}
+		}
+
 		&-academy {
 			&__courses {
 				margin-top: 1em;
@@ -139,4 +145,12 @@
 	margin: 3px 10px 0 0;
 	border-radius: 50%;
 	background: #888;
+}
+
+.form-inline .form-group {
+	display: inline-block;
+	width: auto;
+	vertical-align: middle;
+	float: left;
+	margin-right: 2em;
 }

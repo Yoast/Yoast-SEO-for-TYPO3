@@ -274,7 +274,9 @@ li.score:after {
     .yoast-content .yoast-money-back-guarantee {
       font-style: italic; }
   .yoast-seo-credits__link {
-    margin-right: 1em; }
+    margin-right: 2em; }
+  .yoast-seo-seoTips__field {
+    width: 250px !important; }
   .yoast-seo-academy__courses {
     margin-top: 1em; }
   .yoast-seo-academy__item {
@@ -325,3 +327,10 @@ li.score:after {
   margin: 3px 10px 0 0;
   border-radius: 50%;
   background: #888; }
+
+.form-inline .form-group {
+  display: inline-block;
+  width: auto;
+  vertical-align: middle;
+  float: left;
+  margin-right: 2em; }
