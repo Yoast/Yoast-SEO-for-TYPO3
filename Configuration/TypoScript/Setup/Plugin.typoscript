@@ -18,42 +18,52 @@ plugin.tx_yoastseo {
 
             title =< lib.yoastSEO.pageTitleComplete
             title.stdWrap.required = 1
+            title.stdWrap.htmlSpecialChars = 1
             title.stdWrap.wrap = <title>|</title>
 
             description =< lib.yoastSEO.description
             description.stdWrap.required = 1
+            description.stdWrap.htmlSpecialChars = 1
             description.stdWrap.wrap = <meta name="description" content="|" />
 
             robotInstructions =< lib.yoastSEO.robotInstructions
             robotInstructions.stdWrap.required = 1
+            robotInstructions.stdWrap.htmlSpecialChars = 1
             robotInstructions.stdWrap.wrap = <meta name="robots" content="|" />
 
             ogType =< lib.yoastSEO.og.type
             ogType.stdWrap.required = 1
+            ogType.stdWrap.stdWrap.htmlSpecialChars = 1
             ogType.stdWrap.wrap = <meta property="og:type" content="|" />
 
             ogTitle =< lib.yoastSEO.og.title
             ogTitle.stdWrap.required = 1
+            ogTitle.stdWrap.htmlSpecialChars = 1
             ogTitle.stdWrap.wrap = <meta property="og:title" content="|" />
 
             ogDescription =< lib.yoastSEO.og.description
             ogDescription.stdWrap.required = 1
+            ogDescription.stdWrap.htmlSpecialChars = 1
             ogDescription.stdWrap.wrap = <meta property="og:description" content="|" />
 
             ogUrl =< lib.yoastSEO.canonicalURL
             ogUrl.stdWrap.required = 1
+            ogUrl.stdWrap.htmlSpecialChars = 1
             ogUrl.stdWrap.wrap = <meta property="og:url" content="|" />
 
             ogSiteName =< lib.yoastSEO.og.siteName
             ogSiteName.stdWrap.required = 1
+            ogSiteName.stdWrap.htmlSpecialChars = 1
             ogSiteName.stdWrap.wrap =  <meta property="og:site_name" content="|" />
 
             ogFbAdmins =< lib.yoastSEO.og.fbAdmins
             ogFbAdmins.stdWrap.required = 1
+            ogFbAdmins.stdWrap.htmlSpecialChars = 1
             ogFbAdmins.stdWrap.wrap = <meta property="fb:admins" content="|" />
 
             ogFbAppId =< lib.yoastSEO.og.fbAppId
             ogFbAppId.stdWrap.required = 1
+            ogFbAppId.stdWrap.htmlSpecialChars = 1
             ogFbAppId.stdWrap.wrap = <meta property="fb:app_id" content="|" />
 
             ogImages =< lib.yoastSEO.og.images
@@ -71,18 +81,22 @@ plugin.tx_yoastseo {
 
             twitterSite =< lib.yoastSEO.twitter.site
             twitterSite.stdWrap.required = 1
+            twitterSite.stdWrap.htmlSpecialChars = 1
             twitterSite.stdWrap.wrap = <meta name="twitter:site" content="|" />
 
             twitterCard =< lib.yoastSEO.twitter.card
             twitterCard.stdWrap.required = 1
+            twitterCard.stdWrap.htmlSpecialChars = 1
             twitterCard.stdWrap.wrap = <meta name="twitter:card" content="|" />
 
             twitterTitle =< lib.yoastSEO.twitter.title
             twitterTitle.stdWrap.required = 1
+            twitterTitle.stdWrap.htmlSpecialChars = 1
             twitterTitle.stdWrap.wrap = <meta name="twitter:title" content="|" />
 
             twitterDescription =< lib.yoastSEO.twitter.description
             twitterDescription.stdWrap.required = 1
+            twitterDescription.stdWrap.htmlSpecialChars = 1
             twitterDescription.stdWrap.wrap = <meta name="twitter:description" content="|" />
 
             twitterImages =< lib.yoastSEO.twitter.images
