@@ -16,17 +16,14 @@ namespace YoastSeoForTypo3\YoastSeo\UserFunc;
 
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Utility\ArrayUtility;
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 
 /**
  * Class SitemapXml
  * @package YoastSeoForTypo3\YoastSeo\UserFunc
  */
-class SitemapXml {
-
-
+class SitemapXml
+{
     const DOKTYPE = 1522073831;
 
     /**
@@ -166,7 +163,6 @@ class SitemapXml {
 
                 $sitemaps[] = $key;
             }
-
         }
         return $sitemaps;
     }

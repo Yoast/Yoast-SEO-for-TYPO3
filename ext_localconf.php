@@ -144,7 +144,6 @@ $iconRegistry->registerIcon(
     ['source' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Yoast-module-container.svg']
 );
 
-
 if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('realurl')) {
     $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/realurl/class.tx_realurl_autoconfgen.php']['extensionConfiguration']['yoast_seo_sitemap'] =
         \YoastSeoForTypo3\YoastSeo\Hooks\RealUrlAutoConfiguration::class . '->addSitemapConfiguration';
