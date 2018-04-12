@@ -1,8 +1,14 @@
 plugin.tx_yoastseo.sitemap {
-    pages {
-        table = pages
-        lastModifiedField = tstamp
-        additionalWhere = AND doktype IN (1, 6)
+    view {
+        partialRootPaths {
+            0 = EXT:yoast_seo/Resources/Private/Partials/SitemapXml
+        }
+    }
+    config {
+        pages {
+            table = pages
+            additionalWhere = AND doktype IN (1, 6)
+        }
     }
 }
 

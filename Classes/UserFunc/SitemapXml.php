@@ -16,6 +16,7 @@ namespace YoastSeoForTypo3\YoastSeo\UserFunc;
 
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 
 /**
@@ -32,7 +33,7 @@ class SitemapXml
     protected $view;
 
     /**
-     * @var Array
+     * @var array
      */
     protected $settings;
 
@@ -65,7 +66,8 @@ class SitemapXml
         $this->privateResourcesPath = ExtensionManagementUtility::extPath('yoast_seo') . 'Resources/Private/';
         $this->publicResourcesPath = ExtensionManagementUtility::siteRelPath('yoast_seo') . 'Resources/Public/';
         $this->templateFile = $this->privateResourcesPath . 'Templates/SitemapXml/Index.xml';
-        $this->partialRootPaths[] = $this->privateResourcesPath . 'Partials/SitemapXml/List';
+//        $this->partialRootPaths[] = $this->privateResourcesPath . 'Partials/SitemapXml/List';
+        $this->partialRootPaths = $this->getPartialRootPaths();
 
         $this->variables = [
             'xslPath' => $this->publicResourcesPath . 'CSS',
@@ -106,6 +108,8 @@ class SitemapXml
     protected function getSitemap($sitemapConfig)
     {
         $tsfe = $this->getTSFE();
+        $db = $this->getDb();
+
         $this->templateFile = ExtensionManagementUtility::extPath('yoast_seo') . 'Resources/Private/Templates/SitemapXml/List.xml';
         $docs = [];
         $sitemapSettings = $this->settings[$sitemapConfig . '.'];
@@ -119,10 +123,14 @@ class SitemapXml
 
                 $docs[] = $tsfe->sys_page->getPage($rootPid);
                 $docs = $this->getSubPages($rootPid, $docs, $where);
+            } else {
+                $where = $sitemapSettings['additionalWhere'] ?: '1=1';
+                $where .= $tsfe->sys_page->enableFields($sitemapSettings['table']);
+                $sortField = $sitemapSettings['sortField'] ?: 'tstamp DESC';
+
+                $docs = $db->exec_SELECTgetRows('*', $sitemapSettings['table'], $where, '', $sortField);
             }
         }
-
-        $this->partialRootPaths[] = $this->privateResourcesPath . 'Partials/SitemapXml/List/' . ucfirst(strtolower($sitemapConfig)) . '/';
 
         $this->variables = array_merge(
             $this->variables,
@@ -175,10 +183,27 @@ class SitemapXml
         $tsfe = $this->getTSFE();
 
         if (
-            !empty($tsfe->tmpl->setup['plugin.']['tx_yoastseo.']['sitemap.']) &&
-            is_array($tsfe->tmpl->setup['plugin.']['tx_yoastseo.']['sitemap.'])
+            !empty($tsfe->tmpl->setup['plugin.']['tx_yoastseo.']['sitemap.']['config.']) &&
+            is_array($tsfe->tmpl->setup['plugin.']['tx_yoastseo.']['sitemap.']['config.'])
         ) {
-            return $tsfe->tmpl->setup['plugin.']['tx_yoastseo.']['sitemap.'];
+            return $tsfe->tmpl->setup['plugin.']['tx_yoastseo.']['sitemap.']['config.'];
+        }
+
+        return [];
+    }
+
+    /**
+     * @return void
+     */
+    protected function getPartialRootPaths()
+    {
+        $tsfe = $this->getTSFE();
+
+        if (
+            !empty($tsfe->tmpl->setup['plugin.']['tx_yoastseo.']['sitemap.']['view.']['partialRootPaths.']) &&
+            is_array($tsfe->tmpl->setup['plugin.']['tx_yoastseo.']['sitemap.']['view.']['partialRootPaths.'])
+        ) {
+            return $tsfe->tmpl->setup['plugin.']['tx_yoastseo.']['sitemap.']['view.']['partialRootPaths.'];
         }
 
         return [];
@@ -190,5 +215,13 @@ class SitemapXml
     protected function getTSFE()
     {
         return  $GLOBALS['TSFE'];
+    }
+
+    /**
+     * @return \TYPO3\CMS\Core\Database\DatabaseConnection
+     */
+    protected function getDb()
+    {
+        return $GLOBALS['TYPO3_DB'];
     }
 }
