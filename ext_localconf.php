@@ -112,7 +112,7 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = [
             'key' => 'cornerstone',
             'label' => $llFolder . 'BackendModuleOverview.xlf:cornerstoneContent',
             'description' => $llFolder . 'BackendModuleOverview.xlf:cornerstoneContent.description',
-            'link' => 'https://yoa.st/1i9',
+            'link' => 'https://yoa.st/typo3-cornerstone-content',
             'dataProvider' => \YoastSeoForTypo3\YoastSeo\DataProviders\CornerstoneOverviewDataProvider::class . '->process',
             'countProvider' => \YoastSeoForTypo3\YoastSeo\DataProviders\CornerstoneOverviewDataProvider::class . '->numberOfItems'
         ],
@@ -120,7 +120,7 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = [
             'key' => 'withoutDescription',
             'label' => $llFolder . 'BackendModuleOverview.xlf:withoutDescription',
             'description' => $llFolder . 'BackendModuleOverview.xlf:withoutDescription.description',
-            'link' => 'https://yoast.com/meta-descriptions/',
+            'link' => 'https://yoa.st/typo3-meta-description',
             'dataProvider' => YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutDescriptionOverviewDataProvider::class . '->process',
             'countProvider' => YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutDescriptionOverviewDataProvider::class . '->numberOfItems'
         ],
