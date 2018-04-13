@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 var oldDefineAmd = define.amd;
 define.amd = false;
 var SnippetPreview = require( "yoastseo" ).SnippetPreview;
@@ -36,6 +36,8 @@ for (var i = 0, len = code.length; i < len; ++i) {
   revLookup[code.charCodeAt(i)] = i
 }
 
+// Support decoding URL-safe base64 strings, as Node.js does.
+// See: https://en.wikipedia.org/wiki/Base64#URL_applications
 revLookup['-'.charCodeAt(0)] = 62
 revLookup['_'.charCodeAt(0)] = 63
 
@@ -97,7 +99,7 @@ function encodeChunk (uint8, start, end) {
   var tmp
   var output = []
   for (var i = start; i < end; i += 3) {
-    tmp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
+    tmp = ((uint8[i] << 16) & 0xFF0000) + ((uint8[i + 1] << 8) & 0xFF00) + (uint8[i + 2] & 0xFF)
     output.push(tripletToBase64(tmp))
   }
   return output.join('')
@@ -193,6 +195,24 @@ function typedArraySupport () {
   }
 }
 
+Object.defineProperty(Buffer.prototype, 'parent', {
+  get: function () {
+    if (!(this instanceof Buffer)) {
+      return undefined
+    }
+    return this.buffer
+  }
+})
+
+Object.defineProperty(Buffer.prototype, 'offset', {
+  get: function () {
+    if (!(this instanceof Buffer)) {
+      return undefined
+    }
+    return this.byteOffset
+  }
+})
+
 function createBuffer (length) {
   if (length > K_MAX_LENGTH) {
     throw new RangeError('Invalid typed array length')
@@ -244,7 +264,7 @@ function from (value, encodingOrOffset, length) {
     throw new TypeError('"value" argument must not be a number')
   }
 
-  if (isArrayBuffer(value)) {
+  if (isArrayBuffer(value) || (value && isArrayBuffer(value.buffer))) {
     return fromArrayBuffer(value, encodingOrOffset, length)
   }
 
@@ -274,7 +294,7 @@ Buffer.__proto__ = Uint8Array
 
 function assertSize (size) {
   if (typeof size !== 'number') {
-    throw new TypeError('"size" argument must be a number')
+    throw new TypeError('"size" argument must be of type number')
   } else if (size < 0) {
     throw new RangeError('"size" argument must not be negative')
   }
@@ -328,7 +348,7 @@ function fromString (string, encoding) {
   }
 
   if (!Buffer.isEncoding(encoding)) {
-    throw new TypeError('"encoding" must be a valid string encoding')
+    throw new TypeError('Unknown encoding: ' + encoding)
   }
 
   var length = byteLength(string, encoding) | 0
@@ -357,11 +377,11 @@ function fromArrayLike (array) {
 
 function fromArrayBuffer (array, byteOffset, length) {
   if (byteOffset < 0 || array.byteLength < byteOffset) {
-    throw new RangeError('\'offset\' is out of bounds')
+    throw new RangeError('"offset" is outside of buffer bounds')
   }
 
   if (array.byteLength < byteOffset + (length || 0)) {
-    throw new RangeError('\'length\' is out of bounds')
+    throw new RangeError('"length" is outside of buffer bounds')
   }
 
   var buf
@@ -392,7 +412,7 @@ function fromObject (obj) {
   }
 
   if (obj) {
-    if (isArrayBufferView(obj) || 'length' in obj) {
+    if (ArrayBuffer.isView(obj) || 'length' in obj) {
       if (typeof obj.length !== 'number' || numberIsNaN(obj.length)) {
         return createBuffer(0)
       }
@@ -404,7 +424,7 @@ function fromObject (obj) {
     }
   }
 
-  throw new TypeError('First argument must be a string, Buffer, ArrayBuffer, Array, or array-like object.')
+  throw new TypeError('The first argument must be one of type string, Buffer, ArrayBuffer, Array, or Array-like Object.')
 }
 
 function checked (length) {
@@ -491,6 +511,9 @@ Buffer.concat = function concat (list, length) {
   var pos = 0
   for (i = 0; i < list.length; ++i) {
     var buf = list[i]
+    if (ArrayBuffer.isView(buf)) {
+      buf = Buffer.from(buf)
+    }
     if (!Buffer.isBuffer(buf)) {
       throw new TypeError('"list" argument must be an Array of Buffers')
     }
@@ -504,7 +527,7 @@ function byteLength (string, encoding) {
   if (Buffer.isBuffer(string)) {
     return string.length
   }
-  if (isArrayBufferView(string) || isArrayBuffer(string)) {
+  if (ArrayBuffer.isView(string) || isArrayBuffer(string)) {
     return string.byteLength
   }
   if (typeof string !== 'string') {
@@ -671,6 +694,8 @@ Buffer.prototype.toString = function toString () {
   if (arguments.length === 0) return utf8Slice(this, 0, length)
   return slowToString.apply(this, arguments)
 }
+
+Buffer.prototype.toLocaleString = Buffer.prototype.toString
 
 Buffer.prototype.equals = function equals (b) {
   if (!Buffer.isBuffer(b)) throw new TypeError('Argument must be a Buffer')
@@ -892,9 +917,7 @@ function hexWrite (buf, string, offset, length) {
     }
   }
 
-  // must be an even number of digits
   var strLen = string.length
-  if (strLen % 2 !== 0) throw new TypeError('Invalid hex string')
 
   if (length > strLen / 2) {
     length = strLen / 2
@@ -1587,6 +1610,7 @@ Buffer.prototype.writeDoubleBE = function writeDoubleBE (value, offset, noAssert
 
 // copy(targetBuffer, targetStart=0, sourceStart=0, sourceEnd=buffer.length)
 Buffer.prototype.copy = function copy (target, targetStart, start, end) {
+  if (!Buffer.isBuffer(target)) throw new TypeError('argument should be a Buffer')
   if (!start) start = 0
   if (!end && end !== 0) end = this.length
   if (targetStart >= target.length) targetStart = target.length
@@ -1601,7 +1625,7 @@ Buffer.prototype.copy = function copy (target, targetStart, start, end) {
   if (targetStart < 0) {
     throw new RangeError('targetStart out of bounds')
   }
-  if (start < 0 || start >= this.length) throw new RangeError('sourceStart out of bounds')
+  if (start < 0 || start >= this.length) throw new RangeError('Index out of range')
   if (end < 0) throw new RangeError('sourceEnd out of bounds')
 
   // Are we oob?
@@ -1611,22 +1635,19 @@ Buffer.prototype.copy = function copy (target, targetStart, start, end) {
   }
 
   var len = end - start
-  var i
 
-  if (this === target && start < targetStart && targetStart < end) {
+  if (this === target && typeof Uint8Array.prototype.copyWithin === 'function') {
+    // Use built-in when available, missing from IE11
+    this.copyWithin(targetStart, start, end)
+  } else if (this === target && start < targetStart && targetStart < end) {
     // descending copy from end
-    for (i = len - 1; i >= 0; --i) {
-      target[i + targetStart] = this[i + start]
-    }
-  } else if (len < 1000) {
-    // ascending copy from start
-    for (i = 0; i < len; ++i) {
+    for (var i = len - 1; i >= 0; --i) {
       target[i + targetStart] = this[i + start]
     }
   } else {
     Uint8Array.prototype.set.call(
       target,
-      this.subarray(start, start + len),
+      this.subarray(start, end),
       targetStart
     )
   }
@@ -1649,17 +1670,19 @@ Buffer.prototype.fill = function fill (val, start, end, encoding) {
       encoding = end
       end = this.length
     }
-    if (val.length === 1) {
-      var code = val.charCodeAt(0)
-      if (code < 256) {
-        val = code
-      }
-    }
     if (encoding !== undefined && typeof encoding !== 'string') {
       throw new TypeError('encoding must be a string')
     }
     if (typeof encoding === 'string' && !Buffer.isEncoding(encoding)) {
       throw new TypeError('Unknown encoding: ' + encoding)
+    }
+    if (val.length === 1) {
+      var code = val.charCodeAt(0)
+      if ((encoding === 'utf8' && code < 128) ||
+          encoding === 'latin1') {
+        // Fast path: If `val` fits into a single byte, use that numeric value.
+        val = code
+      }
     }
   } else if (typeof val === 'number') {
     val = val & 255
@@ -1689,6 +1712,10 @@ Buffer.prototype.fill = function fill (val, start, end, encoding) {
       ? val
       : new Buffer(val, encoding)
     var len = bytes.length
+    if (len === 0) {
+      throw new TypeError('The value "' + val +
+        '" is invalid for argument "value"')
+    }
     for (i = 0; i < end - start; ++i) {
       this[i + start] = bytes[i % len]
     }
@@ -1703,6 +1730,8 @@ Buffer.prototype.fill = function fill (val, start, end, encoding) {
 var INVALID_BASE64_RE = /[^+/0-9A-Za-z-_]/g
 
 function base64clean (str) {
+  // Node takes equal signs as end of the Base64 encoding
+  str = str.split('=')[0]
   // Node strips out invalid characters like \n and \t from the string, base64-js does not
   str = str.trim().replace(INVALID_BASE64_RE, '')
   // Node converts strings with length < 2 to ''
@@ -1844,11 +1873,6 @@ function isArrayBuffer (obj) {
       typeof obj.byteLength === 'number')
 }
 
-// Node 0.10 supports `ArrayBuffer` but lacks `ArrayBuffer.isView`
-function isArrayBufferView (obj) {
-  return (typeof ArrayBuffer.isView === 'function') && ArrayBuffer.isView(obj)
-}
-
 function numberIsNaN (obj) {
   return obj !== obj // eslint-disable-line no-self-compare
 }
@@ -1986,8 +2010,16 @@ function objectToString(o) {
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+var objectCreate = Object.create || objectCreatePolyfill
+var objectKeys = Object.keys || objectKeysPolyfill
+var bind = Function.prototype.bind || functionBindPolyfill
+
 function EventEmitter() {
-  this._events = this._events || {};
+  if (!this._events || !Object.prototype.hasOwnProperty.call(this, '_events')) {
+    this._events = objectCreate(null);
+    this._eventsCount = 0;
+  }
+
   this._maxListeners = this._maxListeners || undefined;
 }
 module.exports = EventEmitter;
@@ -2000,278 +2032,487 @@ EventEmitter.prototype._maxListeners = undefined;
 
 // By default EventEmitters will print a warning if more than 10 listeners are
 // added to it. This is a useful default which helps finding memory leaks.
-EventEmitter.defaultMaxListeners = 10;
+var defaultMaxListeners = 10;
+
+var hasDefineProperty;
+try {
+  var o = {};
+  if (Object.defineProperty) Object.defineProperty(o, 'x', { value: 0 });
+  hasDefineProperty = o.x === 0;
+} catch (err) { hasDefineProperty = false }
+if (hasDefineProperty) {
+  Object.defineProperty(EventEmitter, 'defaultMaxListeners', {
+    enumerable: true,
+    get: function() {
+      return defaultMaxListeners;
+    },
+    set: function(arg) {
+      // check whether the input is a positive number (whose value is zero or
+      // greater and not a NaN).
+      if (typeof arg !== 'number' || arg < 0 || arg !== arg)
+        throw new TypeError('"defaultMaxListeners" must be a positive number');
+      defaultMaxListeners = arg;
+    }
+  });
+} else {
+  EventEmitter.defaultMaxListeners = defaultMaxListeners;
+}
 
 // Obviously not all Emitters should be limited to 10. This function allows
 // that to be increased. Set to zero for unlimited.
-EventEmitter.prototype.setMaxListeners = function(n) {
-  if (!isNumber(n) || n < 0 || isNaN(n))
-    throw TypeError('n must be a positive number');
+EventEmitter.prototype.setMaxListeners = function setMaxListeners(n) {
+  if (typeof n !== 'number' || n < 0 || isNaN(n))
+    throw new TypeError('"n" argument must be a positive number');
   this._maxListeners = n;
   return this;
 };
 
-EventEmitter.prototype.emit = function(type) {
-  var er, handler, len, args, i, listeners;
+function $getMaxListeners(that) {
+  if (that._maxListeners === undefined)
+    return EventEmitter.defaultMaxListeners;
+  return that._maxListeners;
+}
 
-  if (!this._events)
-    this._events = {};
+EventEmitter.prototype.getMaxListeners = function getMaxListeners() {
+  return $getMaxListeners(this);
+};
 
-  // If there is no 'error' event listener then throw.
-  if (type === 'error') {
-    if (!this._events.error ||
-        (isObject(this._events.error) && !this._events.error.length)) {
-      er = arguments[1];
-      if (er instanceof Error) {
-        throw er; // Unhandled 'error' event
-      } else {
-        // At least give some kind of context to the user
-        var err = new Error('Uncaught, unspecified "error" event. (' + er + ')');
-        err.context = er;
-        throw err;
-      }
-    }
+// These standalone emit* functions are used to optimize calling of event
+// handlers for fast cases because emit() itself often has a variable number of
+// arguments and can be deoptimized because of that. These functions always have
+// the same number of arguments and thus do not get deoptimized, so the code
+// inside them can execute faster.
+function emitNone(handler, isFn, self) {
+  if (isFn)
+    handler.call(self);
+  else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+    for (var i = 0; i < len; ++i)
+      listeners[i].call(self);
   }
+}
+function emitOne(handler, isFn, self, arg1) {
+  if (isFn)
+    handler.call(self, arg1);
+  else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+    for (var i = 0; i < len; ++i)
+      listeners[i].call(self, arg1);
+  }
+}
+function emitTwo(handler, isFn, self, arg1, arg2) {
+  if (isFn)
+    handler.call(self, arg1, arg2);
+  else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+    for (var i = 0; i < len; ++i)
+      listeners[i].call(self, arg1, arg2);
+  }
+}
+function emitThree(handler, isFn, self, arg1, arg2, arg3) {
+  if (isFn)
+    handler.call(self, arg1, arg2, arg3);
+  else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+    for (var i = 0; i < len; ++i)
+      listeners[i].call(self, arg1, arg2, arg3);
+  }
+}
 
-  handler = this._events[type];
+function emitMany(handler, isFn, self, args) {
+  if (isFn)
+    handler.apply(self, args);
+  else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+    for (var i = 0; i < len; ++i)
+      listeners[i].apply(self, args);
+  }
+}
 
-  if (isUndefined(handler))
+EventEmitter.prototype.emit = function emit(type) {
+  var er, handler, len, args, i, events;
+  var doError = (type === 'error');
+
+  events = this._events;
+  if (events)
+    doError = (doError && events.error == null);
+  else if (!doError)
     return false;
 
-  if (isFunction(handler)) {
-    switch (arguments.length) {
-      // fast cases
-      case 1:
-        handler.call(this);
-        break;
-      case 2:
-        handler.call(this, arguments[1]);
-        break;
-      case 3:
-        handler.call(this, arguments[1], arguments[2]);
-        break;
-      // slower
-      default:
-        args = Array.prototype.slice.call(arguments, 1);
-        handler.apply(this, args);
+  // If there is no 'error' event listener then throw.
+  if (doError) {
+    if (arguments.length > 1)
+      er = arguments[1];
+    if (er instanceof Error) {
+      throw er; // Unhandled 'error' event
+    } else {
+      // At least give some kind of context to the user
+      var err = new Error('Unhandled "error" event. (' + er + ')');
+      err.context = er;
+      throw err;
     }
-  } else if (isObject(handler)) {
-    args = Array.prototype.slice.call(arguments, 1);
-    listeners = handler.slice();
-    len = listeners.length;
-    for (i = 0; i < len; i++)
-      listeners[i].apply(this, args);
+    return false;
+  }
+
+  handler = events[type];
+
+  if (!handler)
+    return false;
+
+  var isFn = typeof handler === 'function';
+  len = arguments.length;
+  switch (len) {
+      // fast cases
+    case 1:
+      emitNone(handler, isFn, this);
+      break;
+    case 2:
+      emitOne(handler, isFn, this, arguments[1]);
+      break;
+    case 3:
+      emitTwo(handler, isFn, this, arguments[1], arguments[2]);
+      break;
+    case 4:
+      emitThree(handler, isFn, this, arguments[1], arguments[2], arguments[3]);
+      break;
+      // slower
+    default:
+      args = new Array(len - 1);
+      for (i = 1; i < len; i++)
+        args[i - 1] = arguments[i];
+      emitMany(handler, isFn, this, args);
   }
 
   return true;
 };
 
-EventEmitter.prototype.addListener = function(type, listener) {
+function _addListener(target, type, listener, prepend) {
   var m;
+  var events;
+  var existing;
 
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
+  if (typeof listener !== 'function')
+    throw new TypeError('"listener" argument must be a function');
 
-  if (!this._events)
-    this._events = {};
+  events = target._events;
+  if (!events) {
+    events = target._events = objectCreate(null);
+    target._eventsCount = 0;
+  } else {
+    // To avoid recursion in the case that type === "newListener"! Before
+    // adding it to the listeners, first emit "newListener".
+    if (events.newListener) {
+      target.emit('newListener', type,
+          listener.listener ? listener.listener : listener);
 
-  // To avoid recursion in the case that type === "newListener"! Before
-  // adding it to the listeners, first emit "newListener".
-  if (this._events.newListener)
-    this.emit('newListener', type,
-              isFunction(listener.listener) ?
-              listener.listener : listener);
+      // Re-assign `events` because a newListener handler could have caused the
+      // this._events to be assigned to a new object
+      events = target._events;
+    }
+    existing = events[type];
+  }
 
-  if (!this._events[type])
+  if (!existing) {
     // Optimize the case of one listener. Don't need the extra array object.
-    this._events[type] = listener;
-  else if (isObject(this._events[type]))
-    // If we've already got an array, just append.
-    this._events[type].push(listener);
-  else
-    // Adding the second element, need to change to array.
-    this._events[type] = [this._events[type], listener];
-
-  // Check for listener leak
-  if (isObject(this._events[type]) && !this._events[type].warned) {
-    if (!isUndefined(this._maxListeners)) {
-      m = this._maxListeners;
+    existing = events[type] = listener;
+    ++target._eventsCount;
+  } else {
+    if (typeof existing === 'function') {
+      // Adding the second element, need to change to array.
+      existing = events[type] =
+          prepend ? [listener, existing] : [existing, listener];
     } else {
-      m = EventEmitter.defaultMaxListeners;
+      // If we've already got an array, just append.
+      if (prepend) {
+        existing.unshift(listener);
+      } else {
+        existing.push(listener);
+      }
     }
 
-    if (m && m > 0 && this._events[type].length > m) {
-      this._events[type].warned = true;
-      console.error('(node) warning: possible EventEmitter memory ' +
-                    'leak detected. %d listeners added. ' +
-                    'Use emitter.setMaxListeners() to increase limit.',
-                    this._events[type].length);
-      if (typeof console.trace === 'function') {
-        // not supported in IE 10
-        console.trace();
+    // Check for listener leak
+    if (!existing.warned) {
+      m = $getMaxListeners(target);
+      if (m && m > 0 && existing.length > m) {
+        existing.warned = true;
+        var w = new Error('Possible EventEmitter memory leak detected. ' +
+            existing.length + ' "' + String(type) + '" listeners ' +
+            'added. Use emitter.setMaxListeners() to ' +
+            'increase limit.');
+        w.name = 'MaxListenersExceededWarning';
+        w.emitter = target;
+        w.type = type;
+        w.count = existing.length;
+        if (typeof console === 'object' && console.warn) {
+          console.warn('%s: %s', w.name, w.message);
+        }
       }
     }
   }
 
-  return this;
+  return target;
+}
+
+EventEmitter.prototype.addListener = function addListener(type, listener) {
+  return _addListener(this, type, listener, false);
 };
 
 EventEmitter.prototype.on = EventEmitter.prototype.addListener;
 
-EventEmitter.prototype.once = function(type, listener) {
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
+EventEmitter.prototype.prependListener =
+    function prependListener(type, listener) {
+      return _addListener(this, type, listener, true);
+    };
 
-  var fired = false;
-
-  function g() {
-    this.removeListener(type, g);
-
-    if (!fired) {
-      fired = true;
-      listener.apply(this, arguments);
+function onceWrapper() {
+  if (!this.fired) {
+    this.target.removeListener(this.type, this.wrapFn);
+    this.fired = true;
+    switch (arguments.length) {
+      case 0:
+        return this.listener.call(this.target);
+      case 1:
+        return this.listener.call(this.target, arguments[0]);
+      case 2:
+        return this.listener.call(this.target, arguments[0], arguments[1]);
+      case 3:
+        return this.listener.call(this.target, arguments[0], arguments[1],
+            arguments[2]);
+      default:
+        var args = new Array(arguments.length);
+        for (var i = 0; i < args.length; ++i)
+          args[i] = arguments[i];
+        this.listener.apply(this.target, args);
     }
   }
+}
 
-  g.listener = listener;
-  this.on(type, g);
+function _onceWrap(target, type, listener) {
+  var state = { fired: false, wrapFn: undefined, target: target, type: type, listener: listener };
+  var wrapped = bind.call(onceWrapper, state);
+  wrapped.listener = listener;
+  state.wrapFn = wrapped;
+  return wrapped;
+}
 
+EventEmitter.prototype.once = function once(type, listener) {
+  if (typeof listener !== 'function')
+    throw new TypeError('"listener" argument must be a function');
+  this.on(type, _onceWrap(this, type, listener));
   return this;
 };
 
-// emits a 'removeListener' event iff the listener was removed
-EventEmitter.prototype.removeListener = function(type, listener) {
-  var list, position, length, i;
-
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  if (!this._events || !this._events[type])
-    return this;
-
-  list = this._events[type];
-  length = list.length;
-  position = -1;
-
-  if (list === listener ||
-      (isFunction(list.listener) && list.listener === listener)) {
-    delete this._events[type];
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-
-  } else if (isObject(list)) {
-    for (i = length; i-- > 0;) {
-      if (list[i] === listener ||
-          (list[i].listener && list[i].listener === listener)) {
-        position = i;
-        break;
-      }
-    }
-
-    if (position < 0)
+EventEmitter.prototype.prependOnceListener =
+    function prependOnceListener(type, listener) {
+      if (typeof listener !== 'function')
+        throw new TypeError('"listener" argument must be a function');
+      this.prependListener(type, _onceWrap(this, type, listener));
       return this;
+    };
 
-    if (list.length === 1) {
-      list.length = 0;
-      delete this._events[type];
-    } else {
-      list.splice(position, 1);
-    }
+// Emits a 'removeListener' event if and only if the listener was removed.
+EventEmitter.prototype.removeListener =
+    function removeListener(type, listener) {
+      var list, events, position, i, originalListener;
 
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-  }
+      if (typeof listener !== 'function')
+        throw new TypeError('"listener" argument must be a function');
 
-  return this;
-};
+      events = this._events;
+      if (!events)
+        return this;
 
-EventEmitter.prototype.removeAllListeners = function(type) {
-  var key, listeners;
+      list = events[type];
+      if (!list)
+        return this;
 
-  if (!this._events)
-    return this;
+      if (list === listener || list.listener === listener) {
+        if (--this._eventsCount === 0)
+          this._events = objectCreate(null);
+        else {
+          delete events[type];
+          if (events.removeListener)
+            this.emit('removeListener', type, list.listener || listener);
+        }
+      } else if (typeof list !== 'function') {
+        position = -1;
 
-  // not listening for removeListener, no need to emit
-  if (!this._events.removeListener) {
-    if (arguments.length === 0)
-      this._events = {};
-    else if (this._events[type])
-      delete this._events[type];
-    return this;
-  }
+        for (i = list.length - 1; i >= 0; i--) {
+          if (list[i] === listener || list[i].listener === listener) {
+            originalListener = list[i].listener;
+            position = i;
+            break;
+          }
+        }
 
-  // emit removeListener for all listeners on all events
-  if (arguments.length === 0) {
-    for (key in this._events) {
-      if (key === 'removeListener') continue;
-      this.removeAllListeners(key);
-    }
-    this.removeAllListeners('removeListener');
-    this._events = {};
-    return this;
-  }
+        if (position < 0)
+          return this;
 
-  listeners = this._events[type];
+        if (position === 0)
+          list.shift();
+        else
+          spliceOne(list, position);
 
-  if (isFunction(listeners)) {
-    this.removeListener(type, listeners);
-  } else if (listeners) {
-    // LIFO order
-    while (listeners.length)
-      this.removeListener(type, listeners[listeners.length - 1]);
-  }
-  delete this._events[type];
+        if (list.length === 1)
+          events[type] = list[0];
 
-  return this;
-};
+        if (events.removeListener)
+          this.emit('removeListener', type, originalListener || listener);
+      }
 
-EventEmitter.prototype.listeners = function(type) {
+      return this;
+    };
+
+EventEmitter.prototype.removeAllListeners =
+    function removeAllListeners(type) {
+      var listeners, events, i;
+
+      events = this._events;
+      if (!events)
+        return this;
+
+      // not listening for removeListener, no need to emit
+      if (!events.removeListener) {
+        if (arguments.length === 0) {
+          this._events = objectCreate(null);
+          this._eventsCount = 0;
+        } else if (events[type]) {
+          if (--this._eventsCount === 0)
+            this._events = objectCreate(null);
+          else
+            delete events[type];
+        }
+        return this;
+      }
+
+      // emit removeListener for all listeners on all events
+      if (arguments.length === 0) {
+        var keys = objectKeys(events);
+        var key;
+        for (i = 0; i < keys.length; ++i) {
+          key = keys[i];
+          if (key === 'removeListener') continue;
+          this.removeAllListeners(key);
+        }
+        this.removeAllListeners('removeListener');
+        this._events = objectCreate(null);
+        this._eventsCount = 0;
+        return this;
+      }
+
+      listeners = events[type];
+
+      if (typeof listeners === 'function') {
+        this.removeListener(type, listeners);
+      } else if (listeners) {
+        // LIFO order
+        for (i = listeners.length - 1; i >= 0; i--) {
+          this.removeListener(type, listeners[i]);
+        }
+      }
+
+      return this;
+    };
+
+EventEmitter.prototype.listeners = function listeners(type) {
+  var evlistener;
   var ret;
-  if (!this._events || !this._events[type])
+  var events = this._events;
+
+  if (!events)
     ret = [];
-  else if (isFunction(this._events[type]))
-    ret = [this._events[type]];
-  else
-    ret = this._events[type].slice();
+  else {
+    evlistener = events[type];
+    if (!evlistener)
+      ret = [];
+    else if (typeof evlistener === 'function')
+      ret = [evlistener.listener || evlistener];
+    else
+      ret = unwrapListeners(evlistener);
+  }
+
   return ret;
 };
 
-EventEmitter.prototype.listenerCount = function(type) {
-  if (this._events) {
-    var evlistener = this._events[type];
-
-    if (isFunction(evlistener))
-      return 1;
-    else if (evlistener)
-      return evlistener.length;
-  }
-  return 0;
-};
-
 EventEmitter.listenerCount = function(emitter, type) {
-  return emitter.listenerCount(type);
+  if (typeof emitter.listenerCount === 'function') {
+    return emitter.listenerCount(type);
+  } else {
+    return listenerCount.call(emitter, type);
+  }
 };
 
-function isFunction(arg) {
-  return typeof arg === 'function';
+EventEmitter.prototype.listenerCount = listenerCount;
+function listenerCount(type) {
+  var events = this._events;
+
+  if (events) {
+    var evlistener = events[type];
+
+    if (typeof evlistener === 'function') {
+      return 1;
+    } else if (evlistener) {
+      return evlistener.length;
+    }
+  }
+
+  return 0;
 }
 
-function isNumber(arg) {
-  return typeof arg === 'number';
+EventEmitter.prototype.eventNames = function eventNames() {
+  return this._eventsCount > 0 ? Reflect.ownKeys(this._events) : [];
+};
+
+// About 1.5x faster than the two-arg version of Array#splice().
+function spliceOne(list, index) {
+  for (var i = index, k = i + 1, n = list.length; k < n; i += 1, k += 1)
+    list[i] = list[k];
+  list.pop();
 }
 
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
+function arrayClone(arr, n) {
+  var copy = new Array(n);
+  for (var i = 0; i < n; ++i)
+    copy[i] = arr[i];
+  return copy;
 }
 
-function isUndefined(arg) {
-  return arg === void 0;
+function unwrapListeners(arr) {
+  var ret = new Array(arr.length);
+  for (var i = 0; i < ret.length; ++i) {
+    ret[i] = arr[i].listener || arr[i];
+  }
+  return ret;
+}
+
+function objectCreatePolyfill(proto) {
+  var F = function() {};
+  F.prototype = proto;
+  return new F;
+}
+function objectKeysPolyfill(obj) {
+  var keys = [];
+  for (var k in obj) if (Object.prototype.hasOwnProperty.call(obj, k)) {
+    keys.push(k);
+  }
+  return k;
+}
+function functionBindPolyfill(context) {
+  var fn = this;
+  return function () {
+    return fn.apply(context, arguments);
+  };
 }
 
 },{}],7:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
-  var eLen = nBytes * 8 - mLen - 1
+  var eLen = (nBytes * 8) - mLen - 1
   var eMax = (1 << eLen) - 1
   var eBias = eMax >> 1
   var nBits = -7
@@ -2284,12 +2525,12 @@ exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   e = s & ((1 << (-nBits)) - 1)
   s >>= (-nBits)
   nBits += eLen
-  for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+  for (; nBits > 0; e = (e * 256) + buffer[offset + i], i += d, nBits -= 8) {}
 
   m = e & ((1 << (-nBits)) - 1)
   e >>= (-nBits)
   nBits += mLen
-  for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+  for (; nBits > 0; m = (m * 256) + buffer[offset + i], i += d, nBits -= 8) {}
 
   if (e === 0) {
     e = 1 - eBias
@@ -2304,7 +2545,7 @@ exports.read = function (buffer, offset, isLE, mLen, nBytes) {
 
 exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   var e, m, c
-  var eLen = nBytes * 8 - mLen - 1
+  var eLen = (nBytes * 8) - mLen - 1
   var eMax = (1 << eLen) - 1
   var eBias = eMax >> 1
   var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0)
@@ -2337,7 +2578,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
       m = 0
       e = eMax
     } else if (e + eBias >= 1) {
-      m = (value * c - 1) * Math.pow(2, mLen)
+      m = ((value * c) - 1) * Math.pow(2, mLen)
       e = e + eBias
     } else {
       m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
@@ -2925,9 +3166,9 @@ module.exports = toNumber;
 if (!process.version ||
     process.version.indexOf('v0.') === 0 ||
     process.version.indexOf('v1.') === 0 && process.version.indexOf('v1.8.') !== 0) {
-  module.exports = nextTick;
+  module.exports = { nextTick: nextTick };
 } else {
-  module.exports = process.nextTick;
+  module.exports = process
 }
 
 function nextTick(fn, arg1, arg2, arg3) {
@@ -2963,6 +3204,7 @@ function nextTick(fn, arg1, arg2, arg3) {
     });
   }
 }
+
 
 }).call(this,require('_process'))
 },{"_process":24}],24:[function(require,module,exports){
@@ -3901,7 +4143,7 @@ module.exports = require('./lib/_stream_duplex.js');
 
 /*<replacement>*/
 
-var processNextTick = require('process-nextick-args');
+var pna = require('process-nextick-args');
 /*</replacement>*/
 
 /*<replacement>*/
@@ -3925,10 +4167,13 @@ var Writable = require('./_stream_writable');
 
 util.inherits(Duplex, Readable);
 
-var keys = objectKeys(Writable.prototype);
-for (var v = 0; v < keys.length; v++) {
-  var method = keys[v];
-  if (!Duplex.prototype[method]) Duplex.prototype[method] = Writable.prototype[method];
+{
+  // avoid scope creep, the keys array can then be collected
+  var keys = objectKeys(Writable.prototype);
+  for (var v = 0; v < keys.length; v++) {
+    var method = keys[v];
+    if (!Duplex.prototype[method]) Duplex.prototype[method] = Writable.prototype[method];
+  }
 }
 
 function Duplex(options) {
@@ -3947,6 +4192,16 @@ function Duplex(options) {
   this.once('end', onend);
 }
 
+Object.defineProperty(Duplex.prototype, 'writableHighWaterMark', {
+  // making it explicit this property is not enumerable
+  // because otherwise some prototype manipulation in
+  // userland will fail
+  enumerable: false,
+  get: function () {
+    return this._writableState.highWaterMark;
+  }
+});
+
 // the no-half-open enforcer
 function onend() {
   // if we allow half-open state, or if the writable side ended,
@@ -3955,7 +4210,7 @@ function onend() {
 
   // no more data can be written.
   // But allow more writes to happen in this tick.
-  processNextTick(onEndNT, this);
+  pna.nextTick(onEndNT, this);
 }
 
 function onEndNT(self) {
@@ -3987,14 +4242,8 @@ Duplex.prototype._destroy = function (err, cb) {
   this.push(null);
   this.end();
 
-  processNextTick(cb, err);
+  pna.nextTick(cb, err);
 };
-
-function forEach(xs, f) {
-  for (var i = 0, l = xs.length; i < l; i++) {
-    f(xs[i], i);
-  }
-}
 },{"./_stream_readable":32,"./_stream_writable":34,"core-util-is":5,"inherits":8,"process-nextick-args":23}],31:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -4070,7 +4319,7 @@ PassThrough.prototype._transform = function (chunk, encoding, cb) {
 
 /*<replacement>*/
 
-var processNextTick = require('process-nextick-args');
+var pna = require('process-nextick-args');
 /*</replacement>*/
 
 module.exports = Readable;
@@ -4097,9 +4346,8 @@ var EElistenerCount = function (emitter, type) {
 var Stream = require('./internal/streams/stream');
 /*</replacement>*/
 
-// TODO(bmeurer): Change this back to const once hole checks are
-// properly optimized away early in Ignition+TurboFan.
 /*<replacement>*/
+
 var Buffer = require('safe-buffer').Buffer;
 var OurUint8Array = global.Uint8Array || function () {};
 function _uint8ArrayToBuffer(chunk) {
@@ -4108,6 +4356,7 @@ function _uint8ArrayToBuffer(chunk) {
 function _isUint8Array(obj) {
   return Buffer.isBuffer(obj) || obj instanceof OurUint8Array;
 }
+
 /*</replacement>*/
 
 /*<replacement>*/
@@ -4136,15 +4385,13 @@ var kProxyEvents = ['error', 'close', 'destroy', 'pause', 'resume'];
 function prependListener(emitter, event, fn) {
   // Sadly this is not cacheable as some libraries bundle their own
   // event emitter implementation with them.
-  if (typeof emitter.prependListener === 'function') {
-    return emitter.prependListener(event, fn);
-  } else {
-    // This is a hack to make sure that our error handler is attached before any
-    // userland ones.  NEVER DO THIS. This is here only because this code needs
-    // to continue to work with older versions of Node.js that do not include
-    // the prependListener() method. The goal is to eventually remove this hack.
-    if (!emitter._events || !emitter._events[event]) emitter.on(event, fn);else if (isArray(emitter._events[event])) emitter._events[event].unshift(fn);else emitter._events[event] = [fn, emitter._events[event]];
-  }
+  if (typeof emitter.prependListener === 'function') return emitter.prependListener(event, fn);
+
+  // This is a hack to make sure that our error handler is attached before any
+  // userland ones.  NEVER DO THIS. This is here only because this code needs
+  // to continue to work with older versions of Node.js that do not include
+  // the prependListener() method. The goal is to eventually remove this hack.
+  if (!emitter._events || !emitter._events[event]) emitter.on(event, fn);else if (isArray(emitter._events[event])) emitter._events[event].unshift(fn);else emitter._events[event] = [fn, emitter._events[event]];
 }
 
 function ReadableState(options, stream) {
@@ -4152,17 +4399,26 @@ function ReadableState(options, stream) {
 
   options = options || {};
 
+  // Duplex streams are both readable and writable, but share
+  // the same options object.
+  // However, some cases require setting options to different
+  // values for the readable and the writable sides of the duplex stream.
+  // These options can be provided separately as readableXXX and writableXXX.
+  var isDuplex = stream instanceof Duplex;
+
   // object stream flag. Used to make read(n) ignore n and to
   // make all the buffer merging and length checks go away
   this.objectMode = !!options.objectMode;
 
-  if (stream instanceof Duplex) this.objectMode = this.objectMode || !!options.readableObjectMode;
+  if (isDuplex) this.objectMode = this.objectMode || !!options.readableObjectMode;
 
   // the point at which it stops calling _read() to fill the buffer
   // Note: 0 is a valid value, means "don't call _read preemptively ever"
   var hwm = options.highWaterMark;
+  var readableHwm = options.readableHighWaterMark;
   var defaultHwm = this.objectMode ? 16 : 16 * 1024;
-  this.highWaterMark = hwm || hwm === 0 ? hwm : defaultHwm;
+
+  if (hwm || hwm === 0) this.highWaterMark = hwm;else if (isDuplex && (readableHwm || readableHwm === 0)) this.highWaterMark = readableHwm;else this.highWaterMark = defaultHwm;
 
   // cast to ints.
   this.highWaterMark = Math.floor(this.highWaterMark);
@@ -4535,7 +4791,7 @@ function emitReadable(stream) {
   if (!state.emittedReadable) {
     debug('emitReadable', state.flowing);
     state.emittedReadable = true;
-    if (state.sync) processNextTick(emitReadable_, stream);else emitReadable_(stream);
+    if (state.sync) pna.nextTick(emitReadable_, stream);else emitReadable_(stream);
   }
 }
 
@@ -4554,7 +4810,7 @@ function emitReadable_(stream) {
 function maybeReadMore(stream, state) {
   if (!state.readingMore) {
     state.readingMore = true;
-    processNextTick(maybeReadMore_, stream, state);
+    pna.nextTick(maybeReadMore_, stream, state);
   }
 }
 
@@ -4599,7 +4855,7 @@ Readable.prototype.pipe = function (dest, pipeOpts) {
   var doEnd = (!pipeOpts || pipeOpts.end !== false) && dest !== process.stdout && dest !== process.stderr;
 
   var endFn = doEnd ? onend : unpipe;
-  if (state.endEmitted) processNextTick(endFn);else src.once('end', endFn);
+  if (state.endEmitted) pna.nextTick(endFn);else src.once('end', endFn);
 
   dest.on('unpipe', onunpipe);
   function onunpipe(readable, unpipeInfo) {
@@ -4789,7 +5045,7 @@ Readable.prototype.on = function (ev, fn) {
       state.readableListening = state.needReadable = true;
       state.emittedReadable = false;
       if (!state.reading) {
-        processNextTick(nReadingNextTick, this);
+        pna.nextTick(nReadingNextTick, this);
       } else if (state.length) {
         emitReadable(this);
       }
@@ -4820,7 +5076,7 @@ Readable.prototype.resume = function () {
 function resume(stream, state) {
   if (!state.resumeScheduled) {
     state.resumeScheduled = true;
-    processNextTick(resume_, stream, state);
+    pna.nextTick(resume_, stream, state);
   }
 }
 
@@ -4857,18 +5113,19 @@ function flow(stream) {
 // This is *not* part of the readable stream interface.
 // It is an ugly unfortunate mess of history.
 Readable.prototype.wrap = function (stream) {
+  var _this = this;
+
   var state = this._readableState;
   var paused = false;
 
-  var self = this;
   stream.on('end', function () {
     debug('wrapped end');
     if (state.decoder && !state.ended) {
       var chunk = state.decoder.end();
-      if (chunk && chunk.length) self.push(chunk);
+      if (chunk && chunk.length) _this.push(chunk);
     }
 
-    self.push(null);
+    _this.push(null);
   });
 
   stream.on('data', function (chunk) {
@@ -4878,7 +5135,7 @@ Readable.prototype.wrap = function (stream) {
     // don't skip over falsy values in objectMode
     if (state.objectMode && (chunk === null || chunk === undefined)) return;else if (!state.objectMode && (!chunk || !chunk.length)) return;
 
-    var ret = self.push(chunk);
+    var ret = _this.push(chunk);
     if (!ret) {
       paused = true;
       stream.pause();
@@ -4899,12 +5156,12 @@ Readable.prototype.wrap = function (stream) {
 
   // proxy certain important events.
   for (var n = 0; n < kProxyEvents.length; n++) {
-    stream.on(kProxyEvents[n], self.emit.bind(self, kProxyEvents[n]));
+    stream.on(kProxyEvents[n], this.emit.bind(this, kProxyEvents[n]));
   }
 
   // when we try to consume some more bytes, simply unpause the
   // underlying stream.
-  self._read = function (n) {
+  this._read = function (n) {
     debug('wrapped _read', n);
     if (paused) {
       paused = false;
@@ -4912,8 +5169,18 @@ Readable.prototype.wrap = function (stream) {
     }
   };
 
-  return self;
+  return this;
 };
+
+Object.defineProperty(Readable.prototype, 'readableHighWaterMark', {
+  // making it explicit this property is not enumerable
+  // because otherwise some prototype manipulation in
+  // userland will fail
+  enumerable: false,
+  get: function () {
+    return this._readableState.highWaterMark;
+  }
+});
 
 // exposed for testing purposes only.
 Readable._fromList = fromList;
@@ -5027,7 +5294,7 @@ function endReadable(stream) {
 
   if (!state.endEmitted) {
     state.ended = true;
-    processNextTick(endReadableNT, state, stream);
+    pna.nextTick(endReadableNT, state, stream);
   }
 }
 
@@ -5037,12 +5304,6 @@ function endReadableNT(state, stream) {
     state.endEmitted = true;
     stream.readable = false;
     stream.emit('end');
-  }
-}
-
-function forEach(xs, f) {
-  for (var i = 0, l = xs.length; i < l; i++) {
-    f(xs[i], i);
   }
 }
 
@@ -5130,39 +5391,28 @@ util.inherits = require('inherits');
 
 util.inherits(Transform, Duplex);
 
-function TransformState(stream) {
-  this.afterTransform = function (er, data) {
-    return afterTransform(stream, er, data);
-  };
-
-  this.needTransform = false;
-  this.transforming = false;
-  this.writecb = null;
-  this.writechunk = null;
-  this.writeencoding = null;
-}
-
-function afterTransform(stream, er, data) {
-  var ts = stream._transformState;
+function afterTransform(er, data) {
+  var ts = this._transformState;
   ts.transforming = false;
 
   var cb = ts.writecb;
 
   if (!cb) {
-    return stream.emit('error', new Error('write callback called multiple times'));
+    return this.emit('error', new Error('write callback called multiple times'));
   }
 
   ts.writechunk = null;
   ts.writecb = null;
 
-  if (data !== null && data !== undefined) stream.push(data);
+  if (data != null) // single equals check for both `null` and `undefined`
+    this.push(data);
 
   cb(er);
 
-  var rs = stream._readableState;
+  var rs = this._readableState;
   rs.reading = false;
   if (rs.needReadable || rs.length < rs.highWaterMark) {
-    stream._read(rs.highWaterMark);
+    this._read(rs.highWaterMark);
   }
 }
 
@@ -5171,9 +5421,14 @@ function Transform(options) {
 
   Duplex.call(this, options);
 
-  this._transformState = new TransformState(this);
-
-  var stream = this;
+  this._transformState = {
+    afterTransform: afterTransform.bind(this),
+    needTransform: false,
+    transforming: false,
+    writecb: null,
+    writechunk: null,
+    writeencoding: null
+  };
 
   // start out asking for a readable event once data is transformed.
   this._readableState.needReadable = true;
@@ -5190,11 +5445,19 @@ function Transform(options) {
   }
 
   // When the writable side finishes, then flush out anything remaining.
-  this.once('prefinish', function () {
-    if (typeof this._flush === 'function') this._flush(function (er, data) {
-      done(stream, er, data);
-    });else done(stream);
-  });
+  this.on('prefinish', prefinish);
+}
+
+function prefinish() {
+  var _this = this;
+
+  if (typeof this._flush === 'function') {
+    this._flush(function (er, data) {
+      done(_this, er, data);
+    });
+  } else {
+    done(this, null, null);
+  }
 }
 
 Transform.prototype.push = function (chunk, encoding) {
@@ -5244,27 +5507,25 @@ Transform.prototype._read = function (n) {
 };
 
 Transform.prototype._destroy = function (err, cb) {
-  var _this = this;
+  var _this2 = this;
 
   Duplex.prototype._destroy.call(this, err, function (err2) {
     cb(err2);
-    _this.emit('close');
+    _this2.emit('close');
   });
 };
 
 function done(stream, er, data) {
   if (er) return stream.emit('error', er);
 
-  if (data !== null && data !== undefined) stream.push(data);
+  if (data != null) // single equals check for both `null` and `undefined`
+    stream.push(data);
 
   // if there's nothing in the write buffer, then that means
   // that nothing more will ever be provided
-  var ws = stream._writableState;
-  var ts = stream._transformState;
+  if (stream._writableState.length) throw new Error('Calling transform done when ws.length != 0');
 
-  if (ws.length) throw new Error('Calling transform done when ws.length != 0');
-
-  if (ts.transforming) throw new Error('Calling transform done when still transforming');
+  if (stream._transformState.transforming) throw new Error('Calling transform done when still transforming');
 
   return stream.push(null);
 }
@@ -5299,7 +5560,7 @@ function done(stream, er, data) {
 
 /*<replacement>*/
 
-var processNextTick = require('process-nextick-args');
+var pna = require('process-nextick-args');
 /*</replacement>*/
 
 module.exports = Writable;
@@ -5326,7 +5587,7 @@ function CorkedRequest(state) {
 /* </replacement> */
 
 /*<replacement>*/
-var asyncWrite = !process.browser && ['v0.10', 'v0.9.'].indexOf(process.version.slice(0, 5)) > -1 ? setImmediate : processNextTick;
+var asyncWrite = !process.browser && ['v0.10', 'v0.9.'].indexOf(process.version.slice(0, 5)) > -1 ? setImmediate : pna.nextTick;
 /*</replacement>*/
 
 /*<replacement>*/
@@ -5351,6 +5612,7 @@ var Stream = require('./internal/streams/stream');
 /*</replacement>*/
 
 /*<replacement>*/
+
 var Buffer = require('safe-buffer').Buffer;
 var OurUint8Array = global.Uint8Array || function () {};
 function _uint8ArrayToBuffer(chunk) {
@@ -5359,6 +5621,7 @@ function _uint8ArrayToBuffer(chunk) {
 function _isUint8Array(obj) {
   return Buffer.isBuffer(obj) || obj instanceof OurUint8Array;
 }
+
 /*</replacement>*/
 
 var destroyImpl = require('./internal/streams/destroy');
@@ -5372,18 +5635,27 @@ function WritableState(options, stream) {
 
   options = options || {};
 
+  // Duplex streams are both readable and writable, but share
+  // the same options object.
+  // However, some cases require setting options to different
+  // values for the readable and the writable sides of the duplex stream.
+  // These options can be provided separately as readableXXX and writableXXX.
+  var isDuplex = stream instanceof Duplex;
+
   // object stream flag to indicate whether or not this stream
   // contains buffers or objects.
   this.objectMode = !!options.objectMode;
 
-  if (stream instanceof Duplex) this.objectMode = this.objectMode || !!options.writableObjectMode;
+  if (isDuplex) this.objectMode = this.objectMode || !!options.writableObjectMode;
 
   // the point at which write() starts returning false
   // Note: 0 is a valid value, means that we always return false if
   // the entire buffer is not flushed immediately on write()
   var hwm = options.highWaterMark;
+  var writableHwm = options.writableHighWaterMark;
   var defaultHwm = this.objectMode ? 16 : 16 * 1024;
-  this.highWaterMark = hwm || hwm === 0 ? hwm : defaultHwm;
+
+  if (hwm || hwm === 0) this.highWaterMark = hwm;else if (isDuplex && (writableHwm || writableHwm === 0)) this.highWaterMark = writableHwm;else this.highWaterMark = defaultHwm;
 
   // cast to ints.
   this.highWaterMark = Math.floor(this.highWaterMark);
@@ -5497,6 +5769,7 @@ if (typeof Symbol === 'function' && Symbol.hasInstance && typeof Function.protot
   Object.defineProperty(Writable, Symbol.hasInstance, {
     value: function (object) {
       if (realHasInstance.call(this, object)) return true;
+      if (this !== Writable) return false;
 
       return object && object._writableState instanceof WritableState;
     }
@@ -5548,7 +5821,7 @@ function writeAfterEnd(stream, cb) {
   var er = new Error('write after end');
   // TODO: defer error events consistently everywhere, not just the cb
   stream.emit('error', er);
-  processNextTick(cb, er);
+  pna.nextTick(cb, er);
 }
 
 // Checks that a user-supplied chunk is valid, especially for the particular
@@ -5565,7 +5838,7 @@ function validChunk(stream, state, chunk, cb) {
   }
   if (er) {
     stream.emit('error', er);
-    processNextTick(cb, er);
+    pna.nextTick(cb, er);
     valid = false;
   }
   return valid;
@@ -5574,7 +5847,7 @@ function validChunk(stream, state, chunk, cb) {
 Writable.prototype.write = function (chunk, encoding, cb) {
   var state = this._writableState;
   var ret = false;
-  var isBuf = _isUint8Array(chunk) && !state.objectMode;
+  var isBuf = !state.objectMode && _isUint8Array(chunk);
 
   if (isBuf && !Buffer.isBuffer(chunk)) {
     chunk = _uint8ArrayToBuffer(chunk);
@@ -5627,6 +5900,16 @@ function decodeChunk(state, chunk, encoding) {
   }
   return chunk;
 }
+
+Object.defineProperty(Writable.prototype, 'writableHighWaterMark', {
+  // making it explicit this property is not enumerable
+  // because otherwise some prototype manipulation in
+  // userland will fail
+  enumerable: false,
+  get: function () {
+    return this._writableState.highWaterMark;
+  }
+});
 
 // if we're already writing something, then just put this
 // in the queue, and wait our turn.  Otherwise, call _write
@@ -5685,10 +5968,10 @@ function onwriteError(stream, state, sync, er, cb) {
   if (sync) {
     // defer the callback if we are being called synchronously
     // to avoid piling up things on the stack
-    processNextTick(cb, er);
+    pna.nextTick(cb, er);
     // this can emit finish, and it will always happen
     // after error
-    processNextTick(finishMaybe, stream, state);
+    pna.nextTick(finishMaybe, stream, state);
     stream._writableState.errorEmitted = true;
     stream.emit('error', er);
   } else {
@@ -5786,6 +6069,7 @@ function clearBuffer(stream, state) {
     } else {
       state.corkedRequestsFree = new CorkedRequest(state);
     }
+    state.bufferedRequestCount = 0;
   } else {
     // Slow case, write chunks one-by-one
     while (entry) {
@@ -5796,6 +6080,7 @@ function clearBuffer(stream, state) {
 
       doWrite(stream, state, false, len, chunk, encoding, cb);
       entry = entry.next;
+      state.bufferedRequestCount--;
       // if we didn't call the onwrite immediately, then
       // it means that we need to wait until it does.
       // also, that means that the chunk and cb are currently
@@ -5808,7 +6093,6 @@ function clearBuffer(stream, state) {
     if (entry === null) state.lastBufferedRequest = null;
   }
 
-  state.bufferedRequestCount = 0;
   state.bufferedRequest = entry;
   state.bufferProcessing = false;
 }
@@ -5862,7 +6146,7 @@ function prefinish(stream, state) {
     if (typeof stream._final === 'function') {
       state.pendingcb++;
       state.finalCalled = true;
-      processNextTick(callFinal, stream, state);
+      pna.nextTick(callFinal, stream, state);
     } else {
       state.prefinished = true;
       stream.emit('prefinish');
@@ -5886,7 +6170,7 @@ function endWritable(stream, state, cb) {
   state.ending = true;
   finishMaybe(stream, state);
   if (cb) {
-    if (state.finished) processNextTick(cb);else stream.once('finish', cb);
+    if (state.finished) pna.nextTick(cb);else stream.once('finish', cb);
   }
   state.ended = true;
   stream.writable = false;
@@ -5938,12 +6222,10 @@ Writable.prototype._destroy = function (err, cb) {
 },{"./_stream_duplex":30,"./internal/streams/destroy":36,"./internal/streams/stream":37,"_process":24,"core-util-is":5,"inherits":8,"process-nextick-args":23,"safe-buffer":42,"util-deprecate":47}],35:[function(require,module,exports){
 'use strict';
 
-/*<replacement>*/
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Buffer = require('safe-buffer').Buffer;
-/*</replacement>*/
+var util = require('util');
 
 function copyBuffer(src, target, offset) {
   src.copy(target, offset);
@@ -6010,12 +6292,19 @@ module.exports = function () {
 
   return BufferList;
 }();
-},{"safe-buffer":42}],36:[function(require,module,exports){
+
+if (util && util.inspect && util.inspect.custom) {
+  module.exports.prototype[util.inspect.custom] = function () {
+    var obj = util.inspect({ length: this.length });
+    return this.constructor.name + ' ' + obj;
+  };
+}
+},{"safe-buffer":42,"util":3}],36:[function(require,module,exports){
 'use strict';
 
 /*<replacement>*/
 
-var processNextTick = require('process-nextick-args');
+var pna = require('process-nextick-args');
 /*</replacement>*/
 
 // undocumented cb() API, needed for core, not for public API
@@ -6029,9 +6318,9 @@ function destroy(err, cb) {
     if (cb) {
       cb(err);
     } else if (err && (!this._writableState || !this._writableState.errorEmitted)) {
-      processNextTick(emitErrorNT, this, err);
+      pna.nextTick(emitErrorNT, this, err);
     }
-    return;
+    return this;
   }
 
   // we set destroyed to true before firing error callbacks in order
@@ -6048,7 +6337,7 @@ function destroy(err, cb) {
 
   this._destroy(err || null, function (err) {
     if (!cb && err) {
-      processNextTick(emitErrorNT, _this, err);
+      pna.nextTick(emitErrorNT, _this, err);
       if (_this._writableState) {
         _this._writableState.errorEmitted = true;
       }
@@ -6056,6 +6345,8 @@ function destroy(err, cb) {
       cb(err);
     }
   });
+
+  return this;
 }
 
 function undestroy() {
@@ -6298,9 +6589,33 @@ Stream.prototype.pipe = function(dest, options) {
 };
 
 },{"events":6,"inherits":8,"readable-stream/duplex.js":29,"readable-stream/passthrough.js":38,"readable-stream/readable.js":39,"readable-stream/transform.js":40,"readable-stream/writable.js":41}],44:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 'use strict';
 
+/*<replacement>*/
+
 var Buffer = require('safe-buffer').Buffer;
+/*</replacement>*/
 
 var isEncoding = Buffer.isEncoding || function (encoding) {
   encoding = '' + encoding;
@@ -6412,10 +6727,10 @@ StringDecoder.prototype.fillLast = function (buf) {
 };
 
 // Checks the type of a UTF-8 byte, whether it's ASCII, a leading byte, or a
-// continuation byte.
+// continuation byte. If an invalid byte is detected, -2 is returned.
 function utf8CheckByte(byte) {
   if (byte <= 0x7F) return 0;else if (byte >> 5 === 0x06) return 2;else if (byte >> 4 === 0x0E) return 3;else if (byte >> 3 === 0x1E) return 4;
-  return -1;
+  return byte >> 6 === 0x02 ? -1 : -2;
 }
 
 // Checks at most 3 bytes at the end of a Buffer in order to detect an
@@ -6429,13 +6744,13 @@ function utf8CheckIncomplete(self, buf, i) {
     if (nb > 0) self.lastNeed = nb - 1;
     return nb;
   }
-  if (--j < i) return 0;
+  if (--j < i || nb === -2) return 0;
   nb = utf8CheckByte(buf[j]);
   if (nb >= 0) {
     if (nb > 0) self.lastNeed = nb - 2;
     return nb;
   }
-  if (--j < i) return 0;
+  if (--j < i || nb === -2) return 0;
   nb = utf8CheckByte(buf[j]);
   if (nb >= 0) {
     if (nb > 0) {
@@ -6449,7 +6764,7 @@ function utf8CheckIncomplete(self, buf, i) {
 // Validates as many continuation bytes for a multi-byte UTF-8 character as
 // needed or are available. If we see a non-continuation byte where we expect
 // one, we "replace" the validated continuation bytes we've seen so far with
-// UTF-8 replacement characters ('\ufffd'), to match v8's UTF-8 decoding
+// a single UTF-8 replacement character ('\ufffd'), to match v8's UTF-8 decoding
 // behavior. The continuation byte check is included three times in the case
 // where all of the continuation bytes for a character exist in the same buffer.
 // It is also done this way as a slight performance increase instead of using a
@@ -6457,17 +6772,17 @@ function utf8CheckIncomplete(self, buf, i) {
 function utf8CheckExtraBytes(self, buf, p) {
   if ((buf[0] & 0xC0) !== 0x80) {
     self.lastNeed = 0;
-    return '\ufffd'.repeat(p);
+    return '\ufffd';
   }
   if (self.lastNeed > 1 && buf.length > 1) {
     if ((buf[1] & 0xC0) !== 0x80) {
       self.lastNeed = 1;
-      return '\ufffd'.repeat(p + 1);
+      return '\ufffd';
     }
     if (self.lastNeed > 2 && buf.length > 2) {
       if ((buf[2] & 0xC0) !== 0x80) {
         self.lastNeed = 2;
-        return '\ufffd'.repeat(p + 2);
+        return '\ufffd';
       }
     }
   }
@@ -6498,11 +6813,11 @@ function utf8Text(buf, i) {
   return buf.toString('utf8', i, end);
 }
 
-// For UTF-8, a replacement character for each buffered byte of a (partial)
-// character needs to be added to the output.
+// For UTF-8, a replacement character is added when ending on a partial
+// character.
 function utf8End(buf) {
   var r = buf && buf.length ? this.write(buf) : '';
-  if (this.lastNeed) return r + '\ufffd'.repeat(this.lastTotal - this.lastNeed);
+  if (this.lastNeed) return r + '\ufffd';
   return r;
 }
 
@@ -8019,7 +8334,7 @@ module.exports = {
 	helpers: helpers
 };
 
-},{"./js/app":52,"./js/assessor":80,"./js/bundledPlugins/previouslyUsedKeywords":81,"./js/contentAssessor":97,"./js/interpreters/scoreToRating":115,"./js/pluggable":118,"./js/researcher":120,"./js/seoAssessor":210,"./js/snippetPreview.js":211,"./js/values/AssessmentResult":259,"./js/values/Paper":261}],52:[function(require,module,exports){
+},{"./js/app":52,"./js/assessor":80,"./js/bundledPlugins/previouslyUsedKeywords":81,"./js/contentAssessor":97,"./js/interpreters/scoreToRating":115,"./js/pluggable":118,"./js/researcher":120,"./js/seoAssessor":215,"./js/snippetPreview.js":216,"./js/values/AssessmentResult":264,"./js/values/Paper":266}],52:[function(require,module,exports){
 "use strict";
 
 require("./config/config.js");
@@ -8811,7 +9126,7 @@ App.prototype.createSnippetPreview = function () {
 module.exports = App;
 
 
-},{"./config/config.js":82,"./contentAssessor.js":97,"./cornerstone/contentAssessor.js":98,"./cornerstone/seoAssessor.js":99,"./errors/missingArgument":101,"./pluggable.js":118,"./renderers/AssessorPresenter.js":119,"./researcher.js":120,"./seoAssessor.js":210,"./snippetPreview.js":211,"./stringProcessing/htmlParser.js":230,"./values/Paper.js":261,"jed":296,"lodash/debounce":476,"lodash/defaultsDeep":478,"lodash/forEach":488,"lodash/isEmpty":503,"lodash/isObject":509,"lodash/isString":513,"lodash/isUndefined":516,"lodash/throttle":536}],53:[function(require,module,exports){
+},{"./config/config.js":82,"./contentAssessor.js":97,"./cornerstone/contentAssessor.js":98,"./cornerstone/seoAssessor.js":99,"./errors/missingArgument":101,"./pluggable.js":118,"./renderers/AssessorPresenter.js":119,"./researcher.js":120,"./seoAssessor.js":215,"./snippetPreview.js":216,"./stringProcessing/htmlParser.js":235,"./values/Paper.js":266,"jed":301,"lodash/debounce":481,"lodash/defaultsDeep":483,"lodash/forEach":493,"lodash/isEmpty":508,"lodash/isObject":514,"lodash/isString":518,"lodash/isUndefined":521,"lodash/throttle":541}],53:[function(require,module,exports){
 "use strict";
 /* eslint-disable no-unused-vars */
 /**
@@ -8884,7 +9199,7 @@ module.exports = function (sentences, recommendedValue) {
 };
 
 
-},{"../helpers/isValueTooLong":111,"lodash/filter":483}],55:[function(require,module,exports){
+},{"../helpers/isValueTooLong":111,"lodash/filter":488}],55:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -8986,7 +9301,7 @@ module.exports = {
 };
 
 
-},{"../../helpers/getLanguageAvailability.js":107,"../../values/AssessmentResult.js":259,"lodash/inRange":493}],56:[function(require,module,exports){
+},{"../../helpers/getLanguageAvailability.js":107,"../../values/AssessmentResult.js":264,"lodash/inRange":498}],56:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -9106,7 +9421,7 @@ module.exports = {
 };
 
 
-},{"../../helpers/inRange.js":110,"../../helpers/isValueTooLong":111,"../../markers/addMark.js":116,"../../stringProcessing/stripHTMLTags":248,"../../values/AssessmentResult.js":259,"../../values/Mark.js":260,"lodash/filter":483,"lodash/map":519}],57:[function(require,module,exports){
+},{"../../helpers/inRange.js":110,"../../helpers/isValueTooLong":111,"../../markers/addMark.js":116,"../../stringProcessing/stripHTMLTags":253,"../../values/AssessmentResult.js":264,"../../values/Mark.js":265,"lodash/filter":488,"lodash/map":524}],57:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -9125,11 +9440,11 @@ var availableLanguages = ["en", "de", "fr", "es"];
  * @returns {{score: number, text}} resultobject with score and text.
  */
 var calculatePassiveVoiceResult = function calculatePassiveVoiceResult(passiveVoice, i18n) {
-    var score;
+    var score = void 0;
     var percentage = 0;
     var recommendedValue = 10;
     var passiveVoiceURL = "<a href='https://yoa.st/passive-voice' target='_blank'>";
-    var hasMarks;
+    var hasMarks = void 0;
     // Prevent division by zero errors.
     if (passiveVoice.total !== 0) {
         percentage = formatNumber(passiveVoice.passives.length / passiveVoice.total * 100);
@@ -9211,7 +9526,7 @@ module.exports = {
 };
 
 
-},{"../../helpers/formatNumber.js":104,"../../helpers/getLanguageAvailability.js":107,"../../helpers/inRange.js":110,"../../markers/addMark.js":116,"../../stringProcessing/stripHTMLTags":248,"../../values/AssessmentResult.js":259,"../../values/Mark.js":260,"lodash/map":519}],58:[function(require,module,exports){
+},{"../../helpers/formatNumber.js":104,"../../helpers/getLanguageAvailability.js":107,"../../helpers/inRange.js":110,"../../markers/addMark.js":116,"../../stringProcessing/stripHTMLTags":253,"../../values/AssessmentResult.js":264,"../../values/Mark.js":265,"lodash/map":524}],58:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -9313,7 +9628,7 @@ module.exports = {
 };
 
 
-},{"../../helpers/getLanguageAvailability.js":107,"../../markers/addMark.js":116,"../../stringProcessing/stripHTMLTags":248,"../../values/AssessmentResult.js":259,"../../values/Mark.js":260,"lodash/filter":483,"lodash/flatten":487,"lodash/map":519,"lodash/partition":526,"lodash/sortBy":531}],59:[function(require,module,exports){
+},{"../../helpers/getLanguageAvailability.js":107,"../../markers/addMark.js":116,"../../stringProcessing/stripHTMLTags":253,"../../values/AssessmentResult.js":264,"../../values/Mark.js":265,"lodash/filter":488,"lodash/flatten":492,"lodash/map":524,"lodash/partition":531,"lodash/sortBy":536}],59:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -9521,7 +9836,7 @@ var SentenceLengthInTextAssessment = function (_Assessment) {
 module.exports = SentenceLengthInTextAssessment;
 
 
-},{"../../assessment.js":53,"../../assessmentHelpers/checkForTooLongSentences.js":54,"../../helpers/formatNumber.js":104,"../../helpers/inRange.js":110,"../../markers/addMark.js":116,"../../stringProcessing/stripHTMLTags":248,"../../values/AssessmentResult.js":259,"../../values/Mark.js":260,"lodash/map":519,"lodash/merge":521}],60:[function(require,module,exports){
+},{"../../assessment.js":53,"../../assessmentHelpers/checkForTooLongSentences.js":54,"../../helpers/formatNumber.js":104,"../../helpers/inRange.js":110,"../../markers/addMark.js":116,"../../stringProcessing/stripHTMLTags":253,"../../values/AssessmentResult.js":264,"../../values/Mark.js":265,"lodash/map":524,"lodash/merge":526}],60:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -9705,7 +10020,7 @@ var SubheadingsDistributionTooLong = function (_Assessment) {
 module.exports = SubheadingsDistributionTooLong;
 
 
-},{"../../assessment.js":53,"../../helpers/inRange.js":110,"../../helpers/isValueTooLong":111,"../../markers/addMark.js":116,"../../values/AssessmentResult.js":259,"../../values/Mark.js":260,"lodash/filter":483,"lodash/map":519,"lodash/merge":521}],61:[function(require,module,exports){
+},{"../../assessment.js":53,"../../helpers/inRange.js":110,"../../helpers/isValueTooLong":111,"../../markers/addMark.js":116,"../../values/AssessmentResult.js":264,"../../values/Mark.js":265,"lodash/filter":488,"lodash/map":524,"lodash/merge":526}],61:[function(require,module,exports){
 "use strict";
 
 var stripHTMLTags = require("../../stringProcessing/stripHTMLTags").stripFullTags;
@@ -9734,7 +10049,7 @@ module.exports = {
 };
 
 
-},{"../../stringProcessing/stripHTMLTags":248,"../../values/AssessmentResult":259}],62:[function(require,module,exports){
+},{"../../stringProcessing/stripHTMLTags":253,"../../values/AssessmentResult":264}],62:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -9745,7 +10060,7 @@ var stripTags = require("../../stringProcessing/stripHTMLTags").stripIncompleteT
 var Mark = require("../../values/Mark.js");
 var marker = require("../../markers/addMark.js");
 var getLanguageAvailability = require("../../helpers/getLanguageAvailability.js");
-var availableLanguages = ["en", "de", "es", "fr", "nl", "it"];
+var availableLanguages = ["en", "de", "es", "fr", "nl", "it", "pt"];
 /**
  * Calculates the actual percentage of transition words in the sentences.
  *
@@ -9847,7 +10162,7 @@ module.exports = {
 };
 
 
-},{"../../helpers/formatNumber.js":104,"../../helpers/getLanguageAvailability.js":107,"../../helpers/inRange.js":110,"../../markers/addMark.js":116,"../../stringProcessing/stripHTMLTags":248,"../../values/AssessmentResult.js":259,"../../values/Mark.js":260,"lodash/map":519}],63:[function(require,module,exports){
+},{"../../helpers/formatNumber.js":104,"../../helpers/getLanguageAvailability.js":107,"../../helpers/inRange.js":110,"../../markers/addMark.js":116,"../../stringProcessing/stripHTMLTags":253,"../../values/AssessmentResult.js":264,"../../values/Mark.js":265,"lodash/map":524}],63:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -9916,7 +10231,7 @@ module.exports = {
 };
 
 
-},{"../../values/AssessmentResult.js":259,"lodash/isEmpty":503}],64:[function(require,module,exports){
+},{"../../values/AssessmentResult.js":264,"lodash/isEmpty":508}],64:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -9964,7 +10279,7 @@ module.exports = {
 };
 
 
-},{"../../values/AssessmentResult.js":259}],65:[function(require,module,exports){
+},{"../../values/AssessmentResult.js":264}],65:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -9994,7 +10309,7 @@ module.exports = {
 };
 
 
-},{"../../values/AssessmentResult.js":259}],66:[function(require,module,exports){
+},{"../../values/AssessmentResult.js":264}],66:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -10075,7 +10390,7 @@ module.exports = {
 };
 
 
-},{"../../helpers/formatNumber.js":104,"../../helpers/inRange.js":110,"../../stringProcessing/countWords.js":216,"../../values/AssessmentResult.js":259}],67:[function(require,module,exports){
+},{"../../helpers/formatNumber.js":104,"../../helpers/inRange.js":110,"../../stringProcessing/countWords.js":221,"../../values/AssessmentResult.js":264}],67:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -10123,7 +10438,7 @@ module.exports = {
 };
 
 
-},{"../../helpers/getLanguageAvailability.js":107,"../../values/AssessmentResult.js":259}],68:[function(require,module,exports){
+},{"../../helpers/getLanguageAvailability.js":107,"../../values/AssessmentResult.js":264}],68:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -10173,7 +10488,7 @@ module.exports = {
 };
 
 
-},{"../../values/AssessmentResult.js":259}],69:[function(require,module,exports){
+},{"../../values/AssessmentResult.js":264}],69:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -10300,7 +10615,7 @@ var MetaDescriptionLengthAssessment = function (_Assessment) {
 module.exports = MetaDescriptionLengthAssessment;
 
 
-},{"../../assessment.js":53,"../../values/AssessmentResult.js":259,"lodash/merge":521}],70:[function(require,module,exports){
+},{"../../assessment.js":53,"../../values/AssessmentResult.js":264,"lodash/merge":526}],70:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -10445,7 +10760,7 @@ var OutboundLinksAssessment = function (_Assessment) {
 module.exports = OutboundLinksAssessment;
 
 
-},{"../../assessment.js":53,"../../values/AssessmentResult.js":259,"lodash/isEmpty":503,"lodash/merge":521}],71:[function(require,module,exports){
+},{"../../assessment.js":53,"../../values/AssessmentResult.js":264,"lodash/isEmpty":508,"lodash/merge":526}],71:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -10568,7 +10883,7 @@ var PageTitleWidthAssesment = function (_Assessment) {
 module.exports = PageTitleWidthAssesment;
 
 
-},{"../../assessment.js":53,"../../helpers/inRange":110,"../../values/AssessmentResult.js":259,"lodash/merge":521}],72:[function(require,module,exports){
+},{"../../assessment.js":53,"../../helpers/inRange":110,"../../values/AssessmentResult.js":264,"lodash/merge":526}],72:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -10699,7 +11014,7 @@ var SubHeadingsKeywordAssessment = function (_Assessment) {
 module.exports = SubHeadingsKeywordAssessment;
 
 
-},{"../../assessment.js":53,"../../values/AssessmentResult.js":259,"lodash/merge":521}],73:[function(require,module,exports){
+},{"../../assessment.js":53,"../../values/AssessmentResult.js":264,"lodash/merge":526}],73:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -10766,7 +11081,7 @@ module.exports = {
 };
 
 
-},{"../../markers/addMark.js":116,"../../values/AssessmentResult.js":259,"../../values/Mark.js":260,"lodash/map":519}],74:[function(require,module,exports){
+},{"../../markers/addMark.js":116,"../../values/AssessmentResult.js":264,"../../values/Mark.js":265,"lodash/map":524}],74:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -10923,7 +11238,7 @@ var TextImagesAssessment = function (_Assessment) {
 module.exports = TextImagesAssessment;
 
 
-},{"../../assessment.js":53,"../../values/AssessmentResult.js":259,"lodash/merge":521}],75:[function(require,module,exports){
+},{"../../assessment.js":53,"../../values/AssessmentResult.js":264,"lodash/merge":526}],75:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -11074,7 +11389,7 @@ var TextLengthAssessment = function (_Assessment) {
 module.exports = TextLengthAssessment;
 
 
-},{"../../assessment.js":53,"../../values/AssessmentResult.js":259,"lodash/inRange":493,"lodash/merge":521}],76:[function(require,module,exports){
+},{"../../assessment.js":53,"../../values/AssessmentResult.js":264,"lodash/inRange":498,"lodash/merge":526}],76:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -11115,7 +11430,7 @@ module.exports = {
 };
 
 
-},{"../../values/AssessmentResult.js":259,"lodash/escape":481}],77:[function(require,module,exports){
+},{"../../values/AssessmentResult.js":264,"lodash/escape":486}],77:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -11233,7 +11548,7 @@ var UrlKeywordAssessment = function (_Assessment) {
 module.exports = UrlKeywordAssessment;
 
 
-},{"../../assessment.js":53,"../../values/AssessmentResult.js":259,"lodash/merge":521}],78:[function(require,module,exports){
+},{"../../assessment.js":53,"../../values/AssessmentResult.js":264,"lodash/merge":526}],78:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -11351,7 +11666,7 @@ var UrlLengthAssessment = function (_Assessment) {
 module.exports = UrlLengthAssessment;
 
 
-},{"../../assessment.js":53,"../../values/AssessmentResult.js":259,"lodash/merge":521}],79:[function(require,module,exports){
+},{"../../assessment.js":53,"../../values/AssessmentResult.js":264,"lodash/merge":526}],79:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -11400,7 +11715,7 @@ module.exports = {
 };
 
 
-},{"../../helpers/getLanguageAvailability.js":107,"../../values/AssessmentResult.js":259}],80:[function(require,module,exports){
+},{"../../helpers/getLanguageAvailability.js":107,"../../values/AssessmentResult.js":264}],80:[function(require,module,exports){
 "use strict";
 
 var Researcher = require("./researcher.js");
@@ -11656,7 +11971,7 @@ Assessor.prototype.getApplicableAssessments = function () {
 module.exports = Assessor;
 
 
-},{"./errors/missingArgument":101,"./helpers/errors.js":103,"./markers/removeDuplicateMarks":117,"./researcher.js":120,"./values/AssessmentResult.js":259,"lodash/filter":483,"lodash/find":484,"lodash/findIndex":485,"lodash/forEach":488,"lodash/isFunction":504,"lodash/isUndefined":516,"lodash/map":519}],81:[function(require,module,exports){
+},{"./errors/missingArgument":101,"./helpers/errors.js":103,"./markers/removeDuplicateMarks":117,"./researcher.js":120,"./values/AssessmentResult.js":264,"lodash/filter":488,"lodash/find":489,"lodash/findIndex":490,"lodash/forEach":493,"lodash/isFunction":509,"lodash/isUndefined":521,"lodash/map":524}],81:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../values/AssessmentResult.js");
@@ -11783,7 +12098,7 @@ PreviouslyUsedKeyword.prototype.assess = function (paper, researcher, i18n) {
 module.exports = PreviouslyUsedKeyword;
 
 
-},{"../errors/missingArgument":101,"../values/AssessmentResult.js":259,"lodash/isUndefined":516}],82:[function(require,module,exports){
+},{"../errors/missingArgument":101,"../values/AssessmentResult.js":264,"lodash/isUndefined":521}],82:[function(require,module,exports){
 "use strict";
 
 var analyzerConfig = {
@@ -11816,7 +12131,7 @@ module.exports = function (locale) {
 };
 
 
-},{"./../../helpers/getLanguage":106,"./default":84,"./it":85,"lodash/defaultsDeep":478}],84:[function(require,module,exports){
+},{"./../../helpers/getLanguage":106,"./default":84,"./it":85,"lodash/defaultsDeep":483}],84:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -11995,7 +12310,7 @@ module.exports = function () {
 };
 
 
-},{"../helpers/getLanguage.js":106,"./syllables/de.json":91,"./syllables/en.json":92,"./syllables/it.json":93,"./syllables/nl.json":94,"lodash/isUndefined":516}],91:[function(require,module,exports){
+},{"../helpers/getLanguage.js":106,"./syllables/de.json":91,"./syllables/en.json":92,"./syllables/it.json":93,"./syllables/nl.json":94,"lodash/isUndefined":521}],91:[function(require,module,exports){
 module.exports={
 	"vowels": "aeiouyäöüáéâàèîêâûôœ",
 	"deviations": {
@@ -13884,7 +14199,7 @@ module.exports = function (locale) {
 };
 
 
-},{"../helpers/getLanguage.js":106,"lodash/isUndefined":516}],96:[function(require,module,exports){
+},{"../helpers/getLanguage.js":106,"lodash/isUndefined":521}],96:[function(require,module,exports){
 "use strict";
 
 module.exports = function () {
@@ -14050,7 +14365,7 @@ ContentAssessor.prototype.calculateOverallScore = function () {
 module.exports = ContentAssessor;
 
 
-},{"./assessments/readability/fleschReadingEaseAssessment.js":55,"./assessments/readability/paragraphTooLongAssessment.js":56,"./assessments/readability/passiveVoiceAssessment.js":57,"./assessments/readability/sentenceBeginningsAssessment.js":58,"./assessments/readability/sentenceLengthInTextAssessment.js":59,"./assessments/readability/subheadingDistributionTooLongAssessment.js":60,"./assessments/readability/textPresenceAssessment.js":61,"./assessments/readability/transitionWordsAssessment.js":62,"./assessor.js":80,"./config/content/combinedConfig.js":83,"./interpreters/scoreToRating":115,"lodash/map":519,"lodash/sum":534,"util":50}],98:[function(require,module,exports){
+},{"./assessments/readability/fleschReadingEaseAssessment.js":55,"./assessments/readability/paragraphTooLongAssessment.js":56,"./assessments/readability/passiveVoiceAssessment.js":57,"./assessments/readability/sentenceBeginningsAssessment.js":58,"./assessments/readability/sentenceLengthInTextAssessment.js":59,"./assessments/readability/subheadingDistributionTooLongAssessment.js":60,"./assessments/readability/textPresenceAssessment.js":61,"./assessments/readability/transitionWordsAssessment.js":62,"./assessor.js":80,"./config/content/combinedConfig.js":83,"./interpreters/scoreToRating":115,"lodash/map":524,"lodash/sum":539,"util":50}],98:[function(require,module,exports){
 "use strict";
 
 var Assessor = require("../assessor.js");
@@ -14182,7 +14497,7 @@ require("util").inherits(CornerstoneSEOAssessor, SEOAssessor);
 module.exports = CornerstoneSEOAssessor;
 
 
-},{"../assessments/seo/internalLinksAssessment":63,"../assessments/seo/introductionKeywordAssessment.js":64,"../assessments/seo/keyphraseLengthAssessment.js":65,"../assessments/seo/keywordDensityAssessment.js":66,"../assessments/seo/keywordStopWordsAssessment.js":67,"../assessments/seo/metaDescriptionKeywordAssessment.js":68,"../assessments/seo/metaDescriptionLengthAssessment.js":69,"../assessments/seo/outboundLinksAssessment.js":70,"../assessments/seo/pageTitleWidthAssessment.js":71,"../assessments/seo/subheadingsKeywordAssessment.js":72,"../assessments/seo/textCompetingLinksAssessment.js":73,"../assessments/seo/textImagesAssessment.js":74,"../assessments/seo/textLengthAssessment.js":75,"../assessments/seo/titleKeywordAssessment.js":76,"../assessments/seo/urlKeywordAssessment.js":77,"../assessments/seo/urlLengthAssessment.js":78,"../assessments/seo/urlStopWordsAssessment.js":79,"../assessor.js":80,"../seoAssessor":210,"util":50}],100:[function(require,module,exports){
+},{"../assessments/seo/internalLinksAssessment":63,"../assessments/seo/introductionKeywordAssessment.js":64,"../assessments/seo/keyphraseLengthAssessment.js":65,"../assessments/seo/keywordDensityAssessment.js":66,"../assessments/seo/keywordStopWordsAssessment.js":67,"../assessments/seo/metaDescriptionKeywordAssessment.js":68,"../assessments/seo/metaDescriptionLengthAssessment.js":69,"../assessments/seo/outboundLinksAssessment.js":70,"../assessments/seo/pageTitleWidthAssessment.js":71,"../assessments/seo/subheadingsKeywordAssessment.js":72,"../assessments/seo/textCompetingLinksAssessment.js":73,"../assessments/seo/textImagesAssessment.js":74,"../assessments/seo/textLengthAssessment.js":75,"../assessments/seo/titleKeywordAssessment.js":76,"../assessments/seo/urlKeywordAssessment.js":77,"../assessments/seo/urlLengthAssessment.js":78,"../assessments/seo/urlStopWordsAssessment.js":79,"../assessor.js":80,"../seoAssessor":215,"util":50}],100:[function(require,module,exports){
 "use strict";
 /**
  * Throws an invalid type error
@@ -14270,7 +14585,7 @@ module.exports = {
 };
 
 
-},{"lodash/forEach":488}],103:[function(require,module,exports){
+},{"lodash/forEach":493}],103:[function(require,module,exports){
 "use strict";
 
 var isUndefined = require("lodash/isUndefined");
@@ -14293,7 +14608,7 @@ module.exports = {
 };
 
 
-},{"lodash/isUndefined":516}],104:[function(require,module,exports){
+},{"lodash/isUndefined":521}],104:[function(require,module,exports){
 "use strict";
 /**
  * Returns rounded number to fix floating point bug http://floating-point-gui.de
@@ -14338,7 +14653,7 @@ module.exports = function (locale) {
 };
 
 
-},{"../researches/dutch/firstWordExceptions.js":125,"../researches/english/firstWordExceptions.js":129,"../researches/french/firstWordExceptions.js":142,"../researches/german/firstWordExceptions.js":152,"../researches/italian/firstWordExceptions.js":176,"../researches/spanish/firstWordExceptions.js":196,"./getLanguage.js":106}],106:[function(require,module,exports){
+},{"../researches/dutch/firstWordExceptions.js":125,"../researches/english/firstWordExceptions.js":129,"../researches/french/firstWordExceptions.js":142,"../researches/german/firstWordExceptions.js":152,"../researches/italian/firstWordExceptions.js":175,"../researches/spanish/firstWordExceptions.js":201,"./getLanguage.js":106}],106:[function(require,module,exports){
 "use strict";
 /**
  * The function getting the language part of the locale.
@@ -14370,7 +14685,7 @@ module.exports = function (locale, languages) {
 };
 
 
-},{"./getLanguage.js":106,"lodash/indexOf":495}],108:[function(require,module,exports){
+},{"./getLanguage.js":106,"lodash/indexOf":500}],108:[function(require,module,exports){
 "use strict";
 
 var transitionWordsEnglish = require("../researches/english/transitionWords.js")().allWords;
@@ -14385,6 +14700,8 @@ var transitionWordsDutch = require("../researches/dutch/transitionWords.js")().a
 var twoPartTransitionWordsDutch = require("../researches/dutch/twoPartTransitionWords.js");
 var transitionWordsItalian = require("../researches/italian/transitionWords.js")().allWords;
 var twoPartTransitionWordsItalian = require("../researches/italian/twoPartTransitionWords.js");
+var transitionWordsPortuguese = require("../researches/portuguese/transitionWords.js")().allWords;
+var twoPartTransitionWordsPortuguese = require("../researches/portuguese/twoPartTransitionWords.js");
 var getLanguage = require("./getLanguage.js");
 module.exports = function (locale) {
     switch (getLanguage(locale)) {
@@ -14413,6 +14730,11 @@ module.exports = function (locale) {
                 transitionWords: transitionWordsItalian,
                 twoPartTransitionWords: twoPartTransitionWordsItalian
             };
+        case "pt":
+            return {
+                transitionWords: transitionWordsPortuguese,
+                twoPartTransitionWords: twoPartTransitionWordsPortuguese
+            };
         default:
         case "en":
             return {
@@ -14423,7 +14745,7 @@ module.exports = function (locale) {
 };
 
 
-},{"../researches/dutch/transitionWords.js":127,"../researches/dutch/twoPartTransitionWords.js":128,"../researches/english/transitionWords.js":137,"../researches/english/twoPartTransitionWords.js":138,"../researches/french/transitionWords.js":150,"../researches/french/twoPartTransitionWords.js":151,"../researches/german/transitionWords.js":164,"../researches/german/twoPartTransitionWords.js":165,"../researches/italian/transitionWords.js":178,"../researches/italian/twoPartTransitionWords.js":179,"../researches/spanish/transitionWords.js":203,"../researches/spanish/twoPartTransitionWords.js":204,"./getLanguage.js":106}],109:[function(require,module,exports){
+},{"../researches/dutch/transitionWords.js":127,"../researches/dutch/twoPartTransitionWords.js":128,"../researches/english/transitionWords.js":137,"../researches/english/twoPartTransitionWords.js":138,"../researches/french/transitionWords.js":150,"../researches/french/twoPartTransitionWords.js":151,"../researches/german/transitionWords.js":163,"../researches/german/twoPartTransitionWords.js":164,"../researches/italian/transitionWords.js":177,"../researches/italian/twoPartTransitionWords.js":178,"../researches/portuguese/transitionWords.js":195,"../researches/portuguese/twoPartTransitionWords.js":196,"../researches/spanish/transitionWords.js":208,"../researches/spanish/twoPartTransitionWords.js":209,"./getLanguage.js":106}],109:[function(require,module,exports){
 "use strict";
 
 var blockElements = ["address", "article", "aside", "blockquote", "canvas", "dd", "div", "dl", "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6", "header", "hgroup", "hr", "li", "main", "nav", "noscript", "ol", "output", "p", "pre", "section", "table", "tfoot", "ul", "video"];
@@ -14563,7 +14885,7 @@ module.exports = {
 };
 
 
-},{"lodash/forEach":488,"lodash/memoize":520,"tokenizer2/core":544}],110:[function(require,module,exports){
+},{"lodash/forEach":493,"lodash/memoize":525,"tokenizer2/core":549}],110:[function(require,module,exports){
 "use strict";
 /**
  * Checks if `n` is between `start` and `end` but not including `start`.
@@ -14675,7 +14997,7 @@ SyllableCountIterator.prototype.countSyllables = function (word) {
 module.exports = SyllableCountIterator;
 
 
-},{"./syllableCountStep.js":113,"lodash/forEach":488,"lodash/isUndefined":516}],113:[function(require,module,exports){
+},{"./syllableCountStep.js":113,"lodash/forEach":493,"lodash/isUndefined":521}],113:[function(require,module,exports){
 "use strict";
 
 var isUndefined = require("lodash/isUndefined");
@@ -14738,7 +15060,7 @@ SyllableCountStep.prototype.countSyllables = function (word) {
 module.exports = SyllableCountStep;
 
 
-},{"../stringProcessing/createRegexFromArray.js":217,"lodash/isUndefined":516}],114:[function(require,module,exports){
+},{"../stringProcessing/createRegexFromArray.js":222,"lodash/isUndefined":521}],114:[function(require,module,exports){
 "use strict";
 /**
  * Gets the parsed type name of subjects.
@@ -14834,7 +15156,7 @@ function removeDuplicateMarks(marks) {
 module.exports = removeDuplicateMarks;
 
 
-},{"lodash/uniqBy":542}],118:[function(require,module,exports){
+},{"lodash/uniqBy":547}],118:[function(require,module,exports){
 "use strict";
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -15173,7 +15495,7 @@ Pluggable.prototype._validateUniqueness = function (pluginName) {
 module.exports = Pluggable;
 
 
-},{"./errors/invalidType":100,"lodash/forEach":488,"lodash/isObject":509,"lodash/isString":513,"lodash/isUndefined":516,"lodash/reduce":529}],119:[function(require,module,exports){
+},{"./errors/invalidType":100,"lodash/forEach":493,"lodash/isObject":514,"lodash/isString":518,"lodash/isUndefined":521,"lodash/reduce":534}],119:[function(require,module,exports){
 "use strict";
 
 var forEach = require("lodash/forEach");
@@ -15505,7 +15827,7 @@ AssessorPresenter.prototype.renderOverallRating = function () {
 module.exports = AssessorPresenter;
 
 
-},{"../config/presenter.js":87,"../interpreters/scoreToRating.js":115,"../templates.js":258,"lodash/difference":479,"lodash/forEach":488,"lodash/isNumber":508,"lodash/isObject":509,"lodash/isUndefined":516}],120:[function(require,module,exports){
+},{"../config/presenter.js":87,"../interpreters/scoreToRating.js":115,"../templates.js":263,"lodash/difference":484,"lodash/forEach":493,"lodash/isNumber":513,"lodash/isObject":514,"lodash/isUndefined":521}],120:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -15545,6 +15867,7 @@ var findTransitionWords = require("./researches/findTransitionWords.js");
 var passiveVoice = require("./researches/getPassiveVoice.js");
 var getSentenceBeginnings = require("./researches/getSentenceBeginnings.js");
 var relevantWords = require("./researches/relevantWords");
+var readingTime = require("./researches/readingTime");
 /**
  * This contains all possible, default researches.
  * @param {Paper} paper The Paper object that is needed within the researches.
@@ -15583,6 +15906,7 @@ var Researcher = function Researcher(paper) {
         passiveVoice: passiveVoice,
         getSentenceBeginnings: getSentenceBeginnings,
         relevantWords: relevantWords,
+        readingTime: readingTime,
         sentences: sentences_1.default
     };
     this.customResearches = {};
@@ -15648,7 +15972,7 @@ Researcher.prototype.getResearch = function (name) {
 module.exports = Researcher;
 
 
-},{"./errors/invalidType":100,"./errors/missingArgument":101,"./researches/calculateFleschReading.js":121,"./researches/countLinks.js":122,"./researches/countSentencesFromDescription.js":123,"./researches/countSentencesFromText.js":124,"./researches/findKeywordInFirstParagraph.js":139,"./researches/findKeywordInPageTitle.js":140,"./researches/findTransitionWords.js":141,"./researches/getKeywordDensity.js":166,"./researches/getLinkStatistics.js":167,"./researches/getLinks.js":168,"./researches/getParagraphLength.js":169,"./researches/getPassiveVoice.js":170,"./researches/getSentenceBeginnings.js":171,"./researches/getSubheadingTextLengths.js":172,"./researches/getWordComplexity.js":173,"./researches/imageAltTags.js":174,"./researches/imageCountInText.js":175,"./researches/keyphraseLength":180,"./researches/keywordCount":181,"./researches/keywordCountInUrl":182,"./researches/matchKeywordInSubheadings.js":183,"./researches/metaDescriptionKeyword.js":184,"./researches/metaDescriptionLength.js":185,"./researches/pageTitleWidth.js":186,"./researches/relevantWords":194,"./researches/sentences":195,"./researches/stopWordsInKeyword":205,"./researches/stopWordsInUrl":207,"./researches/urlIsTooLong.js":208,"./researches/wordCountInText.js":209,"lodash/isEmpty":503,"lodash/isUndefined":516,"lodash/merge":521}],121:[function(require,module,exports){
+},{"./errors/invalidType":100,"./errors/missingArgument":101,"./researches/calculateFleschReading.js":121,"./researches/countLinks.js":122,"./researches/countSentencesFromDescription.js":123,"./researches/countSentencesFromText.js":124,"./researches/findKeywordInFirstParagraph.js":139,"./researches/findKeywordInPageTitle.js":140,"./researches/findTransitionWords.js":141,"./researches/getKeywordDensity.js":165,"./researches/getLinkStatistics.js":166,"./researches/getLinks.js":167,"./researches/getParagraphLength.js":168,"./researches/getPassiveVoice.js":169,"./researches/getSentenceBeginnings.js":170,"./researches/getSubheadingTextLengths.js":171,"./researches/getWordComplexity.js":172,"./researches/imageAltTags.js":173,"./researches/imageCountInText.js":174,"./researches/keyphraseLength":179,"./researches/keywordCount":180,"./researches/keywordCountInUrl":181,"./researches/matchKeywordInSubheadings.js":182,"./researches/metaDescriptionKeyword.js":183,"./researches/metaDescriptionLength.js":184,"./researches/pageTitleWidth.js":185,"./researches/readingTime":197,"./researches/relevantWords":198,"./researches/sentences":200,"./researches/stopWordsInKeyword":210,"./researches/stopWordsInUrl":212,"./researches/urlIsTooLong.js":213,"./researches/wordCountInText.js":214,"lodash/isEmpty":508,"lodash/isUndefined":521,"lodash/merge":526}],121:[function(require,module,exports){
 "use strict";
 /** @module analyses/calculateFleschReading */
 
@@ -15711,7 +16035,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../helpers/formatNumber.js":104,"../helpers/getLanguage.js":106,"../stringProcessing/countSentences.js":215,"../stringProcessing/countWords.js":216,"../stringProcessing/stripNumbers.js":250,"../stringProcessing/syllables/count.js":254}],122:[function(require,module,exports){
+},{"../helpers/formatNumber.js":104,"../helpers/getLanguage.js":106,"../stringProcessing/countSentences.js":220,"../stringProcessing/countWords.js":221,"../stringProcessing/stripNumbers.js":255,"../stringProcessing/syllables/count.js":259}],122:[function(require,module,exports){
 "use strict";
 /** @module analyses/getLinkStatistics */
 
@@ -15728,7 +16052,7 @@ module.exports = function (paper) {
 };
 
 
-},{"./getLinks":168}],123:[function(require,module,exports){
+},{"./getLinks":167}],123:[function(require,module,exports){
 "use strict";
 
 var getSentences = require("../stringProcessing/getSentences");
@@ -15744,7 +16068,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/getSentences":226,"./../stringProcessing/sentencesLength.js":247}],124:[function(require,module,exports){
+},{"../stringProcessing/getSentences":231,"./../stringProcessing/sentencesLength.js":252}],124:[function(require,module,exports){
 "use strict";
 
 var getSentences = require("../stringProcessing/getSentences");
@@ -15760,7 +16084,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/getSentences":226,"./../stringProcessing/sentencesLength.js":247}],125:[function(require,module,exports){
+},{"../stringProcessing/getSentences":231,"./../stringProcessing/sentencesLength.js":252}],125:[function(require,module,exports){
 "use strict";
 /**
  * Returns an array with exceptions for the sentence beginning researcher.
@@ -15999,7 +16323,7 @@ module.exports = function () {
 "use strict";
 
 var Participle = require("../../../values/Participle.js");
-var checkException = require("../../passiveVoice/checkException.js");
+var checkException = require("../../passiveVoice/periphrastic/checkException.js");
 var nonVerbsEndingEd = require("./non-verb-ending-ed.js")();
 var directPrecedenceException = require("../../../stringProcessing/directPrecedenceException");
 var precedenceException = require("../../../stringProcessing/precedenceException");
@@ -16030,7 +16354,8 @@ require("util").inherits(EnglishParticiple, Participle);
 EnglishParticiple.prototype.isPassive = function () {
     var sentencePart = this.getSentencePart();
     var participleIndex = sentencePart.indexOf(this.getParticiple());
-    return !this.isNonVerbEndingEd() && !this.hasRidException() && !this.directPrecedenceException(sentencePart, participleIndex) && !this.precedenceException(sentencePart, participleIndex);
+    var language = this.getLanguage();
+    return !this.isNonVerbEndingEd() && !this.hasRidException() && !this.directPrecedenceException(sentencePart, participleIndex, language) && !this.precedenceException(sentencePart, participleIndex, language);
 };
 /**
  * Checks whether a found participle is in the nonVerbsEndingEd list.
@@ -16064,11 +16389,11 @@ EnglishParticiple.prototype.precedenceException = precedenceException;
 module.exports = EnglishParticiple;
 
 
-},{"../../../stringProcessing/directPrecedenceException":220,"../../../stringProcessing/precedenceException":239,"../../../values/Participle.js":262,"../../passiveVoice/checkException.js":187,"./non-verb-ending-ed.js":135,"lodash/includes":494,"lodash/intersection":496,"lodash/isEmpty":503,"util":50}],132:[function(require,module,exports){
+},{"../../../stringProcessing/directPrecedenceException":225,"../../../stringProcessing/precedenceException":244,"../../../values/Participle.js":267,"../../passiveVoice/periphrastic/checkException.js":187,"./non-verb-ending-ed.js":135,"lodash/includes":499,"lodash/intersection":501,"lodash/isEmpty":508,"util":50}],132:[function(require,module,exports){
 "use strict";
 
 var SentencePart = require("../../../values/SentencePart.js");
-var getParticiples = require("../../passiveVoice/getParticiples.js");
+var getParticiples = require("../../passiveVoice/periphrastic/getParticiples.js");
 /**
  * Creates a English specific sentence part.
  *
@@ -16091,7 +16416,7 @@ EnglishSentencePart.prototype.getParticiples = function () {
 module.exports = EnglishSentencePart;
 
 
-},{"../../../values/SentencePart.js":264,"../../passiveVoice/getParticiples.js":191,"util":50}],133:[function(require,module,exports){
+},{"../../../values/SentencePart.js":269,"../../passiveVoice/periphrastic/getParticiples.js":191,"util":50}],133:[function(require,module,exports){
 "use strict";
 // These auxiliaries are filtered from the beginning of word combinations in the prominent words.
 
@@ -16194,7 +16519,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/matchParagraphs.js":234,"../stringProcessing/matchTextWithWord.js":237,"lodash/escapeRegExp":482,"lodash/isEmpty":503,"lodash/reject":530}],140:[function(require,module,exports){
+},{"../stringProcessing/matchParagraphs.js":239,"../stringProcessing/matchTextWithWord.js":242,"lodash/escapeRegExp":487,"lodash/isEmpty":508,"lodash/reject":535}],140:[function(require,module,exports){
 "use strict";
 /** @module analyses/findKeywordInPageTitle */
 
@@ -16218,7 +16543,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/matchTextWithWord.js":237,"lodash/escapeRegExp":482}],141:[function(require,module,exports){
+},{"../stringProcessing/matchTextWithWord.js":242,"lodash/escapeRegExp":487}],141:[function(require,module,exports){
 "use strict";
 
 var createRegexFromDoubleArray = require("../stringProcessing/createRegexFromDoubleArray.js");
@@ -16306,7 +16631,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../helpers/getTransitionWords.js":108,"../stringProcessing/createRegexFromDoubleArray.js":218,"../stringProcessing/getSentences.js":226,"../stringProcessing/matchWordInSentence.js":238,"../stringProcessing/quotes.js":241,"lodash/filter":483,"lodash/forEach":488,"lodash/memoize":520}],142:[function(require,module,exports){
+},{"../helpers/getTransitionWords.js":108,"../stringProcessing/createRegexFromDoubleArray.js":223,"../stringProcessing/getSentences.js":231,"../stringProcessing/matchWordInSentence.js":243,"../stringProcessing/quotes.js":246,"lodash/filter":488,"lodash/forEach":493,"lodash/memoize":525}],142:[function(require,module,exports){
 "use strict";
 /**
  * Returns an array with exceptions for the sentence beginning researcher.
@@ -16435,7 +16760,7 @@ module.exports = function () {
 "use strict";
 
 var Participle = require("../../../values/Participle.js");
-var checkException = require("../../passiveVoice/checkException.js");
+var checkException = require("../../passiveVoice/periphrastic/checkException.js");
 var directPrecedenceException = require("../../../stringProcessing/directPrecedenceException");
 var precedenceException = require("../../../stringProcessing/precedenceException");
 var exceptionsParticiplesAdjectivesVerbs = require("./exceptionsParticiples.js")().adjectivesVerbs;
@@ -16478,12 +16803,13 @@ var checkIrregular = function checkIrregular() {
 FrenchParticiple.prototype.isPassive = function () {
     var sentencePart = this.getSentencePart();
     var participleIndex = sentencePart.indexOf(this.getParticiple());
+    var language = this.getLanguage();
     // Only check precedence exceptions for irregular participles.
     if (checkIrregular.call(this)) {
-        return !this.directPrecedenceException(sentencePart, participleIndex) && !this.precedenceException(sentencePart, participleIndex);
+        return !this.directPrecedenceException(sentencePart, participleIndex, language) && !this.precedenceException(sentencePart, participleIndex, language);
     }
     // Check precedence exceptions and exception lists for regular participles.
-    return !this.isOnAdjectivesVerbsExceptionList() && !this.isOnNounsExceptionList() && !this.isOnOthersExceptionList() && !this.directPrecedenceException(sentencePart, participleIndex) && !this.precedenceException(sentencePart, participleIndex);
+    return !this.isOnAdjectivesVerbsExceptionList() && !this.isOnNounsExceptionList() && !this.isOnOthersExceptionList() && !this.directPrecedenceException(sentencePart, participleIndex, language) && !this.precedenceException(sentencePart, participleIndex, language);
 };
 /**
  * Creates regexes to match adjective and verb participle exceptions (including suffixes) and memoizes them.
@@ -16571,11 +16897,11 @@ FrenchParticiple.prototype.precedenceException = precedenceException;
 module.exports = FrenchParticiple;
 
 
-},{"../../../stringProcessing/directPrecedenceException":220,"../../../stringProcessing/precedenceException":239,"../../../values/Participle.js":262,"../../passiveVoice/checkException.js":187,"./exceptionsParticiples.js":147,"lodash/forEach":488,"lodash/includes":494,"lodash/memoize":520,"util":50}],145:[function(require,module,exports){
+},{"../../../stringProcessing/directPrecedenceException":225,"../../../stringProcessing/precedenceException":244,"../../../values/Participle.js":267,"../../passiveVoice/periphrastic/checkException.js":187,"./exceptionsParticiples.js":147,"lodash/forEach":493,"lodash/includes":499,"lodash/memoize":525,"util":50}],145:[function(require,module,exports){
 "use strict";
 
 var SentencePart = require("../../../values/SentencePart.js");
-var getParticiples = require("../../passiveVoice/getParticiples.js");
+var getParticiples = require("../../passiveVoice/periphrastic/getParticiples.js");
 /**
  * Creates a French-specific sentence part.
  *
@@ -16598,7 +16924,7 @@ FrenchSentencePart.prototype.getParticiples = function () {
 module.exports = FrenchSentencePart;
 
 
-},{"../../../values/SentencePart.js":264,"../../passiveVoice/getParticiples.js":191,"util":50}],146:[function(require,module,exports){
+},{"../../../values/SentencePart.js":269,"../../passiveVoice/periphrastic/getParticiples.js":191,"util":50}],146:[function(require,module,exports){
 "use strict";
 /**
  * Returns a list with auxiliaries for the French passive voice assessment.
@@ -16813,7 +17139,7 @@ module.exports = function () {
 };
 
 
-},{"./passiveVoice/auxiliaries.js":156,"./transitionWords.js":164}],154:[function(require,module,exports){
+},{"./passiveVoice/auxiliaries.js":156,"./transitionWords.js":163}],154:[function(require,module,exports){
 "use strict";
 
 var Participle = require("../../../values/Participle.js");
@@ -16892,7 +17218,7 @@ GermanParticiple.prototype.isAuxiliary = function () {
 module.exports = GermanParticiple;
 
 
-},{"../../../stringProcessing/indices.js":233,"../../../values/Participle.js":262,"./auxiliaries.js":156,"./exceptionsParticiplesActive.js":158,"lodash/includes":494,"lodash/map":519,"util":50}],155:[function(require,module,exports){
+},{"../../../stringProcessing/indices.js":238,"../../../values/Participle.js":267,"./auxiliaries.js":156,"./exceptionsParticiplesActive.js":157,"lodash/includes":499,"lodash/map":524,"util":50}],155:[function(require,module,exports){
 "use strict";
 
 var SentencePart = require("../../../values/SentencePart.js");
@@ -16919,7 +17245,7 @@ GermanSentencePart.prototype.getParticiples = function () {
 module.exports = GermanSentencePart;
 
 
-},{"../../../values/SentencePart.js":264,"./getParticiples.js":159,"util":50}],156:[function(require,module,exports){
+},{"../../../values/SentencePart.js":269,"./getParticiples.js":158,"util":50}],156:[function(require,module,exports){
 "use strict";
 // These passive auxiliaries start with be-, ge- or er- en and with -t, and therefore look like a participle.
 
@@ -16947,32 +17273,6 @@ module.exports = function () {
 
 },{}],157:[function(require,module,exports){
 "use strict";
-
-var arrayToRegex = require("../../../stringProcessing/createRegexFromArray.js");
-var auxiliaries = require("./auxiliaries.js")().allAuxiliaries;
-var getParticiples = require("./getParticiples.js");
-var determineSentencePartIsPassive = require("../../passiveVoice/determineSentencePartIsPassive.js");
-var auxiliaryRegex = arrayToRegex(auxiliaries);
-/**
- * Determines whether a sentence part is passive.
- *
- * @param {string} sentencePartText The sentence part to determine voice for.
- * @param {Array} auxiliaries A list with auxiliaries in this sentence part.
- * @returns {boolean} Returns true if passive, otherwise returns false.
- */
-module.exports = function (sentencePartText, auxiliaries) {
-    var passive = false;
-    var auxiliaryMatches = sentencePartText.match(auxiliaryRegex);
-    if (auxiliaryMatches === null) {
-        return passive;
-    }
-    var participles = getParticiples(sentencePartText, auxiliaries);
-    return determineSentencePartIsPassive(participles);
-};
-
-
-},{"../../../stringProcessing/createRegexFromArray.js":217,"../../passiveVoice/determineSentencePartIsPassive.js":189,"./auxiliaries.js":156,"./getParticiples.js":159}],158:[function(require,module,exports){
-"use strict";
 // This is a list of words that look like a participle, but aren't participles.
 
 module.exports = function () {
@@ -16980,7 +17280,7 @@ module.exports = function () {
 };
 
 
-},{}],159:[function(require,module,exports){
+},{}],158:[function(require,module,exports){
 "use strict";
 
 var getWords = require("../../../stringProcessing/getWords.js");
@@ -16999,40 +17299,42 @@ var includes = require("lodash/includes");
  *
  * @param {string} sentencePartText The sentence to finds participles in.
  * @param {Array} auxiliaries The list of auxiliaries from the sentence part.
+ * @param {string} language The language.
+ *
  * @returns {Array} The array with GermanParticiple Objects.
  */
-module.exports = function (sentencePartText, auxiliaries) {
+module.exports = function (sentencePartText, auxiliaries, language) {
     var words = getWords(sentencePartText);
     var foundParticiples = [];
     forEach(words, function (word) {
         if (verbsBeginningWithGe(word).length !== 0) {
-            foundParticiples.push(new GermanParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: "ge at beginning" }));
+            foundParticiples.push(new GermanParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: "ge at beginning", language: language }));
             return;
         }
         if (verbsWithGeInMiddle(word).length !== 0) {
-            foundParticiples.push(new GermanParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: "ge in the middle" }));
+            foundParticiples.push(new GermanParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: "ge in the middle", language: language }));
             return;
         }
         if (verbsBeginningWithErVerEntBeZerHerUber(word).length !== 0) {
-            foundParticiples.push(new GermanParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: "er/ver/ent/be/zer/her at beginning" }));
+            foundParticiples.push(new GermanParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: "er/ver/ent/be/zer/her at beginning", language: language }));
             return;
         }
         if (verbsWithErVerEntBeZerHerUberInMiddle(word).length !== 0) {
-            foundParticiples.push(new GermanParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: "er/ver/ent/be/zer/her in the middle" }));
+            foundParticiples.push(new GermanParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: "er/ver/ent/be/zer/her in the middle", language: language }));
             return;
         }
         if (verbsEndingWithIert(word).length !== 0) {
-            foundParticiples.push(new GermanParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: "iert at the end" }));
+            foundParticiples.push(new GermanParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: "iert at the end", language: language }));
         }
         if (includes(irregularParticiples, word)) {
-            foundParticiples.push(new GermanParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: "irregular" }));
+            foundParticiples.push(new GermanParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: "irregular", language: language }));
         }
     });
     return foundParticiples;
 };
 
 
-},{"../../../stringProcessing/getWords.js":229,"./GermanParticiple.js":154,"./irregulars.js":161,"./regex.js":162,"lodash/forEach":488,"lodash/includes":494}],160:[function(require,module,exports){
+},{"../../../stringProcessing/getWords.js":234,"./GermanParticiple.js":154,"./irregulars.js":160,"./regex.js":161,"lodash/forEach":493,"lodash/includes":499}],159:[function(require,module,exports){
 "use strict";
 
 var stopwords = require("./stopwords.js")();
@@ -17115,7 +17417,7 @@ module.exports = function (sentence) {
 };
 
 
-},{"../../../stringProcessing/createRegexFromArray.js":217,"../../../stringProcessing/stripSpaces.js":251,"./SentencePart.js":155,"./auxiliaries.js":156,"./stopwords.js":163,"lodash/forEach":488,"lodash/isEmpty":503,"lodash/map":519}],161:[function(require,module,exports){
+},{"../../../stringProcessing/createRegexFromArray.js":222,"../../../stringProcessing/stripSpaces.js":256,"./SentencePart.js":155,"./auxiliaries.js":156,"./stopwords.js":162,"lodash/forEach":493,"lodash/isEmpty":508,"lodash/map":524}],160:[function(require,module,exports){
 "use strict";
 // This is a list of irregular participles used in German.
 
@@ -17126,7 +17428,7 @@ module.exports = function () {
 };
 
 
-},{}],162:[function(require,module,exports){
+},{}],161:[function(require,module,exports){
 "use strict";
 
 var verbsBeginningWithGeRegex = /^((ge)\S+t($|[ \n\r\t\.,'\(\)\"\+\-;!?:\/»«‹›<>]))/ig;
@@ -17202,7 +17504,7 @@ module.exports = function () {
 };
 
 
-},{}],163:[function(require,module,exports){
+},{}],162:[function(require,module,exports){
 "use strict";
 /**
  * Returns a list with stopwords for the German passive voice assessment.
@@ -17214,7 +17516,7 @@ module.exports = function () {
 };
 
 
-},{}],164:[function(require,module,exports){
+},{}],163:[function(require,module,exports){
 "use strict";
 /** @module config/transitionWords */
 
@@ -17233,7 +17535,7 @@ module.exports = function () {
 };
 
 
-},{}],165:[function(require,module,exports){
+},{}],164:[function(require,module,exports){
 "use strict";
 /** @module config/twoPartTransitionWords */
 /**
@@ -17246,7 +17548,7 @@ module.exports = function () {
 };
 
 
-},{}],166:[function(require,module,exports){
+},{}],165:[function(require,module,exports){
 "use strict";
 /** @module analyses/getKeywordDensity */
 
@@ -17268,7 +17570,7 @@ module.exports = function (paper, researcher) {
 };
 
 
-},{"../stringProcessing/countWords.js":216}],167:[function(require,module,exports){
+},{"../stringProcessing/countWords.js":221}],166:[function(require,module,exports){
 "use strict";
 /** @module analyses/getLinkStatistics */
 
@@ -17359,7 +17661,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/checkNofollow.js":214,"../stringProcessing/findKeywordInUrl.js":221,"../stringProcessing/getAnchorsFromText.js":224,"../stringProcessing/getLinkType.js":225,"../stringProcessing/url.js":257,"lodash/escapeRegExp":482}],168:[function(require,module,exports){
+},{"../stringProcessing/checkNofollow.js":219,"../stringProcessing/findKeywordInUrl.js":226,"../stringProcessing/getAnchorsFromText.js":229,"../stringProcessing/getLinkType.js":230,"../stringProcessing/url.js":262,"lodash/escapeRegExp":487}],167:[function(require,module,exports){
 "use strict";
 /** @module analyses/getLinkStatistics */
 
@@ -17378,7 +17680,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/getAnchorsFromText.js":224,"../stringProcessing/url.js":257,"lodash/map":519}],169:[function(require,module,exports){
+},{"../stringProcessing/getAnchorsFromText.js":229,"../stringProcessing/url.js":262,"lodash/map":524}],168:[function(require,module,exports){
 "use strict";
 
 var countWords = require("../stringProcessing/countWords.js");
@@ -17406,107 +17708,104 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/countWords.js":216,"../stringProcessing/matchParagraphs.js":234,"lodash/filter":483}],170:[function(require,module,exports){
+},{"../stringProcessing/countWords.js":221,"../stringProcessing/matchParagraphs.js":239,"lodash/filter":488}],169:[function(require,module,exports){
 "use strict";
 
 var getSentences = require("../stringProcessing/getSentences.js");
 var stripHTMLTags = require("../stringProcessing/stripHTMLTags.js").stripFullTags;
 var getLanguage = require("../helpers/getLanguage.js");
 var Sentence = require("../values/Sentence.js");
-// Imports used for English, French and Spanish.
-var getSentencePartsDefault = require("./passiveVoice/getSentenceParts.js");
-var determinePassivesDefault = require("./passiveVoice/determinePassives");
-// Imports used for German.
-var getSentencePartsGerman = require("./german/passiveVoice/getSentenceParts.js");
-var determinePassivesGerman = require("./german/passiveVoice/determinePassives.js");
 var forEach = require("lodash/forEach");
-/**
- * Gets the sentence parts from a sentence by determining sentence breakers.
- *
- * @param {string} sentence The sentence to split up in sentence parts.
- * @param {string} language The language to use for determining how to get sentence parts.
- * @returns {Array} The array with all parts of a sentence that have an auxiliary.
+var isPassiveSentencePart = require("./passiveVoice/periphrastic/determinePassiveSentencePart.js");
+var isPassiveSentence = require("./passiveVoice/morphological/determinePassiveSentence.js");
+var getPeriphrasticSentencePartsDefault = require("./passiveVoice/periphrastic/getSentenceParts.js");
+var getPeriphrasticSentencePartsGerman = require("./german/passiveVoice/getSentenceParts.js");
+var morphologicalLanguages = ["ru", "tr"];
+var periphrasticLanguages = ["en", "de", "nl", "fr", "es", "it", "pt", "cn"];
+/* Languages that employ both morphological and periphrastic passive voice marking have not been implemented yet.
+ * const morphologicalAndPeriphrasticLanguages = [ "sv", "da", "nb" ];
  */
-var getSentenceParts = function getSentenceParts(sentence, language) {
-    var sentenceParts = [];
-    switch (language) {
-        case "de":
-            sentenceParts = getSentencePartsGerman(sentence);
-            break;
-        case "fr":
-            sentenceParts = getSentencePartsDefault(sentence, "fr");
-            break;
-        case "es":
-            sentenceParts = getSentencePartsDefault(sentence, "es");
-            break;
-        case "en":
-        default:
-            sentenceParts = getSentencePartsDefault(sentence, "en");
-            break;
-    }
-    return sentenceParts;
+/**
+ * Looks for morphological passive voice.
+ *
+ * @param {Array} sentences Sentences extracted from the text.
+ * @param {string} language Language of the text.
+ * @returns {Object} The found passive sentences.
+ */
+var getMorphologicalPassives = function getMorphologicalPassives(sentences, language) {
+    var passiveSentences = [];
+    forEach(sentences, function (sentence) {
+        var strippedSentence = stripHTMLTags(sentence.getSentenceText()).toLocaleLowerCase();
+        sentence.setPassive(isPassiveSentence(strippedSentence, language));
+        if (sentence.isPassive() === true) {
+            passiveSentences.push(sentence.getSentenceText());
+        }
+    });
+    return {
+        passiveSentences: passiveSentences
+    };
 };
 /**
- * Checks the sentence part for any passive verb.
+ * Looks for periphrastic passive voice.
  *
- * @param {object} sentencePart The sentence part object to check for passives.
- * @param {string} language The language to use for finding passive verbs.
- * @returns {boolean} True if passive is found, false if no passive is found.
+ * @param {Array} sentences Sentences extracted from the text.
+ * @param {string} language Language of the text.
+ * @returns {Object} The found passive sentences.
  */
-var determinePassives = function determinePassives(sentencePart, language) {
-    switch (language) {
-        case "de":
-            sentencePart.setPassive(determinePassivesGerman(sentencePart.getSentencePartText(), sentencePart.getAuxiliaries()));
-            break;
-        case "fr":
-            sentencePart.setPassive(determinePassivesDefault(sentencePart.getSentencePartText(), sentencePart.getAuxiliaries(), "fr"));
-            break;
-        case "es":
-            sentencePart.setPassive(determinePassivesDefault(sentencePart.getSentencePartText(), sentencePart.getAuxiliaries(), "es"));
-            break;
-        case "en":
-        default:
-            sentencePart.setPassive(determinePassivesDefault(sentencePart.getSentencePartText(), sentencePart.getAuxiliaries(), "en"));
-            break;
-    }
+var getPeriphrasticPassives = function getPeriphrasticPassives(sentences, language) {
+    var passiveSentences = [];
+    forEach(sentences, function (sentence) {
+        var strippedSentence = stripHTMLTags(sentence.getSentenceText()).toLocaleLowerCase();
+        // The functionality based on sentencePart objects should be rewritten using array indices of stopwords and auxiliaries.
+        var sentenceParts = [];
+        if (language === "de") {
+            sentenceParts = getPeriphrasticSentencePartsGerman(strippedSentence);
+        } else {
+            sentenceParts = getPeriphrasticSentencePartsDefault(strippedSentence, language);
+        }
+        var passive = false;
+        forEach(sentenceParts, function (sentencePart) {
+            sentencePart.setPassive(isPassiveSentencePart(sentencePart.getSentencePartText(), sentencePart.getAuxiliaries(), language));
+            passive = passive || sentencePart.isPassive();
+        });
+        if (passive) {
+            passiveSentences.push(sentence.getSentenceText());
+        }
+    });
+    return {
+        passiveSentences: passiveSentences
+    };
 };
 /**
  * Determines the number of passive sentences in the text.
  *
  * @param {Paper} paper The paper object to get the text from.
- * @returns {object} The number of passives found in the text and the passive sentences.
+ * @returns {Object} The total number of sentences in the text and the found passive sentences.
  */
 module.exports = function (paper) {
     var text = paper.getText();
     var locale = paper.getLocale();
     var language = getLanguage(locale);
-    var sentences = getSentences(text);
-    var sentenceObjects = [];
-    forEach(sentences, function (sentence) {
-        sentenceObjects.push(new Sentence(sentence, locale));
+    var sentences = getSentences(text).map(function (sentence) {
+        return new Sentence(sentence);
     });
-    var passiveSentences = [];
-    // Get sentence parts for each sentence.
-    forEach(sentenceObjects, function (sentence) {
-        var strippedSentence = stripHTMLTags(sentence.getSentenceText()).toLocaleLowerCase();
-        var sentenceParts = getSentenceParts(strippedSentence, language);
-        var passive = false;
-        forEach(sentenceParts, function (sentencePart) {
-            determinePassives(sentencePart, language);
-            passive = passive || sentencePart.isPassive();
-        });
-        if (passive === true) {
-            passiveSentences.push(sentence.getSentenceText());
-        }
-    });
-    return {
-        total: sentences.length,
-        passives: passiveSentences
-    };
+    var totalNumberSentences = sentences.length;
+    if (morphologicalLanguages.includes(language)) {
+        return {
+            total: totalNumberSentences,
+            passives: getMorphologicalPassives(sentences, language).passiveSentences
+        };
+    }
+    if (periphrasticLanguages.includes(language)) {
+        return {
+            total: totalNumberSentences,
+            passives: getPeriphrasticPassives(sentences, language).passiveSentences
+        };
+    }
 };
 
 
-},{"../helpers/getLanguage.js":106,"../stringProcessing/getSentences.js":226,"../stringProcessing/stripHTMLTags.js":248,"../values/Sentence.js":263,"./german/passiveVoice/determinePassives.js":157,"./german/passiveVoice/getSentenceParts.js":160,"./passiveVoice/determinePassives":188,"./passiveVoice/getSentenceParts.js":192,"lodash/forEach":488}],171:[function(require,module,exports){
+},{"../helpers/getLanguage.js":106,"../stringProcessing/getSentences.js":231,"../stringProcessing/stripHTMLTags.js":253,"../values/Sentence.js":268,"./german/passiveVoice/getSentenceParts.js":159,"./passiveVoice/morphological/determinePassiveSentence.js":186,"./passiveVoice/periphrastic/determinePassiveSentencePart.js":188,"./passiveVoice/periphrastic/getSentenceParts.js":192,"lodash/forEach":493}],170:[function(require,module,exports){
 "use strict";
 
 var getWords = require("../stringProcessing/getWords.js");
@@ -17605,7 +17904,7 @@ module.exports = function (paper, researcher) {
 };
 
 
-},{"../helpers/getFirstWordExceptions.js":105,"../stringProcessing/getWords.js":229,"../stringProcessing/stripHTMLTags.js":248,"../stringProcessing/stripSpaces.js":251,"lodash/filter":483,"lodash/forEach":488,"lodash/isEmpty":503}],172:[function(require,module,exports){
+},{"../helpers/getFirstWordExceptions.js":105,"../stringProcessing/getWords.js":234,"../stringProcessing/stripHTMLTags.js":253,"../stringProcessing/stripSpaces.js":256,"lodash/filter":488,"lodash/forEach":493,"lodash/isEmpty":508}],171:[function(require,module,exports){
 "use strict";
 
 var getSubheadingTexts = require("../stringProcessing/getSubheadingTexts.js");
@@ -17630,7 +17929,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/countWords.js":216,"../stringProcessing/getSubheadingTexts.js":227,"lodash/forEach":488}],173:[function(require,module,exports){
+},{"../stringProcessing/countWords.js":221,"../stringProcessing/getSubheadingTexts.js":232,"lodash/forEach":493}],172:[function(require,module,exports){
 "use strict";
 
 var getWords = require("../stringProcessing/getWords.js");
@@ -17671,7 +17970,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/getSentences.js":226,"../stringProcessing/getWords.js":229,"../stringProcessing/syllables/count.js":254,"lodash/forEach":488,"lodash/map":519}],174:[function(require,module,exports){
+},{"../stringProcessing/getSentences.js":231,"../stringProcessing/getWords.js":234,"../stringProcessing/syllables/count.js":259,"lodash/forEach":493,"lodash/map":524}],173:[function(require,module,exports){
 "use strict";
 /** @module researches/imageAltTags */
 
@@ -17731,7 +18030,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/getAlttagContent":223,"../stringProcessing/imageInText":231,"../stringProcessing/matchTextWithWord":237,"lodash/escapeRegExp":482}],175:[function(require,module,exports){
+},{"../stringProcessing/getAlttagContent":228,"../stringProcessing/imageInText":236,"../stringProcessing/matchTextWithWord":242,"lodash/escapeRegExp":487}],174:[function(require,module,exports){
 "use strict";
 /** @module researches/imageInText */
 
@@ -17747,7 +18046,7 @@ module.exports = function (paper) {
 };
 
 
-},{"./../stringProcessing/imageInText":231}],176:[function(require,module,exports){
+},{"./../stringProcessing/imageInText":236}],175:[function(require,module,exports){
 "use strict";
 /**
  * Returns an array with exceptions for the sentence beginning researcher.
@@ -17767,7 +18066,7 @@ module.exports = function () {
 };
 
 
-},{}],177:[function(require,module,exports){
+},{}],176:[function(require,module,exports){
 "use strict";
 
 var transitionWords = require("./transitionWords.js")().singleWords;
@@ -17876,7 +18175,7 @@ module.exports = function () {
 };
 
 
-},{"./transitionWords.js":178}],178:[function(require,module,exports){
+},{"./transitionWords.js":177}],177:[function(require,module,exports){
 "use strict";
 /** @module config/transitionWords */
 
@@ -17895,7 +18194,7 @@ module.exports = function () {
 };
 
 
-},{}],179:[function(require,module,exports){
+},{}],178:[function(require,module,exports){
 "use strict";
 /**
  * Returns an array with two-part transition words to be used by the assessments.
@@ -17907,7 +18206,7 @@ module.exports = function () {
 };
 
 
-},{}],180:[function(require,module,exports){
+},{}],179:[function(require,module,exports){
 "use strict";
 
 var countWords = require("../stringProcessing/countWords");
@@ -17925,7 +18224,7 @@ function keyphraseLengthResearch(paper) {
 module.exports = keyphraseLengthResearch;
 
 
-},{"../stringProcessing/countWords":216,"../stringProcessing/sanitizeString":246}],181:[function(require,module,exports){
+},{"../stringProcessing/countWords":221,"../stringProcessing/sanitizeString":251}],180:[function(require,module,exports){
 "use strict";
 /** @module analyses/getKeywordCount */
 
@@ -17946,7 +18245,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/matchTextWithWord.js":237,"../stringProcessing/quotes.js":241,"lodash/escapeRegExp":482}],182:[function(require,module,exports){
+},{"../stringProcessing/matchTextWithWord.js":242,"../stringProcessing/quotes.js":246,"lodash/escapeRegExp":487}],181:[function(require,module,exports){
 "use strict";
 /** @module researches/countKeywordInUrl */
 
@@ -17965,7 +18264,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/matchTextWithWord.js":237,"lodash/escapeRegExp":482}],183:[function(require,module,exports){
+},{"../stringProcessing/matchTextWithWord.js":242,"lodash/escapeRegExp":487}],182:[function(require,module,exports){
 "use strict";
 /* @module analyses/matchKeywordInSubheadings */
 
@@ -17995,7 +18294,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/getSubheadings.js":228,"../stringProcessing/stripNonTextTags.js":249,"../stringProcessing/subheadingsMatch.js":252,"lodash/escapeRegExp":482}],184:[function(require,module,exports){
+},{"../stringProcessing/getSubheadings.js":233,"../stringProcessing/stripNonTextTags.js":254,"../stringProcessing/subheadingsMatch.js":257,"lodash/escapeRegExp":487}],183:[function(require,module,exports){
 "use strict";
 
 var matchTextWithWord = require("../stringProcessing/matchTextWithWord.js");
@@ -18016,7 +18315,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/matchTextWithWord.js":237,"lodash/escapeRegExp":482}],185:[function(require,module,exports){
+},{"../stringProcessing/matchTextWithWord.js":242,"lodash/escapeRegExp":487}],184:[function(require,module,exports){
 "use strict";
 /**
  * Check the length of the description.
@@ -18029,7 +18328,7 @@ module.exports = function (paper) {
 };
 
 
-},{}],186:[function(require,module,exports){
+},{}],185:[function(require,module,exports){
 "use strict";
 /**
  * Check the width of the title in pixels
@@ -18045,7 +18344,55 @@ module.exports = function (paper) {
 };
 
 
-},{}],187:[function(require,module,exports){
+},{}],186:[function(require,module,exports){
+"use strict";
+
+var filter = require("lodash/filter");
+var getWords = require("../../../stringProcessing/getWords.js");
+// Verb-form lists per language
+var getPassiveVerbsRussian = require("../../russian/passiveVoice/participlesShortenedList.js")().all;
+/**
+ * Matches the sentence against passive verbs.
+ *
+ * @param {string} sentence The sentence to match against.
+ * @param {Array} passiveVerbs The array containing passive verb-forms.
+ * @returns {Array} The found passive verbs.
+ */
+var matchPassiveVerbs = function matchPassiveVerbs(sentence, passiveVerbs) {
+    return filter(getWords(sentence), function (word) {
+        return passiveVerbs.includes(word.toLocaleLowerCase());
+    });
+};
+/**
+ * Checks the passed sentences to see if they contain passive verb-forms.
+ *
+ * @param {string} sentence The sentence to match against.
+ * @param {string} language The language of the text.
+ * @returns {Array} The list of encountered passive verbs.
+ */
+var determineSentenceIsPassive = function determineSentenceIsPassive(sentence, language) {
+    var passiveVerbs = [];
+    switch (language) {
+        case "ru":
+            passiveVerbs = getPassiveVerbsRussian;
+            break;
+    }
+    return matchPassiveVerbs(sentence, passiveVerbs).length !== 0;
+};
+/**
+ * Determines whether a sentence is passive.
+ *
+ * @param {string} sentenceText The sentence to determine voice for.
+ * @param {string} language The language of the sentence part.
+
+ * @returns {boolean} Returns true if passive, otherwise returns false.
+ */
+module.exports = function (sentenceText, language) {
+    return determineSentenceIsPassive(sentenceText, language);
+};
+
+
+},{"../../../stringProcessing/getWords.js":234,"../../russian/passiveVoice/participlesShortenedList.js":199,"lodash/filter":488}],187:[function(require,module,exports){
 "use strict";
 
 var isEmpty = require("lodash/isEmpty");
@@ -18063,26 +18410,42 @@ module.exports = function () {
 };
 
 
-},{"lodash/isEmpty":503}],188:[function(require,module,exports){
+},{"lodash/isEmpty":508}],188:[function(require,module,exports){
 "use strict";
 
-var getParticiples = require(".//getParticiples.js");
-var determineSentencePartIsPassive = require(".//determineSentencePartIsPassive.js");
+var arrayToRegex = require("../../../stringProcessing/createRegexFromArray.js");
+var determineSentencePartIsPassive = require("./determineSentencePartIsPassive.js");
+// Auxiliaries and getParticiples (specific for German)
+var auxiliariesGerman = require("../../german/passiveVoice/auxiliaries.js")().allAuxiliaries;
+var getParticiplesGerman = require("../../german/passiveVoice/getParticiples.js");
+// General getParticiples
+var getParticiples = require("./getParticiples.js");
 /**
  * Determines whether a sentence part is passive.
  *
- * @param {string} sentencePart The sentence part to determine voice for.
- * @param {Array} auxiliaries The auxiliaries to be used for creating SentenceParts.
- * @param {string} language The language to determine voice for.
+ * @param {string} sentencePartText The sentence part to determine voice for.
+ * @param {Array} auxiliaries A list with auxiliaries in this sentence part.
+ * @param {string} language The language of the sentence part.
+
  * @returns {boolean} Returns true if passive, otherwise returns false.
  */
-module.exports = function (sentencePart, auxiliaries, language) {
-  var participles = getParticiples(sentencePart, auxiliaries, language);
-  return determineSentencePartIsPassive(participles);
+module.exports = function (sentencePartText, auxiliaries, language) {
+    var participles = [];
+    if (language === "de") {
+        var passive = false;
+        var auxiliaryMatches = sentencePartText.match(arrayToRegex(auxiliariesGerman));
+        if (auxiliaryMatches === null) {
+            return passive;
+        }
+        participles = getParticiplesGerman(sentencePartText, auxiliaries, language);
+    } else {
+        participles = getParticiples(sentencePartText, auxiliaries, language);
+    }
+    return determineSentencePartIsPassive(participles);
 };
 
 
-},{".//determineSentencePartIsPassive.js":189,".//getParticiples.js":191}],189:[function(require,module,exports){
+},{"../../../stringProcessing/createRegexFromArray.js":222,"../../german/passiveVoice/auxiliaries.js":156,"../../german/passiveVoice/getParticiples.js":158,"./determineSentencePartIsPassive.js":189,"./getParticiples.js":191}],189:[function(require,module,exports){
 "use strict";
 
 var forEach = require("lodash/forEach");
@@ -18104,7 +18467,7 @@ module.exports = function (participles) {
 };
 
 
-},{"lodash/forEach":488}],190:[function(require,module,exports){
+},{"lodash/forEach":493}],190:[function(require,module,exports){
 "use strict";
 /**
  * Matches words from a list in sentence parts and returns them and their indices.
@@ -18132,13 +18495,13 @@ module.exports = function (sentencePart, regex) {
 },{}],191:[function(require,module,exports){
 "use strict";
 
-var getWords = require("../../stringProcessing/getWords.js");
+var getWords = require("../../../stringProcessing/getWords.js");
 var matchParticiples = require(".//matchParticiples")();
 var regularParticipleRegex = matchParticiples.regularParticiples;
 var irregularParticipleRegex = matchParticiples.irregularParticiples;
-var EnglishParticiple = require("../english/passiveVoice/EnglishParticiple.js");
-var FrenchParticiple = require("../french/passiveVoice/FrenchParticiple.js");
-var SpanishParticiple = require("../spanish/passiveVoice/SpanishParticiple.js");
+var EnglishParticiple = require("../../english/passiveVoice/EnglishParticiple.js");
+var FrenchParticiple = require("../../french/passiveVoice/FrenchParticiple.js");
+var SpanishParticiple = require("../../spanish/passiveVoice/SpanishParticiple.js");
 var forEach = require("lodash/forEach");
 /**
  * Creates participle objects for the participles found in a sentence part.
@@ -18162,14 +18525,14 @@ module.exports = function (sentencePartText, auxiliaries, language) {
         if (type !== "") {
             switch (language) {
                 case "fr":
-                    foundParticiples.push(new FrenchParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: type }));
+                    foundParticiples.push(new FrenchParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: type, language: language }));
                     break;
                 case "es":
-                    foundParticiples.push(new SpanishParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: type }));
+                    foundParticiples.push(new SpanishParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: type, language: language }));
                     break;
                 case "en":
                 default:
-                    foundParticiples.push(new EnglishParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: type }));
+                    foundParticiples.push(new EnglishParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: type, language: language }));
                     break;
             }
         }
@@ -18178,35 +18541,35 @@ module.exports = function (sentencePartText, auxiliaries, language) {
 };
 
 
-},{"../../stringProcessing/getWords.js":229,"../english/passiveVoice/EnglishParticiple.js":131,"../french/passiveVoice/FrenchParticiple.js":144,"../spanish/passiveVoice/SpanishParticiple.js":199,".//matchParticiples":193,"lodash/forEach":488}],192:[function(require,module,exports){
+},{"../../../stringProcessing/getWords.js":234,"../../english/passiveVoice/EnglishParticiple.js":131,"../../french/passiveVoice/FrenchParticiple.js":144,"../../spanish/passiveVoice/SpanishParticiple.js":204,".//matchParticiples":193,"lodash/forEach":493}],192:[function(require,module,exports){
 "use strict";
 
-var indices = require("../../stringProcessing/indices");
+var indices = require("../../../stringProcessing/indices");
 var getIndicesOfList = indices.getIndicesByWordList;
 var filterIndices = indices.filterIndices;
 var sortIndices = indices.sortIndices;
-var stripSpaces = require("../../stringProcessing/stripSpaces.js");
-var normalizeSingleQuotes = require("../../stringProcessing/quotes.js").normalizeSingle;
-var arrayToRegex = require("../../stringProcessing/createRegexFromArray.js");
+var stripSpaces = require("../../../stringProcessing/stripSpaces.js");
+var normalizeSingleQuotes = require("../../../stringProcessing/quotes.js").normalizeSingle;
+var arrayToRegex = require("../../../stringProcessing/createRegexFromArray.js");
 var getWordIndices = require("./getIndicesWithRegex.js");
-var includesIndex = require("../../stringProcessing/includesIndex");
-var followsIndex = require("../../stringProcessing/followsIndex");
+var includesIndex = require("../../../stringProcessing/includesIndex");
+var followsIndex = require("../../../stringProcessing/followsIndex");
 var filter = require("lodash/filter");
 var isUndefined = require("lodash/isUndefined");
 var includes = require("lodash/includes");
 var map = require("lodash/map");
 var forEach = require("lodash/forEach");
-// English-specific variables and imports.
-var SentencePartEnglish = require("../english/passiveVoice/SentencePart");
-var auxiliariesEnglish = require("../english/passiveVoice/auxiliaries.js")().all;
-var stopwordsEnglish = require("../english/passiveVoice/stopwords.js")();
+// English-specific constiables and imports.
+var SentencePartEnglish = require("../../english/passiveVoice/SentencePart");
+var auxiliariesEnglish = require("../../english/passiveVoice/auxiliaries.js")().all;
+var stopwordsEnglish = require("../../english/passiveVoice/stopwords.js")();
 var stopCharacterRegexEnglish = /([:,]|('ll)|('ve))(?=[ \n\r\t\'\"\+\-»«‹›<>])/ig;
 var verbEndingInIngRegex = /\w+ing(?=$|[ \n\r\t\.,'\(\)\"\+\-;!?:\/»«‹›<>])/ig;
 var ingExclusionArray = ["king", "cling", "ring", "being", "thing", "something", "anything"];
 // French-specific variables and imports.
-var SentencePartFrench = require("../french/passiveVoice/SentencePart");
-var auxiliariesFrench = require("../french/passiveVoice/auxiliaries.js")();
-var stopwordsFrench = require("../french/passiveVoice/stopwords.js")();
+var SentencePartFrench = require("../../french/passiveVoice/SentencePart");
+var auxiliariesFrench = require("../../french/passiveVoice/auxiliaries.js")();
+var stopwordsFrench = require("../../french/passiveVoice/stopwords.js")();
 var stopCharacterRegexFrench = /(,)(?=[ \n\r\t\'\"\+\-»«‹›<>])/ig;
 var followingAuxiliaryExceptionWordsFrench = ["le", "la", "les", "une", "l'un", "l'une"];
 var reflexivePronounsFrench = ["se", "me", "te", "s'y", "m'y", "t'y", "nous nous", "vous vous"];
@@ -18214,9 +18577,9 @@ var directPrecedenceExceptionRegex = arrayToRegex(reflexivePronounsFrench);
 var elisionAuxiliaryExceptionWords = ["c'", "s'", "peut-"];
 var elisionAuxiliaryExceptionRegex = arrayToRegex(elisionAuxiliaryExceptionWords, true);
 // Spanish-specific variables and imports.
-var SentencePartSpanish = require("../spanish/passiveVoice/SentencePart");
-var auxiliariesSpanish = require("../spanish/passiveVoice/auxiliaries.js")();
-var stopwordsSpanish = require("../spanish/passiveVoice/stopwords.js")();
+var SentencePartSpanish = require("../../spanish/passiveVoice/SentencePart");
+var auxiliariesSpanish = require("../../spanish/passiveVoice/auxiliaries.js")();
+var stopwordsSpanish = require("../../spanish/passiveVoice/stopwords.js")();
 var stopCharacterRegexSpanish = /([:,])(?=[ \n\r\t\'\"\+\-»«‹›<>])/ig;
 var followingAuxiliaryExceptionWordsSpanish = ["el", "la", "los", "las", "una"];
 // The language-specific variables used to split sentences into sentence parts.
@@ -18268,7 +18631,7 @@ var getVerbsEndingInIng = function getVerbsEndingInIng(sentence) {
  */
 var getStopCharacters = function getStopCharacters(sentence, language) {
     var stopCharacterRegex = languageVariables[language].stopCharacterRegex;
-    var match;
+    var match = void 0;
     var matches = [];
     stopCharacterRegex.lastIndex = 0;
     while ((match = stopCharacterRegex.exec(sentence)) !== null) {
@@ -18352,7 +18715,7 @@ var getSentenceBreakers = function getSentenceBreakers(sentence, language) {
     var auxiliaryIndices = getIndicesOfList(auxiliaries, sentence);
     var stopwordIndices = getIndicesOfList(stopwords, sentence);
     var stopCharacterIndices = getStopCharacters(sentence, language);
-    var indices;
+    var indices = void 0;
     // Concat all indices arrays, filter them and sort them.
     switch (language) {
         case "fr":
@@ -18456,18 +18819,18 @@ module.exports = function (sentence, language) {
 };
 
 
-},{"../../stringProcessing/createRegexFromArray.js":217,"../../stringProcessing/followsIndex":222,"../../stringProcessing/includesIndex":232,"../../stringProcessing/indices":233,"../../stringProcessing/quotes.js":241,"../../stringProcessing/stripSpaces.js":251,"../english/passiveVoice/SentencePart":132,"../english/passiveVoice/auxiliaries.js":133,"../english/passiveVoice/stopwords.js":136,"../french/passiveVoice/SentencePart":145,"../french/passiveVoice/auxiliaries.js":146,"../french/passiveVoice/stopwords.js":149,"../spanish/passiveVoice/SentencePart":198,"../spanish/passiveVoice/auxiliaries.js":200,"../spanish/passiveVoice/stopwords.js":202,"./getIndicesWithRegex.js":190,"lodash/filter":483,"lodash/forEach":488,"lodash/includes":494,"lodash/isUndefined":516,"lodash/map":519}],193:[function(require,module,exports){
+},{"../../../stringProcessing/createRegexFromArray.js":222,"../../../stringProcessing/followsIndex":227,"../../../stringProcessing/includesIndex":237,"../../../stringProcessing/indices":238,"../../../stringProcessing/quotes.js":246,"../../../stringProcessing/stripSpaces.js":256,"../../english/passiveVoice/SentencePart":132,"../../english/passiveVoice/auxiliaries.js":133,"../../english/passiveVoice/stopwords.js":136,"../../french/passiveVoice/SentencePart":145,"../../french/passiveVoice/auxiliaries.js":146,"../../french/passiveVoice/stopwords.js":149,"../../spanish/passiveVoice/SentencePart":203,"../../spanish/passiveVoice/auxiliaries.js":205,"../../spanish/passiveVoice/stopwords.js":207,"./getIndicesWithRegex.js":190,"lodash/filter":488,"lodash/forEach":493,"lodash/includes":499,"lodash/isUndefined":521,"lodash/map":524}],193:[function(require,module,exports){
 "use strict";
 
 var find = require("lodash/find");
 var forEach = require("lodash/forEach");
 var memoize = require("lodash/memoize");
 var includes = require("lodash/includes");
-var irregularsEnglish = require("../english/passiveVoice/irregulars")();
-var irregularsRegularFrench = require("../french/passiveVoice/irregulars")().irregularsRegular;
-var irregularsIrregularFrench = require("../french/passiveVoice/irregulars")().irregularsIrregular;
-var irregularsEndingInSFrench = require("../french/passiveVoice/irregulars")().irregularsEndingInS;
-var spanishParticiples = require("../spanish/passiveVoice/participles")();
+var irregularsEnglish = require("../../english/passiveVoice/irregulars")();
+var irregularsRegularFrench = require("../../french/passiveVoice/irregulars")().irregularsRegular;
+var irregularsIrregularFrench = require("../../french/passiveVoice/irregulars")().irregularsIrregular;
+var irregularsEndingInSFrench = require("../../french/passiveVoice/irregulars")().irregularsEndingInS;
+var spanishParticiples = require("../../spanish/passiveVoice/participles")();
 // The language-specific participle regexes.
 var languageVariables = {
     en: {
@@ -18561,7 +18924,135 @@ module.exports = function () {
 };
 
 
-},{"../english/passiveVoice/irregulars":134,"../french/passiveVoice/irregulars":148,"../spanish/passiveVoice/participles":201,"lodash/find":484,"lodash/forEach":488,"lodash/includes":494,"lodash/memoize":520}],194:[function(require,module,exports){
+},{"../../english/passiveVoice/irregulars":134,"../../french/passiveVoice/irregulars":148,"../../spanish/passiveVoice/participles":206,"lodash/find":489,"lodash/forEach":493,"lodash/includes":499,"lodash/memoize":525}],194:[function(require,module,exports){
+"use strict";
+
+var transitionWords = require("./transitionWords.js")().singleWords;
+/**
+ * Returns an array with exceptions for the prominent words researcher.
+ *
+ * @returns {Array} The array filled with exceptions.
+ */
+var articles = ["o", "a", "os", "as", "um", "uns", "uma", "umas"];
+// "um" is already included in the articles.
+var cardinalNumerals = ["uma", "duas", "dois", "três", "cuatro", "cinco", "seis", "sete", "oito", "nove", "dez", "onze", "doze", "treze", "quatorze", "catorze", "quinze", "dezesseis", "dezessete", "dezasseis", "dezassete", "dezoito", "dezenove", "dezanove", "vinte", "cem", "cento", "mil", "milhão", "milhões", "bilhão", "bilhões"];
+var ordinalNumerals = ["primeiro", "primeiros", "primeira", "primeiras", "segundo", "segunda", "segundos", "segundas", "terceiro", "terceira", "terceiros", "terceiras", "quarto", "quartos", "quarta", "quartas", "quinto", "quintos", "quinta", "quintas", "sexto", "sextos", "sexta", "sextas", "sétimo", "sétimos", "sétima", "sétimas", "oitavo", "oitavos", "oitava", "oitavas", "nono", "nonos", "nona", "nonas", "décimo", "décimos", "décima", "décimas", "vigésimo", "vigésimos", "vigésima", "vigésimas"];
+var personalPronounsNominative = ["eu", "tu", "ele", "ela", "nós", "vós", "você", "vocês", "eles", "elas"];
+// "o", "a", "os", "as" are already included in the articles.
+var personalPronounsAccusative = ["me", "te", "lhe", "nos", "vos", "lhes"];
+var personalPronounsPrepositional = ["dele", "dela", "deles", "delas", "nele", "nela", "neles", "nelas", "mim", "ti", "si"];
+var personalPronounsComitative = ["conmigo", "contigo", "consigo", "convosco", "conosco", "connosco"];
+var reflexivePronouns = ["se"];
+var demonstrativePronouns = ["aquilo", "àquele", "àquela", "àqueles", "àquelas", "àquilo", "este", "estes", "esta", "estas", "àqueles", "aqueles", "aquele", "aquela", "aquelas", "aquilo", "esse", "esses", "essa", "essas", "isto", "isso"];
+var possessivePronouns = ["minhas", "tuas", "suas", "minha", "tua", "sua", "minhas", "tuas", "suas", "vossa", "vossas", "meu", "meus", "teu", "teus", "seu", "seus", "nosso", "nossos", "nossa", "nossas"];
+var quantifiers = ["apenas", "vário", "vários", "vária", "várias", "mais", "muito", "muitos", "muita", "muitas", "puoco", "puocos", "puoca", "puocas", "bastante", "todo", "todos", "toda", "todas"];
+var indefinitePronouns = ["alguma", "algumas", "nenhuns", "nenhumas", "todo", "toda", "todas", "outro", "outra", "outros", "outras", "qualquer", "quaisquer", "outrem", "tudo", "nada", "algo", "tanto", "tanta", "tantos", "tantas", "quanto", "quanta", "quantos", "quantas", "ninguém", "cada"];
+var interrogativePronouns = ["quais", "qual", "quem", "cujo", "cuja", "cujos", "cujas"];
+var interrogativeProAdverbs = ["como", "porque", "quanto", "quanta", "onde", "quando", "quão", "quantos", "quantas", "donde", "aonde", "que"];
+var locativeAdverbs = ["cá", "além", "aqui", "ali", "lá", "acolá", "aí"];
+var otherAuxiliaries = ["tenho", "tens", "tem", "temos", "tendes", "têm", "tive", "tiveste", "teve", "tivemos", "tivestes", "tiveram", "tínhamos", "tínheis", "tinham", "tivera", "tiveras", "tivéramos", "tivéreis", "tiveram", "terei", "terás", "terá", "teremos", "tereis", "terão", "teria", "terias", "teríamos", "teríeis", "teriam", "tenha", "tenhas", "tenhamos", "tenhais", "tenham", "tivesse", "tivesses", "tivéssemos", "tivésseis", "tivessem", "tiver", "tiveres", "tivermos", "tiverdes", "tiverem", "tende", "teres", "termos", "terdes", "terem", "tido", "hei", "hás", "há", "havemos", "hemos", "haveis", "heis", "hão", "houve", "houveste", "houvemos", "houvestes", "houveram", "havia", "havias", "havíamos", "havíeis", "haviam", "houvera", "houveras", "houvéramos", "houvéreis", "houveram", "haverei", "haverás", "haverá", "haveremos", "havereis", "haverão", "haveria", "haverias", "haveríamos", "haveríeis", "haveriam", "haja", "hajas", "hajamos", "hajais", "hajam", "houvesse", "houvesses", "houvéssemos", "houvésseis", "houvessem", "houver", "houveres", "houvermos", "houverdes", "houverem", "havei", "hajais", "haveres", "havermos", "haverdes", "haverem", "havido", "poder", "posso", "podes", "pode", "podemos", "podeis", "podem", "pude", "pudeste", "pôde", "pudemos", "pudestes", "puderam", "podia", "podias", "podia", "podíamos", "podíeis", "podiam", "pudera", "puderas", "pudéramos", "pudéreis", "puderam", "poderei", "poderás", "poderá", "poderemos", "podereis", "poderão", "poderia", "poderias", "poderíamos", "poderíeis", "poderiam", "possa", "possas", "possamos", "possais", "possam", "pudesse", "pudesses", "pudéssemos", "pudésseis", "pudessem", "puder", "puderes", "pudermos", "puderdes", "puderem"];
+var otherAuxiliariesInfinitive = ["ter", "haver"];
+var copula = ["sou", "és", "é", "somos", "sois", "são", "fui", "foste", "foi", "fomos", "fostes", "foram", "era", "eras", "éramos", "éreis", "eram", "fôramos", "fôreis", "fora", "foras", "foram", "serei", "serás", "será", "seremos", "sereis", "serão", "seria", "serias", "seríamos", "seríeis", "seriam", "seja", "sejas", "seja", "sejamos", "sejais", "sejam", "fosse", "fosses", "fôssemos", "fôsseis", "fossem", "for", "fores", "formos", "fordes", "forem", "sê", "sede", "sermos", "serdes", "serem", "seres", "sido", "estou", "está", "estamos", "estás", "estás", "estais", "estão", "estive", "estiveste", "esteve", "estivemos", "estivestes", "estiveram", "estava", "estavas", "estávamos", "estáveis", "estavam", "estivera", "estiveras", "estivéramos", "estivéreis", "estiveram", "estarei", "estarás", "estará", "estaremos", "estareis", "estarão", "estaria", "estarias", "estaríamos", "estaríeis", "estariam", "esteja", "estejas", "estejamos", "estejais", "estejam", "estivesse", "estivesses", "estivéssemos", "estivésseis", "estivessem", "estiver", "estiveres", "estivermos", "estiverdes", "estiverem", "estai", "estejas", "estejais", "estares", "estarmos", "estardes", "estarem", "estado"];
+var copulaInfinitive = ["estar", "ser"];
+var prepositions = ["a", "ante", "antes", "após", "até", "através", "com", "contra", "depois", "desde", "sem", "entre", "para", "pra", "perante", "sob", "sobre", "trás", "de", "por", "em", "ao", "à", "aos", "às", "do", "da", "dos", "das", "dum", "duma", "duns", "dumas", "no", "na", "nos", "nas", "num", "numa", "nuns", "numas", "pelo", "pela", "pelos", "pelas", "deste", "desse", "daquele", "desta", "dessa", "daquela", "destes", "desses", "daqueles", "destas", "dessas", "daquelas", "neste", "nesse", "naquele", "nesta", "nessa", "naquela", "nestes", "nesses", "naqueles", "nestas", "nessas", "naquelas", "disto", "disso", "daquilo", "nisto", "nisso", "naquilo", "durante"];
+var coordinatingConjunctions = ["também", "e", "ou", "nem"];
+var subordinatingConjunctions = ["agora", "conforme", "conquanto", "contanto", "embora", "enquanto", "então", "entretanto", "malgrado", "mas", "pois", "porém", "porquanto", "porque", "senão", "contudo"];
+// These verbs are frequently used in interviews to indicate questions and answers.
+var interviewVerbs = ["diz", "dizem", "disse", "disseram", "dizia", "diziam", "reivindica", "reivindicam", "reivindicou", "reivindicaram", "reivindicava", "reivindicavam", "requer", "requerem", "requereu", "requereram", "requeria", "requeriam", "afirma", "afirmam", "afirmou", "afirmaram", "afirmava", "afirmavam", "reivindica", "reivindicam", "reivindicou", "reivindicaram", "reivindicava", "reivindicavam", "perguntam", "perguntou", "perguntaram", "perguntava", "perguntavam", "explica", "explicam", "explicou", "explicaram", "explicava", "explicavam", "relata", "relatam", "relatou", "relataram"];
+// These transition words were not included in the list for the transition word assessment for various reasons.
+var additionalTransitionWords = ["provavelmente", "imediatamente", "ocasionalmente", "indubitavelmente", "para", "possivelmente", "logo", "simultaneamente", "exceto", "inquestionavelmente"];
+var intensifiers = ["extremamente", "bem", "completamente", "totalmente", "grandemente", "seriamente", "absolutamente", "bastante", "sobremodo", "sobremaneira", "tão"];
+// These verbs convey little meaning.
+var delexicalizedVerbs = ["dou", "dás", "dá", "damos", "dais", "dão", "dei", "deu", "demos", "deram", "dava", "davas", "dávamos", "dáveis", "davam", "dera", "deras", "déramos", "déreis", "deram", "darei", "darás", "dará", "daremos", "dareis", "darão", "daria", "darias", "daríamos", "daríeis", "dariam", "dê", "dês", "dêmos", "deis", "deem", "déssemos", "désseis", "dessem", "der", "deres", "dermos", "derdes", "derem", "dai", "deis", "dares", "darmos", "dardes", "darem", "fazendo", "faço", "fazes", "faz", "fazemos", "fazeis", "fazem", "fiz", "fizeste", "fez", "fizemos", "fizestes", "fizeram", "fazia", "fazias", "fazíamos", "fazíeis", "faziam", "fizera", "fizeras", "fizéramos", "fizéreis", "farei", "farás", "fará", "faremos", "fareis", "faria", "farias", "faríamos", "faríeis", "fariam", "faça", "faças", "façamos", "façais", "façam", "fizesse", "fizesses", "fizéssemos", "fizésseis", "fizessem", "fizer", "fizeres", "fizermos", "fizerdes", "fizerem", "fazei", "fazeres", "fazermos", "fazerdes", "fazerem"];
+var delexicalizedVerbsInfinitive = ["dar", "fazer"];
+/*
+ * These adjectives and adverbs are so general, they should never be suggested as a (single) keyword.
+ * Keyword combinations containing these adjectives/adverbs are fine.
+ */
+var generalAdjectivesAdverbs = ["devagar", "rapidamente", "grande", "grandes", "depressa", "claramente", "effectivamente", "realmente", "exclusivamente", "simplesemente", "somente", "unicamente", "lentamente", "raramente", "certamente", "talvez", "actualmente", "dificilmente", "principalmente", "gerlamente", "enorme", "enormes", "pequeno", "pequena", "pequenos", "pequenas", "minúsculo", "minúsculos", "minúscula", "minúsculas", "velho", "velhos", "velha", "velhas", "lindo", "linda", "lindos", "lindas", "alto", "alta", "altos", "altas", "baixo", "baixa", "baixos", "baixas", "longo", "longa", "longos", "longas", "curto", "curta", "curtos", "curtas", "fácil", "fáceis", "difícil", "difíceis", "simples", "mesmo", "mesma", "mesmos", "mesmas", "mêsmo", "mêsmos", "mêsma", "mêsmas", "cedo", "tarde", "importante", "importantes", "capaz", "capazes", "certo", "certa", "certos", "certas", "usual", "usuals", "ultimamente", "possível", "possíveis", "comum", "comuns", "freqüentemente", "constantemente", "continuamente", "diretamente", "levemente", "algures", "semelhante", "semelhantes", "similar", "similares", "sempre", "ainda", "já", "atrás", "depois"];
+// "grande", "velho" and "pequeno" can appear both before and after nouns and are therefore on both lists.
+var generalAdjectivesPreceding = ["pior", "melhor", "melhores", "bom", "boa", "bons", "boas", "bonito", "bonita", "bonitos", "bonitas", "grande", "grandes", "pequeno", "pequena", "pequenos", "pequenas", "velho", "velhos", "velha", "velhas", "mau", "má", "maus", "más"];
+var interjections = ["ai", "ah", "ih", "alô", "oi", "olá", "ui", "uf", "psiu", "mau", "olha", "viva", "uau", "wow", "oh", "shi"];
+// These words and abbreviations are frequently used in recipes in lists of ingredients.
+var recipeWords = ["kg", "mg", "gr", "g", "km", "m", "l", "ml", "cl"];
+// "segundo" is already included in cardinal numbers.
+var timeWords = ["segundos", "minuto", "minutos", "hora", "horas", "dia", "dias", "semana", "semanas", "mes", "meses", "ano", "anos", "hoje", "amanhã", "ontem"];
+var vagueNouns = ["caso", "casos", "coisa", "coisas", "detalhe", "detalhes", "forma", "formas", "jeito", "jeitos", "maneira", "maneiras", "modo", "modos", "suijeto", "sujeitos", "tópico", "tópicos", "vez", "vezes"];
+var miscellaneous = ["sim", "não", "ok", "amém", "etc", "euro", "euros", "adeus", "jeitos"];
+var titles = ["sr", "sra", "sras", "dr", "dra", "prof"];
+module.exports = function () {
+    return {
+        // These word categories are filtered at the beginning of word combinations.
+        filteredAtBeginning: generalAdjectivesAdverbs,
+        // These word categories are filtered at the ending of word combinations.
+        filteredAtEnding: [].concat(ordinalNumerals, otherAuxiliariesInfinitive, copulaInfinitive, delexicalizedVerbsInfinitive, generalAdjectivesPreceding),
+        // These word categories are filtered at the beginning and ending of word combinations.
+        filteredAtBeginningAndEnding: [].concat(articles, prepositions, coordinatingConjunctions, demonstrativePronouns, intensifiers, quantifiers, possessivePronouns),
+        // These word categories are filtered everywhere within word combinations.
+        filteredAnywhere: [].concat(transitionWords, cardinalNumerals, personalPronounsNominative, personalPronounsAccusative, personalPronounsPrepositional, personalPronounsComitative, reflexivePronouns, indefinitePronouns, interrogativePronouns, interrogativeProAdverbs, locativeAdverbs, otherAuxiliaries, copula, subordinatingConjunctions, interviewVerbs, additionalTransitionWords, delexicalizedVerbs, interjections, recipeWords, timeWords, vagueNouns, miscellaneous, titles),
+        // This export contains all of the above words.
+        all: [].concat(articles, cardinalNumerals, ordinalNumerals, personalPronounsNominative, personalPronounsAccusative, personalPronounsPrepositional, personalPronounsComitative, reflexivePronouns, demonstrativePronouns, possessivePronouns, quantifiers, indefinitePronouns, interrogativePronouns, interrogativeProAdverbs, locativeAdverbs, otherAuxiliaries, otherAuxiliariesInfinitive, copula, copulaInfinitive, prepositions, coordinatingConjunctions, subordinatingConjunctions, interviewVerbs, additionalTransitionWords, intensifiers, delexicalizedVerbs, delexicalizedVerbsInfinitive, generalAdjectivesAdverbs, generalAdjectivesPreceding, interjections, recipeWords, timeWords, vagueNouns, miscellaneous, titles)
+    };
+};
+
+
+},{"./transitionWords.js":195}],195:[function(require,module,exports){
+"use strict";
+
+var singleWords = ["ademais", "afinal", "aliás", "analogamente", "anteriormente", "assim", "certamente", "conforme", "conquanto", "contudo", "decerto", "embora", "enfim", "enquanto", "então", "entretanto", "eventualmente", "igualmente", "inegavelmente", "inesperadamente", "mas", "outrossim", "pois", "porquanto", "porque", "portanto", "posteriormente", "precipuamente", "primeiramente", "primordialmente", "principalmente", "salvo", "semelhantemente", "similarmente", "sobretudo", "surpreendentemente", "todavia"];
+var multipleWords = ["a fim de", "a fim de que", "a menos que", "a princípio", "a saber", "acima de tudo", "ainda assim", "ainda mais", "ainda que", "além disso", "antes de mais nada", "antes de tudo", "antes que", "ao mesmo tempo", "ao passo que", "ao propósito", "apesar de", "às vezes", "assim como", "assim que", "assim sendo", "assim também", "bem como", "com a finalidade de", "com efeito", "com o fim de", "com o intuito de", "com o propósito de", "com toda a certeza", "como resultado", "como se", "da mesma forma", "de acordo com", "de conformidade com", "de fato", "de maneira idêntica", "de tal forma que", "de tal sorte que", "depois que", "desde que", "dessa forma", "dessa maneira", "desse modo", "do mesmo modo", "é provável", "em conclusão", "em contrapartida", "em contraste com", "em outras palavras", "em primeiro lugar", "em princípio", "em resumo", "em seguida", "em segundo lugar", "em síntese", "em suma", "em terceiro lugar", "em virtude de", "finalmente agora atualmente", "isto é", "já que", "logo após", "logo depois", "logo que", "mesmo que", "não apenas", "nesse hiato", "nesse ínterim", "nesse meio tempo", "nesse sentido", "no entanto", "no momento em que", "ou por outra", "ou seja", "para que", "pelo contrário", "por analogia", "por causa de", "por certo", "por conseguinte", "por conseqüência", "por exemplo", "por fim", "por isso", "por mais que", "por menos que", "por outro lado", "posto que", "se acaso", "se bem que", "seja como for", "sem dúvida", "só para exemplificar", "só para ilustrar", "só que", "sob o mesmo ponto de vista", "talvez provavelmente", "tanto quanto", "uma vez que", "visto que"];
+/**
+ * Returns lists with transition words to be used by the assessments.
+ * @returns {Object} The object with transition word lists.
+ */
+module.exports = function () {
+    return {
+        singleWords: singleWords,
+        multipleWords: multipleWords,
+        allWords: singleWords.concat(multipleWords)
+    };
+};
+
+
+},{}],196:[function(require,module,exports){
+"use strict";
+/**
+ * Returns an array with two-part transition words to be used by the assessments.
+ * @returns {Array} The array filled with two-part transition words.
+ */
+
+module.exports = function () {
+    return [["não apenas", "como também"], ["não só", "bem como"], ["não só", "como também"], ["não só", "mas também"], ["ora", "ora"], ["ou", "ou"], ["quer", "quer"]];
+};
+
+
+},{}],197:[function(require,module,exports){
+"use strict";
+
+var wordCountInText = require("./wordCountInText.js");
+var imageCount = require("./imageCountInText.js");
+/**
+ * Calculates the expected reading time of a text.
+ *
+ * @param {Paper} paper The paper to calculate the reading time for.
+ * @returns {number} The expected reading time in minutes.
+ */
+module.exports = function (paper) {
+  // These numbers are based on research into average reading times.
+  var wordsPerMinute = 200;
+  var minutesPerImage = 0.2;
+  var numberOfWords = wordCountInText(paper);
+  var numberOfImages = imageCount(paper);
+  /*
+   * This formula is based on the average number of words a person is expected to read per minute,
+   * plus extra time for each image in the text. It returns the expected reading time in whole minutes,
+   * rounded up to the nearest minute.
+   */
+  return Math.ceil(numberOfWords / wordsPerMinute + numberOfImages * minutesPerImage);
+};
+
+
+},{"./imageCountInText.js":174,"./wordCountInText.js":214}],198:[function(require,module,exports){
 "use strict";
 
 var getRelevantWords = require("../stringProcessing/relevantWords").getRelevantWords;
@@ -18577,7 +19068,37 @@ function relevantWords(paper) {
 module.exports = relevantWords;
 
 
-},{"../stringProcessing/relevantWords":242}],195:[function(require,module,exports){
+},{"../stringProcessing/relevantWords":247}],199:[function(require,module,exports){
+"use strict";
+/**
+ * Returns a list of all frequent participles used for the Russian passive voice assessment.
+ * For each participle, versions for all four possible suffixes (-[], -а, -о, -ы) are included for masculine, feminine,
+ * neuter, and plural respectively.
+ * @returns {Array} The list with participles.
+ */
+
+var passiveVerbs = ["абсолютизирован", "абсолютизирована", "абсолютизировано", "абсолютизированы", "абстрагирован", "абстрагирована", "абстрагировано", "абстрагированы", "автоматизирован", "автоматизирована", "автоматизировано", "автоматизированы", "адаптирован", "адаптирована", "адаптировано", "адаптированы", "адресован", "адресована", "адресовано", "адресованы", "адсорбирован", "адсорбирована", "адсорбировано", "адсорбированы", "аккредитован", "аккредитована", "аккредитовано", "аккредитованы", "аккумулирован", "аккумулирована", "аккумулировано", "аккумулированы", "активизирован", "активизирована", "активизировано", "активизированы", "активирован", "активирована", "активировано", "активированы", "актуализирован", "актуализирована", "актуализировано", "актуализированы", "акцентирован", "акцентирована", "акцентировано", "акцентированы", "амнистирован", "амнистирована", "амнистировано", "амнистированы", "амортизирован", "амортизирована", "амортизировано", "амортизированы", "ампутирован", "ампутирована", "ампутировано", "ампутированы", "ангажирован", "ангажирована", "ангажировано", "ангажированы", "аннулирован", "аннулирована", "аннулировано", "аннулированы", "анонсирован", "анонсирована", "анонсировано", "анонсированы", "апробирован", "апробирована", "апробировано", "апробированы", "аранжирован", "аранжирована", "аранжировано", "аранжированы", "аргументирован", "аргументирована", "аргументировано", "аргументированы", "арендован", "арендована", "арендовано", "арендованы", "арестован", "арестована", "арестовано", "арестованы", "ассигнован", "ассигнована", "ассигновано", "ассигнованы", "ассимилирован", "ассимилирована", "ассимилировано", "ассимилированы", "ассоциирован", "ассоциирована", "ассоциировано", "ассоциированы", "атакован", "атакована", "атаковано", "атакованы", "аттестован", "аттестована", "аттестовано", "аттестованы", "благословлен", "благословлена", "благословлено", "благословлены", "благоустроен", "благоустроена", "благоустроено", "благоустроены", "блокирован", "блокирована", "блокировано", "блокированы", "бойкотирован", "бойкотирована", "бойкотировано", "бойкотированы", "бронирован", "бронирована", "бронировано", "бронированы", "брошен", "брошена", "брошено", "брошены", "вакцинирован", "вакцинирована", "вакцинировано", "вакцинированы", "вбит", "вбита", "вбито", "вбиты", "вброшен", "вброшена", "вброшено", "вброшены", "вбухан", "вбухана", "вбухано", "вбуханы", "введен", "введена", "введено", "введены", "ввезен", "ввезена", "ввезено", "ввезены", "ввергнут", "ввергнута", "ввергнуто", "ввергнуты", "вверен", "вверена", "вверено", "вверены", "ввернут", "ввернута", "ввернуто", "ввернуты", "ввинчен", "ввинчена", "ввинчено", "ввинчены", "вдавлен", "вдавлена", "вдавлено", "вдавлены", "вдарен", "вдарена", "вдарено", "вдарены", "вдвинут", "вдвинута", "вдвинуто", "вдвинуты", "вделан", "вделана", "вделано", "вделаны", "вдет", "вдета", "вдето", "вдеты", "вдолблен", "вдолблена", "вдолблено", "вдолблены", "вдохновлен", "вдохновлена", "вдохновлено", "вдохновлены", "венчан", "венчана", "венчано", "венчаны", "вжат", "вжата", "вжато", "вжаты", "вживлен", "вживлена", "вживлено", "вживлены", "взбаламучен", "взбаламучена", "взбаламучено", "взбаламучены", "взбешен", "взбешена", "взбешено", "взбешены", "взбит", "взбита", "взбито", "взбиты", "взбодрен", "взбодрена", "взбодрено", "взбодрены", "взболтан", "взболтана", "взболтано", "взболтаны", "взбудоражена", "взбудоражено", "взбудоражены", "взведен", "взведена", "взведено", "взведены", "взвешен", "взвешена", "взвешено", "взвешены", "взвинчен", "взвинчена", "взвинчено", "взвинчены", "взвихрен", "взвихрена", "взвихрено", "взвихрены", "взволнована", "взволновано", "взволнованы", "взгромозжден", "взгромозждена", "взгромозждено", "взгромозждены", "вздернут", "вздернута", "вздернуто", "вздернуты", "вздет", "вздета", "вздето", "вздеты", "вздут", "вздута", "вздуто", "вздуты", "вздыблен", "вздыблена", "вздыблено", "вздыблены", "взлелеян", "взлелеяна", "взлелеяно", "взлелеяны", "взломан", "взломана", "взломано", "взломаны", "взлохмачен", "взлохмачена", "взлохмачено", "взлохмачены", "взметнут", "взметнута", "взметнуто", "взметнуты", "взмылен", "взмылена", "взмылено", "взмылены", "взнуздан", "взнуздана", "взнуздано", "взнузданы", "взорван", "взорвана", "взорвано", "взорваны", "взращен", "взращена", "взращено", "взращены", "взрезан", "взрезана", "взрезано", "взрезаны", "взрыхлен", "взрыхлена", "взрыхлено", "взрыхлены", "взъерошен", "взъерошена", "взъерошено", "взъерошены", "взыскан", "взыскана", "взыскано", "взысканы", "взят", "взята", "взято", "взяты", "видоизменен", "видоизменена", "видоизменено", "видоизменены", "визирован", "визирована", "визировано", "визированы", "вкачен", "вкачена", "вкачено", "вкачены", "вклеен", "вклеена", "вклеено", "вклеены", "включен", "включена", "включено", "включены", "вколот", "вколота", "вколото", "вколоты", "вколочен", "вколочена", "вколочено", "вколочены", "вкопан", "вкопана", "вкопано", "вкопаны", "вкраплен", "вкраплена", "вкраплено", "вкраплены", "вкушен", "вкушена", "вкушено", "вкушены", "влеплен", "влеплена", "влеплено", "влеплены", "влит", "влита", "влито", "влиты", "вложен", "вложена", "вложено", "вложены", "вмазан", "вмазана", "вмазано", "вмазаны", "вменен", "вменена", "вменено", "вменены", "вмещен", "вмещена", "вмещено", "вмещены", "вмонтирован", "вмонтирована", "вмонтировано", "вмонтированы", "вмурован", "вмурована", "вмуровано", "вмурованы", "вмят", "вмята", "вмято", "вмяты", "внедрен", "внедрена", "внедрено", "внедрены", "внесен", "внесена", "внесено", "внесены", "внушен", "внушена", "внушено", "внушены", "вобран", "вобрана", "вобрано", "вобраны", "вовлечен", "вовлечена", "вовлечено", "вовлечены", "вогнан", "вогнана", "вогнано", "вогнаны", "водворен", "водворена", "водворено", "водворены", "водружен", "водружена", "водружено", "водружены", "возбуждена", "возбуждено", "возбуждены", "возведен", "возведена", "возведено", "возведены", "возвеличен", "возвеличена", "возвеличено", "возвеличены", "возвещен", "возвещена", "возвещено", "возвещены", "возвращен", "возвращена", "возвращено", "возвращены", "возвышен", "возвышена", "возвышено", "возвышены", "возглавлен", "возглавлена", "возглавлено", "возглавлены", "возглашен", "возглашена", "возглашено", "возглашены", "воздвигнут", "воздвигнута", "воздвигнуто", "воздвигнуты", "возделан", "возделана", "возделано", "возделаны", "возложен", "возложена", "возложено", "возложены", "возмещен", "возмещена", "возмещено", "возмещены", "возмущена", "возмущено", "возмущены", "вознагражден", "вознаграждена", "вознаграждено", "вознаграждены", "вознесен", "вознесена", "вознесено", "вознесены", "возобновлен", "возобновлена", "возобновлено", "возобновлены", "возрожден", "возрождена", "возрождено", "возрождены", "воображен", "воображена", "воображено", "воображены", "воодушевлен", "воодушевлена", "воодушевлено", "воодушевлены", "вооружен", "вооружена", "вооружено", "вооружены", "воплощен", "воплощена", "воплощено", "воплощены", "вопрошен", "вопрошена", "вопрошено", "вопрошены", "воскрешен", "воскрешена", "воскрешено", "воскрешены", "воспет", "воспета", "воспето", "воспеты", "воспитана", "воспитано", "воспитаны", "воспламенен", "воспламенена", "воспламенено", "воспламенены", "восполнен", "восполнена", "восполнено", "восполнены", "воспрещен", "воспрещена", "воспрещено", "воспрещены", "воспринят", "воспринята", "воспринято", "восприняты", "воспроизведен", "воспроизведена", "воспроизведено", "воспроизведены", "восславлен", "восславлена", "восславлено", "восславлены", "восстановлен", "восстановлена", "восстановлено", "восстановлены", "востребована", "востребовано", "востребованы", "восхищен", "восхищена", "восхищено", "восхищены", "воткнут", "воткнута", "воткнуто", "воткнуты", "впаян", "впаяна", "впаяно", "впаяны", "впечатлен", "впечатлена", "впечатлено", "впечатлены", "вписан", "вписана", "вписано", "вписаны", "впитан", "впитана", "впитано", "впитаны", "впихнут", "впихнута", "впихнуто", "впихнуты", "вплетен", "вплетена", "вплетено", "вплетены", "вправлен", "вправлена", "вправлено", "вправлены", "впрыснут", "впрыснута", "впрыснуто", "впрыснуты", "впряжен", "впряжена", "впряжено", "впряжены", "впущен", "впущена", "впущено", "впущены", "вразумлен", "вразумлена", "вразумлено", "вразумлены", "врезан", "врезана", "врезано", "врезаны", "врублен", "врублена", "врублено", "врублены", "вручен", "вручена", "вручено", "вручены", "врыт", "врыта", "врыто", "врыты", "всажен", "всажена", "всажено", "всажены", "вселен", "вселена", "вселено", "вселены", "вскинут", "вскинута", "вскинуто", "вскинуты", "вскипячен", "вскипячена", "вскипячено", "вскипячены", "всколыхнут", "всколыхнута", "всколыхнуто", "всколыхнуты", "вскопан", "вскопана", "вскопано", "вскопаны", "вскормлен", "вскормлена", "вскормлено", "вскормлены", "вскружен", "вскружена", "вскружено", "вскружены", "вскрыт", "вскрыта", "вскрыто", "вскрыты", "всосан", "всосана", "всосано", "всосаны", "вспахан", "вспахана", "вспахано", "вспаханы", "вспенен", "вспенена", "вспенено", "вспенены", "всплеснут", "всплеснута", "всплеснуто", "всплеснуты", "всполошен", "всполошена", "всполошено", "всполошены", "вспорот", "вспорота", "вспорото", "вспороты", "вставлен", "вставлена", "вставлено", "вставлены", "встревожен", "встревожена", "встревожено", "встревожены", "встречен", "встречена", "встречено", "встречены", "встроен", "встроена", "встроено", "встроены", "встряхнут", "встряхнута", "встряхнуто", "встряхнуты", "всунут", "всунута", "всунуто", "всунуты", "всучен", "всучена", "всучено", "всучены", "втащен", "втащена", "втащено", "втащены", "втерт", "втерта", "втерто", "втерты", "втиснут", "втиснута", "втиснуто", "втиснуты", "втолкнут", "втолкнута", "втолкнуто", "втолкнуты", "втолкован", "втолкована", "втолковано", "втолкованы", "втоптан", "втоптана", "втоптано", "втоптаны", "втравлен", "втравлена", "втравлено", "втравлены", "втянут", "втянута", "втянуто", "втянуты", "вшит", "вшита", "вшито", "вшиты", "выбелен", "выбелена", "выбелено", "выбелены", "выбит", "выбита", "выбито", "выбиты", "выболтан", "выболтана", "выболтано", "выболтаны", "выбран", "выбрана", "выбрано", "выбраны", "выбрит", "выбрита", "выбрито", "выбриты", "выброшен", "выброшена", "выброшено", "выброшены", "вывален", "вывалена", "вывалено", "вывалены", "вывалян", "вываляна", "вываляно", "вываляны", "выварен", "выварена", "выварено", "выварены", "выведан", "выведана", "выведано", "выведаны", "выведен", "выведена", "выведено", "выведены", "вывезен", "вывезена", "вывезено", "вывезены", "выверен", "выверена", "выверено", "выверены", "вывернут", "вывернута", "вывернуто", "вывернуты", "выветрен", "выветрена", "выветрено", "выветрены", "вывешен", "вывешена", "вывешено", "вывешены", "вывихнут", "вывихнута", "вывихнуто", "вывихнуты", "вывожен", "вывожена", "вывожено", "вывожены", "выворочен", "выворочена", "выворочено", "выворочены", "выгадан", "выгадана", "выгадано", "выгаданы", "выглажен", "выглажена", "выглажено", "выглажены", "выгнан", "выгнана", "выгнано", "выгнаны", "выгнут", "выгнута", "выгнуто", "выгнуты", "выговорен", "выговорена", "выговорено", "выговорены", "выгорожен", "выгорожена", "выгорожено", "выгорожены", "выгравирован", "выгравирована", "выгравировано", "выгравированы", "выгребен", "выгребена", "выгребено", "выгребены", "выгружен", "выгружена", "выгружено", "выгружены", "выдавлен", "выдавлена", "выдавлено", "выдавлены", "выдвинут", "выдвинута", "выдвинуто", "выдвинуты", "выдворен", "выдворена", "выдворено", "выдворены", "выделан", "выделана", "выделано", "выделаны", "выделен", "выделена", "выделено", "выделены", "выдержан", "выдержана", "выдержано", "выдержаны", "выдернут", "выдернута", "выдернуто", "выдернуты", "выдолблен", "выдолблена", "выдолблено", "выдолблены", "выдохнут", "выдохнута", "выдохнуто", "выдохнуты", "выдран", "выдрана", "выдрано", "выдраны", "выдрессирована", "выдрессировано", "выдрессированы", "выдуман", "выдумана", "выдумано", "выдуманы", "выдут", "выдута", "выдуто", "выдуты", "выжат", "выжата", "выжато", "выжаты", "выждан", "выждана", "выждано", "выжданы", "выжит", "выжита", "выжито", "выжиты", "выжран", "выжрана", "выжрано", "выжраны", "вызван", "вызвана", "вызвано", "вызваны", "вызволен", "вызволена", "вызволено", "вызволены", "вызнан", "вызнана", "вызнано", "вызнаны", "вызубрен", "вызубрена", "вызубрено", "вызубрены", "выигран", "выиграна", "выиграно", "выиграны", "выискан", "выискана", "выискано", "выисканы", "выказан", "выказана", "выказано", "выказаны", "выкачан", "выкачана", "выкачано", "выкачаны", "выкачен", "выкачена", "выкачено", "выкачены", "выкинут", "выкинута", "выкинуто", "выкинуты", "выклеван", "выклевана", "выклевано", "выклеваны", "выкликнут", "выкликнута", "выкликнуто", "выкликнуты", "выключен", "выключена", "выключено", "выключены", "выклянчен", "выклянчена", "выклянчено", "выклянчены", "выкован", "выкована", "выковано", "выкованы", "выковырян", "выковыряна", "выковыряно", "выковыряны", "выколот", "выколота", "выколото", "выколоты", "выколочен", "выколочена", "выколочено", "выколочены", "выкопан", "выкопана", "выкопано", "выкопаны", "выкормлен", "выкормлена", "выкормлено", "выкормлены", "выкорчеван", "выкорчевана", "выкорчевано", "выкорчеваны", "выкошен", "выкошена", "выкошено", "выкошены", "выкраден", "выкрадена", "выкрадено", "выкрадены", "выкрашен", "выкрашена", "выкрашено", "выкрашены", "выкрикнут", "выкрикнута", "выкрикнуто", "выкрикнуты", "выкроен", "выкроена", "выкроено", "выкроены", "выкручен", "выкручена", "выкручено", "выкручены", "выкупан", "выкупана", "выкупано", "выкупаны", "выкуплен", "выкуплена", "выкуплено", "выкуплены", "выкурен", "выкурена", "выкурено", "выкурены", "выкушен", "выкушена", "выкушено", "выкушены", "вылакан", "вылакана", "вылакано", "вылаканы", "вылеплен", "вылеплена", "вылеплено", "вылеплены", "вылечен", "вылечена", "вылечено", "вылечены", "вылизан", "вылизана", "вылизано", "вылизаны", "вылит", "вылита", "вылито", "вылиты", "выловлен", "выловлена", "выловлено", "выловлены", "выложен", "выложена", "выложено", "выложены", "выломан", "выломана", "выломано", "выломаны", "вылуплен", "вылуплена", "вылуплено", "вылуплены", "вымазан", "вымазана", "вымазано", "вымазаны", "выманен", "выманена", "выманено", "выманены", "вымаран", "вымарана", "вымарано", "вымараны", "вымахан", "вымахана", "вымахано", "вымаханы", "выменян", "выменяна", "выменяно", "выменяны", "выметен", "выметена", "выметено", "выметены", "вымолвлен", "вымолвлена", "вымолвлено", "вымолвлены", "вымолен", "вымолена", "вымолено", "вымолены", "вымотан", "вымотана", "вымотано", "вымотаны", "вымочен", "вымочена", "вымочено", "вымочены", "вымощен", "вымощена", "вымощено", "вымощены", "вымучен", "вымучена", "вымучено", "вымучены", "вымуштрован", "вымуштрована", "вымуштровано", "вымуштрованы", "вымыт", "вымыта", "вымыто", "вымыты", "вымышлен", "вымышлена", "вымышлено", "вымышлены", "вынесен", "вынесена", "вынесено", "вынесены", "выношен", "выношена", "выношено", "выношены", "вынужден", "вынуждена", "вынуждено", "вынуждены", "вынут", "вынута", "вынуто", "вынуты", "выпачкан", "выпачкана", "выпачкано", "выпачканы", "выпестован", "выпестована", "выпестовано", "выпестованы", "выпечен", "выпечена", "выпечено", "выпечены", "выпилен", "выпилена", "выпилено", "выпилены", "выписан", "выписана", "выписано", "выписаны", "выпит", "выпита", "выпито", "выпиты", "выпихнут", "выпихнута", "выпихнуто", "выпихнуты", "выплавлен", "выплавлена", "выплавлено", "выплавлены", "выплакан", "выплакана", "выплакано", "выплаканы", "выплачен", "выплачена", "выплачено", "выплачены", "выплеснут", "выплеснута", "выплеснуто", "выплеснуты", "выплюнут", "выплюнута", "выплюнуто", "выплюнуты", "выполнен", "выполнена", "выполнено", "выполнены", "выпорот", "выпорота", "выпорото", "выпороты", "выпотрошен", "выпотрошена", "выпотрошено", "выпотрошены", "выправлен", "выправлена", "выправлено", "выправлены", "выпровожен", "выпровожена", "выпровожено", "выпровожены", "выпростан", "выпростана", "выпростано", "выпростаны", "выпрошен", "выпрошена", "выпрошено", "выпрошены", "выпрямлен", "выпрямлена", "выпрямлено", "выпрямлены", "выпучен", "выпучена", "выпучено", "выпучены", "выпущен", "выпущена", "выпущено", "выпущены", "выпытан", "выпытана", "выпытано", "выпытаны", "выпячен", "выпячена", "выпячено", "выпячены", "выработан", "выработана", "выработано", "выработаны", "выражен", "выражена", "выражено", "выражены", "выращен", "выращена", "выращено", "выращены", "вырван", "вырвана", "вырвано", "вырваны", "вырезан", "вырезана", "вырезано", "вырезаны", "выровнян", "выровняна", "выровняно", "выровняны", "выронен", "выронена", "выронено", "выронены", "вырублен", "вырублена", "вырублено", "вырублены", "выруган", "выругана", "выругано", "выруганы", "выручен", "выручена", "выручено", "выручены", "вырыт", "вырыта", "вырыто", "вырыты", "высажен", "высажена", "высажено", "высажены", "высвечен", "высвечена", "высвечено", "высвечены", "высвобожден", "высвобождена", "высвобождено", "высвобождены", "выселен", "выселена", "выселено", "выселены", "высечен", "высечена", "высечено", "высечены", "высеян", "высеяна", "высеяно", "высеяны", "высижен", "высижена", "высижено", "высижены", "высказан", "высказана", "высказано", "высказаны", "выскоблен", "выскоблена", "выскоблено", "выскоблены", "выскребен", "выскребена", "выскребено", "выскребены", "выслан", "выслана", "выслано", "высланы", "выслежен", "выслежена", "выслежено", "выслежены", "выслужен", "выслужена", "выслужено", "выслужены", "выслушан", "выслушана", "выслушано", "выслушаны", "высмеян", "высмеяна", "высмеяно", "высмеяны", "высмотрен", "высмотрена", "высмотрено", "высмотрены", "высосан", "высосана", "высосано", "высосаны", "выспрошен", "выспрошена", "выспрошено", "выспрошены", "выставлен", "выставлена", "выставлено", "выставлены", "выстиран", "выстирана", "выстирано", "выстираны", "выстлан", "выстлана", "выстлано", "выстланы", "выстоян", "выстояна", "выстояно", "выстояны", "выстрадан", "выстрадана", "выстрадано", "выстраданы", "выстрелен", "выстрелена", "выстрелено", "выстрелены", "выстрижен", "выстрижена", "выстрижено", "выстрижены", "выстроен", "выстроена", "выстроено", "выстроены", "выструган", "выстругана", "выстругано", "выструганы", "выстужен", "выстужена", "выстужено", "выстужены", "высунут", "высунута", "высунуто", "высунуты", "высушен", "высушена", "высушено", "высушены", "высчитан", "высчитана", "высчитано", "высчитаны", "вытаращен", "вытаращена", "вытаращено", "вытаращены", "вытащен", "вытащена", "вытащено", "вытащены", "вытерплен", "вытерплена", "вытерплено", "вытерплены", "вытерт", "вытерта", "вытерто", "вытерты", "вытесан", "вытесана", "вытесано", "вытесаны", "вытеснен", "вытеснена", "вытеснено", "вытеснены", "выткан", "выткана", "выткано", "вытканы", "вытолкнут", "вытолкнута", "вытолкнуто", "вытолкнуты", "вытоптан", "вытоптана", "вытоптано", "вытоптаны", "выторгован", "выторгована", "выторговано", "выторгованы", "выточен", "выточена", "выточено", "выточены", "вытравлен", "вытравлена", "вытравлено", "вытравлены", "вытребован", "вытребована", "вытребовано", "вытребованы", "вытрясен", "вытрясена", "вытрясено", "вытрясены", "вытряхнут", "вытряхнута", "вытряхнуто", "вытряхнуты", "вытурен", "вытурена", "вытурено", "вытурены", "вытянут", "вытянута", "вытянуто", "вытянуты", "выужен", "выужена", "выужено", "выужены", "выучен", "выучена", "выучено", "выучены", "выхвачен", "выхвачена", "выхвачено", "выхвачены", "выхлебан", "выхлебана", "выхлебано", "выхлебаны", "выхлопотан", "выхлопотана", "выхлопотано", "выхлопотаны", "выхожен", "выхожена", "выхожено", "выхожены", "выхолощен", "выхолощена", "выхолощено", "выхолощены", "выцарапан", "выцарапана", "выцарапано", "выцарапаны", "вычеркнут", "вычеркнута", "вычеркнуто", "вычеркнуты", "вычерпан", "вычерпана", "вычерпано", "вычерпаны", "вычерчен", "вычерчена", "вычерчено", "вычерчены", "вычислен", "вычислена", "вычислено", "вычислены", "вычитан", "вычитана", "вычитано", "вычитаны", "вычищен", "вычищена", "вычищено", "вычищены", "вычленен", "вычленена", "вычленено", "вычленены", "вычтен", "вычтена", "вычтено", "вычтены", "вышвырнут", "вышвырнута", "вышвырнуто", "вышвырнуты", "вышит", "вышита", "вышито", "вышиты", "вышколен", "вышколена", "вышколено", "вышколены", "выщерблен", "выщерблена", "выщерблено", "выщерблены", "выщипан", "выщипана", "выщипано", "выщипаны", "выявлен", "выявлена", "выявлено", "выявлены", "выяснен", "выяснена", "выяснено", "выяснены", "газирована", "газировано", "газированы", "гарантирован", "гарантирована", "гарантировано", "гарантированы", "гаркнут", "гаркнута", "гаркнуто", "гаркнуты", "гармонизирован", "гармонизирована", "гармонизировано", "гармонизированы", "герметизирован", "герметизирована", "герметизировано", "герметизированы", "глазирован", "глазирована", "глазировано", "глазированы", "госпитализирован", "госпитализирована", "госпитализировано", "госпитализированы", "грохнут", "грохнута", "грохнуто", "грохнуты", "дарован", "дарована", "даровано", "дарованы", "датирован", "датирована", "датировано", "датированы", "двинут", "двинута", "двинуто", "двинуты", "девальвирован", "девальвирована", "девальвировано", "девальвированы", "дегустирован", "дегустирована", "дегустировано", "дегустированы", "дезавуирован", "дезавуирована", "дезавуировано", "дезавуированы", "дезинфицирован", "дезинфицирована", "дезинфицировано", "дезинфицированы", "дезинформирован", "дезинформирована", "дезинформировано", "дезинформированы", "дезорганизован", "дезорганизована", "дезорганизовано", "дезорганизованы", "дезориентирован", "дезориентирована", "дезориентировано", "дезориентированы", "декларирован", "декларирована", "декларировано", "декларированы", "декорирован", "декорирована", "декорировано", "декорированы", "делегирован", "делегирована", "делегировано", "делегированы", "демаскирован", "демаскирована", "демаскировано", "демаскированы", "демобилизован", "демобилизована", "демобилизовано", "демобилизованы", "демонтирован", "демонтирована", "демонтировано", "демонтированы", "деморализован", "деморализована", "деморализовано", "деморализованы", "депонирован", "депонирована", "депонировано", "депонированы", "детализирован", "детализирована", "детализировано", "детализированы", "детерминирован", "детерминирована", "детерминировано", "детерминированы", "деформирован", "деформирована", "деформировано", "деформированы", "диагностирован", "диагностирована", "диагностировано", "диагностированы", "дисквалифицирован", "дисквалифицирована", "дисквалифицировано", "дисквалифицированы", "дискредитирован", "дискредитирована", "дискредитировано", "дискредитированы", "дискриминирован", "дискриминирована", "дискриминировано", "дискриминированы", "дислоцирован", "дислоцирована", "дислоцировано", "дислоцированы", "дисциплинирован", "дисциплинирована", "дисциплинировано", "дисциплинированы", "дифференцирован", "дифференцирована", "дифференцировано", "дифференцированы", "добавлен", "добавлена", "добавлено", "добавлены", "добит", "добита", "добито", "добиты", "доведен", "доведена", "доведено", "доведены", "довезен", "довезена", "довезено", "довезены", "доверен", "доверена", "доверено", "доверены", "довершен", "довершена", "довершено", "довершены", "довожен", "довожена", "довожено", "довожены", "догляжен", "догляжена", "догляжено", "догляжены", "догнан", "догнана", "догнано", "догнаны", "договорен", "договорена", "договорено", "договорены", "догонян", "догоняна", "догоняно", "догоняны", "доделан", "доделана", "доделано", "доделаны", "додуман", "додумана", "додумано", "додуманы", "дожат", "дожата", "дожато", "дожаты", "дожеван", "дожевана", "дожевано", "дожеваны", "дожит", "дожита", "дожито", "дожиты", "дозволен", "дозволена", "дозволено", "дозволены", "дозирован", "дозирована", "дозировано", "дозированы", "доигран", "доиграна", "доиграно", "доиграны", "доказан", "доказана", "доказано", "доказаны", "докончен", "докончена", "докончено", "докончены", "документирован", "документирована", "документировано", "документированы", "докурен", "докурена", "докурено", "докурены", "долбанут", "долбанута", "долбануто", "долбануты", "долит", "долита", "долито", "долиты", "доложен", "доложена", "доложено", "доложены", "домчан", "домчана", "домчано", "домчаны", "домыслен", "домыслена", "домыслено", "домыслены", "донесен", "донесена", "донесено", "донесены", "доношена", "доношено", "доношены", "допет", "допета", "допето", "допеты", "допечен", "допечена", "допечено", "допечены", "дописан", "дописана", "дописано", "дописаны", "допит", "допита", "допито", "допиты", "доплачен", "доплачена", "доплачено", "доплачены", "дополнен", "дополнена", "дополнено", "дополнены", "допрошен", "допрошена", "допрошено", "допрошены", "допущен", "допущена", "допущено", "допущены", "доработан", "доработана", "доработано", "доработаны", "дорисован", "дорисована", "дорисовано", "дорисованы", "досажен", "досажена", "досажено", "досажены", "досказан", "досказана", "досказано", "досказаны", "дослушан", "дослушана", "дослушано", "дослушаны", "досмотрен", "досмотрена", "досмотрено", "досмотрены", "доставлен", "доставлена", "доставлено", "доставлены", "достроен", "достроена", "достроено", "достроены", "досчитан", "досчитана", "досчитано", "досчитаны", "дотащен", "дотащена", "дотащено", "дотащены", "дотянут", "дотянута", "дотянуто", "дотянуты", "дочитан", "дочитана", "дочитано", "дочитаны", "драматизирован", "драматизирована", "драматизировано", "драматизированы", "дренирован", "дренирована", "дренировано", "дренированы", "дублирован", "дублирована", "дублировано", "дублированы", "жахнут", "жахнута", "жахнуто", "жахнуты", "заасфальтирован", "заасфальтирована", "заасфальтировано", "заасфальтированы", "забаррикадирован", "забаррикадирована", "забаррикадировано", "забаррикадированы", "забинтован", "забинтована", "забинтовано", "забинтованы", "забит", "забита", "забито", "забиты", "заблеван", "заблевана", "заблевано", "заблеваны", "заблокирован", "заблокирована", "заблокировано", "заблокированы", "заболочена", "заболочено", "заболочены", "заболтан", "заболтана", "заболтано", "заболтаны", "забракован", "забракована", "забраковано", "забракованы", "забран", "забрана", "забрано", "забраны", "забронирован", "забронирована", "забронировано", "забронированы", "забросан", "забросана", "забросано", "забросаны", "заброшен", "заброшена", "заброшено", "заброшены", "забрызган", "забрызгана", "забрызгано", "забрызганы", "завален", "завалена", "завалено", "завалены", "заварен", "заварена", "заварено", "заварены", "заведен", "заведена", "заведено", "заведены", "завезен", "завезена", "завезено", "завезены", "завербован", "завербована", "завербовано", "завербованы", "заверен", "заверена", "заверено", "заверены", "завернут", "завернута", "завернуто", "завернуты", "заверчен", "заверчена", "заверчено", "заверчены", "завершен", "завершена", "завершено", "завершены", "завешан", "завешана", "завешано", "завешаны", "завещан", "завещана", "завещано", "завещаны", "завиден", "завидена", "завидено", "завидены", "завизирован", "завизирована", "завизировано", "завизированы", "завинчен", "завинчена", "завинчено", "завинчены", "завит", "завита", "завито", "завиты", "завлечен", "завлечена", "завлечено", "завлечены", "завоеван", "завоевана", "завоевано", "завоеваны", "заворожен", "заворожена", "заворожено", "заворожены", "завуалирован", "завуалирована", "завуалировано", "завуалированы", "завышен", "завышена", "завышено", "завышены", "завязан", "завязана", "завязано", "завязаны", "загадан", "загадана", "загадано", "загаданы", "загажен", "загажена", "загажено", "загажены", "загашен", "загашена", "загашено", "загашены", "загипнотизирован", "загипнотизирована", "загипнотизировано", "загипнотизированы", "загипсован", "загипсована", "загипсовано", "загипсованы", "заглажен", "заглажена", "заглажено", "заглажены", "заглушен", "заглушена", "заглушено", "заглушены", "загнан", "загнана", "загнано", "загнаны", "загнут", "загнута", "загнуто", "загнуты", "заговорен", "заговорена", "заговорено", "заговорены", "загорожен", "загорожена", "загорожено", "загорожены", "заготовлен", "заготовлена", "заготовлено", "заготовлены", "заграбастан", "заграбастана", "заграбастано", "заграбастаны", "загребен", "загребена", "загребено", "загребены", "загримирован", "загримирована", "загримировано", "загримированы", "загромозжден", "загромозждена", "загромозждено", "загромозждены", "загружен", "загружена", "загружено", "загружены", "загрызен", "загрызена", "загрызено", "загрызены", "загрязнен", "загрязнена", "загрязнено", "загрязнены", "загублен", "загублена", "загублено", "загублены", "задавлен", "задавлена", "задавлено", "задавлены", "задвинут", "задвинута", "задвинуто", "задвинуты", "задействован", "задействована", "задействовано", "задействованы", "заделан", "заделана", "заделано", "заделаны", "задерган", "задергана", "задергано", "задерганы", "задержан", "задержана", "задержано", "задержаны", "задернут", "задернута", "задернуто", "задернуты", "задет", "задета", "задето", "задеты", "задобрен", "задобрена", "задобрено", "задобрены", "задолбан", "задолбана", "задолбано", "задолбаны", "задраен", "задраена", "задраено", "задраены", "задран", "задрана", "задрано", "задраны", "задрапирован", "задрапирована", "задрапировано", "задрапированы", "задуман", "задумана", "задумано", "задуманы", "задурен", "задурена", "задурено", "задурены", "задут", "задута", "задуто", "задуты", "задушен", "задушена", "задушено", "задушены", "задымлен", "задымлена", "задымлено", "задымлены", "заезжен", "заезжена", "заезжено", "заезжены", "зажарен", "зажарена", "зажарено", "зажарены", "зажат", "зажата", "зажато", "зажаты", "зажеван", "зажевана", "зажевано", "зажеваны", "зажит", "зажита", "зажито", "зажиты", "зажмурен", "зажмурена", "зажмурено", "зажмурены", "зазван", "зазвана", "зазвано", "зазваны", "заземлен", "заземлена", "заземлено", "заземлены", "зазубрен", "зазубрена", "зазубрено", "зазубрены", "заигран", "заиграна", "заиграно", "заиграны", "заимствован", "заимствована", "заимствовано", "заимствованы", "заинтересована", "заинтересовано", "заинтересованы", "заинтригована", "заинтриговано", "заинтригованы", "заказан", "заказана", "заказано", "заказаны", "закалена", "закалено", "закалены", "закамуфлирован", "закамуфлирована", "закамуфлировано", "закамуфлированы", "закапан", "закапана", "закапано", "закапаны", "закатан", "закатана", "закатано", "закатаны", "закачан", "закачана", "закачано", "закачаны", "закачен", "закачена", "закачено", "закачены", "закидан", "закидана", "закидано", "закиданы", "закинут", "закинута", "закинуто", "закинуты", "заклеван", "заклевана", "заклевано", "заклеваны", "заклеен", "заклеена", "заклеено", "заклеены", "заклеймен", "заклеймена", "заклеймено", "заклеймены", "заклинен", "заклинена", "заклинено", "заклинены", "заключен", "заключена", "заключено", "заключены", "закован", "закована", "заковано", "закованы", "закодирован", "закодирована", "закодировано", "закодированы", "заколдован", "заколдована", "заколдовано", "заколдованы", "заколот", "заколота", "заколото", "заколоты", "заколочен", "заколочена", "заколочено", "заколочены", "закольцеван", "закольцевана", "закольцевано", "закольцеваны", "законсервирован", "законсервирована", "законсервировано", "законсервированы", "законспирирован", "законспирирована", "законспирировано", "законспирированы", "закончен", "закончена", "закончено", "закончены", "закопан", "закопана", "закопано", "закопаны", "закопчен", "закопчена", "закопчено", "закопчены", "закошен", "закошена", "закошено", "закошены", "закрашен", "закрашена", "закрашено", "закрашены", "закреплен", "закреплена", "закреплено", "закреплены", "закроен", "закроена", "закроено", "закроены", "закруглен", "закруглена", "закруглено", "закруглены", "закручен", "закручена", "закручено", "закручены", "закрыт", "закрыта", "закрыто", "закрыты", "закуплен", "закуплена", "закуплено", "закуплены", "закупорен", "закупорена", "закупорено", "закупорены", "закурен", "закурена", "закурено", "закурены", "закутан", "закутана", "закутано", "закутаны", "залажен", "залажена", "залажено", "залажены", "залатан", "залатана", "залатано", "залатаны", "залеплен", "залеплена", "залеплено", "залеплены", "залечен", "залечена", "залечено", "залечены", "зализан", "зализана", "зализано", "зализаны", "залит", "залита", "залито", "залиты", "заложен", "заложена", "заложено", "заложены", "заломлен", "заломлена", "заломлено", "заломлены", "заляпан", "заляпана", "заляпано", "заляпаны", "замазан", "замазана", "замазано", "замазаны", "заманен", "заманена", "заманено", "заманены", "замаран", "замарана", "замарано", "замараны", "замаскирован", "замаскирована", "замаскировано", "замаскированы", "замаслен", "замаслена", "замаслено", "замаслены", "замедлен", "замедлена", "замедлено", "замедлены", "заменен", "заменена", "заменено", "заменены", "замерен", "замерена", "замерено", "замерены", "замерян", "замеряна", "замеряно", "замеряны", "заметан", "заметана", "заметано", "заметаны", "заметен", "заметена", "заметено", "заметены", "замечен", "замечена", "замечено", "замечены", "замешан", "замешана", "замешано", "замешаны", "замешен", "замешена", "замешено", "замешены", "замещен", "замещена", "замещено", "замещены", "заминирован", "заминирована", "заминировано", "заминированы", "замкнут", "замкнута", "замкнуто", "замкнуты", "замолвлен", "замолвлена", "замолвлено", "замолвлены", "замолчан", "замолчана", "замолчано", "замолчаны", "замордован", "замордована", "замордовано", "замордованы", "заморен", "заморена", "заморено", "заморены", "заморожен", "заморожена", "заморожено", "заморожены", "заморочен", "заморочена", "заморочено", "заморочены", "замотан", "замотана", "замотано", "замотаны", "замочен", "замочена", "замочено", "замочены", "замурован", "замурована", "замуровано", "замурованы", "замусолен", "замусолена", "замусолено", "замусолены", "замутнен", "замутнена", "замутнено", "замутнены", "замучан", "замучана", "замучано", "замучаны", "замучен", "замучена", "замучено", "замучены", "замыкан", "замыкана", "замыкано", "замыканы", "замыт", "замыта", "замыто", "замыты", "замыщлен", "замыщлена", "замыщлено", "замыщлены", "замят", "замята", "замято", "замяты", "занавешен", "занавешена", "занавешено", "занавешены", "занесен", "занесена", "занесено", "занесены", "занижен", "занижена", "занижено", "занижены", "заношен", "заношена", "заношено", "заношены", "занят", "занята", "занято", "заняты", "заострен", "заострена", "заострено", "заострены", "запакован", "запакована", "запаковано", "запакованы", "запален", "запалена", "запалено", "запалены", "запасен", "запасена", "запасено", "запасены", "запатентован", "запатентована", "запатентовано", "запатентованы", "запахнут", "запахнута", "запахнуто", "запахнуты", "запачкан", "запачкана", "запачкано", "запачканы", "запаян", "запаяна", "запаяно", "запаяны", "запеленан", "запеленана", "запеленано", "запеленаны", "запеленгован", "запеленгована", "запеленговано", "запеленгованы", "заперт", "заперта", "заперто", "заперты", "запечатан", "запечатана", "запечатано", "запечатаны", "запечатлен", "запечатлена", "запечатлено", "запечатлены", "запечен", "запечена", "запечено", "запечены", "записан", "записана", "записано", "записаны", "запит", "запита", "запито", "запиты", "запихан", "запихана", "запихано", "запиханы", "запихнут", "запихнута", "запихнуто", "запихнуты", "запланирован", "запланирована", "запланировано", "запланированы", "заплатан", "заплатана", "заплатано", "заплатаны", "заплачен", "заплачена", "заплачено", "заплачены", "заплеван", "заплевана", "заплевано", "заплеваны", "заплетен", "заплетена", "заплетено", "заплетены", "запломбирован", "запломбирована", "запломбировано", "запломбированы", "заподозрен", "заподозрена", "заподозрено", "заподозрены", "заполнен", "заполнена", "заполнено", "заполнены", "заполонен", "заполонена", "заполонено", "заполонены", "заполучен", "заполучена", "заполучено", "заполучены", "запомнен", "запомнена", "запомнено", "запомнены", "запорот", "запорота", "запорото", "запороты", "запорошен", "запорошена", "запорошено", "запорошены", "заправлен", "заправлена", "заправлено", "заправлены", "запрещен", "запрещена", "запрещено", "запрещены", "запримечен", "запримечена", "запримечено", "запримечены", "запрограммирован", "запрограммирована", "запрограммировано", "запрограммированы", "запроектирован", "запроектирована", "запроектировано", "запроектированы", "запрокинут", "запрокинута", "запрокинуто", "запрокинуты", "запротоколирован", "запротоколирована", "запротоколировано", "запротоколированы", "запрошен", "запрошена", "запрошено", "запрошены", "запружен", "запружена", "запружено", "запружены", "запряжен", "запряжена", "запряжено", "запряжены", "запрятан", "запрятана", "запрятано", "запрятаны", "запуган", "запугана", "запугано", "запуганы", "запудрен", "запудрена", "запудрено", "запудрены", "запутан", "запутана", "запутано", "запутаны", "запущен", "запущена", "запущено", "запущены", "запылен", "запылена", "запылено", "запылены", "запятнан", "запятнана", "запятнано", "запятнаны", "заработан", "заработана", "заработано", "заработаны", "заражен", "заражена", "заражено", "заражены", "зарегистрирован", "зарегистрирована", "зарегистрировано", "зарегистрированы", "зарезан", "зарезана", "зарезано", "зарезаны", "зарезервирован", "зарезервирована", "зарезервировано", "зарезервированы", "зарекомендован", "зарекомендована", "зарекомендовано", "зарекомендованы", "зарешечен", "зарешечена", "зарешечено", "зарешечены", "зарисован", "зарисована", "зарисовано", "зарисованы", "зарифмован", "зарифмована", "зарифмовано", "зарифмованы", "зарублен", "зарублена", "зарублено", "зарублены", "зарыт", "зарыта", "зарыто", "зарыты", "заряжен", "заряжена", "заряжено", "заряжены", "засажен", "засажена", "засажено", "засажены", "засахарен", "засахарена", "засахарено", "засахарены", "засвечен", "засвечена", "засвечено", "засвечены", "засвидетельствован", "засвидетельствована", "засвидетельствовано", "засвидетельствованы", "засекречен", "засекречена", "засекречено", "засекречены", "заселен", "заселена", "заселено", "заселены", "засечен", "засечена", "засечено", "засечены", "засеян", "засеяна", "засеяно", "засеяны", "засижен", "засижена", "засижено", "засижены", "заскребен", "заскребена", "заскребено", "заскребены", "заслан", "заслана", "заслано", "засланы", "заслонен", "заслонена", "заслонено", "заслонены", "заслужен", "заслужена", "заслужено", "заслужены", "заслушан", "заслушана", "заслушано", "заслушаны", "заслышан", "заслышана", "заслышано", "заслышаны", "засмеян", "засмеяна", "засмеяно", "засмеяны", "заснят", "заснята", "заснято", "засняты", "засолен", "засолена", "засолено", "засолены", "засорен", "засорена", "засорено", "засорены", "засосан", "засосана", "засосано", "засосаны", "заспиртован", "заспиртована", "заспиртовано", "заспиртованы", "заставлен", "заставлена", "заставлено", "заставлены", "застазастат", "застазастата", "застазастато", "застазастаты", "застегнут", "застегнута", "застегнуто", "застегнуты", "застелен", "застелена", "застелено", "застелены", "застигнут", "застигнута", "застигнуто", "застигнуты", "застиран", "застирана", "застирано", "застираны", "застолблен", "застолблена", "застолблено", "застолблены", "застопорен", "застопорена", "застопорено", "застопорены", "застрахован", "застрахована", "застраховано", "застрахованы", "застрелен", "застрелена", "застрелено", "застрелены", "застроен", "застроена", "застроено", "застроены", "застрочен", "застрочена", "застрочено", "застрочены", "застужен", "застужена", "застужено", "застужены", "застукан", "застукана", "застукано", "застуканы", "заступлен", "заступлена", "заступлено", "заступлены", "засужен", "засужена", "засужено", "засужены", "засунут", "засунута", "засунуто", "засунуты", "засучен", "засучена", "засучено", "засучены", "засушен", "засушена", "засушено", "засушены", "засчитан", "засчитана", "засчитано", "засчитаны", "затаен", "затаена", "затаено", "затаены", "затаскан", "затаскана", "затаскано", "затасканы", "затащен", "затащена", "затащено", "затащены", "затворен", "затворена", "затворено", "затворены", "затемнен", "затемнена", "затемнено", "затемнены", "затенен", "затенена", "затенено", "затенены", "затерт", "затерта", "затерто", "затерты", "затерян", "затеряна", "затеряно", "затеряны", "затеян", "затеяна", "затеяно", "затеяны", "заткнут", "заткнута", "заткнуто", "заткнуты", "затмлен", "затмлена", "затмлено", "затмлены", "затолкан", "затолкана", "затолкано", "затолканы", "затоплен", "затоплена", "затоплено", "затоплены", "затоптан", "затоптана", "затоптано", "затоптаны", "заторможен", "заторможена", "заторможено", "заторможены", "затороплен", "затороплена", "затороплено", "затороплены", "заточен", "заточена", "заточено", "заточены", "затошнен", "затошнена", "затошнено", "затошнены", "затравлен", "затравлена", "затравлено", "затравлены", "затрачен", "затрачена", "затрачено", "затрачены", "затребован", "затребована", "затребовано", "затребованы", "затронут", "затронута", "затронуто", "затронуты", "затруднен", "затруднена", "затруднено", "затруднены", "затуманен", "затуманена", "затуманено", "затуманены", "затушеван", "затушевана", "затушевано", "затушеваны", "затушен", "затушена", "затушено", "затушены", "затыкан", "затыкана", "затыкано", "затыканы", "затянут", "затянута", "затянуто", "затянуты", "заужен", "заужена", "заужено", "заужены", "заучен", "заучена", "заучено", "заучены", "зафиксирован", "зафиксирована", "зафиксировано", "зафиксированы", "зафрахтован", "зафрахтована", "зафрахтовано", "зафрахтованы", "захвачен", "захвачена", "захвачено", "захвачены", "захламлен", "захламлена", "захламлено", "захламлены", "захлестнут", "захлестнута", "захлестнуто", "захлестнуты", "захлопнут", "захлопнута", "захлопнуто", "захлопнуты", "захожен", "захожена", "захожено", "захожены", "захоронен", "захоронена", "захоронено", "захоронены", "зацеплен", "зацеплена", "зацеплено", "зацеплены", "зачарована", "зачаровано", "зачарованы", "зачат", "зачата", "зачато", "зачаты", "зачеркнут", "зачеркнута", "зачеркнуто", "зачеркнуты", "зачерпнут", "зачерпнута", "зачерпнуто", "зачерпнуты", "зачесан", "зачесана", "зачесано", "зачесаны", "зачехлен", "зачехлена", "зачехлено", "зачехлены", "зачислен", "зачислена", "зачислено", "зачислены", "зачитан", "зачитана", "зачитано", "зачитаны", "зачищен", "зачищена", "зачищено", "зачищены", "зачтен", "зачтена", "зачтено", "зачтены", "зашаркан", "зашаркана", "зашаркано", "зашарканы", "зашвырнут", "зашвырнута", "зашвырнуто", "зашвырнуты", "зашевелен", "зашевелена", "зашевелено", "зашевелены", "зашептан", "зашептана", "зашептано", "зашептаны", "зашит", "зашита", "зашито", "зашиты", "зашифрована", "зашифровано", "зашифрованы", "зашнурован", "зашнурована", "зашнуровано", "зашнурованы", "заштопан", "заштопана", "заштопано", "заштопаны", "зашторен", "зашторена", "зашторено", "зашторены", "заштрихован", "заштрихована", "заштриховано", "заштрихованы", "защелкнут", "защелкнута", "защелкнуто", "защелкнуты", "защемлен", "защемлена", "защемлено", "защемлены", "защипан", "защипана", "защипано", "защипаны", "защищен", "защищена", "защищено", "защищены", "заявлен", "заявлена", "заявлено", "заявлены", "звезданут", "звезданута", "звездануто", "звездануты", "идеализирован", "идеализирована", "идеализировано", "идеализированы", "идентифицирован", "идентифицирована", "идентифицировано", "идентифицированы", "избавлен", "избавлена", "избавлено", "избавлены", "избалован", "избалована", "избаловано", "избалованы", "избит", "избита", "избито", "избиты", "изборозжден", "изборозждена", "изборозждено", "изборозждены", "избран", "избрана", "избрано", "избраны", "изваян", "изваяна", "изваяно", "изваяны", "изведан", "изведана", "изведано", "изведаны", "извергнут", "извергнута", "извергнуто", "извергнуты", "извещен", "извещена", "извещено", "извещены", "извинен", "извинена", "извинено", "извинены", "извлечен", "извлечена", "извлечено", "извлечены", "извращен", "извращена", "извращено", "извращены", "изгажен", "изгажена", "изгажено", "изгажены", "изгнан", "изгнана", "изгнано", "изгнаны", "изготовлен", "изготовлена", "изготовлено", "изготовлены", "изгрызен", "изгрызена", "изгрызено", "изгрызены", "издерган", "издергана", "издергано", "издерганы", "изжарен", "изжарена", "изжарено", "изжарены", "изжит", "изжита", "изжито", "изжиты", "излажен", "излажена", "излажено", "излажены", "излечен", "излечена", "излечено", "излечены", "излит", "излита", "излито", "излиты", "изловлен", "изловлена", "изловлено", "изловлены", "изложен", "изложена", "изложено", "изложены", "изломан", "изломана", "изломано", "изломаны", "измазан", "измазана", "измазано", "измазаны", "измельчен", "измельчена", "измельчено", "измельчены", "изменен", "изменена", "изменено", "изменены", "измерен", "измерена", "измерено", "измерены", "измерян", "измеряна", "измеряно", "измеряны", "измотан", "измотана", "измотано", "измотаны", "измочален", "измочалена", "измочалено", "измочалены", "измучен", "измучена", "измучено", "измучены", "измышлен", "измышлена", "измышлено", "измышлены", "измят", "измята", "измято", "измяты", "изнасилован", "изнасилована", "изнасиловано", "изнасилованы", "изничтожен", "изничтожена", "изничтожено", "изничтожены", "изношен", "изношена", "изношено", "изношены", "изнурен", "изнурена", "изнурено", "изнурены", "изобличен", "изобличена", "изобличено", "изобличены", "изображен", "изображена", "изображено", "изображены", "изобретен", "изобретена", "изобретено", "изобретены", "изодран", "изодрана", "изодрано", "изодраны", "изолирован", "изолирована", "изолировано", "изолированы", "изорван", "изорвана", "изорвано", "изорваны", "изранен", "изранена", "изранено", "изранены", "израсходован", "израсходована", "израсходовано", "израсходованы", "изрезан", "изрезана", "изрезано", "изрезаны", "изречен", "изречена", "изречено", "изречены", "изрешечен", "изрешечена", "изрешечено", "изрешечены", "изрисован", "изрисована", "изрисовано", "изрисованы", "изрублен", "изрублена", "изрублено", "изрублены", "изрыт", "изрыта", "изрыто", "изрыты", "изувечен", "изувечена", "изувечено", "изувечены", "изукрашен", "изукрашена", "изукрашено", "изукрашены", "изумлен", "изумлена", "изумлено", "изумлены", "изуродован", "изуродована", "изуродовано", "изуродованы", "изучен", "изучена", "изучено", "изучены", "изъезжен", "изъезжена", "изъезжено", "изъезжены", "изъявлен", "изъявлена", "изъявлено", "изъявлены", "изъят", "изъята", "изъято", "изъяты", "изыскан", "изыскана", "изыскано", "изысканы", "иллюстрирован", "иллюстрирована", "иллюстрировано", "иллюстрированы", "иммобилизован", "иммобилизована", "иммобилизовано", "иммобилизованы", "иммунизирован", "иммунизирована", "иммунизировано", "иммунизированы", "импортирован", "импортирована", "импортировано", "импортированы", "инвестирован", "инвестирована", "инвестировано", "инвестированы", "индивидуализирован", "индивидуализирована", "индивидуализировано", "индивидуализированы", "индуцирован", "индуцирована", "индуцировано", "индуцированы", "инкорпорирован", "инкорпорирована", "инкорпорировано", "инкорпорированы", "инкриминирован", "инкриминирована", "инкриминировано", "инкриминированы", "инкрустирован", "инкрустирована", "инкрустировано", "инкрустированы", "инкубирован", "инкубирована", "инкубировано", "инкубированы", "инспирирован", "инспирирована", "инспирировано", "инспирированы", "инсценирован", "инсценирована", "инсценировано", "инсценированы", "интегрирован", "интегрирована", "интегрировано", "интегрированы", "интенсифицирован", "интенсифицирована", "интенсифицировано", "интенсифицированы", "интервьюирован", "интервьюирована", "интервьюировано", "интервьюированы", "интернирован", "интернирована", "интернировано", "интернированы", "интерпретирован", "интерпретирована", "интерпретировано", "интерпретированы", "интонирован", "интонирована", "интонировано", "интонированы", "инфицирован", "инфицирована", "инфицировано", "инфицированы", "информирован", "информирована", "информировано", "информированы", "искажен", "искажена", "искажено", "искажены", "искалечен", "искалечена", "искалечено", "искалечены", "исключен", "исключена", "исключено", "исключены", "исковеркан", "исковеркана", "исковеркано", "исковерканы", "исколот", "исколота", "исколото", "исколоты", "искорежен", "искорежена", "искорежено", "искорежены", "искоренен", "искоренена", "искоренено", "искоренены", "искривлен", "искривлена", "искривлено", "искривлены", "искромсан", "искромсана", "искромсано", "искромсаны", "искрошен", "искрошена", "искрошено", "искрошены", "искупан", "искупана", "искупано", "искупаны", "искуплен", "искуплена", "искуплено", "искуплены", "искусан", "искусана", "искусано", "искусаны", "искушен", "искушена", "искушено", "искушены", "испачкан", "испачкана", "испачкано", "испачканы", "испепелен", "испепелена", "испепелено", "испепелены", "испечен", "испечена", "испечено", "испечены", "испещрен", "испещрена", "испещрено", "испещрены", "исписан", "исписана", "исписано", "исписаны", "испит", "испита", "испито", "испиты", "исповедан", "исповедана", "исповедано", "исповеданы", "исповедован", "исповедована", "исповедовано", "исповедованы", "испоганен", "испоганена", "испоганено", "испоганены", "исполнен", "исполнена", "исполнено", "исполнены", "исполосован", "исполосована", "исполосовано", "исполосованы", "использован", "использована", "использовано", "использованы", "испорчен", "испорчена", "испорчено", "испорчены", "исправлен", "исправлена", "исправлено", "исправлены", "испробован", "испробована", "испробовано", "испробованы", "испрошен", "испрошена", "испрошено", "испрошены", "испуган", "испугана", "испугано", "испуганы", "испущен", "испущена", "испущено", "испущены", "испытан", "испытана", "испытано", "испытаны", "иссечен", "иссечена", "иссечено", "иссечены", "исследован", "исследована", "исследовано", "исследованы", "иссушен", "иссушена", "иссушено", "иссушены", "истерзан", "истерзана", "истерзано", "истерзаны", "истерт", "истерта", "истерто", "истерты", "истолкован", "истолкована", "истолковано", "истолкованы", "истончен", "истончена", "истончено", "истончены", "истоплен", "истоплена", "истоплено", "истоплены", "истоптан", "истоптана", "истоптано", "истоптаны", "исторгнут", "исторгнута", "исторгнуто", "исторгнуты", "источен", "источена", "источено", "источены", "истощен", "истощена", "истощено", "истощены", "истрачен", "истрачена", "истрачено", "истрачены", "истреблен", "истреблена", "истреблено", "истреблены", "истребован", "истребована", "истребовано", "истребованы", "истрепан", "истрепана", "истрепано", "истрепаны", "исхожен", "исхожена", "исхожено", "исхожены", "исцарапан", "исцарапана", "исцарапано", "исцарапаны", "исцелен", "исцелена", "исцелено", "исцелены", "исчеркан", "исчеркана", "исчеркано", "исчерканы", "исчерпан", "исчерпана", "исчерпано", "исчерпаны", "исчислен", "исчислена", "исчислено", "исчислены", "казнен", "казнена", "казнено", "казнены", "канонизирован", "канонизирована", "канонизировано", "канонизированы", "капитализирован", "капитализирована", "капитализировано", "капитализированы", "кастрирован", "кастрирована", "кастрировано", "кастрированы", "катализирован", "катализирована", "катализировано", "катализированы", "катапультирован", "катапультирована", "катапультировано", "катапультированы", "квалифицирован", "квалифицирована", "квалифицировано", "квалифицированы", "кинут", "кинута", "кинуто", "кинуты", "классифицирован", "классифицирована", "классифицировано", "классифицированы", "кликнут", "кликнута", "кликнуто", "кликнуты", "клюнут", "клюнута", "клюнуто", "клюнуты", "ковырнут", "ковырнута", "ковырнуто", "ковырнуты", "кодирован", "кодирована", "кодировано", "кодированы", "кокнут", "кокнута", "кокнуто", "кокнуты", "командирован", "командирована", "командировано", "командированы", "комиссован", "комиссована", "комиссовано", "комиссованы", "компенсирован", "компенсирована", "компенсировано", "компенсированы", "конвертирован", "конвертирована", "конвертировано", "конвертированы", "конденсирован", "конденсирована", "конденсировано", "конденсированы", "кондиционирован", "кондиционирована", "кондиционировано", "кондиционированы", "конкретизирован", "конкретизирована", "конкретизировано", "конкретизированы", "консолидирован", "консолидирована", "консолидировано", "консолидированы", "констатирован", "констатирована", "констатировано", "констатированы", "конституирован", "конституирована", "конституировано", "конституированы", "контратакован", "контратакована", "контратаковано", "контратакованы", "контужен", "контужена", "контужено", "контужены", "конфискован", "конфискована", "конфисковано", "конфискованы", "кончен", "кончена", "кончено", "кончены", "координирован", "координирована", "координировано", "координированы", "коронован", "коронована", "короновано", "коронованы", "коррумпирована", "коррумпировано", "коррумпированы", "кредитован", "кредитована", "кредитовано", "кредитованы", "кремирован", "кремирована", "кремировано", "кремированы", "крещен", "крещена", "крещено", "крещены", "куплен", "куплена", "куплено", "куплены", "курнут", "курнута", "курнуто", "курнуты", "куснут", "куснута", "куснуто", "куснуты", "легализован", "легализована", "легализовано", "легализованы", "легирован", "легирована", "легировано", "легированы", "ликвидирован", "ликвидирована", "ликвидировано", "ликвидированы", "лимитирован", "лимитирована", "лимитировано", "лимитированы", "лишен", "лишена", "лишено", "лишены", "лоббирован", "лоббирована", "лоббировано", "лоббированы", "локализован", "локализована", "локализовано", "локализованы", "лягнут", "лягнута", "лягнуто", "лягнуты", "маркирован", "маркирована", "маркировано", "маркированы", "массирован", "массирована", "массировано", "массированы", "материализован", "материализована", "материализовано", "материализованы", "механизирован", "механизирована", "механизировано", "механизированы", "минимизирован", "минимизирована", "минимизировано", "минимизированы", "минирован", "минирована", "минировано", "минированы", "минован", "минована", "миновано", "минованы", "мистифицирован", "мистифицирована", "мистифицировано", "мистифицированы", "мобилизован", "мобилизована", "мобилизовано", "мобилизованы", "моделирован", "моделирована", "моделировано", "моделированы", "модернизирован", "модернизирована", "модернизировано", "модернизированы", "модифицирован", "модифицирована", "модифицировано", "модифицированы", "монополизирован", "монополизирована", "монополизировано", "монополизированы", "мотивирована", "мотивировано", "мотивированы", "мотнут", "мотнута", "мотнуто", "мотнуты", "набеган", "набегана", "набегано", "набеганы", "набит", "набита", "набито", "набиты", "наболтан", "наболтана", "наболтано", "наболтаны", "набран", "набрана", "набрано", "набраны", "набросан", "набросана", "набросано", "набросаны", "наброшен", "наброшена", "наброшено", "наброшены", "навален", "навалена", "навалено", "навалены", "наварен", "наварена", "наварено", "наварены", "наведен", "наведена", "наведено", "наведены", "навезен", "навезена", "навезено", "навезены", "навернут", "навернута", "навернуто", "навернуты", "наверстан", "наверстана", "наверстано", "наверстаны", "навешан", "навешана", "навешано", "навешаны", "навешен", "навешена", "навешено", "навешены", "навещен", "навещена", "навещено", "навещены", "навеян", "навеяна", "навеяно", "навеяны", "навлечен", "навлечена", "навлечено", "навлечены", "наводнен", "наводнена", "наводнено", "наводнены", "наворован", "наворована", "наворовано", "наворованы", "наворочен", "наворочена", "наворочено", "наворочены", "навострен", "навострена", "навострено", "навострены", "навьючен", "навьючена", "навьючено", "навьючены", "навязан", "навязана", "навязано", "навязаны", "нагадан", "нагадана", "нагадано", "нагаданы", "нагажен", "нагажена", "нагажено", "нагажены", "нагнан", "нагнана", "нагнано", "нагнаны", "нагнут", "нагнута", "нагнуто", "нагнуты", "наговорен", "наговорена", "наговорено", "наговорены", "нагонян", "нагоняна", "нагоняно", "нагоняны", "наготовлен", "наготовлена", "наготовлено", "наготовлены", "награблен", "награблена", "награблено", "награблены", "награжден", "награждена", "награждено", "награждены", "нагрет", "нагрета", "нагрето", "нагреты", "нагромозжден", "нагромозждена", "нагромозждено", "нагромозждены", "нагружен", "нагружена", "нагружено", "нагружены", "нагулян", "нагуляна", "нагуляно", "нагуляны", "надавлен", "надавлена", "надавлено", "надавлены", "надвинут", "надвинута", "надвинуто", "надвинуты", "наделан", "наделана", "наделано", "наделаны", "надерган", "надергана", "надергано", "надерганы", "надет", "надета", "надето", "надеты", "надкушен", "надкушена", "надкушено", "надкушены", "надломлен", "надломлена", "надломлено", "надломлены", "надоен", "надоена", "надоено", "надоены", "надорван", "надорвана", "надорвано", "надорваны", "надоумлен", "надоумлена", "надоумлено", "надоумлены", "надписан", "надписана", "надписано", "надписаны", "надраен", "надраена", "надраено", "надраены", "надран", "надрана", "надрано", "надраны", "надрезан", "надрезана", "надрезано", "надрезаны", "надстроен", "надстроена", "надстроено", "надстроены", "надуман", "надумана", "надумано", "надуманы", "надут", "надута", "надуто", "надуты", "надушен", "надушена", "надушено", "надушены", "нажарен", "нажарена", "нажарено", "нажарены", "нажат", "нажата", "нажато", "нажаты", "нажит", "нажита", "нажито", "нажиты", "назван", "названа", "названо", "названы", "назначен", "назначена", "назначено", "назначены", "наигран", "наиграна", "наиграно", "наиграны", "наказан", "наказана", "наказано", "наказаны", "накален", "накалена", "накалено", "накалены", "накапан", "накапана", "накапано", "накапаны", "накаркан", "накаркана", "накаркано", "накарканы", "накатан", "накатана", "накатано", "накатаны", "накачан", "накачана", "накачано", "накачаны", "накачен", "накачена", "накачено", "накачены", "накидан", "накидана", "накидано", "накиданы", "накинут", "накинута", "накинуто", "накинуты", "наклеен", "наклеена", "наклеено", "наклеены", "накликан", "накликана", "накликано", "накликаны", "наклонен", "наклонена", "наклонено", "наклонены", "наковырян", "наковыряна", "наковыряно", "наковыряны", "наколот", "наколота", "наколото", "наколоты", "накопан", "накопана", "накопано", "накопаны", "накоплен", "накоплена", "накоплено", "накоплены", "накормлен", "накормлена", "накормлено", "накормлены", "накостылян", "накостыляна", "накостыляно", "накостыляны", "накошен", "накошена", "накошено", "накошены", "накрахмален", "накрахмалена", "накрахмалено", "накрахмалены", "накрашен", "накрашена", "накрашено", "накрашены", "накрошен", "накрошена", "накрошено", "накрошены", "накручен", "накручена", "накручено", "накручены", "накрыт", "накрыта", "накрыто", "накрыты", "накуплен", "накуплена", "накуплено", "накуплены", "накурен", "накурена", "накурено", "накурены", "налажен", "налажена", "налажено", "налажены", "налеплен", "налеплена", "налеплено", "налеплены", "налетан", "налетана", "налетано", "налетаны", "налит", "налита", "налито", "налиты", "наловлен", "наловлена", "наловлено", "наловлены", "наложен", "наложена", "наложено", "наложены", "наломан", "наломана", "наломано", "наломаны", "намагничен", "намагничена", "намагничено", "намагничены", "намазан", "намазана", "намазано", "намазаны", "намалеван", "намалевана", "намалевано", "намалеваны", "наметан", "наметана", "наметано", "наметаны", "наметен", "наметена", "наметено", "наметены", "намечен", "намечена", "намечено", "намечены", "намешан", "намешана", "намешано", "намешаны", "намозолен", "намозолена", "намозолено", "намозолены", "наморщен", "наморщена", "наморщено", "наморщены", "намотан", "намотана", "намотано", "намотаны", "намочен", "намочена", "намочено", "намочены", "намылен", "намылена", "намылено", "намылены", "намыт", "намыта", "намыто", "намыты", "намят", "намята", "намято", "намяты", "нанесен", "нанесена", "нанесено", "нанесены", "нанизан", "нанизана", "нанизано", "нанизаны", "наношен", "наношена", "наношено", "наношены", "нанят", "нанята", "нанято", "наняты", "напет", "напета", "напето", "напеты", "напечатан", "напечатана", "напечатано", "напечатаны", "напечен", "напечена", "напечено", "напечены", "напилен", "напилена", "напилено", "напилены", "написан", "написана", "написано", "написаны", "напитан", "напитана", "напитано", "напитаны", "напихан", "напихана", "напихано", "напиханы", "напичкан", "напичкана", "напичкано", "напичканы", "наплакан", "наплакана", "наплакано", "наплаканы", "наплеван", "наплевана", "наплевано", "наплеваны", "наплетен", "наплетена", "наплетено", "наплетены", "напложен", "напложена", "напложено", "напложены", "напоен", "напоена", "напоено", "напоены", "наползан", "наползана", "наползано", "наползаны", "наполнен", "наполнена", "наполнено", "наполнены", "напомажен", "напомажена", "напомажено", "напомажены", "напомнен", "напомнена", "напомнено", "напомнены", "напорчен", "напорчена", "напорчено", "напорчены", "направлен", "направлена", "направлено", "направлены", "напророчен", "напророчена", "напророчено", "напророчены", "напряжен", "напряжена", "напряжено", "напряжены", "напуган", "напугана", "напугано", "напуганы", "напудрен", "напудрена", "напудрено", "напудрены", "напутан", "напутана", "напутано", "напутаны", "напутствован", "напутствована", "напутствовано", "напутствованы", "напущен", "напущена", "напущено", "напущены", "напялен", "напялена", "напялено", "напялены", "наработан", "наработана", "наработано", "наработаны", "наращен", "наращена", "наращено", "наращены", "нарезан", "нарезана", "нарезано", "нарезаны", "наречен", "наречена", "наречено", "наречены", "нарисован", "нарисована", "нарисовано", "нарисованы", "нарожден", "нарождена", "нарождено", "нарождены", "нарублен", "нарублена", "нарублено", "нарублены", "нарушен", "нарушена", "нарушено", "нарушены", "нарыт", "нарыта", "нарыто", "нарыты", "наряжен", "наряжена", "наряжено", "наряжены", "насажден", "насаждена", "насаждено", "насаждены", "насажен", "насажена", "насажено", "насажены", "населен", "населена", "населено", "населены", "насижен", "насижена", "насижено", "насижены", "наскребен", "наскребена", "наскребено", "наскребены", "наслан", "наслана", "наслано", "насланы", "наследован", "наследована", "наследовано", "наследованы", "насмешен", "насмешена", "насмешено", "насмешены", "насобиран", "насобирана", "насобирано", "насобираны", "насован", "насована", "насовано", "насованы", "насолен", "насолена", "насолено", "насолены", "наставлен", "наставлена", "наставлено", "наставлены", "настелен", "настелена", "настелено", "настелены", "настигнут", "настигнута", "настигнуто", "настигнуты", "настоян", "настояна", "настояно", "настояны", "настроен", "настроена", "настроено", "настроены", "настрочен", "настрочена", "настрочено", "настрочены", "насуплен", "насуплена", "насуплено", "насуплены", "насчитан", "насчитана", "насчитано", "насчитаны", "насыщен", "насыщена", "насыщено", "насыщены", "натаскан", "натаскана", "натаскано", "натасканы", "натерт", "натерта", "натерто", "натерты", "натолкнут", "натолкнута", "натолкнуто", "натолкнуты", "натоплен", "натоплена", "натоплено", "натоплены", "натоптан", "натоптана", "натоптано", "натоптаны", "наточен", "наточена", "наточено", "наточены", "натравлен", "натравлена", "натравлено", "натравлены", "натренирован", "натренирована", "натренировано", "натренированы", "натружен", "натружена", "натружено", "натружены", "натыкан", "натыкана", "натыкано", "натыканы", "натянут", "натянута", "натянуто", "натянуты", "научен", "научена", "научено", "научены", "нафарширован", "нафарширована", "нафаршировано", "нафаршированы", "нахлобучен", "нахлобучена", "нахлобучено", "нахлобучены", "нахмурен", "нахмурена", "нахмурено", "нахмурены", "нахожен", "нахожена", "нахожено", "нахожены", "нахохлен", "нахохлена", "нахохлено", "нахохлены", "нацарапан", "нацарапана", "нацарапано", "нацарапаны", "нацежен", "нацежена", "нацежено", "нацежены", "нацелен", "нацелена", "нацелено", "нацелены", "нацеплен", "нацеплена", "нацеплено", "нацеплены", "национализирован", "национализирована", "национализировано", "национализированы", "начат", "начата", "начато", "начаты", "начертан", "начертана", "начертано", "начертаны", "начерчен", "начерчена", "начерчено", "начерчены", "начинен", "начинена", "начинено", "начинены", "начислен", "начислена", "начислено", "начислены", "начищен", "начищена", "начищено", "начищены", "нашарен", "нашарена", "нашарено", "нашарены", "нашептан", "нашептана", "нашептано", "нашептаны", "нашинкован", "нашинкована", "нашинковано", "нашинкованы", "нашит", "нашита", "нашито", "нашиты", "нашпигован", "нашпигована", "нашпиговано", "нашпигованы", "нащупан", "нащупана", "нащупано", "нащупаны", "наэлектризован", "наэлектризована", "наэлектризовано", "наэлектризованы", "невзлюблен", "невзлюблена", "невзлюблено", "невзлюблены", "недогляжен", "недогляжена", "недогляжено", "недогляжены", "недоговорен", "недоговорена", "недоговорено", "недоговорены", "недоделан", "недоделана", "недоделано", "недоделаны", "недооценен", "недооценена", "недооценено", "недооценены", "недопит", "недопита", "недопито", "недопиты", "недоплачен", "недоплачена", "недоплачено", "недоплачены", "недополучен", "недополучена", "недополучено", "недополучены", "недопонят", "недопонята", "недопонято", "недопоняты", "недосказан", "недосказана", "недосказано", "недосказаны", "недослышан", "недослышана", "недослышано", "недослышаны", "недосмотрен", "недосмотрена", "недосмотрено", "недосмотрены", "опосредован", "опосредована", "опосредовано", "опосредованы", "оптимизирован", "оптимизирована", "оптимизировано", "оптимизированы", "отслежен", "отслежена", "отслежено", "отслежены", "перечеркнут", "перечеркнута", "перечеркнуто", "перечеркнуты", "перечислен", "перечислена", "перечислено", "перечислены", "перечитан", "перечитана", "перечитано", "перечитаны", "перечтен", "перечтена", "перечтено", "перечтены", "перешит", "перешита", "перешито", "перешиты", "персонифицирован", "персонифицирована", "персонифицировано", "персонифицированы", "пикирован", "пикирована", "пикировано", "пикированы", "пленен", "пленена", "пленено", "пленены", "плеснут", "плеснута", "плеснуто", "плеснуты", "пнут", "пнута", "пнуто", "пнуты", "побалован", "побалована", "побаловано", "побалованы", "побежден", "побеждена", "побеждено", "побеждены", "побелен", "побелена", "побелено", "побелены", "побережен", "побережена", "побережено", "побережены", "побеспокоен", "побеспокоена", "побеспокоено", "побеспокоены", "побит", "побита", "побито", "побиты", "поблагодарен", "поблагодарена", "поблагодарено", "поблагодарены", "побрит", "побрита", "побрито", "побриты", "побросан", "побросана", "побросано", "побросаны", "побужден", "побуждена", "побуждено", "побуждены", "побужен", "побужена", "побужено", "побужены", "повален", "повалена", "повалено", "повалены", "поведан", "поведана", "поведано", "поведаны", "поведен", "поведена", "поведено", "поведены", "повезен", "повезена", "повезено", "повезены", "повенчан", "повенчана", "повенчано", "повенчаны", "повергнут", "повергнута", "повергнуто", "повергнуты", "поверен", "поверена", "поверено", "поверены", "повернут", "повернута", "повернуто", "повернуты", "поверчен", "поверчена", "поверчено", "поверчены", "повешен", "повешена", "повешено", "повешены", "повеян", "повеяна", "повеяно", "повеяны", "повидан", "повидана", "повидано", "повиданы", "поврежден", "повреждена", "повреждено", "повреждены", "повторен", "повторена", "повторено", "повторены", "повышен", "повышена", "повышено", "повышены", "повязан", "повязана", "повязано", "повязаны", "погашен", "погашена", "погашено", "погашены", "поглажен", "поглажена", "поглажено", "поглажены", "поглощен", "поглощена", "поглощено", "поглощены", "погнут", "погнута", "погнуто", "погнуты", "пограблен", "пограблена", "пограблено", "пограблены", "погребен", "погребена", "погребено", "погребены", "погрет", "погрета", "погрето", "погреты", "погружен", "погружена", "погружено", "погружены", "погрызен", "погрызена", "погрызено", "погрызены", "погублен", "погублена", "погублено", "погублены", "подавлен", "подавлена", "подавлено", "подавлены", "подарен", "подарена", "подарено", "подарены", "подбит", "подбита", "подбито", "подбиты", "подбодрен", "подбодрена", "подбодрено", "подбодрены", "подброшен", "подброшена", "подброшено", "подброшены", "подвален", "подвалена", "подвалено", "подвалены", "подведен", "подведена", "подведено", "подведены", "подвезен", "подвезена", "подвезено", "подвезены", "подвергнут", "подвергнута", "подвергнуто", "подвергнуты", "подвернут", "подвернута", "подвернуто", "подвернуты", "подвешен", "подвешена", "подвешено", "подвешены", "подвигнут", "подвигнута", "подвигнуто", "подвигнуты", "подвинут", "подвинута", "подвинуто", "подвинуты", "подвязан", "подвязана", "подвязано", "подвязаны", "подгляжен", "подгляжена", "подгляжено", "подгляжены", "подговорен", "подговорена", "подговорено", "подговорены", "подготовлен", "подготовлена", "подготовлено", "подготовлены", "подделан", "подделана", "подделано", "подделаны", "поддержан", "поддержана", "поддержано", "поддержаны", "поддернут", "поддернута", "поддернуто", "поддернуты", "поддет", "поддета", "поддето", "поддеты", "поделен", "поделена", "поделено", "поделены", "подерган", "подергана", "подергано", "подерганы", "подержан", "подержана", "подержано", "подержаны", "подернут", "подернута", "подернуто", "подернуты", "поджарен", "поджарена", "поджарено", "поджарены", "поджат", "поджата", "поджато", "поджаты", "подзаработан", "подзаработана", "подзаработано", "подзаработаны", "подкараулен", "подкараулена", "подкараулено", "подкараулены", "подкачан", "подкачана", "подкачано", "подкачаны", "подкачен", "подкачена", "подкачено", "подкачены", "подкинут", "подкинута", "подкинуто", "подкинуты", "подклеен", "подклеена", "подклеено", "подклеены", "подключен", "подключена", "подключено", "подключены", "подкован", "подкована", "подковано", "подкованы", "подколот", "подколота", "подколото", "подколоты", "подкоплен", "подкоплена", "подкоплено", "подкоплены", "подкормлен", "подкормлена", "подкормлено", "подкормлены", "подкошен", "подкошена", "подкошено", "подкошены", "подкрашен", "подкрашена", "подкрашено", "подкрашены", "подкреплен", "подкреплена", "подкреплено", "подкреплены", "подкручен", "подкручена", "подкручено", "подкручены", "подкуплен", "подкуплена", "подкуплено", "подкуплены", "подлатан", "подлатана", "подлатано", "подлатаны", "подлечен", "подлечена", "подлечено", "подлечены", "подлит", "подлита", "подлито", "подлиты", "подловлен", "подловлена", "подловлено", "подловлены", "подложен", "подложена", "подложено", "подложены", "подмазан", "подмазана", "подмазано", "подмазаны", "подменен", "подменена", "подменено", "подменены", "подметан", "подметана", "подметано", "подметаны", "подметен", "подметена", "подметено", "подметены", "подмечен", "подмечена", "подмечено", "подмечены", "подмешан", "подмешана", "подмешано", "подмешаны", "подморожен", "подморожена", "подморожено", "подморожены", "подмочен", "подмочена", "подмочено", "подмочены", "подмыт", "подмыта", "подмыто", "подмыты", "подмят", "подмята", "подмято", "подмяты", "поднажат", "поднажата", "поднажато", "поднажаты", "поднесен", "поднесена", "поднесено", "поднесены", "подновлен", "подновлена", "подновлено", "подновлены", "подношен", "подношена", "подношено", "подношены", "поднят", "поднята", "поднято", "подняты", "подобран", "подобрана", "подобрано", "подобраны", "подогнан", "подогнана", "подогнано", "подогнаны", "подогнут", "подогнута", "подогнуто", "подогнуты", "подогрет", "подогрета", "подогрето", "подогреты", "пододвинут", "пододвинута", "пододвинуто", "пододвинуты", "подоен", "подоена", "подоено", "подоены", "подожжен", "подожжена", "подожжено", "подожжены", "подозван", "подозвана", "подозвано", "подозваны", "подорван", "подорвана", "подорвано", "подорваны", "подослан", "подослана", "подослано", "подосланы", "подоткнут", "подоткнута", "подоткнуто", "подоткнуты", "подпален", "подпалена", "подпалено", "подпалены", "подперт", "подперта", "подперто", "подперты", "подпилен", "подпилена", "подпилено", "подпилены", "подписан", "подписана", "подписано", "подписаны", "подпорчен", "подпорчена", "подпорчено", "подпорчены", "подпоясан", "подпоясана", "подпоясано", "подпоясаны", "подправлен", "подправлена", "подправлено", "подправлены", "подпущен", "подпущена", "подпущено", "подпущены", "подразделен", "подразделена", "подразделено", "подразделены", "подран", "подрана", "подрано", "подраны", "подрезан", "подрезана", "подрезано", "подрезаны", "подровнян", "подровняна", "подровняно", "подровняны", "подрублен", "подрублена", "подрублено", "подрублены", "подрулен", "подрулена", "подрулено", "подрулены", "подрумянен", "подрумянена", "подрумянено", "подрумянены", "подсажен", "подсажена", "подсажено", "подсажены", "подсвечен", "подсвечена", "подсвечено", "подсвечены", "подселен", "подселена", "подселено", "подселены", "подсечен", "подсечена", "подсечено", "подсечены", "подсказан", "подсказана", "подсказано", "подсказаны", "подслащен", "подслащена", "подслащено", "подслащены", "подслушан", "подслушана", "подслушано", "подслушаны", "подсмотрен", "подсмотрена", "подсмотрено", "подсмотрены", "подсоединен", "подсоединена", "подсоединено", "подсоединены", "подсолен", "подсолена", "подсолено", "подсолены", "подставлен", "подставлена", "подставлено", "подставлены", "подстегнут", "подстегнута", "подстегнуто", "подстегнуты", "подстелен", "подстелена", "подстелено", "подстелены", "подстережен", "подстережена", "подстережено", "подстережены", "подстрелен", "подстрелена", "подстрелено", "подстрелены", "подстрижен", "подстрижена", "подстрижено", "подстрижены", "подстроен", "подстроена", "подстроено", "подстроены", "подсунут", "подсунута", "подсунуто", "подсунуты", "подсушен", "подсушена", "подсушено", "подсушены", "подсчитан", "подсчитана", "подсчитано", "подсчитаны", "подтащен", "подтащена", "подтащено", "подтащены", "подтвержден", "подтверждена", "подтверждено", "подтверждены", "подтолкнут", "подтолкнута", "подтолкнуто", "подтолкнуты", "подточен", "подточена", "подточено", "подточены", "подтыкан", "подтыкана", "подтыкано", "подтыканы", "подтянут", "подтянута", "подтянуто", "подтянуты", "подучен", "подучена", "подучено", "подучены", "подхвачен", "подхвачена", "подхвачено", "подхвачены", "подцеплен", "подцеплена", "подцеплено", "подцеплены", "подчеркнут", "подчеркнута", "подчеркнуто", "подчеркнуты", "подчинен", "подчинена", "подчинено", "подчинены", "подчищен", "подчищена", "подчищено", "подчищены", "подшит", "подшита", "подшито", "подшиты", "подыгран", "подыграна", "подыграно", "подыграны", "подытожен", "подытожена", "подытожено", "подытожены", "пожалован", "пожалована", "пожаловано", "пожалованы", "пожарен", "пожарена", "пожарено", "пожарены", "пожат", "пожата", "пожато", "пожаты", "пожеван", "пожевана", "пожевано", "пожеваны", "пожертвован", "пожертвована", "пожертвовано", "пожертвованы", "пожран", "пожрана", "пожрано", "пожраны", "пожурен", "пожурена", "пожурено", "пожурены", "позабавлен", "позабавлена", "позабавлено", "позабавлены", "позаимствован", "позаимствована", "позаимствовано", "позаимствованы", "позван", "позвана", "позвано", "позваны", "позволен", "позволена", "позволено", "позволены", "поздравлен", "поздравлена", "поздравлено", "поздравлены", "позиционирован", "позиционирована", "позиционировано", "позиционированы", "познакомлен", "познакомлена", "познакомлено", "познакомлены", "познан", "познана", "познано", "познаны", "позолочен", "позолочена", "позолочено", "позолочены", "поигран", "поиграна", "поиграно", "поиграны", "поименован", "поименована", "поименовано", "поименованы", "пойман", "поймана", "поймано", "пойманы", "показан", "показана", "показано", "показаны", "покалечен", "покалечена", "покалечено", "покалечены", "покатан", "покатана", "покатано", "покатаны", "покачан", "покачана", "покачано", "покачаны", "покачен", "покачена", "покачено", "покачены", "покидан", "покидана", "покидано", "покиданы", "покинут", "покинута", "покинуто", "покинуты", "поклеван", "поклевана", "поклевано", "поклеваны", "поколебан", "поколебана", "поколебано", "поколебаны", "поколочен", "поколочена", "поколочено", "поколочены", "покончен", "покончена", "покончено", "покончены", "покорежен", "покорежена", "покорежено", "покорежены", "покорен", "покорена", "покорено", "покорены", "покормлен", "покормлена", "покормлено", "покормлены", "покороблен", "покороблена", "покороблено", "покороблены", "покошен", "покошена", "покошено", "покошены", "покрашен", "покрашена", "покрашено", "покрашены", "покривлен", "покривлена", "покривлено", "покривлены", "покритикован", "покритикована", "покритиковано", "покритикованы", "покрошен", "покрошена", "покрошено", "покрошены", "покружен", "покружена", "покружено", "покружены", "покручен", "покручена", "покручено", "покручены", "покрыт", "покрыта", "покрыто", "покрыты", "покупан", "покупана", "покупано", "покупаны", "покурен", "покурена", "покурено", "покурены", "покусан", "покусана", "покусано", "покусаны", "покушан", "покушана", "покушано", "покушаны", "полажен", "полажена", "полажено", "полажены", "полечен", "полечена", "полечено", "полечены", "полит", "полита", "полито", "политы", "половлен", "половлена", "половлено", "половлены", "положен", "положена", "положено", "положены", "поломан", "поломана", "поломано", "поломаны", "полоснут", "полоснута", "полоснуто", "полоснуты", "получен", "получена", "получено", "получены", "поляризован", "поляризована", "поляризовано", "поляризованы", "помазан", "помазана", "помазано", "помазаны", "помассирован", "помассирована", "помассировано", "помассированы", "поменян", "поменяна", "поменяно", "поменяны", "померен", "померена", "померено", "померены", "помечен", "помечена", "помечено", "помечены", "помешан", "помешана", "помешано", "помешаны", "помещен", "помещена", "помещено", "помещены", "помилован", "помилована", "помиловано", "помилованы", "помножен", "помножена", "помножено", "помножены", "помолвлен", "помолвлена", "помолвлено", "помолвлены", "помотан", "помотана", "помотано", "помотаны", "помрачен", "помрачена", "помрачено", "помрачены", "помыт", "помыта", "помыто", "помыты", "помянут", "помянута", "помянуто", "помянуты", "понаделан", "понаделана", "понаделано", "понаделаны", "понастроен", "понастроена", "понастроено", "понастроены", "понесен", "понесена", "понесено", "понесены", "понижен", "понижена", "понижено", "понижены", "поношена", "поношено", "поношены", "понят", "понята", "понято", "поняты", "пообещан", "пообещана", "пообещано", "пообещаны", "поощрен", "поощрена", "поощрено", "поощрены", "поперчен", "поперчена", "поперчено", "поперчены", "попет", "попета", "попето", "попеты", "пописан", "пописана", "пописано", "пописаны", "попит", "попита", "попито", "попиты", "пополнен", "пополнена", "пополнено", "пополнены", "попорчен", "попорчена", "попорчено", "попорчены", "поправлен", "поправлена", "поправлено", "поправлены", "попран", "попрана", "попрано", "попраны", "попрекнут", "попрекнута", "попрекнуто", "попрекнуты", "поприветствован", "поприветствована", "поприветствовано", "поприветствованы", "попробован", "попробована", "попробовано", "попробованы", "попрошен", "попрошена", "попрошено", "попрошены", "попуган", "попугана", "попугано", "попуганы", "популяризирован", "популяризирована", "популяризировано", "популяризированы", "попутан", "попутана", "попутано", "попутаны", "порабощен", "порабощена", "порабощено", "порабощены", "порадован", "порадована", "порадовано", "порадованы", "поражен", "поражена", "поражено", "поражены", "поранен", "поранена", "поранено", "поранены", "пораскинут", "пораскинута", "пораскинуто", "пораскинуты", "порассказан", "порассказана", "порассказано", "порассказаны", "порасспрошен", "порасспрошена", "порасспрошено", "порасспрошены", "порван", "порвана", "порвано", "порваны", "порезан", "порезана", "порезано", "порезаны", "порекомендован", "порекомендована", "порекомендовано", "порекомендованы", "порешен", "порешена", "порешено", "порешены", "порожден", "порождена", "порождено", "порождены", "порубан", "порубана", "порубано", "порубаны", "порублен", "порублена", "порублено", "порублены", "поруган", "поругана", "поругано", "поруганы", "поручен", "поручена", "поручено", "поручены", "порушен", "порушена", "порушено", "порушены", "посажен", "посажена", "посажено", "посажены", "посвящен", "посвящена", "посвящено", "посвящены", "поселен", "поселена", "поселено", "поселены", "посеребрен", "посеребрена", "посеребрено", "посеребрены", "посещен", "посещена", "посещено", "посещены", "посеян", "посеяна", "посеяно", "посеяны", "поскребен", "поскребена", "поскребено", "поскребены", "послан", "послана", "послано", "посланы", "послушан", "послушана", "послушано", "послушаны", "посмотрен", "посмотрена", "посмотрено", "посмотрены", "посниман", "поснимана", "поснимано", "посниманы", "посолен", "посолена", "посолено", "посолены", "пососан", "пососана", "пососано", "пососаны", "посрамлен", "посрамлена", "посрамлено", "посрамлены", "поставлен", "поставлена", "поставлено", "поставлены", "постановлен", "постановлена", "постановлено", "постановлены", "постелен", "постелена", "постелено", "постелены", "постигнут", "постигнута", "постигнуто", "постигнуты", "постиран", "постирана", "постирано", "постираны", "пострелян", "постреляна", "постреляно", "постреляны", "пострижен", "пострижена", "пострижено", "пострижены", "построен", "построена", "построено", "построены", "постулирован", "постулирована", "постулировано", "постулированы", "посчитан", "посчитана", "посчитано", "посчитаны", "потереблен", "потереблена", "потереблено", "потереблены", "потерплен", "потерплена", "потерплено", "потерплены", "потерт", "потерта", "потерто", "потерты", "потерян", "потеряна", "потеряно", "потеряны", "потеснен", "потеснена", "потеснено", "потеснены", "потешен", "потешена", "потешено", "потешены", "потискан", "потискана", "потискано", "потисканы", "потоплен", "потоплена", "потоплено", "потоплены", "потоптан", "потоптана", "потоптано", "потоптаны", "потороплен", "потороплена", "потороплено", "потороплены", "потравлен", "потравлена", "потравлено", "потравлены", "потрачен", "потрачена", "потрачено", "потрачены", "потреблен", "потреблена", "потреблено", "потреблены", "потребован", "потребована", "потребовано", "потребованы", "потревожен", "потревожена", "потревожено", "потревожены", "потрепан", "потрепана", "потрепано", "потрепаны", "потроган", "потрогана", "потрогано", "потроганы", "потрушен", "потрушена", "потрушено", "потрушены", "потрясен", "потрясена", "потрясено", "потрясены", "потуплен", "потуплена", "потуплено", "потуплены", "потушен", "потушена", "потушено", "потушены", "потыкан", "потыкана", "потыкано", "потыканы", "потянут", "потянута", "потянуто", "потянуты", "поубавлен", "поубавлена", "поубавлено", "поубавлены", "поучен", "поучена", "поучено", "поучены", "похвален", "похвалена", "похвалено", "похвалены", "похерен", "похерена", "похерено", "похерены", "похищен", "похищена", "похищено", "похищены", "похлебан", "похлебана", "похлебано", "похлебаны", "похлопан", "похлопана", "похлопано", "похлопаны", "похоронен", "похоронена", "похоронено", "похоронены", "поцарапан", "поцарапана", "поцарапано", "поцарапаны", "поцелован", "поцелована", "поцеловано", "поцелованы", "почат", "почата", "почато", "початы", "почерпнут", "почерпнута", "почерпнуто", "почерпнуты", "почесан", "почесана", "почесано", "почесаны", "починен", "починена", "починено", "починены", "почитан", "почитана", "почитано", "почитаны", "почищен", "почищена", "почищено", "почищены", "почтен", "почтена", "почтено", "почтены", "почувствован", "почувствована", "почувствовано", "почувствованы", "пошатнут", "пошатнута", "пошатнуто", "пошатнуты", "пошевелен", "пошевелена", "пошевелено", "пошевелены", "пошит", "пошита", "пошито", "пошиты", "пощелкан", "пощелкана", "пощелкано", "пощелканы", "пощипан", "пощипана", "пощипано", "пощипаны", "пощупан", "пощупана", "пощупано", "пощупаны", "пояснен", "пояснена", "пояснено", "пояснены", "превозможен", "превозможена", "превозможено", "превозможены", "превращен", "превращена", "превращено", "превращены", "превышен", "превышена", "превышено", "превышены", "прегражен", "прегражена", "прегражено", "прегражены", "предварен", "предварена", "предварено", "предварены", "предвосхищен", "предвосхищена", "предвосхищено", "предвосхищены", "предложен", "предложена", "предложено", "предложены", "предназначен", "предназначена", "предназначено", "предназначены", "предначертан", "предначертана", "предначертано", "предначертаны", "предопределен", "предопределена", "предопределено", "предопределены", "предоставлен", "предоставлена", "предоставлено", "предоставлены", "предостережен", "предостережена", "предостережено", "предостережены", "предотвращен", "предотвращена", "предотвращено", "предотвращены", "предохранен", "предохранена", "предохранено", "предохранены", "предписан", "предписана", "предписано", "предписаны", "предположен", "предположена", "предположено", "предположены", "предпослан", "предпослана", "предпослано", "предпосланы", "предпочтен", "предпочтена", "предпочтено", "предпочтены", "предпринят", "предпринята", "предпринято", "предприняты", "предрасположен", "предрасположена", "предрасположено", "предрасположены", "предречен", "предречена", "предречено", "предречены", "предрешен", "предрешена", "предрешено", "предрешены", "предсказан", "предсказана", "предсказано", "предсказаны", "представлен", "представлена", "представлено", "представлены", "предугадан", "предугадана", "предугадано", "предугаданы", "предубежден", "предубеждена", "предубеждено", "предубеждены", "предусмотрен", "предусмотрена", "предусмотрено", "предусмотрены", "предъявлен", "предъявлена", "предъявлено", "предъявлены", "презентован", "презентована", "презентовано", "презентованы", "преисполнен", "преисполнена", "преисполнено", "преисполнены", "преклонен", "преклонена", "преклонено", "преклонены", "прекращен", "прекращена", "прекращено", "прекращены", "преломлен", "преломлена", "преломлено", "преломлены", "прельщен", "прельщена", "прельщено", "прельщены", "премирован", "премирована", "премировано", "премированы", "преображен", "преображена", "преображено", "преображены", "преодолен", "преодолена", "преодолено", "преодолены", "препарирован", "препарирована", "препарировано", "препарированы", "преподнесен", "преподнесена", "преподнесено", "преподнесены", "препровожен", "препровожена", "препровожено", "препровожены", "прерван", "прервана", "прервано", "прерваны", "пресечен", "пресечена", "пресечено", "пресечены", "преступлен", "преступлена", "преступлено", "преступлены", "претворен", "претворена", "претворено", "претворены", "претерплен", "претерплена", "претерплено", "претерплены", "преувеличен", "преувеличена", "преувеличено", "преувеличены", "прибавлен", "прибавлена", "прибавлено", "прибавлены", "прибережен", "прибережена", "прибережено", "прибережены", "прибит", "прибита", "прибито", "прибиты", "приближен", "приближена", "приближено", "приближены", "прибран", "прибрана", "прибрано", "прибраны", "привален", "привалена", "привалено", "привалены", "приварен", "приварена", "приварено", "приварены", "приведен", "приведена", "приведено", "приведены", "привезен", "привезена", "привезено", "привезены", "привешен", "привешена", "привешено", "привешены", "привинчен", "привинчена", "привинчено", "привинчены", "привит", "привита", "привито", "привиты", "привлечен", "привлечена", "привлечено", "привлечены", "привнесен", "привнесена", "привнесено", "привнесены", "приворожен", "приворожена", "приворожено", "приворожены", "привязан", "привязана", "привязано", "привязаны", "пригвозжен", "пригвозжена", "пригвозжено", "пригвозжены", "приглажен", "приглажена", "приглажено", "приглажены", "приглашен", "приглашена", "приглашено", "приглашены", "приглушен", "приглушена", "приглушено", "приглушены", "пригнан", "пригнана", "пригнано", "пригнаны", "пригнут", "пригнута", "пригнуто", "пригнуты", "приговорен", "приговорена", "приговорено", "приговорены", "приголублен", "приголублена", "приголублено", "приголублены", "приготовлен", "приготовлена", "приготовлено", "приготовлены", "пригрет", "пригрета", "пригрето", "пригреты", "пригублен", "пригублена", "пригублено", "пригублены", "придавлен", "придавлена", "придавлено", "придавлены", "придвинут", "придвинута", "придвинуто", "придвинуты", "приделан", "приделана", "приделано", "приделаны", "придержан", "придержана", "придержано", "придержаны", "придуман", "придумана", "придумано", "придуманы", "придушен", "придушена", "придушено", "придушены", "прижат", "прижата", "прижато", "прижаты", "прижит", "прижита", "прижито", "прижиты", "призван", "призвана", "призвано", "призваны", "приземлен", "приземлена", "приземлено", "приземлены", "признан", "признана", "признано", "признаны", "приказан", "приказана", "приказано", "приказаны", "прикарманен", "прикарманена", "прикарманено", "прикарманены", "прикачен", "прикачена", "прикачено", "прикачены", "прикинут", "прикинута", "прикинуто", "прикинуты", "приклеен", "приклеена", "приклеено", "приклеены", "приклонен", "приклонена", "приклонено", "приклонены", "прикован", "прикована", "приковано", "прикованы", "приколот", "приколота", "приколото", "приколоты", "приколочен", "приколочена", "приколочено", "приколочены", "прикомандирован", "прикомандирована", "прикомандировано", "прикомандированы", "прикончен", "прикончена", "прикончено", "прикончены", "прикормлен", "прикормлена", "прикормлено", "прикормлены", "прикреплен", "прикреплена", "прикреплено", "прикреплены", "прикручен", "прикручена", "прикручено", "прикручены", "прикрыт", "прикрыта", "прикрыто", "прикрыты", "прикуплен", "прикуплена", "прикуплено", "прикуплены", "прикушен", "прикушена", "прикушено", "прикушены", "прилажен", "прилажена", "прилажено", "прилажены", "приласкан", "приласкана", "приласкано", "приласканы", "прилеплен", "прилеплена", "прилеплено", "прилеплены", "прилит", "прилита", "прилито", "прилиты", "приложен", "приложена", "приложено", "приложены", "приманен", "приманена", "приманено", "приманены", "применен", "применена", "применено", "применены", "примерен", "примерена", "примерено", "примерены", "примерян", "примеряна", "примеряно", "примеряны", "примечен", "примечена", "примечено", "примечены", "примирен", "примирена", "примирено", "примирены", "приморожен", "приморожена", "приморожено", "приморожены", "примотан", "примотана", "примотано", "примотаны", "примят", "примята", "примято", "примяты", "принаряжен", "принаряжена", "принаряжено", "принаряжены", "принесен", "принесена", "принесено", "принесены", "принижен", "принижена", "принижено", "принижены", "принужден", "принуждена", "принуждено", "принуждены", "принят", "принята", "принято", "приняты", "приободрен", "приободрена", "приободрено", "приободрены", "приобретен", "приобретена", "приобретено", "приобретены", "приобщен", "приобщена", "приобщено", "приобщены", "приодет", "приодета", "приодето", "приодеты", "приостановлен", "приостановлена", "приостановлено", "приостановлены", "приотворен", "приотворена", "приотворено", "приотворены", "приоткрыт", "приоткрыта", "приоткрыто", "приоткрыты", "припаркован", "припаркована", "припарковано", "припаркованы", "припасен", "припасена", "припасено", "припасены", "припаян", "припаяна", "припаяно", "припаяны", "приперт", "приперта", "приперто", "приперты", "припечатан", "припечатана", "припечатано", "припечатаны", "припечен", "припечена", "припечено", "припечены", "приписан", "приписана", "приписано", "приписаны", "приплетен", "приплетена", "приплетено", "приплетены", "приплюснут", "приплюснута", "приплюснуто", "приплюснуты", "приплюсован", "приплюсована", "приплюсовано", "приплюсованы", "приподнят", "приподнята", "приподнято", "приподняты", "припомнен", "припомнена", "припомнено", "припомнены", "припорошен", "припорошена", "припорошено", "припорошены", "приправлен", "приправлена", "приправлено", "приправлены", "припрятан", "припрятана", "припрятано", "припрятаны", "припудрен", "припудрена", "припудрено", "припудрены", "припущен", "припущена", "припущено", "припущены", "приравнян", "приравняна", "приравняно", "приравняны", "приревнован", "приревнована", "приревновано", "приревнованы", "прирезан", "прирезана", "прирезано", "прирезаны", "пририсован", "пририсована", "пририсовано", "пририсованы", "приручен", "приручена", "приручено", "приручены", "присвоен", "присвоена", "присвоено", "присвоены", "прислан", "прислана", "прислано", "присланы", "прислонен", "прислонена", "прислонено", "прислонены", "присмотрен", "присмотрена", "присмотрено", "присмотрены", "присобачен", "присобачена", "присобачено", "присобачены", "присовокуплен", "присовокуплена", "присовокуплено", "присовокуплены", "присоединен", "присоединена", "присоединено", "присоединены", "присочинен", "присочинена", "присочинено", "присочинены", "приспособлен", "приспособлена", "приспособлено", "приспособлены", "приспущен", "приспущена", "приспущено", "приспущены", "приставлен", "приставлена", "приставлено", "приставлены", "пристегнут", "пристегнута", "пристегнуто", "пристегнуты", "пристрелен", "пристрелена", "пристрелено", "пристрелены", "пристрелян", "пристреляна", "пристреляно", "пристреляны", "пристроен", "пристроена", "пристроено", "пристроены", "приструнен", "приструнена", "приструнено", "приструнены", "пристукнут", "пристукнута", "пристукнуто", "пристукнуты", "пристыжен", "пристыжена", "пристыжено", "пристыжены", "присужден", "присуждена", "присуждено", "присуждены", "притащен", "притащена", "притащено", "притащены", "притворен", "притворена", "притворено", "притворены", "притерт", "притерта", "притерто", "притерты", "притиснут", "притиснута", "притиснуто", "притиснуты", "приткнут", "приткнута", "приткнуто", "приткнуты", "притоптан", "притоптана", "притоптано", "притоптаны", "приторможен", "приторможена", "приторможено", "приторможены", "притуплен", "притуплена", "притуплено", "притуплены", "притянут", "притянута", "притянуто", "притянуты", "приукрашен", "приукрашена", "приукрашено", "приукрашены", "приумножен", "приумножена", "приумножено", "приумножены", "приурочен", "приурочена", "приурочено", "приурочены", "приучен", "приучена", "приучено", "приучены", "прихвастнут", "прихвастнута", "прихвастнуто", "прихвастнуты", "прихвачен", "прихвачена", "прихвачено", "прихвачены", "прихлопнут", "прихлопнута", "прихлопнуто", "прихлопнуты", "прицеплен", "прицеплена", "прицеплено", "прицеплены", "причален", "причалена", "причалено", "причалены", "причащен", "причащена", "причащено", "причащены", "причесан", "причесана", "причесано", "причесаны", "причинен", "причинена", "причинено", "причинены", "причислен", "причислена", "причислено", "причислены", "пришит", "пришита", "пришито", "пришиты", "пришпилен", "пришпилена", "пришпилено", "пришпилены", "пришпорен", "пришпорена", "пришпорено", "пришпорены", "прищелкнут", "прищелкнута", "прищелкнуто", "прищелкнуты", "прищемлен", "прищемлена", "прищемлено", "прищемлены", "прищурен", "прищурена", "прищурено", "прищурены", "прищучен", "прищучена", "прищучено", "прищучены", "проанализирован", "проанализирована", "проанализировано", "проанализированы", "пробит", "пробита", "пробито", "пробиты", "проварен", "проварена", "проварено", "проварены", "проведан", "проведана", "проведано", "проведаны", "проведен", "проведена", "проведено", "проведены", "провезен", "провезена", "провезено", "провезены", "проверен", "проверена", "проверено", "проверены", "провернут", "провернута", "провернуто", "провернуты", "проветрен", "проветрена", "проветрено", "проветрены", "провозглашен", "провозглашена", "провозглашено", "провозглашены", "проглочен", "проглочена", "проглочено", "проглочены", "прогнан", "прогнана", "прогнано", "прогнаны", "прогнусавлен", "прогнусавлена", "прогнусавлено", "прогнусавлены", "проговорен", "проговорена", "проговорено", "проговорены", "прогрет", "прогрета", "прогрето", "прогреты", "прогрызен", "прогрызена", "прогрызено", "прогрызены", "прогулян", "прогуляна", "прогуляно", "прогуляны", "продавлен", "продавлена", "продавлено", "продавлены", "продвинут", "продвинута", "продвинуто", "продвинуты", "продезинфицирован", "продезинфицирована", "продезинфицировано", "продезинфицированы", "продекламирован", "продекламирована", "продекламировано", "продекламированы", "проделан", "проделана", "проделано", "проделаны", "продемонстрирован", "продемонстрирована", "продемонстрировано", "продемонстрированы", "продержан", "продержана", "продержано", "продержаны", "продернут", "продернута", "продернуто", "продернуты", "продет", "продета", "продето", "продеты", "продешевлен", "продешевлена", "продешевлено", "продешевлены", "продиктован", "продиктована", "продиктовано", "продиктованы", "продлен", "продлена", "продлено", "продлены", "продолжен", "продолжена", "продолжено", "продолжены", "продран", "продрана", "продрано", "продраны", "продублирован", "продублирована", "продублировано", "продублированы", "продуман", "продумана", "продумано", "продуманы", "продут", "продута", "продуто", "продуты", "продырявлен", "продырявлена", "продырявлено", "продырявлены", "прожарен", "прожарена", "прожарено", "прожарены", "прожеван", "прожевана", "прожевано", "прожеваны", "прожит", "прожита", "прожито", "прожиты", "прозван", "прозвана", "прозвано", "прозваны", "прозвонен", "прозвонена", "прозвонено", "прозвонены", "прознан", "прознана", "прознано", "прознаны", "проигран", "проиграна", "проиграно", "проиграны", "произведен", "произведена", "произведено", "произведены", "произнесен", "произнесена", "произнесено", "произнесены", "проиллюстрирован", "проиллюстрирована", "проиллюстрировано", "проиллюстрированы", "проинструктирован", "проинструктирована", "проинструктировано", "проинструктированы", "проинформирован", "проинформирована", "проинформировано", "проинформированы", "прокален", "прокалена", "прокалено", "прокалены", "прокатан", "прокатана", "прокатано", "прокатаны", "прокачан", "прокачана", "прокачано", "прокачаны", "прокачен", "прокачена", "прокачено", "прокачены", "прокипячен", "прокипячена", "прокипячено", "прокипячены", "проколот", "проколота", "проколото", "проколоты", "прокомментирован", "прокомментирована", "прокомментировано", "прокомментированы", "проконсультирован", "проконсультирована", "проконсультировано", "проконсультированы", "проконтролирован", "проконтролирована", "проконтролировано", "проконтролированы", "прокопан", "прокопана", "прокопано", "прокопаны", "прокопчен", "прокопчена", "прокопчено", "прокопчены", "прокручен", "прокручена", "прокручено", "прокручены", "прокурен", "прокурена", "прокурено", "прокурены", "прокушен", "прокушена", "прокушено", "прокушены", "пролечен", "пролечена", "пролечено", "пролечены", "пролистан", "пролистана", "пролистано", "пролистаны", "пролит", "пролита", "пролито", "пролиты", "проложен", "проложена", "проложено", "проложены", "проломлен", "проломлена", "проломлено", "проломлены", "пролонгирован", "пролонгирована", "пролонгировано", "пролонгированы", "промазан", "промазана", "промазано", "промазаны", "променян", "променяна", "променяно", "променяны", "промокнут", "промокнута", "промокнуто", "промокнуты", "промолвлен", "промолвлена", "промолвлено", "промолвлены", "проморожен", "проморожена", "проморожено", "проморожены", "промотан", "промотана", "промотано", "промотаны", "промочен", "промочена", "промочено", "промочены", "промыт", "промыта", "промыто", "промыты", "промямлен", "промямлена", "промямлено", "промямлены", "пронесен", "пронесена", "пронесено", "пронесены", "пронзен", "пронзена", "пронзено", "пронзены", "пронизан", "пронизана", "пронизано", "пронизаны", "проношен", "проношена", "проношено", "проношены", "пронумерован", "пронумерована", "пронумеровано", "пронумерованы", "пронюхан", "пронюхана", "пронюхано", "пронюханы", "пропахан", "пропахана", "пропахано", "пропаханы", "пропет", "пропета", "пропето", "пропеты", "пропечатан", "пропечатана", "пропечатано", "пропечатаны", "прописан", "прописана", "прописано", "прописаны", "пропит", "пропита", "пропито", "пропиты", "пропитан", "пропитана", "пропитано", "пропитаны", "пропихнут", "пропихнута", "пропихнуто", "пропихнуты", "проплакан", "проплакана", "проплакано", "проплаканы", "проплыт", "проплыта", "проплыто", "проплыты", "прополоскан", "прополоскана", "прополоскано", "прополосканы", "прополот", "прополота", "прополото", "прополоты", "пропорот", "пропорота", "пропорото", "пропороты", "пропущен", "пропущена", "пропущено", "пропущены", "пропылен", "пропылена", "пропылено", "пропылены", "проработан", "проработана", "проработано", "проработаны", "прорван", "прорвана", "прорвано", "прорваны", "прорежен", "прорежена", "прорежено", "прорежены", "прорезан", "прорезана", "прорезано", "прорезаны", "прорисован", "прорисована", "прорисовано", "прорисованы", "проронен", "проронена", "проронено", "проронены", "прорублен", "прорублена", "прорублено", "прорублены", "прорыт", "прорыта", "прорыто", "прорыты", "просажен", "просажена", "просажено", "просажены", "просверлен", "просверлена", "просверлено", "просверлены", "просветлен", "просветлена", "просветлено", "просветлены", "просвечен", "просвечена", "просвечено", "просвечены", "просвещен", "просвещена", "просвещено", "просвещены", "просвищен", "просвищена", "просвищено", "просвищены", "просечен", "просечена", "просечено", "просечены", "просеян", "просеяна", "просеяно", "просеяны", "просигнален", "просигналена", "просигналено", "просигналены", "просижен", "просижена", "просижено", "просижены", "просиплен", "просиплена", "просиплено", "просиплены", "прославлен", "прославлена", "прославлено", "прославлены", "прослежен", "прослежена", "прослежено", "прослежены", "прослушан", "прослушана", "прослушано", "прослушаны", "прослышан", "прослышана", "прослышано", "прослышаны", "просмолен", "просмолена", "просмолено", "просмолены", "просмотрен", "просмотрена", "просмотрено", "просмотрены", "просолен", "просолена", "просолено", "просолены", "просрочен", "просрочена", "просрочено", "просрочены", "проставлен", "проставлена", "проставлено", "проставлены", "простерт", "простерта", "простерто", "простерты", "простиран", "простирана", "простирано", "простираны", "прострелен", "прострелена", "прострелено", "прострелены", "прострочен", "прострочена", "прострочено", "прострочены", "простужен", "простужена", "простужено", "простужены", "простучан", "простучана", "простучано", "простучаны", "просунут", "просунута", "просунуто", "просунуты", "просушен", "просушена", "просушено", "просушены", "просчитан", "просчитана", "просчитано", "просчитаны", "протаранен", "протаранена", "протаранено", "протаранены", "протащен", "протащена", "протащено", "протащены", "протерт", "протерта", "протерто", "протерты", "противопоставлен", "противопоставлена", "противопоставлено", "противопоставлены", "проткнут", "проткнута", "проткнуто", "проткнуты", "протолкнут", "протолкнута", "протолкнуто", "протолкнуты", "протоплен", "протоплена", "протоплено", "протоплены", "протоптан", "протоптана", "протоптано", "протоптаны", "проторен", "проторена", "проторено", "проторены", "протыкан", "протыкана", "протыкано", "протыканы", "протянут", "протянута", "протянуто", "протянуты", "проучен", "проучена", "проучено", "проучены", "профильтрован", "профильтрована", "профильтровано", "профильтрованы", "профинансирован", "профинансирована", "профинансировано", "профинансированы", "профукан", "профукана", "профукано", "профуканы", "прохвачен", "прохвачена", "прохвачено", "прохвачены", "прохриплен", "прохриплена", "прохриплено", "прохриплены", "процарапан", "процарапана", "процарапано", "процарапаны", "процежен", "процежена", "процежено", "процежены", "процитирован", "процитирована", "процитировано", "процитированы", "прочерчен", "прочерчена", "прочерчено", "прочерчены", "прочесан", "прочесана", "прочесано", "прочесаны", "прочитан", "прочитана", "прочитано", "прочитаны", "прочищен", "прочищена", "прочищено", "прочищены", "прочтен", "прочтена", "прочтено", "прочтены", "прочувствован", "прочувствована", "прочувствовано", "прочувствованы", "прошаган", "прошагана", "прошагано", "прошаганы", "прошамкан", "прошамкана", "прошамкано", "прошамканы", "прошептан", "прошептана", "прошептано", "прошептаны", "прошиплен", "прошиплена", "прошиплено", "прошиплены", "прошит", "прошита", "прошито", "прошиты", "прошляплен", "прошляплена", "прошляплено", "прошляплены", "проштудирован", "проштудирована", "проштудировано", "проштудированы", "прощен", "прощена", "прощено", "прощены", "прощупан", "прощупана", "прощупано", "прощупаны", "проявлен", "проявлена", "проявлено", "проявлены", "прояснен", "прояснена", "прояснено", "прояснены", "пущен", "пущена", "пущено", "пущены", "пырнут", "пырнута", "пырнуто", "пырнуты", "радирован", "радирована", "радировано", "радированы", "разбавлен", "разбавлена", "разбавлено", "разбавлены", "разбазарен", "разбазарена", "разбазарено", "разбазарены", "разбережен", "разбережена", "разбережено", "разбережены", "разбит", "разбита", "разбито", "разбиты", "разболтан", "разболтана", "разболтано", "разболтаны", "разбомблен", "разбомблена", "разбомблено", "разбомблены", "разбросан", "разбросана", "разбросано", "разбросаны", "разбужен", "разбужена", "разбужено", "разбужены", "развален", "развалена", "развалено", "развалены", "разварен", "разварена", "разварено", "разварены", "разведан", "разведана", "разведано", "разведаны", "разведен", "разведена", "разведено", "разведены", "развезен", "развезена", "развезено", "развезены", "развенчан", "развенчана", "развенчано", "развенчаны", "развернут", "развернута", "развернуто", "развернуты", "развеселен", "развеселена", "развеселено", "развеселены", "развешан", "развешана", "развешано", "развешаны", "развешен", "развешена", "развешено", "развешены", "развеян", "развеяна", "развеяно", "развеяны", "развинчен", "развинчена", "развинчено", "развинчены", "развит", "развита", "развито", "развиты", "развлечен", "развлечена", "развлечено", "развлечены", "разворован", "разворована", "разворовано", "разворованы", "разворочен", "разворочена", "разворочено", "разворочены", "разворошен", "разворошена", "разворошено", "разворошены", "развращен", "развращена", "развращено", "развращены", "развязан", "развязана", "развязано", "развязаны", "разгадан", "разгадана", "разгадано", "разгаданы", "разглажен", "разглажена", "разглажено", "разглажены", "разглашен", "разглашена", "разглашено", "разглашены", "разгневан", "разгневана", "разгневано", "разгневаны", "разговорен", "разговорена", "разговорено", "разговорены", "разгорожен", "разгорожена", "разгорожено", "разгорожены", "разгорячен", "разгорячена", "разгорячено", "разгорячены", "разграблен", "разграблена", "разграблено", "разграблены", "разграничен", "разграничена", "разграничено", "разграничены", "разграфлен", "разграфлена", "разграфлено", "разграфлены", "разгребен", "разгребена", "разгребено", "разгребены", "разгромлен", "разгромлена", "разгромлено", "разгромлены", "разгружен", "разгружена", "разгружено", "разгружены", "разгрызен", "разгрызена", "разгрызено", "разгрызены", "раздавлен", "раздавлена", "раздавлено", "раздавлены", "раздарен", "раздарена", "раздарено", "раздарены", "раздвинут", "раздвинута", "раздвинуто", "раздвинуты", "раздвоен", "раздвоена", "раздвоено", "раздвоены", "разделан", "разделана", "разделано", "разделаны", "разделен", "разделена", "разделено", "разделены", "раздернут", "раздернута", "раздернуто", "раздернуты", "раздет", "раздета", "раздето", "раздеты", "раздолбан", "раздолбана", "раздолбано", "раздолбаны", "раздосадован", "раздосадована", "раздосадовано", "раздосадованы", "раздражен", "раздражена", "раздражено", "раздражены", "раздроблен", "раздроблена", "раздроблено", "раздроблены", "раздут", "раздута", "раздуто", "раздуты", "разжалоблен", "разжалоблена", "разжалоблено", "разжалоблены", "разжалован", "разжалована", "разжаловано", "разжалованы", "разжат", "разжата", "разжато", "разжаты", "разжеван", "разжевана", "разжевано", "разжеваны", "раззадорен", "раззадорена", "раззадорено", "раззадорены", "раззявлен", "раззявлена", "раззявлено", "раззявлены", "разинут", "разинута", "разинуто", "разинуты", "разлеплен", "разлеплена", "разлеплено", "разлеплены", "разлинован", "разлинована", "разлиновано", "разлинованы", "разлит", "разлита", "разлито", "разлиты", "различен", "различена", "различено", "различены", "разложен", "разложена", "разложено", "разложены", "разломан", "разломана", "разломано", "разломаны", "разломлен", "разломлена", "разломлено", "разломлены", "разлохмачен", "разлохмачена", "разлохмачено", "разлохмачены", "разлучен", "разлучена", "разлучено", "разлучены", "размазан", "размазана", "размазано", "размазаны", "размалеван", "размалевана", "размалевано", "размалеваны", "разменян", "разменяна", "разменяно", "разменяны", "разметан", "разметана", "разметано", "разметаны", "размечен", "размечена", "размечено", "размечены", "размешан", "размешана", "размешано", "размешаны", "размещен", "размещена", "размещено", "размещены", "разминирован", "разминирована", "разминировано", "разминированы", "размножен", "размножена", "размножено", "размножены", "размозжен", "размозжена", "размозжено", "размозжены", "размолот", "размолота", "размолото", "размолоты", "разморожен", "разморожена", "разморожено", "разморожены", "размотан", "размотана", "размотано", "размотаны", "размочен", "размочена", "размочено", "размочены", "размыкан", "размыкана", "размыкано", "размыканы", "размыт", "размыта", "размыто", "размыты", "размягчен", "размягчена", "размягчено", "размягчены", "размят", "размята", "размято", "размяты", "разнесен", "разнесена", "разнесено", "разнесены", "разношен", "разношена", "разношено", "разношены", "разнюхан", "разнюхана", "разнюхано", "разнюханы", "разнят", "разнята", "разнято", "разняты", "разоблачен", "разоблачена", "разоблачено", "разоблачены", "разобран", "разобрана", "разобрано", "разобраны", "разобщен", "разобщена", "разобщено", "разобщены", "разогнан", "разогнана", "разогнано", "разогнаны", "разогнут", "разогнута", "разогнуто", "разогнуты", "разогрет", "разогрета", "разогрето", "разогреты", "разодет", "разодета", "разодето", "разодеты", "разодран", "разодрана", "разодрано", "разодраны", "разожжен", "разожжена", "разожжено", "разожжены", "разозлен", "разозлена", "разозлено", "разозлены", "разомкнут", "разомкнута", "разомкнуто", "разомкнуты", "разорван", "разорвана", "разорвано", "разорваны", "разорен", "разорена", "разорено", "разорены", "разоружен", "разоружена", "разоружено", "разоружены", "разослан", "разослана", "разослано", "разосланы", "разостлан", "разостлана", "разостлано", "разостланы", "разочарован", "разочарована", "разочаровано", "разочарованы", "разработан", "разработана", "разработано", "разработаны", "разрежен", "разрежена", "разрежено", "разрежены", "разрезан", "разрезана", "разрезано", "разрезаны", "разрекламирован", "разрекламирована", "разрекламировано", "разрекламированы", "разрешен", "разрешена", "разрешено", "разрешены", "разрисован", "разрисована", "разрисовано", "разрисованы", "разрознен", "разрознена", "разрознено", "разрознены", "разрублен", "разрублена", "разрублено", "разрублены", "разрушен", "разрушена", "разрушено", "разрушены", "разрыт", "разрыта", "разрыто", "разрыты", "разряжен", "разряжена", "разряжено", "разряжены", "разубежден", "разубеждена", "разубеждено", "разубеждены", "разузнан", "разузнана", "разузнано", "разузнаны", "разукрашен", "разукрашена", "разукрашено", "разукрашены", "разут", "разута", "разуто", "разуты", "разучен", "разучена", "разучено", "разучены", "разъединен", "разъединена", "разъединено", "разъединены", "разъярен", "разъярена", "разъярено", "разъярены", "разъяснен", "разъяснена", "разъяснено", "разъяснены", "разъят", "разъята", "разъято", "разъяты", "разыгран", "разыграна", "разыграно", "разыграны", "разыскан", "разыскана", "разыскано", "разысканы", "ранен", "ранена", "ранено", "ранены", "ранжирован", "ранжирована", "ранжировано", "ранжированы", "раскален", "раскалена", "раскалено", "раскалены", "раскатан", "раскатана", "раскатано", "раскатаны", "раскачан", "раскачана", "раскачано", "раскачаны", "расквартирован", "расквартирована", "расквартировано", "расквартированы", "расквашен", "расквашена", "расквашено", "расквашены", "раскидан", "раскидана", "раскидано", "раскиданы", "раскинут", "раскинута", "раскинуто", "раскинуты", "расклеван", "расклевана", "расклевано", "расклеваны", "расклеен", "расклеена", "расклеено", "расклеены", "раскован", "раскована", "расковано", "раскованы", "расковырян", "расковыряна", "расковыряно", "расковыряны", "расколдован", "расколдована", "расколдовано", "расколдованы", "расколот", "расколота", "расколото", "расколоты", "расколочен", "расколочена", "расколочено", "расколочены", "раскопан", "раскопана", "раскопано", "раскопаны", "раскрашен", "раскрашена", "раскрашено", "раскрашены", "раскрепощен", "раскрепощена", "раскрепощено", "раскрепощены", "раскритикован", "раскритикована", "раскритиковано", "раскритикованы", "раскроен", "раскроена", "раскроено", "раскроены", "раскрошен", "раскрошена", "раскрошено", "раскрошены", "раскручен", "раскручена", "раскручено", "раскручены", "раскрыт", "раскрыта", "раскрыто", "раскрыты", "раскулачен", "раскулачена", "раскулачено", "раскулачены", "раскуплен", "раскуплена", "раскуплено", "раскуплены", "раскупорен", "раскупорена", "раскупорено", "раскупорены", "раскурен", "раскурена", "раскурено", "раскурены", "раскушен", "раскушена", "раскушено", "раскушены", "распакован", "распакована", "распаковано", "распакованы", "распален", "распалена", "распалено", "распалены", "распарен", "распарена", "распарено", "распарены", "распахан", "распахана", "распахано", "распаханы", "распахнут", "распахнута", "распахнуто", "распахнуты", "распечатан", "распечатана", "распечатано", "распечатаны", "распилен", "распилена", "распилено", "распилены", "расписан", "расписана", "расписано", "расписаны", "распит", "распита", "распито", "распиты", "расплавлен", "расплавлена", "расплавлено", "расплавлены", "распланирован", "распланирована", "распланировано", "распланированы", "распластан", "распластана", "распластано", "распластаны", "расплескан", "расплескана", "расплескано", "расплесканы", "расплющен", "расплющена", "расплющено", "расплющены", "распознан", "распознана", "распознано", "распознаны", "расположен", "расположена", "расположено", "расположены", "располосован", "располосована", "располосовано", "располосованы", "распорот", "распорота", "распорото", "распороты", "распотрошен", "распотрошена", "распотрошено", "распотрошены", "расправлен", "расправлена", "расправлено", "расправлены", "распределен", "распределена", "распределено", "распределены", "распробован", "распробована", "распробовано", "распробованы", "распростерт", "распростерта", "распростерто", "распростерты", "распространен", "распространена", "распространено", "распространены", "распряжен", "распряжена", "распряжено", "распряжены", "распрямлен", "распрямлена", "распрямлено", "распрямлены", "распуган", "распугана", "распугано", "распуганы", "распушен", "распушена", "распушено", "распушены", "распущен", "распущена", "распущено", "распущены", "распылен", "распылена", "распылено", "распылены", "распялен", "распялена", "распялено", "распялены", "распят", "распята", "распято", "распяты", "рассажен", "рассажена", "рассажено", "рассажены", "рассекречен", "рассекречена", "рассекречено", "рассекречены", "расселен", "расселена", "расселено", "расселены", "рассержен", "рассержена", "рассержено", "рассержены", "рассечен", "рассечена", "рассечено", "рассечены", "рассеян", "рассеяна", "рассеяно", "рассеяны", "рассказан", "рассказана", "рассказано", "рассказаны", "расследован", "расследована", "расследовано", "расследованы", "расслышан", "расслышана", "расслышано", "расслышаны", "рассмешен", "рассмешена", "рассмешено", "рассмешены", "рассмотрен", "рассмотрена", "рассмотрено", "рассмотрены", "рассортирован", "рассортирована", "рассортировано", "рассортированы", "расспрошен", "расспрошена", "расспрошено", "расспрошены", "рассредоточен", "рассредоточена", "рассредоточено", "рассредоточены", "расставлен", "расставлена", "расставлено", "расставлены", "расстегнут", "расстегнута", "расстегнуто", "расстегнуты", "расстелен", "расстелена", "расстелено", "расстелены", "расстрелян", "расстреляна", "расстреляно", "расстреляны", "расстроен", "расстроена", "расстроено", "расстроены", "рассчитан", "рассчитана", "рассчитано", "рассчитаны", "растащен", "растащена", "растащено", "растащены", "растворен", "растворена", "растворено", "растворены", "растерзан", "растерзана", "растерзано", "растерзаны", "растерт", "растерта", "растерто", "растерты", "растерян", "растеряна", "растеряно", "растеряны", "растлен", "растлена", "растлено", "растлены", "растолкан", "растолкана", "растолкано", "растолканы", "растолкован", "растолкована", "растолковано", "растолкованы", "растоплен", "растоплена", "растоплено", "растоплены", "растоптан", "растоптана", "растоптано", "растоптаны", "растопырен", "растопырена", "растопырено", "растопырены", "расторгнут", "расторгнута", "расторгнуто", "расторгнуты", "растормошен", "растормошена", "растормошено", "растормошены", "растравлен", "растравлена", "растравлено", "растравлены", "растрачен", "растрачена", "растрачено", "растрачены", "растревожен", "растревожена", "растревожено", "растревожены", "растрепан", "растрепана", "растрепано", "растрепаны", "растроган", "растрогана", "растрогано", "растроганы", "растрясен", "растрясена", "растрясено", "растрясены", "растянут", "растянута", "растянуто", "растянуты", "расфасован", "расфасована", "расфасовано", "расфасованы", "расформирован", "расформирована", "расформировано", "расформированы", "расхвален", "расхвалена", "расхвалено", "расхвалены", "расхлебан", "расхлебана", "расхлебано", "расхлебаны", "расцарапан", "расцарапана", "расцарапано", "расцарапаны", "расцвечен", "расцвечена", "расцвечено", "расцвечены", "расцелован", "расцелована", "расцеловано", "расцелованы", "расценен", "расценена", "расценено", "расценены", "расцеплен", "расцеплена", "расцеплено", "расцеплены", "расчерчен", "расчерчена", "расчерчено", "расчерчены", "расчесан", "расчесана", "расчесано", "расчесаны", "расчищен", "расчищена", "расчищено", "расчищены", "расчленен", "расчленена", "расчленено", "расчленены", "расшатан", "расшатана", "расшатано", "расшатаны", "расшвырян", "расшвыряна", "расшвыряно", "расшвыряны", "расшевелен", "расшевелена", "расшевелено", "расшевелены", "расширен", "расширена", "расширено", "расширены", "расшит", "расшита", "расшито", "расшиты", "расшифрован", "расшифрована", "расшифровано", "расшифрованы", "расщеплен", "расщеплена", "расщеплено", "расщеплены", "ратифицирован", "ратифицирована", "ратифицировано", "ратифицированы", "рационализирован", "рационализирована", "рационализировано", "рационализированы", "реабилитирован", "реабилитирована", "реабилитировано", "реабилитированы", "реализован", "реализована", "реализовано", "реализованы", "ревизован", "ревизована", "ревизовано", "ревизованы", "регенерирован", "регенерирована", "регенерировано", "регенерированы", "регламентирован", "регламентирована", "регламентировано", "регламентированы", "редуцирован", "редуцирована", "редуцировано", "редуцированы", "резервирован", "резервирована", "резервировано", "резервированы", "резюмирован", "резюмирована", "резюмировано", "резюмированы", "реквизирован", "реквизирована", "реквизировано", "реквизированы", "рекомендован", "рекомендована", "рекомендовано", "рекомендованы", "реконструирован", "реконструирована", "реконструировано", "реконструированы", "рекрутирован", "рекрутирована", "рекрутировано", "рекрутированы", "ремонтирован", "ремонтирована", "ремонтировано", "ремонтированы", "репрессирован", "репрессирована", "репрессировано", "репрессированы", "реставрирован", "реставрирована", "реставрировано", "реставрированы", "реформирован", "реформирована", "реформировано", "реформированы", "решен", "решена", "решено", "решены", "рожден", "рождена", "рождено", "рождены", "романтизирован", "романтизирована", "романтизировано", "романтизированы", "рукоположен", "рукоположена", "рукоположено", "рукоположены", "русифицирован", "русифицирована", "русифицировано", "русифицированы", "саботирован", "саботирована", "саботировано", "саботированы", "сагитирован", "сагитирована", "сагитировано", "сагитированы", "санкционирован", "санкционирована", "санкционировано", "санкционированы", "сбалансирован", "сбалансирована", "сбалансировано", "сбалансированы", "сбережен", "сбережена", "сбережено", "сбережены", "сбит", "сбита", "сбито", "сбиты", "сближен", "сближена", "сближено", "сближены", "сбрит", "сбрита", "сбрито", "сбриты", "сброшен", "сброшена", "сброшено", "сброшены", "сбрызнут", "сбрызнута", "сбрызнуто", "сбрызнуты", "свален", "свалена", "свалено", "свалены", "сварганен", "сварганена", "сварганено", "сварганены", "сварен", "сварена", "сварено", "сварены", "сведен", "сведена", "сведено", "сведены", "свезен", "свезена", "свезено", "свезены", "свергнут", "свергнута", "свергнуто", "свергнуты", "сверен", "сверена", "сверено", "сверены", "свернут", "свернута", "свернуто", "свернуты", "сверстан", "сверстана", "сверстано", "сверстаны", "свершен", "свершена", "свершено", "свершены", "свешен", "свешена", "свешено", "свешены", "свинчен", "свинчена", "свинчено", "свинчены", "свистнут", "свистнута", "свистнуто", "свистнуты", "свит", "свита", "свито", "свиты", "сворован", "сворована", "своровано", "сворованы", "сворочен", "сворочена", "сворочено", "сворочены", "связан", "связана", "связано", "связаны", "сглажен", "сглажена", "сглажено", "сглажены", "сгноен", "сгноена", "сгноено", "сгноены", "сгорблена", "сгорблено", "сгорблены", "сготовлен", "сготовлена", "сготовлено", "сготовлены", "сгруппирован", "сгруппирована", "сгруппировано", "сгруппированы", "сгрызен", "сгрызена", "сгрызено", "сгрызены", "сгублен", "сгублена", "сгублено", "сгублены", "сгущен", "сгущена", "сгущено", "сгущены", "сдавлен", "сдавлена", "сдавлено", "сдавлены", "сдвинут", "сдвинута", "сдвинуто", "сдвинуты", "сдвоен", "сдвоена", "сдвоено", "сдвоены", "сделан", "сделана", "сделано", "сделаны", "сдержан", "сдержана", "сдержано", "сдержаны", "сдернут", "сдернута", "сдернуто", "сдернуты", "сдобрен", "сдобрена", "сдобрено", "сдобрены", "сдут", "сдута", "сдуто", "сдуты", "секуляризован", "секуляризована", "секуляризовано", "секуляризованы", "сенсибилизирован", "сенсибилизирована", "сенсибилизировано", "сенсибилизированы", "сервирован", "сервирована", "сервировано", "сервированы", "сжат", "сжата", "сжато", "сжаты", "сжеван", "сжевана", "сжевано", "сжеваны", "сжит", "сжита", "сжито", "сжиты", "сигнализирован", "сигнализирована", "сигнализировано", "сигнализированы", "симулирован", "симулирована", "симулировано", "симулированы", "синдицирован", "синдицирована", "синдицировано", "синдицированы", "синтезирован", "синтезирована", "синтезировано", "синтезированы", "синхронизирован", "синхронизирована", "синхронизировано", "синхронизированы", "систематизирован", "систематизирована", "систематизировано", "систематизированы", "сказан", "сказана", "сказано", "сказаны", "сказанут", "сказанута", "сказануто", "сказануты", "скачан", "скачана", "скачано", "скачаны", "скинут", "скинута", "скинуто", "скинуты", "складирован", "складирована", "складировано", "складированы", "склеван", "склевана", "склевано", "склеваны", "склеен", "склеена", "склеено", "склеены", "склонен", "склонена", "склонено", "склонены", "скован", "скована", "сковано", "скованы", "сколот", "сколота", "сколото", "сколоты", "сколочен", "сколочена", "сколочено", "сколочены", "скомандован", "скомандована", "скомандовано", "скомандованы", "скомкан", "скомкана", "скомкано", "скомканы", "скомпенсирован", "скомпенсирована", "скомпенсировано", "скомпенсированы", "скомпонован", "скомпонована", "скомпоновано", "скомпонованы", "скомпрометирован", "скомпрометирована", "скомпрометировано", "скомпрометированы", "сконструирован", "сконструирована", "сконструировано", "сконструированы", "сконцентрирован", "сконцентрирована", "сконцентрировано", "сконцентрированы", "скоординирован", "скоординирована", "скоординировано", "скоординированы", "скопирован", "скопирована", "скопировано", "скопированы", "скормлен", "скормлена", "скормлено", "скормлены", "скорректирован", "скорректирована", "скорректировано", "скорректированы", "скособочен", "скособочена", "скособочено", "скособочены", "скошен", "скошена", "скошено", "скошены", "скрашен", "скрашена", "скрашено", "скрашены", "скреплен", "скреплена", "скреплено", "скреплены", "скрещен", "скрещена", "скрещено", "скрещены", "скривлен", "скривлена", "скривлено", "скривлены", "скроен", "скроена", "скроено", "скроены", "скручен", "скручена", "скручено", "скручены", "скрыт", "скрыта", "скрыто", "скрыты", "скрючен", "скрючена", "скрючено", "скрючены", "скуплен", "скуплена", "скуплено", "скуплены", "скушан", "скушана", "скушано", "скушаны", "слажен", "слажена", "слажено", "слажены", "слеплен", "слеплена", "слеплено", "слеплены", "слизан", "слизана", "слизано", "слизаны", "слизнут", "слизнута", "слизнуто", "слизнуты", "слит", "слита", "слито", "слиты", "сличен", "сличена", "сличено", "сличены", "словлен", "словлена", "словлено", "словлены", "сложен", "сложена", "сложено", "сложены", "сломан", "сломана", "сломано", "сломаны", "сломлен", "сломлена", "сломлено", "сломлены", "слопан", "слопана", "слопано", "слопаны", "слуплен", "слуплена", "слуплено", "слуплены", "смазана", "смазано", "смазаны", "смастерен", "смастерена", "смастерено", "смастерены", "сменен", "сменена", "сменено", "сменены", "сменян", "сменяна", "сменяно", "сменяны", "смерен", "смерена", "смерено", "смерены", "сметен", "сметена", "сметено", "сметены", "смешан", "смешана", "смешано", "смешаны", "смещен", "смещена", "смещено", "смещены", "смирен", "смирена", "смирено", "смирены", "смоделирован", "смоделирована", "смоделировано", "смоделированы", "смонтирован", "смонтирована", "смонтировано", "смонтированы", "сморен", "сморена", "сморено", "сморены", "сморожен", "сморожена", "сморожено", "сморожены", "сморщен", "сморщена", "сморщено", "сморщены", "смотан", "смотана", "смотано", "смотаны", "смочен", "смочена", "смочено", "смочены", "смыт", "смыта", "смыто", "смыты", "смягчен", "смягчена", "смягчено", "смягчены", "смят", "смята", "смято", "смяты", "снабжен", "снабжена", "снабжено", "снабжены", "снаряжен", "снаряжена", "снаряжено", "снаряжены", "снесен", "снесена", "снесено", "снесены", "снижен", "снижена", "снижено", "снижены", "снискан", "снискана", "снискано", "снисканы", "сношен", "сношена", "сношено", "сношены", "снят", "снята", "снято", "сняты", "соблазнен", "соблазнена", "соблазнено", "соблазнены", "соблюден", "соблюдена", "соблюдено", "соблюдены", "собран", "собрана", "собрано", "собраны", "совершен", "совершена", "совершено", "совершены", "совмещен", "совмещена", "совмещено", "совмещены", "совращен", "совращена", "совращено", "совращены", "согласован", "согласована", "согласовано", "согласованы", "согнан", "согнана", "согнано", "согнаны", "согнут", "согнута", "согнуто", "согнуты", "согрет", "согрета", "согрето", "согреты", "содеян", "содеяна", "содеяно", "содеяны", "содран", "содрана", "содрано", "содраны", "соединен", "соединена", "соединено", "соединены", "сожжен", "сожжена", "сожжено", "сожжены", "сожран", "сожрана", "сожрано", "сожраны", "созван", "созвана", "созвано", "созваны", "сокращен", "сокращена", "сокращено", "сокращены", "сокрушен", "сокрушена", "сокрушено", "сокрушены", "сокрыт", "сокрыта", "сокрыто", "сокрыты", "соображен", "соображена", "соображено", "соображены", "сообщен", "сообщена", "сообщено", "сообщены", "сооружен", "сооружена", "сооружено", "сооружены", "соотнесен", "соотнесена", "соотнесено", "соотнесены", "сопоставлен", "сопоставлена", "сопоставлено", "сопоставлены", "сопровожден", "сопровождена", "сопровождено", "сопровождены", "сопряжен", "сопряжена", "сопряжено", "сопряжены", "сорван", "сорвана", "сорвано", "сорваны", "сориентирован", "сориентирована", "сориентировано", "сориентированы", "сосватан", "сосватана", "сосватано", "сосватаны", "соскребен", "соскребена", "соскребено", "соскребены", "сослан", "сослана", "сослано", "сосланы", "сослужен", "сослужена", "сослужено", "сослужены", "сосредоточен", "сосредоточена", "сосредоточено", "сосредоточены", "составлен", "составлена", "составлено", "составлены", "состарен", "состарена", "состарено", "состарены", "сострижен", "сострижена", "сострижено", "сострижены", "состроен", "состроена", "состроено", "состроены", "состряпан", "состряпана", "состряпано", "состряпаны", "состыкован", "состыкована", "состыковано", "состыкованы", "сосчитан", "сосчитана", "сосчитано", "сосчитаны", "сотворен", "сотворена", "сотворено", "сотворены", "соткан", "соткана", "соткано", "сотканы", "сотрясен", "сотрясена", "сотрясено", "сотрясены", "сохранен", "сохранена", "сохранено", "сохранены", "сочинен", "сочинена", "сочинено", "сочинены", "сочтен", "сочтена", "сочтено", "сочтены", "спалена", "спалено", "спалены", "спасен", "спасена", "спасено", "спасены", "спаян", "спаяна", "спаяно", "спаяны", "спеленан", "спеленана", "спеленано", "спеленаны", "сперт", "сперта", "сперто", "сперты", "спет", "спета", "спето", "спеты", "специализирован", "специализирована", "специализировано", "специализированы", "спешен", "спешена", "спешено", "спешены", "спилен", "спилена", "спилено", "спилены", "списан", "списана", "списано", "списаны", "спихнут", "спихнута", "спихнуто", "спихнуты", "сплавлен", "сплавлена", "сплавлено", "сплавлены", "спланирован", "спланирована", "спланировано", "спланированы", "сплетен", "сплетена", "сплетено", "сплетены", "сплочен", "сплочена", "сплочено", "сплочены", "сплюнут", "сплюнута", "сплюнуто", "сплюнуты", "сплющен", "сплющена", "сплющено", "сплющены", "сподоблен", "сподоблена", "сподоблено", "сподоблены", "сполоснут", "сполоснута", "сполоснуто", "сполоснуты", "спорот", "спорота", "спорото", "спороты", "справлен", "справлена", "справлено", "справлены", "спрессован", "спрессована", "спрессовано", "спрессованы", "спроважен", "спроважена", "спроважено", "спроважены", "спровоцирован", "спровоцирована", "спровоцировано", "спровоцированы", "спроектирован", "спроектирована", "спроектировано", "спроектированы", "спроецирован", "спроецирована", "спроецировано", "спроецированы", "спрошен", "спрошена", "спрошено", "спрошены", "спрятан", "спрятана", "спрятано", "спрятаны", "спущен", "спущена", "спущено", "спущены", "сработан", "сработана", "сработано", "сработаны", "сравнен", "сравнена", "сравнено", "сравнены", "сражен", "сражена", "сражено", "сражены", "сращен", "сращена", "сращено", "сращены", "срезан", "срезана", "срезано", "срезаны", "срисован", "срисована", "срисовано", "срисованы", "сровнян", "сровняна", "сровняно", "сровняны", "срубан", "срубана", "срубано", "срубаны", "срублен", "срублена", "срублено", "срублены", "ссажен", "ссажена", "ссажено", "ссажены", "ссужен", "ссужена", "ссужено", "ссужены", "стабилизирован", "стабилизирована", "стабилизировано", "стабилизированы", "станцеван", "станцевана", "станцевано", "станцеваны", "стащен", "стащена", "стащено", "стащены", "стерилизован", "стерилизована", "стерилизовано", "стерилизованы", "стерт", "стерта", "стерто", "стерты", "стесан", "стесана", "стесано", "стесаны", "стеснен", "стеснена", "стеснено", "стеснены", "стилизован", "стилизована", "стилизовано", "стилизованы", "стимулирован", "стимулирована", "стимулировано", "стимулированы", "стиснут", "стиснута", "стиснуто", "стиснуты", "столкнут", "столкнута", "столкнуто", "столкнуты", "стоптан", "стоптана", "стоптано", "стоптаны", "сточен", "сточена", "сточено", "сточены", "стравлен", "стравлена", "стравлено", "стравлены", "стрельнут", "стрельнута", "стрельнуто", "стрельнуты", "стреножен", "стреножена", "стреножено", "стреножены", "структурирован", "структурирована", "структурировано", "структурированы", "стряхнут", "стряхнута", "стряхнуто", "стряхнуты", "стукнут", "стукнута", "стукнуто", "стукнуты", "стырен", "стырена", "стырено", "стырены", "стянут", "стянута", "стянуто", "стянуты", "сублимирован", "сублимирована", "сублимировано", "сублимированы", "субсидирован", "субсидирована", "субсидировано", "субсидированы", "суммирован", "суммирована", "суммировано", "суммированы", "сунут", "сунута", "сунуто", "сунуты", "сфабрикован", "сфабрикована", "сфабриковано", "сфабрикованы", "сфокусирован", "сфокусирована", "сфокусировано", "сфокусированы", "сформирован", "сформирована", "сформировано", "сформированы", "сформулирован", "сформулирована", "сформулировано", "сформулированы", "сфотографирован", "сфотографирована", "сфотографировано", "сфотографированы", "схвачен", "схвачена", "схвачено", "схвачены", "схлопотан", "схлопотана", "схлопотано", "схлопотаны", "схоронен", "схоронена", "схоронено", "схоронены", "сцапан", "сцапана", "сцапано", "сцапаны", "сцементирован", "сцементирована", "сцементировано", "сцементированы", "сцеплен", "сцеплена", "сцеплено", "сцеплены", "сшит", "сшита", "сшито", "сшиты", "сыгран", "сыграна", "сыграно", "сыграны", "сэкономлен", "сэкономлена", "сэкономлено", "сэкономлены", "таранен", "таранена", "таранено", "таранены", "татуирован", "татуирована", "татуировано", "татуированы", "телеграфирован", "телеграфирована", "телеграфировано", "телеграфированы", "терроризирован", "терроризирована", "терроризировано", "терроризированы", "тиражирован", "тиражирована", "тиражировано", "тиражированы", "титулована", "титуловано", "титулованы", "ткнут", "ткнута", "ткнуто", "ткнуты", "толкнут", "толкнута", "толкнуто", "толкнуты", "тонизирован", "тонизирована", "тонизировано", "тонизированы", "тонирован", "тонирована", "тонировано", "тонированы", "торпедирован", "торпедирована", "торпедировано", "торпедированы", "травмирован", "травмирована", "травмировано", "травмированы", "транслирован", "транслирована", "транслировано", "транслированы", "транспортирован", "транспортирована", "транспортировано", "транспортированы", "трансформирован", "трансформирована", "трансформировано", "трансформированы", "трассирован", "трассирована", "трассировано", "трассированы", "трахнут", "трахнута", "трахнуто", "трахнуты", "треснут", "треснута", "треснуто", "треснуты", "тронут", "тронута", "тронуто", "тронуты", "трудоустроен", "трудоустроена", "трудоустроено", "трудоустроены", "турнут", "турнута", "турнуто", "турнуты", "тюкнут", "тюкнута", "тюкнуто", "тюкнуты", "тяпнут", "тяпнута", "тяпнуто", "тяпнуты", "убавлен", "убавлена", "убавлено", "убавлены", "убаюкан", "убаюкана", "убаюкано", "убаюканы", "убежден", "убеждена", "убеждено", "убеждены", "убелен", "убелена", "убелено", "убелены", "убережен", "убережена", "убережено", "убережены", "убит", "убита", "убито", "убиты", "ублажен", "ублажена", "ублажено", "ублажены", "убран", "убрана", "убрано", "убраны", "убыстрен", "убыстрена", "убыстрено", "убыстрены", "уважен", "уважена", "уважено", "уважены", "уварен", "уварена", "уварено", "уварены", "уведен", "уведена", "уведено", "уведены", "уведомлен", "уведомлена", "уведомлено", "уведомлены", "увезен", "увезена", "увезено", "увезены", "увековечен", "увековечена", "увековечено", "увековечены", "увеличен", "увеличена", "увеличено", "увеличены", "увенчан", "увенчана", "увенчано", "увенчаны", "уверен", "уверена", "уверено", "уверены", "увешан", "увешана", "увешано", "увешаны", "увешен", "увешена", "увешено", "увешены", "увидан", "увидана", "увидано", "увиданы", "увиден", "увидена", "увидено", "увидены", "увит", "увита", "увито", "увиты", "увлажнен", "увлажнена", "увлажнено", "увлажнены", "увлечен", "увлечена", "увлечено", "увлечены", "увожен", "увожена", "увожено", "увожены", "уволен", "уволена", "уволено", "уволены", "уворован", "уворована", "уворовано", "уворованы", "увязан", "увязана", "увязано", "увязаны", "угадан", "угадана", "угадано", "угаданы", "углублен", "углублена", "углублено", "углублены", "угляжен", "угляжена", "угляжено", "угляжены", "угнан", "угнана", "угнано", "угнаны", "угнетен", "угнетена", "угнетено", "угнетены", "уговорен", "уговорена", "уговорено", "уговорены", "угомонен", "угомонена", "угомонено", "угомонены", "угонян", "угоняна", "угоняно", "угоняны", "угоразжен", "угоразжена", "угоразжено", "угоразжены", "уготован", "уготована", "уготовано", "уготованы", "уготовлен", "уготовлена", "уготовлено", "уготовлены", "угощен", "угощена", "угощено", "угощены", "угроблен", "угроблена", "угроблено", "угроблены", "угрохан", "угрохана", "угрохано", "угроханы", "удавлен", "удавлена", "удавлено", "удавлены", "удален", "удалена", "удалено", "удалены", "ударен", "ударена", "ударено", "ударены", "удвоен", "удвоена", "удвоено", "удвоены", "уделан", "уделана", "уделано", "уделаны", "уделен", "уделена", "уделено", "уделены", "удержан", "удержана", "удержано", "удержаны", "удесятерен", "удесятерена", "удесятерено", "удесятерены", "удешевлен", "удешевлена", "удешевлено", "удешевлены", "удивлен", "удивлена", "удивлено", "удивлены", "удлинен", "удлинена", "удлинено", "удлинены", "удобрен", "удобрена", "удобрено", "удобрены", "удовлетворен", "удовлетворена", "удовлетворено", "удовлетворены", "удостоверен", "удостоверена", "удостоверено", "удостоверены", "удостоен", "удостоена", "удостоено", "удостоены", "удочерен", "удочерена", "удочерено", "удочерены", "удружен", "удружена", "удружено", "удружены", "удручен", "удручена", "удручено", "удручены", "удуман", "удумана", "удумано", "удуманы", "удушен", "удушена", "удушено", "удушены", "ужален", "ужалена", "ужалено", "ужалены", "ужаснут", "ужаснута", "ужаснуто", "ужаснуты", "ужат", "ужата", "ужато", "ужаты", "узаконен", "узаконена", "узаконено", "узаконены", "узнан", "узнана", "узнано", "узнаны", "узурпирован", "узурпирована", "узурпировано", "узурпированы", "указан", "указана", "указано", "указаны", "укатан", "укатана", "укатано", "укатаны", "укачан", "укачана", "укачано", "укачаны", "укачен", "укачена", "укачено", "укачены", "укокошен", "укокошена", "укокошено", "укокошены", "уколот", "уколота", "уколото", "уколоты", "укомплектован", "укомплектована", "укомплектовано", "укомплектованы", "укорен", "укорена", "укорено", "укорены", "укоренен", "укоренена", "укоренено", "укоренены", "укорочен", "укорочена", "укорочено", "укорочены", "украден", "украдена", "украдено", "украдены", "украшен", "украшена", "украшено", "украшены", "укреплен", "укреплена", "укреплено", "укреплены", "укрощен", "укрощена", "укрощено", "укрощены", "укрупнен", "укрупнена", "укрупнено", "укрупнены", "укрыт", "укрыта", "укрыто", "укрыты", "укупорен", "укупорена", "укупорено", "укупорены", "укутан", "укутана", "укутано", "укутаны", "укушен", "укушена", "укушено", "укушены", "улажен", "улажена", "улажено", "улажены", "уличен", "уличена", "уличено", "уличены", "уловлен", "уловлена", "уловлено", "уловлены", "уложен", "уложена", "уложено", "уложены", "уломан", "уломана", "уломано", "уломаны", "улучен", "улучена", "улучено", "улучены", "улучшен", "улучшена", "улучшено", "улучшены", "умален", "умалена", "умалено", "умалены", "уменьшен", "уменьшена", "уменьшено", "уменьшены", "умерен", "умерена", "умерено", "умерены", "умерщвлен", "умерщвлена", "умерщвлено", "умерщвлены", "умещен", "умещена", "умещено", "умещены", "умилен", "умилена", "умилено", "умилены", "умиротворен", "умиротворена", "умиротворено", "умиротворены", "умножен", "умножена", "умножено", "умножены", "умолен", "умолена", "умолено", "умолены", "уморен", "уморена", "уморено", "уморены", "умотан", "умотана", "умотано", "умотаны", "умудрен", "умудрена", "умудрено", "умудрены", "умыкнут", "умыкнута", "умыкнуто", "умыкнуты", "умыт", "умыта", "умыто", "умыты", "умят", "умята", "умято", "умяты", "унаследован", "унаследована", "унаследовано", "унаследованы", "унесен", "унесена", "унесено", "унесены", "унижен", "унижена", "унижено", "унижены", "унизан", "унизана", "унизано", "унизаны", "унифицирован", "унифицирована", "унифицировано", "унифицированы", "уничтожен", "уничтожена", "уничтожено", "уничтожены", "унюхан", "унюхана", "унюхано", "унюханы", "унят", "унята", "унято", "уняты", "упакован", "упакована", "упаковано", "упакованы", "упасен", "упасена", "упасено", "упасены", "упечен", "упечена", "упечено", "упечены", "уплачен", "уплачена", "уплачено", "уплачены", "уплотнен", "уплотнена", "уплотнено", "уплотнены", "уподоблен", "уподоблена", "уподоблено", "уподоблены", "упоен", "упоена", "упоено", "упоены", "упокоен", "упокоена", "упокоено", "упокоены", "уполномочен", "уполномочена", "уполномочено", "уполномочены", "упомнен", "упомнена", "упомнено", "упомнены", "упомянут", "упомянута", "упомянуто", "упомянуты", "упорядочен", "упорядочена", "упорядочено", "упорядочены", "употреблен", "употреблена", "употреблено", "употреблены", "упразднен", "упразднена", "упразднено", "упразднены", "упрежден", "упреждена", "упреждено", "упреждены", "упрекнут", "упрекнута", "упрекнуто", "упрекнуты", "упрочен", "упрочена", "упрочено", "упрочены", "упрошен", "упрошена", "упрошено", "упрошены", "упрощен", "упрощена", "упрощено", "упрощены", "упрятан", "упрятана", "упрятано", "упрятаны", "упущен", "упущена", "упущено", "упущены", "уравновешен", "уравновешена", "уравновешено", "уравновешены", "уравнян", "уравняна", "уравняно", "уравняны", "урегулирован", "урегулирована", "урегулировано", "урегулированы", "урезан", "урезана", "урезано", "урезаны", "урезонен", "урезонена", "урезонено", "урезонены", "уронен", "уронена", "уронено", "уронены", "усажен", "усажена", "усажено", "усажены", "усвоен", "усвоена", "усвоено", "усвоены", "усечен", "усечена", "усечено", "усечены", "усеян", "усеяна", "усеяно", "усеяны", "усижен", "усижена", "усижено", "усижены", "усилен", "усилена", "усилено", "усилены", "ускорен", "ускорена", "ускорено", "ускорены", "услан", "услана", "услано", "усланы", "усложнен", "усложнена", "усложнено", "усложнены", "услыхан", "услыхана", "услыхано", "услыханы", "услышан", "услышана", "услышано", "услышаны", "усмирен", "усмирена", "усмирено", "усмирены", "усмотрен", "усмотрена", "усмотрено", "усмотрены", "усовершенствован", "усовершенствована", "усовершенствовано", "усовершенствованы", "успокоен", "успокоена", "успокоено", "успокоены", "усреднен", "усреднена", "усреднено", "усреднены", "уставлен", "уставлена", "уставлено", "уставлены", "установлен", "установлена", "установлено", "установлены", "устлан", "устлана", "устлано", "устланы", "устранен", "устранена", "устранено", "устранены", "устрашен", "устрашена", "устрашено", "устрашены", "устремлен", "устремлена", "устремлено", "устремлены", "устроен", "устроена", "устроено", "устроены", "уступлен", "уступлена", "уступлено", "уступлены", "усугублен", "усугублена", "усугублено", "усугублены", "усыновлен", "усыновлена", "усыновлено", "усыновлены", "усыплен", "усыплена", "усыплено", "усыплены", "утаен", "утаена", "утаено", "утаены", "утащен", "утащена", "утащено", "утащены", "утвержден", "утверждена", "утверждено", "утверждены", "утеплен", "утеплена", "утеплено", "утеплены", "утерт", "утерта", "утерто", "утерты", "утерян", "утеряна", "утеряно", "утеряны", "утешен", "утешена", "утешено", "утешены", "утилизирован", "утилизирована", "утилизировано", "утилизированы", "утихомирен", "утихомирена", "утихомирено", "утихомирены", "утолен", "утолена", "утолено", "утолены", "утопан", "утопана", "утопано", "утопаны", "утоплен", "утоплена", "утоплено", "утоплены", "утоптан", "утоптана", "утоптано", "утоптаны", "уточнен", "уточнена", "уточнено", "уточнены", "утрамбован", "утрамбована", "утрамбовано", "утрамбованы", "утрачен", "утрачена", "утрачено", "утрачены", "утрирован", "утрирована", "утрировано", "утрированы", "утроен", "утроена", "утроено", "утроены", "утрясен", "утрясена", "утрясено", "утрясены", "утыкан", "утыкана", "утыкано", "утыканы", "утяжелен", "утяжелена", "утяжелено", "утяжелены", "утянут", "утянута", "утянуто", "утянуты", "ухвачен", "ухвачена", "ухвачено", "ухвачены", "ухлопан", "ухлопана", "ухлопано", "ухлопаны", "ухожен", "ухожена", "ухожено", "ухожены", "ухудшен", "ухудшена", "ухудшено", "ухудшены", "уценен", "уценена", "уценено", "уценены", "учинен", "учинена", "учинено", "учинены", "учрежден", "учреждена", "учреждено", "учреждены", "учтен", "учтена", "учтено", "учтены", "учуян", "учуяна", "учуяно", "учуяны", "ушит", "ушита", "ушито", "ушиты", "ущемлен", "ущемлена", "ущемлено", "ущемлены", "ущипнут", "ущипнута", "ущипнуто", "ущипнуты", "уязвлен", "уязвлена", "уязвлено", "уязвлены", "уяснен", "уяснена", "уяснено", "уяснены", "фальсифицирован", "фальсифицирована", "фальсифицировано", "фальсифицированы", "фиксирован", "фиксирована", "фиксировано", "фиксированы", "финансирован", "финансирована", "финансировано", "финансированы", "фланкирован", "фланкирована", "фланкировано", "фланкированы", "форсирован", "форсирована", "форсировано", "форсированы", "характеризован", "характеризована", "характеризовано", "характеризованы", "хлестнут", "хлестнута", "хлестнуто", "хлестнуты", "хлопнут", "хлопнута", "хлопнуто", "хлопнуты", "цапнут", "цапнута", "цапнуто", "цапнуты", "царапнут", "царапнута", "царапнуто", "царапнуты", "централизован", "централизована", "централизовано", "централизованы", "центрифугирован", "центрифугирована", "центрифугировано", "центрифугированы", "цивилизован", "цивилизована", "цивилизовано", "цивилизованы", "черкнут", "черкнута", "черкнуто", "черкнуты", "четвертован", "четвертована", "четвертовано", "четвертованы", "чмокнут", "чмокнута", "чмокнуто", "чмокнуты", "шарахнут", "шарахнута", "шарахнуто", "шарахнуты", "швырнут", "швырнута", "швырнуто", "швырнуты", "шлепнут", "шлепнута", "шлепнуто", "шлепнуты", "шмякнут", "шмякнута", "шмякнуто", "шмякнуты", "шокирован", "шокирована", "шокировано", "шокированы", "щелкнут", "щелкнута", "щелкнуто", "щелкнуты", "эвакуирован", "эвакуирована", "эвакуировано", "эвакуированы", "экипирован", "экипирована", "экипировано", "экипированы", "экранизирован", "экранизирована", "экранизировано", "экранизированы", "экранирован", "экранирована", "экранировано", "экранированы", "экспонирован", "экспонирована", "экспонировано", "экспонированы", "экспортирован", "экспортирована", "экспортировано", "экспортированы", "экспроприирован", "экспроприирована", "экспроприировано", "экспроприированы", "экстрагирован", "экстрагирована", "экстрагировано", "экстрагированы", "экстраполирован", "экстраполирована", "экстраполировано", "экстраполированы", "эмитирован", "эмитирована", "эмитировано", "эмитированы", "эпатирован", "эпатирована", "эпатировано", "эпатированы", "этапирован", "этапирована", "этапировано", "этапированы", "эшелонирован", "эшелонирована", "эшелонировано", "эшелонированы", "явлен", "явлена", "явлено", "явлены"];
+// Participles that can take a "ё"-form. This and the following verb groups should be taken away as soon as Ё-functionality
+// Is implemented
+var orthographicFormsPassiveVerbs = ["благословлён", "введён", "ввезён", "вдохновлён", "вживлён", "взбешён", "взбодрён", "взведён", "взвихрён", "взгромозждён", "взращён", "взрыхлён", "видоизменён", "включён", "вколочён", "вкраплён", "вкушён", "вменён", "вмещён", "внедрён", "внесён", "внушён", "вовлечён", "водворён", "водружён", "возблагодарён", "возбуждён", "возведён", "возвещён", "возвращён", "возглашён", "возлюблён", "возмещён", "возмущён", "вознаграждён", "вознесён", "возобновлён", "возомнён", "возрождён", "вонждён", "воображён", "воодушевлён", "вооружён", "воплощён", "вопрошён", "ворочён", "воскрешён", "воспалён", "воспламенён", "воспрещён", "воспроизведён", "восстановлён", "восхищён", "вперён", "впечатлён", "вплетён", "впряжён", "вразумлён", "врублён", "вручён", "вселён", "вскипячён", "вскормлён", "вскружён", "всполошён", "выведён", "доведён", "довезён", "довершён", "догляжён", "договорён", "дозволён", "донесён", "допечён", "дотерплён", "завезён", "завершён", "завлечён", "завожён", "заворожён", "загашён", "заглублён", "заглушён", "заговорён", "загорожён", "загромозждён", "загружён", "загрязнён", "задурён", "задушён", "задымлён", "заземлён", "зазубрён", "закалён", "заклеймён", "заключён", "закопчё", "закреплён", "закруглён", "замедлён", "заменён", "заметён", "замещён", "заморён", "занесён", "заострён", "запалён", "запасён", "запечатлён", "запечён", "заплетён", "заполонён", "запорошён", "запрещён", "запримечён", "запрошён", "запряжён", "запылён", "заражён", "заряжён", "заселён", "заслонён", "засолён", "застолблён", "застопорён", "затаён", "затворён", "затемнён", "затенён", "затмлён", "затруднён", "захламлён", "зацеплён", "зачехлён", "зачищён", "зачтён", "зашевелён", "защемлён", "защищён", "избавлён", "изборозждён", "изведён", "извещён", "извинён", "извлечён", "извращён", "измельчён", "изменён", "измышлён", "изнурён", "изобличён", "изображён", "изобретён", "изречён", "изумлён", "изъявлён", "искажён", "исключён", "искоренён", "искривлён", "искуплён", "испепелён", "испечён", "испещрён", "иссечён", "иссушён", "истончён", "истощён", "истреблён", "казнён", "крещён", "лишён", "наводнён", "навострён", "наговорён", "награждён", "нагромозждён", "наделён", "накалён", "наклонён", "наметён", "нанесён", "напечён", "наплетён", "напоён", "напряжён", "наречён", "нарождён", "насаждён", "населён", "насмешён", "насторожён", "натравлён", "невзлюблён", "недогляжён", "недоговорён", "недооценён", "перечтён", "пленён", "побеждён", "побелён", "побережён", "погашён", "поглощён", "погребён", "погружён", "подведён", "подвезён", "подговорён", "подгребён", "подключён", "подкреплён", "подкручён", "подменён", "поднесён", "подожжён", "подпалён", "подразделён", "подрублён", "подрулён", "подселён", "подсечён", "подслащён", "подсоединён", "подстелён", "подстережён", "подтверждён", "подцеплён", "подчинён", "подчищён", "поздравлён", "позолочён", "покорён", "покривлён", "помещён", "понесён", "поощрён", "порабощён", "поражён", "порешён", "порождён", "посвящён", "посеребрён", "посмотрён", "посрамлён", "постановлён", "потереблён", "похоронён", "почтён", "пошевелён", "пощажён", "пояснён", "превращён", "прегражён", "предварён", "предвосхищён", "предопределён", "предостережён", "предотвращён", "предохранён", "предпочтён", "предречён", "предрешён", "предупреждён", "презрён", "преклонён", "прекращён", "преломлён", "прельщён", "преображён", "преодолён", "преподнесён", "пресечён", "преступлён", "претворён", "претерплён", "прибережён", "приближён", "приведён", "привезён", "привлечён", "привнесён", "приворожён", "пригвозжён", "приглашён", "приглушён", "приговорён", "приголублён", "приземлён", "приклонён", "прикреплён", "применён", "принаряжён", "принесён", "принуждён", "приободрён", "приобретён", "приобщён", "приостановлён", "приотворён", "припасён", "припечён", "приплетён", "приручён", "прислонён", "присмотрён", "присовокуплён", "присоединён", "присочинён", "приспособлён", "приструнён", "присуждён", "притворён", "провезён", "проговорён", "продешевлён", "продлён", "прозвонён", "произведён", "произнесён", "прокалён", "прокипячён", "прокопчён", "пронзён", "пропылён", "просверлён", "просветлён", "просвещён", "просечён", "просквожён", "проторён", "прочтён", "прощён", "проявлён", "прояснён", "разбережён", "разбомблён", "разведён", "развезён", "развеселён", "разворошён", "развращён", "разглашён", "разговорён", "разгорожён", "разгорячён", "разграфлён", "разгребён", "разгромлён", "разделён", "раздражён", "раздразнён", "раздроблён", "разлеплён", "разлучён", "размещён", "размозжён", "разморён", "размягчён", "разнесён", "разоблачён", "разобщён", "разожжён", "разозлён", "разорён", "разоружён", "разрежён", "разрешён", "разубеждён", "разъединён", "разъярён", "разъяснён", "раскалён", "расклешён", "раскрепощён", "раскроён", "распалён", "распотрошён", "распределён", "распространён", "распряжён", "распрямлён", "рассмешён", "растворён", "растлён", "растормошён", "растрясён", "расценён", "расцеплён", "расчленён", "расшевелён", "расщеплён", "сбережён", "свершён", "сгноён", "сгущён", "сожжён", "склонён", "скреплён", "скрещён", "скривлён", "скручён", "сличён", "словлён", "сметён", "смещён", "смущён", "смягчён", "снабжён", "снаряжён", "снесён", "соблазнён", "соблюдён", "совершён", "совмещён", "совращён", "соединён", "сокращён", "сокрушён", "соображён", "сообщён", "сооружён", "соотнесён", "сопоставлён", "сопровождён", "сопряжён", "сотворён", "сотрясён", "сохранён", "сочинён", "сочтён", "спалён", "сплетён", "сравнён", "сражён", "стеснён", "съязвлён", "убеждён", "убелён", "убережён", "ублажён", "убыстрён", "уведён", "увезён", "увлажнён", "увлечён", "углублён", "угнетён", "уговорён", "угомонён", "угощён", "удесятерён", "удешевлён", "удлинён", "удобрён", "удовлетворён", "удочерён", "удручён", "укоренён", "укреплён", "укрощён", "укрупнён", "уличён", "улучён", "умалён", "умерщвлён", "умещён", "умилён", "умиротворён", "умолён", "уморён", "умудрён", "унесён", "упасён", "упечён", "уплотнён", "упоён", "употреблён", "упразднён", "упреждён", "упрощён", "усечён", "усложнён", "усреднён", "устранён", "устрашён", "устремлён", "усыновлён", "усыплён", "утаён", "утверждён", "утеплён", "утолён", "утомлён", "уточнён", "утрясён", "утяжелён", "учреждён", "учтён", "ущемлён", "уязвлён", "уяснён", "явлён"];
+// Participles that have ё in the middle of the word. This and the previous verb groups should be taken away as soon as
+// Ё-functionality is implemented.
+var alternativeVerbForms = ["ввёрнут", "ввёрнута", "ввёрнуто", "ввёрнуты", "вздёрнут", "вздёрнута", "вздёрнуто", "вздёрнуты", "втёрт", "втёрта", "втёрто", "втёрты", "завёрнут", "завёрнута", "завёрнуто", "завёрнуты", "задёрнут", "задёрнута", "задёрнуто", "задёрнуты", "замётан", "замётана", "замётано", "замётаны", "запелёнан", "запелёнана", "запелёнано", "запелёнаны", "заплёван", "заплёвана", "заплёвано", "заплёваны", "затёрт", "затёрта", "затёрто", "затёрты", "зачёркнут", "зачёркнута", "зачёркнуто", "зачёркнуты", "зачёрпнут", "зачёрпнута", "зачёрпнуто", "зачёрпнуты", "зачёсан", "зачёсана", "зачёсано", "зачёсаны", "зашёптан", "зашёптана", "зашёптано", "зашёптаны", "защёлкнут", "защёлкнута", "защёлкнуто", "защёлкнуты", "искорёжен", "искорёжена", "искорёжено", "искорёжены", "истёрт", "истёрта", "истёрто", "истёрты", "исчёркан", "исчёркана", "исчёркано", "исчёрканы", "исчёрпан", "исчёрпана", "исчёрпано", "исчёрпаны", "навёрнут", "навёрнута", "навёрнуто", "навёрнуты", "намётан", "намётана", "намётано", "намётаны", "наплёван", "наплёвана", "наплёвано", "наплёваны", "натёрт", "натёрта", "натёрто", "натёрты", "начёртан", "начёртана", "начёртано", "начёртаны", "начёрчен", "начёрчена", "начёрчено", "начёрчены", "нашёптан", "нашёптана", "нашёптано", "нашёптаны", "перечёркнут", "перечёркнута", "перечёркнуто", "перечёркнуты", "повёрнут", "повёрнута", "повёрнуто", "повёрнуты", "подвёрнут", "подвёрнута", "подвёрнуто", "подвёрнуты", "подёрнут", "подёрнута", "подёрнуто", "подёрнуты", "поддёрнут", "поддёрнута", "поддёрнуто", "поддёрнуты", "подмётан", "подмётана", "подмётано", "подмётаны", "подпёрт", "подпёрта", "подпёрто", "подпёрты", "подчёркнут", "подчёркнута", "подчёркнуто", "подчёркнуты", "пожёван", "пожёвана", "пожёвано", "пожёваны", "покорёжен", "покорёжена", "покорёжено", "покорёжены", "потёрт", "потёрта", "потёрто", "потёрты", "пощёлкан", "пощёлкана", "пощёлкано", "пощёлканы", "почёрпнут", "почёрпнута", "почёрпнуто", "почёрпнуты", "почёсан", "почёсана", "почёсано", "почёсаны", "притёрт", "притёрта", "притёрто", "притёрты", "причёсан", "причёсана", "причёсано", "причёсаны", "прищёлкнут", "прищёлкнута", "прищёлкнуто", "прищёлкнуты", "провёрнут", "провёрнута", "провёрнуто", "провёрнуты", "продёрнут", "продёрнута", "продёрнуто", "продёрнуты", "прожёван", "прожёвана", "прожёвано", "прожёваны", "простёрт", "простёрта", "простёрто", "простёрты", "протёрт", "протёрта", "протёрто", "протёрты", "прочёсан", "прочёсана", "прочёсано", "прочёсаны", "прошёптан", "прошёптана", "прошёптано", "прошёптаны", "развёрнут", "развёрнута", "развёрнуто", "развёрнуты", "раздёрнут", "раздёрнута", "раздёрнуто", "раздёрнуты", "разжёван", "разжёвана", "разжёвано", "разжёваны", "размётан", "размётана", "размётано", "размётаны", "распростёрт", "распростёрта", "распростёрто", "распростёрты", "растёрт", "растёрта", "растёрто", "растёрты", "расчёсан", "расчёсана", "расчёсано", "расчёсаны", "свёрнут", "свёрнута", "свёрнуто", "свёрнуты", "свёрстан", "свёрстана", "свёрстано", "свёрстаны", "сдёрнут", "сдёрнута", "сдёрнуто", "сдёрнуты", "сжёван", "сжёвана", "сжёвано", "сжёваны", "склёван", "склёвана", "склёвано", "склёваны", "спелёнан", "спелёнана", "спелёнано", "спелёнаны", "стёрт", "стёрта", "стёрто", "стёрты", "стёсан", "стёсана", "стёсано", "стёсаны", "утёрт", "утёрта", "утёрто", "утёрты", "утомлён", "утомлёна", "утомлёно", "утомлёны", "чёркнут", "чёркнута", "чёркнуто", "чёркнуты", "щёлкнут", "щёлкнута", "щёлкнуто", "щёлкнуты"];
+// These participles can also be adjectives, so we need to be careful. If they cause a lot of trouble, can be easily
+// Removed from analysis, if not they can also be merged with the big list.
+var adjectiveParticiples = ["взбудоражен", "взволнован", "возбужден", "возмущен", "воспитан", "востребован", "выдрессирован", "газирован", "доношен", "заболочен", "заинтересован", "заинтригован", "закален", "зачарован", "зашифрован", "изогнут", "изогнута", "изогнуто", "изогнуты", "коррумпирован", "мотивирован", "помят", "помята", "помято", "помяты", "поношен", "потаскан", "потаскана", "потаскано", "потасканы", "сгорблен", "сконфужен", "сконфужена", "сконфужено", "сконфужены", "смазан", "титулован", "утомлен", "утомлена", "утомлено", "утомлены"];
+/**
+ * Returns lists with passive verb-forms to be used by the passive voice assessment.
+ * @returns {Object} The object with passive verb-form lists.
+ */
+module.exports = function () {
+    return {
+        all: passiveVerbs.concat(orthographicFormsPassiveVerbs, alternativeVerbForms, adjectiveParticiples)
+    };
+};
+
+
+},{}],200:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -18591,7 +19112,7 @@ function default_1(paper) {
 exports.default = default_1;
 
 
-},{"../stringProcessing/getSentences":226}],196:[function(require,module,exports){
+},{"../stringProcessing/getSentences":231}],201:[function(require,module,exports){
 "use strict";
 /**
  * Returns an array with exceptions for the sentence beginning researcher.
@@ -18611,7 +19132,7 @@ module.exports = function () {
 };
 
 
-},{}],197:[function(require,module,exports){
+},{}],202:[function(require,module,exports){
 "use strict";
 
 var transitionWords = require("./transitionWords.js")().singleWords;
@@ -18694,11 +19215,11 @@ module.exports = function () {
 };
 
 
-},{"./transitionWords.js":203}],198:[function(require,module,exports){
+},{"./transitionWords.js":208}],203:[function(require,module,exports){
 "use strict";
 
 var SentencePart = require("../../../values/SentencePart.js");
-var getParticiples = require("../../passiveVoice/getParticiples.js");
+var getParticiples = require("../../passiveVoice/periphrastic/getParticiples.js");
 /**
  * Creates a Spanish-specific sentence part.
  *
@@ -18721,11 +19242,11 @@ SpanishSentencePart.prototype.getParticiples = function () {
 module.exports = SpanishSentencePart;
 
 
-},{"../../../values/SentencePart.js":264,"../../passiveVoice/getParticiples.js":191,"util":50}],199:[function(require,module,exports){
+},{"../../../values/SentencePart.js":269,"../../passiveVoice/periphrastic/getParticiples.js":191,"util":50}],204:[function(require,module,exports){
 "use strict";
 
 var Participle = require("../../../values/Participle.js");
-var checkException = require("../../passiveVoice/checkException.js");
+var checkException = require("../../passiveVoice/periphrastic/checkException.js");
 var directPrecedenceException = require("../../../stringProcessing/directPrecedenceException");
 var precedenceException = require("../../../stringProcessing/precedenceException");
 /**
@@ -18751,14 +19272,15 @@ require("util").inherits(SpanishParticiple, Participle);
 SpanishParticiple.prototype.isPassive = function () {
   var sentencePart = this.getSentencePart();
   var participleIndex = sentencePart.indexOf(this.getParticiple());
-  return !this.directPrecedenceException(sentencePart, participleIndex) && !this.precedenceException(sentencePart, participleIndex);
+  var language = this.getLanguage();
+  return !this.directPrecedenceException(sentencePart, participleIndex, language) && !this.precedenceException(sentencePart, participleIndex, language);
 };
 SpanishParticiple.prototype.directPrecedenceException = directPrecedenceException;
 SpanishParticiple.prototype.precedenceException = precedenceException;
 module.exports = SpanishParticiple;
 
 
-},{"../../../stringProcessing/directPrecedenceException":220,"../../../stringProcessing/precedenceException":239,"../../../values/Participle.js":262,"../../passiveVoice/checkException.js":187,"util":50}],200:[function(require,module,exports){
+},{"../../../stringProcessing/directPrecedenceException":225,"../../../stringProcessing/precedenceException":244,"../../../values/Participle.js":267,"../../passiveVoice/periphrastic/checkException.js":187,"util":50}],205:[function(require,module,exports){
 "use strict";
 /**
  * Returns a list with auxiliaries for the Spanish passive voice assessment.
@@ -18770,7 +19292,7 @@ module.exports = function () {
 };
 
 
-},{}],201:[function(require,module,exports){
+},{}],206:[function(require,module,exports){
 "use strict";
 /**
  * Returns a list of all participles used for the Spanish passive voice assessment.
@@ -18783,7 +19305,7 @@ module.exports = function () {
 };
 
 
-},{}],202:[function(require,module,exports){
+},{}],207:[function(require,module,exports){
 "use strict";
 /**
  * Returns a list with stopwords for the Spanish passive voice assessment.
@@ -18795,7 +19317,7 @@ module.exports = function () {
 };
 
 
-},{}],203:[function(require,module,exports){
+},{}],208:[function(require,module,exports){
 "use strict";
 /** @module config/transitionWords */
 
@@ -18814,7 +19336,7 @@ module.exports = function () {
 };
 
 
-},{}],204:[function(require,module,exports){
+},{}],209:[function(require,module,exports){
 "use strict";
 /** @module config/twoPartTransitionWords */
 /**
@@ -18827,7 +19349,7 @@ module.exports = function () {
 };
 
 
-},{}],205:[function(require,module,exports){
+},{}],210:[function(require,module,exports){
 "use strict";
 /** @module researches/stopWordsInKeyword */
 
@@ -18844,7 +19366,7 @@ module.exports = function (paper) {
 };
 
 
-},{"./stopWordsInText.js":206,"lodash/escapeRegExp":482}],206:[function(require,module,exports){
+},{"./stopWordsInText.js":211,"lodash/escapeRegExp":487}],211:[function(require,module,exports){
 "use strict";
 
 var stopwords = require("../config/stopwords.js")();
@@ -18867,7 +19389,7 @@ module.exports = function (text) {
 };
 
 
-},{"../config/stopwords.js":89,"../stringProcessing/createWordRegex.js":219}],207:[function(require,module,exports){
+},{"../config/stopwords.js":89,"../stringProcessing/createWordRegex.js":224}],212:[function(require,module,exports){
 "use strict";
 /** @module researches/stopWordsInUrl */
 
@@ -18882,7 +19404,7 @@ module.exports = function (paper) {
 };
 
 
-},{"./stopWordsInText.js":206}],208:[function(require,module,exports){
+},{"./stopWordsInText.js":211}],213:[function(require,module,exports){
 "use strict";
 /** @module analyses/isUrlTooLong */
 /**
@@ -18904,7 +19426,7 @@ module.exports = function (paper) {
 };
 
 
-},{}],209:[function(require,module,exports){
+},{}],214:[function(require,module,exports){
 "use strict";
 
 var wordCount = require("../stringProcessing/countWords.js");
@@ -18918,7 +19440,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/countWords.js":216}],210:[function(require,module,exports){
+},{"../stringProcessing/countWords.js":221}],215:[function(require,module,exports){
 "use strict";
 
 var Assessor = require("./assessor.js");
@@ -18956,7 +19478,7 @@ require("util").inherits(SEOAssessor, Assessor);
 module.exports = SEOAssessor;
 
 
-},{"./assessments/seo/internalLinksAssessment":63,"./assessments/seo/introductionKeywordAssessment.js":64,"./assessments/seo/keyphraseLengthAssessment.js":65,"./assessments/seo/keywordDensityAssessment.js":66,"./assessments/seo/keywordStopWordsAssessment.js":67,"./assessments/seo/metaDescriptionKeywordAssessment.js":68,"./assessments/seo/metaDescriptionLengthAssessment.js":69,"./assessments/seo/outboundLinksAssessment.js":70,"./assessments/seo/pageTitleWidthAssessment.js":71,"./assessments/seo/subheadingsKeywordAssessment.js":72,"./assessments/seo/textCompetingLinksAssessment.js":73,"./assessments/seo/textImagesAssessment.js":74,"./assessments/seo/textLengthAssessment.js":75,"./assessments/seo/titleKeywordAssessment.js":76,"./assessments/seo/urlKeywordAssessment.js":77,"./assessments/seo/urlLengthAssessment.js":78,"./assessments/seo/urlStopWordsAssessment.js":79,"./assessor.js":80,"util":50}],211:[function(require,module,exports){
+},{"./assessments/seo/internalLinksAssessment":63,"./assessments/seo/introductionKeywordAssessment.js":64,"./assessments/seo/keyphraseLengthAssessment.js":65,"./assessments/seo/keywordDensityAssessment.js":66,"./assessments/seo/keywordStopWordsAssessment.js":67,"./assessments/seo/metaDescriptionKeywordAssessment.js":68,"./assessments/seo/metaDescriptionLengthAssessment.js":69,"./assessments/seo/outboundLinksAssessment.js":70,"./assessments/seo/pageTitleWidthAssessment.js":71,"./assessments/seo/subheadingsKeywordAssessment.js":72,"./assessments/seo/textCompetingLinksAssessment.js":73,"./assessments/seo/textImagesAssessment.js":74,"./assessments/seo/textLengthAssessment.js":75,"./assessments/seo/titleKeywordAssessment.js":76,"./assessments/seo/urlKeywordAssessment.js":77,"./assessments/seo/urlLengthAssessment.js":78,"./assessments/seo/urlStopWordsAssessment.js":79,"./assessor.js":80,"util":50}],216:[function(require,module,exports){
 "use strict";
 
 var isEmpty = require("lodash/isEmpty");
@@ -18999,7 +19521,7 @@ var defaults = {
     },
     addTrailingSlash: true,
     metaDescriptionDate: "",
-    previewMode: "mobile"
+    previewMode: "desktop"
 };
 var titleMaxLength = 600;
 var metadescriptionMaxLength = 320;
@@ -19014,7 +19536,7 @@ var inputPreviewBindings = [{
     inputField: "metaDesc"
 }];
 /**
- * Get's the base URL for this instance of the snippet preview.
+ * Get's the base URL for this instance of the Snippet Preview.
  *
  * @private
  * @this SnippetPreview
@@ -19040,6 +19562,7 @@ var getBaseURL = function getBaseURL() {
  * @this SnippetPreview
  *
  * @param {string} key The key to retrieve.
+ *
  * @returns {string} The unformatted text.
  */
 function retrieveUnformattedText(key) {
@@ -19053,6 +19576,7 @@ function retrieveUnformattedText(key) {
  *
  * @param {string} key The data key to update.
  * @param {string} value The value to update.
+ *
  * @returns {void}
  */
 function updateUnformattedText(key, value) {
@@ -19063,6 +19587,7 @@ function updateUnformattedText(key, value) {
  * Returns if a url has a trailing slash or not.
  *
  * @param {string} url The url to check for a trailing slash.
+ *
  * @returns {boolean} Whether or not the url contains a trailing slash.
  */
 function hasTrailingSlash(url) {
@@ -19083,6 +19608,7 @@ function hasProgressSupport() {
  * Returns a rating based on the length of the title
  *
  * @param {number} titleLength the length of the title.
+ *
  * @returns {string} The rating given based on the title length.
  */
 function rateTitleLength(titleLength) {
@@ -19105,6 +19631,7 @@ function rateTitleLength(titleLength) {
  * Returns a rating based on the length of the meta description
  *
  * @param {number} metaDescLength the length of the meta description.
+ *
  * @returns {string} The rating given based on the description length.
  */
 function rateMetaDescLength(metaDescLength) {
@@ -19133,6 +19660,7 @@ function rateMetaDescLength(metaDescLength) {
  * @param {number} value The current value.
  * @param {number} maximum The maximum allowed value.
  * @param {string} rating The SEO score rating for this value.
+ *
  * @returns {void}
  */
 function updateProgressBar(element, value, maximum, rating) {
@@ -19155,7 +19683,7 @@ function updateProgressBar(element, value, maximum, rating) {
  * Defines the config and outputTarget for the SnippetPreview
  *
  * @param {Object}         opts                           - Snippet preview options.
- * @param {App}            opts.analyzerApp               - The app object the snippet preview is part of.
+ * @param {App}            opts.analyzerApp               - The app object the Snippet Preview is part of.
  * @param {Object}         opts.placeholder               - The placeholder values for the fields, will be shown as
  * actual placeholders in the inputs and as a fallback for the preview.
  * @param {string}         opts.placeholder.title         - The placeholder title.
@@ -19187,29 +19715,23 @@ function updateProgressBar(element, value, maximum, rating) {
  * @property {HTMLElement} targetElement                  - The target element that contains this snippet editor.
  *
  * @property {Object}      element                        - The elements for this snippet editor.
- *
- * @property {Object}      element.measurers              - The elements for rendered measurements.
- * @property {HTMLElement} element.measurers.metaHeight   - The rendered meta height element.
- *
  * @property {Object}      element.rendered               - The rendered elements.
  * @property {HTMLElement} element.rendered.title         - The rendered title element.
  * @property {HTMLElement} element.rendered.urlPath       - The rendered url path element.
  * @property {HTMLElement} element.rendered.urlBase       - The rendered url base element.
  * @property {HTMLElement} element.rendered.metaDesc      - The rendered meta description element.
  *
+ * @property {HTMLElement} element.measurers.titleWidth   - The rendered title width element.
+ * @property {HTMLElement} element.measurers.metaHeight   - The rendered meta height element.
+ *
  * @property {Object}      element.input                  - The input elements.
  * @property {HTMLElement} element.input.title            - The title input element.
  * @property {HTMLElement} element.input.urlPath          - The url path input element.
  * @property {HTMLElement} element.input.metaDesc         - The meta description input element.
  *
- * @property {Object}      element.progress               - The progress bar elements.
- * @property {HTMLElement} element.progress.title         - The title progress par.
- * @property {HTMLElement} element.progress.metaDesc      - The meta description progress bar.
- *
+ * @property {HTMLElement} element.container              - The main container element.
  * @property {HTMLElement} element.formContainer          - The form container element.
  * @property {HTMLElement} element.editToggle             - The button that toggles the editor form.
- * @property {HTMLElement} element.closeEditor            - The button that closes the editor form.
- * @property {Array}       element.formFields             - Other form fields, e.g. the ones in the Social Previews.
  *
  * @property {Object}      data                           - The data for this snippet editor.
  * @property {string}      data.title                     - The title.
@@ -19319,6 +19841,7 @@ SnippetPreview.prototype.renderTemplate = function () {
             title: targetElement.getElementsByClassName("snippet-editor__progress-title")[0],
             metaDesc: targetElement.getElementsByClassName("snippet-editor__progress-meta-description")[0]
         },
+        container: document.getElementById("snippet_preview"),
         formContainer: targetElement.getElementsByClassName("snippet-editor__form")[0],
         editToggle: targetElement.getElementsByClassName("snippet-editor__edit-button")[0],
         closeEditor: targetElement.getElementsByClassName("snippet-editor__submit")[0],
@@ -19344,12 +19867,14 @@ SnippetPreview.prototype.renderTemplate = function () {
         });
     }
     this.initPreviewToggler();
+    this.setInitialView();
     this.opened = false;
     this.createMeasurementElements();
     this.updateProgressBars();
 };
 /**
  * Initializes the Snippet Preview Toggler.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.initPreviewToggler = function () {
@@ -19409,7 +19934,7 @@ var getAnalyzerMetaDesc = function getAnalyzerMetaDesc() {
     return stripSpaces(metaDesc);
 };
 /**
- * Returns the data from the snippet preview.
+ * Returns the data from the Snippet Preview.
  *
  * @returns {Object} The collected data for the analyzer.
  */
@@ -19422,6 +19947,7 @@ SnippetPreview.prototype.getAnalyzerData = function () {
 };
 /**
  * Calls the event binder that has been registered using the callbacks option in the arguments of the App.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.callRegisteredEventBinder = function () {
@@ -19430,7 +19956,8 @@ SnippetPreview.prototype.callRegisteredEventBinder = function () {
     }
 };
 /**
- *  Checks if title and url are set so they can be rendered in the snippetPreview
+ *  Checks if title and url are set so they can be rendered in the Snippet Preview.
+ *
  *  @returns {void}
  */
 SnippetPreview.prototype.init = function () {
@@ -19439,7 +19966,7 @@ SnippetPreview.prototype.init = function () {
     }
 };
 /**
- * Creates html object to contain the strings for the snippetpreview
+ * Creates html object to contain the strings for the Snippet Preview.
  *
  * @returns {Object} The HTML output of the collected data.
  */
@@ -19452,7 +19979,7 @@ SnippetPreview.prototype.htmlOutput = function () {
     return html;
 };
 /**
- * Formats the title for the snippet preview. If title and pageTitle are empty, sampletext is used
+ * Formats the title for the Snippet Preview. If title and pageTitle are empty, sampletext is used.
  *
  * @returns {string} The correctly formatted title.
  */
@@ -19478,9 +20005,9 @@ SnippetPreview.prototype.formatTitle = function () {
     return title;
 };
 /**
- * Formats the base url for the snippet preview. Removes the protocol name from the URL.
+ * Formats the base url for the Snippet Preview. Removes the protocol name from the URL.
  *
- * @returns {string} Formatted base url for the snippet preview.
+ * @returns {string} Formatted base url for the Snippet Preview.
  */
 SnippetPreview.prototype.formatUrl = function () {
     var url = getBaseURL.call(this);
@@ -19488,9 +20015,9 @@ SnippetPreview.prototype.formatUrl = function () {
     return url.replace(/http:\/\//ig, "");
 };
 /**
- * Formats the url for the snippet preview
+ * Formats the url for the Snippet Preview.
  *
- * @returns {string} Formatted URL for the snippet preview.
+ * @returns {string} Formatted URL for the Snippet Preview.
  */
 SnippetPreview.prototype.formatCite = function () {
     var cite = this.data.urlPath;
@@ -19510,7 +20037,7 @@ SnippetPreview.prototype.formatCite = function () {
     return cite;
 };
 /**
- * Formats the meta description for the snippet preview, if it's empty retrieves it using getMetaText.
+ * Formats the meta description for the Snippet Preview, if it's empty retrieves it using getMetaText.
  *
  * @returns {string} Formatted meta description.
  */
@@ -19537,9 +20064,9 @@ SnippetPreview.prototype.formatMeta = function () {
     return meta;
 };
 /**
- * Generates a meta description with an educated guess based on the passed text and excerpt. It uses the keyword to
- * select an appropriate part of the text. If the keyword isn't present it takes the first 320 characters of the text.
- * If both the keyword, text and excerpt are empty this function returns the sample text.
+ * Generates a meta description with an educated guess based on the passed text and excerpt.
+ * It uses the keyword to select an appropriate part of the text. If the keyword isn't present it takes the first
+ * 320 characters of the text. If both the keyword, text and excerpt are empty this function returns the sample text.
  *
  * @returns {string} A generated meta description.
  */
@@ -19558,7 +20085,8 @@ SnippetPreview.prototype.getMetaText = function () {
     return metaText.substring(0, metadescriptionMaxLength);
 };
 /**
- * Builds an array with all indexes of the keyword
+ * Builds an array with all indexes of the keyword.
+ *
  * @returns {Array} Array with matches
  */
 SnippetPreview.prototype.getIndexMatches = function () {
@@ -19576,7 +20104,8 @@ SnippetPreview.prototype.getIndexMatches = function () {
     return indexMatches;
 };
 /**
- * Builds an array with indexes of all sentence ends (select on .)
+ * Builds an array with indexes of all sentence ends (select on .).
+ *
  * @returns {Array} Array with sentences.
  */
 SnippetPreview.prototype.getPeriodMatches = function () {
@@ -19594,6 +20123,7 @@ SnippetPreview.prototype.getPeriodMatches = function () {
  * strips unwanted characters that could break the regex or give unwanted results.
  *
  * @param {string} textString The keyword string that needs to be formatted.
+ *
  * @returns {string} The formatted keyword.
  */
 SnippetPreview.prototype.formatKeyword = function (textString) {
@@ -19615,11 +20145,11 @@ SnippetPreview.prototype.formatKeyword = function (textString) {
     return textString;
 };
 /**
- * Formats the keyword for use in the URL by accepting - and _ in stead of space and by adding
- * <strong>-tags
- * Strips unwanted characters that could break the regex or give unwanted results
+ * Formats the keyword for use in the URL by accepting - and _ instead of spaces and by adding <strong>-tags.
+ * Strips unwanted characters that could break the regex or give unwanted results.
  *
  * @param {string} textString The keyword string that needs to be formatted.
+ *
  * @returns {XML|string|void} The formatted keyword string to be used in the URL.
  */
 SnippetPreview.prototype.formatKeywordUrl = function (textString) {
@@ -19636,6 +20166,7 @@ SnippetPreview.prototype.formatKeywordUrl = function (textString) {
 };
 /**
  * Renders the outputs to the elements on the page.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.renderOutput = function () {
@@ -19646,6 +20177,7 @@ SnippetPreview.prototype.renderOutput = function () {
 };
 /**
  * Makes the rendered meta description gray if no meta description has been set by the user.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.renderSnippetStyle = function () {
@@ -19660,7 +20192,8 @@ SnippetPreview.prototype.renderSnippetStyle = function () {
     }
 };
 /**
- * Function to call init, to rerender the snippetpreview
+ * Function to call init, to rerender the Snippet Preview.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.reRender = function () {
@@ -19669,6 +20202,7 @@ SnippetPreview.prototype.reRender = function () {
 /**
  * Checks text length of the snippetmeta and snippet title, shortens it if it is too long.
  * @param {Object} event The event to check the text length from.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.checkTextLength = function (event) {
@@ -19697,9 +20231,13 @@ SnippetPreview.prototype.checkTextLength = function (event) {
     }
 };
 /**
- * When clicked on an element in the snippet, checks fills the textContent with the data from the unformatted text.
- * This removes the keyword highlighting and modified data so the original content can be editted.
+ * Get the unformatted text.
+ *
+ * When clicking on an element in the Snippet Preview, this checks and fills the textContent with the data from the
+ * unformatted text. This removes the keyword highlighting and modified data so the original content can be editted.
+ *
  * @param {Object} event The event to get the unformatted text from.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.getUnformattedText = function (event) {
@@ -19709,9 +20247,13 @@ SnippetPreview.prototype.getUnformattedText = function (event) {
     }
 };
 /**
+ * Sets the unformatted text.
+ *
  * When text is entered into the snippetPreview elements, the text is set in the unformattedText object.
  * This allows the visible data to be editted in the snippetPreview.
+ *
  * @param {Object} event The event to set the unformatted text from.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.setUnformattedText = function (event) {
@@ -19720,6 +20262,7 @@ SnippetPreview.prototype.setUnformattedText = function (event) {
 };
 /**
  * Validates all fields and highlights errors.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.validateFields = function () {
@@ -19737,7 +20280,8 @@ SnippetPreview.prototype.validateFields = function () {
     }
 };
 /**
- * Updates progress bars based on the data
+ * Updates progress bars based on the available data.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.updateProgressBars = function () {
@@ -19749,15 +20293,26 @@ SnippetPreview.prototype.updateProgressBars = function () {
     updateProgressBar.call(this, this.element.progress.metaDesc, metaDescription.length, metadescriptionMaxLength, metaDescriptionRating);
 };
 /**
+ * Gets the width of the Snippet Preview to set its initial view to desktop or mobile.
+ *
+ * @returns {void}
+ */
+SnippetPreview.prototype.setInitialView = function () {
+    var previewWidth = document.getElementById("snippet_preview").getBoundingClientRect().width;
+    this.snippetPreviewToggle.setVisibility(previewWidth);
+};
+/**
  * When the window is resized, gets the width of the Snippet Preview to set the Scroll Hint visibility.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.handleWindowResizing = debounce(function () {
-    var previewWidth = this.snippetPreviewToggle.viewElement.getBoundingClientRect().width;
+    var previewWidth = document.getElementById("snippet_preview").getBoundingClientRect().width;
     this.snippetPreviewToggle.setScrollHintVisibility(previewWidth);
 }, 25);
 /**
  * Binds the reloadSnippetText function to the blur of the snippet inputs.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.bindEvents = function () {
@@ -19805,7 +20360,8 @@ SnippetPreview.prototype.bindEvents = function () {
     }.bind(this));
 };
 /**
- * Updates snippet preview on changed input. It's debounced so that we can call this function as much as we want.
+ * Updates Snippet Preview on changed input. It's debounced so that we can call this function as much as we want.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.changedInput = debounce(function () {
@@ -19818,7 +20374,8 @@ SnippetPreview.prototype.changedInput = debounce(function () {
     }
 }, 25);
 /**
- * Updates our data object from the DOM
+ * Updates our data object from the DOM.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.updateDataFromDOM = function () {
@@ -19830,6 +20387,7 @@ SnippetPreview.prototype.updateDataFromDOM = function () {
 };
 /**
  * Opens the snippet editor.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.openEditor = function () {
@@ -19840,6 +20398,7 @@ SnippetPreview.prototype.openEditor = function () {
 };
 /**
  * Closes the snippet editor.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.closeEditor = function () {
@@ -19851,6 +20410,7 @@ SnippetPreview.prototype.closeEditor = function () {
 };
 /**
  * Toggles the snippet editor.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.toggleEditor = function () {
@@ -19864,6 +20424,7 @@ SnippetPreview.prototype.toggleEditor = function () {
  * Updates carets before the preview and input fields.
  *
  * @private
+ *
  * @returns {void}
  */
 SnippetPreview.prototype._updateFocusCarets = function () {
@@ -19887,6 +20448,7 @@ SnippetPreview.prototype._updateFocusCarets = function () {
  * Updates hover carets before the input fields.
  *
  * @private
+ *
  * @returns {void}
  */
 SnippetPreview.prototype._updateHoverCarets = function () {
@@ -19903,6 +20465,7 @@ SnippetPreview.prototype._updateHoverCarets = function () {
  * Updates the title data and the title input field. This also means the snippet editor view is updated.
  *
  * @param {string} title The title to use in the input field.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.setTitle = function (title) {
@@ -19913,6 +20476,7 @@ SnippetPreview.prototype.setTitle = function (title) {
  * Updates the url path data and the url path input field. This also means the snippet editor view is updated.
  *
  * @param {string} urlPath the URL path to use in the input field.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.setUrlPath = function (urlPath) {
@@ -19923,6 +20487,7 @@ SnippetPreview.prototype.setUrlPath = function (urlPath) {
  * Updates the meta description data and the meta description input field. This also means the snippet editor view is updated.
  *
  * @param {string} metaDesc the meta description to use in the input field.
+ *
  * @returns {void}
  */
 SnippetPreview.prototype.setMetaDescription = function (metaDesc) {
@@ -20004,47 +20569,50 @@ SnippetPreview.prototype.hasPluggable = function () {
 };
 /* eslint-disable */
 /**
+ * Disables Enter as input.
+ *
  * Used to disable enter as input. Returns false to prevent enter, and preventDefault and
- * cancelBubble to prevent
- * other elements from capturing this event.
+ * cancelBubble to prevent other elements from capturing this event.
  *
  * @deprecated
- * @param {KeyboardEvent} ev
+ *
+ * @param {KeyboardEvent} ev The keyboard event.
  */
 SnippetPreview.prototype.disableEnter = function (ev) {};
 /**
- * Adds and remove the tooLong class when a text is too long.
+ * Adds and removes the tooLong class when a text is too long.
  *
  * @deprecated
- * @param ev
+ * @param ev The event.
  */
 SnippetPreview.prototype.textFeedback = function (ev) {};
 /**
- * shows the edit icon corresponding to the hovered element
+ * Shows the edit icon corresponding to the hovered element.
  *
  * @deprecated
  *
- * @param ev
+ * @param ev The event.
  */
 SnippetPreview.prototype.showEditIcon = function (ev) {};
 /**
- * removes all editIcon-classes, sets to snippet_container
+ * Removes all editIcon-classes, sets to snippet_container.
  *
  * @deprecated
  */
 SnippetPreview.prototype.hideEditIcon = function () {};
 /**
- * sets focus on child element of the snippet_container that is clicked. Hides the editicon.
+ * Sets focus on child element of the snippet_container that is clicked. Hides the editicon.
  *
  * @deprecated
- * @param ev
+ *
+ * @param ev The event.
  */
 SnippetPreview.prototype.setFocus = function (ev) {};
 /* eslint-disable */
 module.exports = SnippetPreview;
 
 
-},{"./helpers/domManipulation.js":102,"./snippetPreviewToggler":212,"./stringProcessing/createWordRegex.js":219,"./stringProcessing/replaceDiacritics.js":244,"./stringProcessing/stripHTMLTags.js":248,"./stringProcessing/stripSpaces.js":251,"./stringProcessing/transliterate.js":255,"./templates.js":258,"lodash/clone":474,"lodash/debounce":476,"lodash/defaultsDeep":478,"lodash/forEach":488,"lodash/isElement":502,"lodash/isEmpty":503,"lodash/isUndefined":516}],212:[function(require,module,exports){
+},{"./helpers/domManipulation.js":102,"./snippetPreviewToggler":217,"./stringProcessing/createWordRegex.js":224,"./stringProcessing/replaceDiacritics.js":249,"./stringProcessing/stripHTMLTags.js":253,"./stringProcessing/stripSpaces.js":256,"./stringProcessing/transliterate.js":260,"./templates.js":263,"lodash/clone":479,"lodash/debounce":481,"lodash/defaultsDeep":483,"lodash/forEach":493,"lodash/isElement":507,"lodash/isEmpty":508,"lodash/isUndefined":521}],217:[function(require,module,exports){
 "use strict";
 
 var forEach = require("lodash/forEach");
@@ -20053,11 +20621,7 @@ var previewModes = {
     desktop: "snippet-editor__view--desktop",
     mobile: "snippet-editor__view--mobile"
 };
-/*
- * The Google snippet has a 600 pixels max-width on desktop but we need an
- * additional 20 pixels space to display the hover/focus "arrows".
-*/
-var minimumDesktopWidth = 620;
+var minimumDesktopWidth = 640;
 /**
  * Constructs the snippet preview toggle.
  *
@@ -20164,19 +20728,46 @@ SnippetPreviewToggler.prototype._findElementByMode = function (previewMode) {
  * @private
  */
 SnippetPreviewToggler.prototype._setPreviewMode = function (previewMode, toggleElement) {
-    var previewWidth;
     this._removeActiveStates();
     this._setActiveState(toggleElement);
     domManipulation.removeClass(this.viewElement, previewModes[this.previewMode]);
     domManipulation.addClass(this.viewElement, previewModes[previewMode]);
-    if (previewMode === "desktop") {
-        previewWidth = this.viewElement.getBoundingClientRect().width;
-        this.setScrollHintVisibility(previewWidth);
-    }
     this.previewMode = previewMode;
 };
 /**
- * Sets the visibilty of the Scroll Hint message.
+ * Sets the Snippet Preview Toggler to desktop mode.
+ *
+ * @returns {void}
+ */
+SnippetPreviewToggler.prototype.setDesktopMode = function () {
+    this._setPreviewMode("desktop", this._findElementByMode("desktop"));
+};
+/**
+ * Sets the Snippet Preview Toggler to mobile mode.
+ *
+ * @returns {void}
+ */
+SnippetPreviewToggler.prototype.setMobileMode = function () {
+    this._setPreviewMode("mobile", this._findElementByMode("mobile"));
+};
+/**
+ * Sets the initial view to desktop or mobile based on the width of the Snippet Preview container.
+ *
+ * @param {number} previewWidth the width of the Snippet Preview container.
+ *
+ * @returns {void}
+ */
+SnippetPreviewToggler.prototype.setVisibility = function (previewWidth) {
+    if (previewWidth < minimumDesktopWidth) {
+        this.setMobileMode();
+        // At this point the desktop view is scrollable: set a CSS class to show the Scroll Hint message.
+        domManipulation.addClass(this.viewElement, "snippet-editor__view--desktop-has-scroll");
+    } else {
+        this.setDesktopMode();
+    }
+};
+/**
+ * When the window is resized, sets the visibility of the Scroll Hint message.
  *
  * @param {number} previewWidth the width of the Snippet Preview container.
  *
@@ -20242,7 +20833,7 @@ SnippetPreviewToggler.prototype._setActiveState = function (elementToActivate) {
 module.exports = SnippetPreviewToggler;
 
 
-},{"./helpers/domManipulation.js":102,"lodash/forEach":488}],213:[function(require,module,exports){
+},{"./helpers/domManipulation.js":102,"lodash/forEach":493}],218:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/addWordboundary */
 /**
@@ -20270,7 +20861,7 @@ module.exports = function (matchString) {
 };
 
 
-},{}],214:[function(require,module,exports){
+},{}],219:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/checkNofollow */
 // We use an external library, which can be found here: https://github.com/fb55/htmlparser2.
@@ -20307,7 +20898,7 @@ module.exports = function (anchorHTML) {
 };
 
 
-},{"htmlparser2":294}],215:[function(require,module,exports){
+},{"htmlparser2":299}],220:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/countSentences */
 
@@ -20328,7 +20919,7 @@ module.exports = function (text) {
 };
 
 
-},{"../stringProcessing/getSentences.js":226}],216:[function(require,module,exports){
+},{"../stringProcessing/getSentences.js":231}],221:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/countWords */
 
@@ -20344,7 +20935,7 @@ module.exports = function (text) {
 };
 
 
-},{"../stringProcessing/getWords.js":229}],217:[function(require,module,exports){
+},{"../stringProcessing/getWords.js":234}],222:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/createRegexFromArray */
 
@@ -20371,7 +20962,7 @@ module.exports = function (array, disableWordBoundary) {
 };
 
 
-},{"../stringProcessing/addWordboundary.js":213,"lodash/map":519}],218:[function(require,module,exports){
+},{"../stringProcessing/addWordboundary.js":218,"lodash/map":524}],223:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/createRegexFromDoubleArray */
 
@@ -20401,7 +20992,7 @@ module.exports = function (array) {
 };
 
 
-},{"../stringProcessing/addWordboundary.js":213}],219:[function(require,module,exports){
+},{"../stringProcessing/addWordboundary.js":218}],224:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/stringToRegex */
 
@@ -20433,10 +21024,10 @@ module.exports = memoize(function (string, extraBoundary, doReplaceDiacritics) {
 });
 
 
-},{"../stringProcessing/addWordboundary.js":213,"../stringProcessing/replaceDiacritics.js":244,"../stringProcessing/sanitizeString":246,"lodash/escapeRegExp":482,"lodash/isUndefined":516,"lodash/memoize":520}],220:[function(require,module,exports){
+},{"../stringProcessing/addWordboundary.js":218,"../stringProcessing/replaceDiacritics.js":249,"../stringProcessing/sanitizeString":251,"lodash/escapeRegExp":487,"lodash/isUndefined":521,"lodash/memoize":525}],225:[function(require,module,exports){
 "use strict";
 
-var getWordIndices = require("../researches/passiveVoice/getIndicesWithRegex.js");
+var getWordIndices = require("../researches/passiveVoice/periphrastic/getIndicesWithRegex.js");
 var includesIndex = require("./includesIndex");
 var arrayToRegex = require("./createRegexFromArray.js");
 var cannotDirectlyPrecedePassiveParticipleFrench = require("../researches/french/functionWords.js")().cannotDirectlyPrecedePassiveParticiple;
@@ -20448,20 +21039,21 @@ var cannotDirectlyPrecedePassiveParticipleSpanish = require("../researches/spani
  *
  * @param {string} sentencePart The sentence part that contains the participle.
  * @param {number} participleIndex The index of the participle.
+ * @param {string} language The language of the participle.
  *
  * @returns {boolean} Returns true if a word from the direct precedence exception list is directly preceding
  * the participle, otherwise returns false.
  */
-module.exports = function (sentencePart, participleIndex) {
+module.exports = function (sentencePart, participleIndex, language) {
     var directPrecedenceExceptionRegex;
-    switch (this.constructor.name) {
-        case "FrenchParticiple":
+    switch (language) {
+        case "fr":
             directPrecedenceExceptionRegex = arrayToRegex(cannotDirectlyPrecedePassiveParticipleFrench);
             break;
-        case "SpanishParticiple":
+        case "es":
             directPrecedenceExceptionRegex = arrayToRegex(cannotDirectlyPrecedePassiveParticipleSpanish);
             break;
-        case "EnglishParticiple":
+        case "en":
         default:
             directPrecedenceExceptionRegex = arrayToRegex(cannotDirectlyPrecedePassiveParticipleEnglish);
             break;
@@ -20471,7 +21063,7 @@ module.exports = function (sentencePart, participleIndex) {
 };
 
 
-},{"../researches/english/functionWords.js":130,"../researches/french/functionWords.js":143,"../researches/passiveVoice/getIndicesWithRegex.js":190,"../researches/spanish/functionWords.js":197,"./createRegexFromArray.js":217,"./includesIndex":232}],221:[function(require,module,exports){
+},{"../researches/english/functionWords.js":130,"../researches/french/functionWords.js":143,"../researches/passiveVoice/periphrastic/getIndicesWithRegex.js":190,"../researches/spanish/functionWords.js":202,"./createRegexFromArray.js":222,"./includesIndex":237}],226:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/findKeywordInUrl */
 
@@ -20496,7 +21088,7 @@ module.exports = function (url, keyword, locale) {
 };
 
 
-},{"./matchTextWithTransliteration.js":236,"lodash/escapeRegExp":482}],222:[function(require,module,exports){
+},{"./matchTextWithTransliteration.js":241,"lodash/escapeRegExp":487}],227:[function(require,module,exports){
 "use strict";
 
 var isEmpty = require("lodash/isEmpty");
@@ -20524,7 +21116,7 @@ module.exports = function (followingWords, match) {
 };
 
 
-},{"lodash/forEach":488,"lodash/includes":494,"lodash/isEmpty":503}],223:[function(require,module,exports){
+},{"lodash/forEach":493,"lodash/includes":499,"lodash/isEmpty":508}],228:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/getAlttagContent */
 
@@ -20548,7 +21140,7 @@ module.exports = function (text) {
 };
 
 
-},{"../stringProcessing/stripSpaces.js":251}],224:[function(require,module,exports){
+},{"../stringProcessing/stripSpaces.js":256}],229:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/getAnchorsFromText */
 /**
@@ -20569,7 +21161,7 @@ module.exports = function (text) {
 };
 
 
-},{}],225:[function(require,module,exports){
+},{}],230:[function(require,module,exports){
 "use strict";
 /** @module stringProcess/getLinkType */
 
@@ -20599,7 +21191,7 @@ module.exports = function (text, url) {
 };
 
 
-},{"./url":257}],226:[function(require,module,exports){
+},{"./url":262}],231:[function(require,module,exports){
 "use strict";
 
 var map = require("lodash/map");
@@ -20793,7 +21385,7 @@ function getSentencesFromTokens(tokens) {
                 break;
             case "sentence-delimiter":
                 currentSentence += token.src;
-                if (!isUndefined(nextToken) && "block-end" !== nextToken.type) {
+                if (!isUndefined(nextToken) && "block-end" !== nextToken.type && "sentence-delimiter" !== nextToken.type) {
                     tokenSentences.push(currentSentence);
                     currentSentence = "";
                 }
@@ -20872,7 +21464,7 @@ module.exports = function (text) {
 };
 
 
-},{"../helpers/html.js":109,"../stringProcessing/quotes.js":241,"../stringProcessing/unifyWhitespace.js":256,"lodash/filter":483,"lodash/flatMap":486,"lodash/forEach":488,"lodash/isEmpty":503,"lodash/isNaN":507,"lodash/isUndefined":516,"lodash/map":519,"lodash/memoize":520,"lodash/negate":523,"tokenizer2/core":544}],227:[function(require,module,exports){
+},{"../helpers/html.js":109,"../stringProcessing/quotes.js":246,"../stringProcessing/unifyWhitespace.js":261,"lodash/filter":488,"lodash/flatMap":491,"lodash/forEach":493,"lodash/isEmpty":508,"lodash/isNaN":512,"lodash/isUndefined":521,"lodash/map":524,"lodash/memoize":525,"lodash/negate":528,"tokenizer2/core":549}],232:[function(require,module,exports){
 "use strict";
 /**
  * Returns all texts per subheading.
@@ -20900,7 +21492,7 @@ module.exports = function (text) {
 };
 
 
-},{}],228:[function(require,module,exports){
+},{}],233:[function(require,module,exports){
 "use strict";
 
 var map = require("lodash/map");
@@ -20939,7 +21531,7 @@ module.exports = {
 };
 
 
-},{"lodash/map":519}],229:[function(require,module,exports){
+},{"lodash/map":524}],234:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/countWords */
 
@@ -20969,7 +21561,7 @@ module.exports = function (text) {
 };
 
 
-},{"./removePunctuation.js":243,"./stripHTMLTags.js":248,"./stripSpaces.js":251,"lodash/filter":483,"lodash/map":519}],230:[function(require,module,exports){
+},{"./removePunctuation.js":248,"./stripHTMLTags.js":253,"./stripSpaces.js":256,"lodash/filter":488,"lodash/map":524}],235:[function(require,module,exports){
 "use strict";
 // We use an external library, which can be found here: https://github.com/fb55/htmlparser2.
 
@@ -21047,7 +21639,7 @@ module.exports = function (text) {
 };
 
 
-},{"htmlparser2":294,"lodash/includes":494}],231:[function(require,module,exports){
+},{"htmlparser2":299,"lodash/includes":499}],236:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/imageInText */
 
@@ -21063,7 +21655,7 @@ module.exports = function (text) {
 };
 
 
-},{"./matchStringWithRegex.js":235}],232:[function(require,module,exports){
+},{"./matchStringWithRegex.js":240}],237:[function(require,module,exports){
 "use strict";
 
 var isEmpty = require("lodash/isEmpty");
@@ -21099,7 +21691,7 @@ module.exports = function (precedingWords, matchIndex) {
 };
 
 
-},{"lodash/forEach":488,"lodash/includes":494,"lodash/isEmpty":503}],233:[function(require,module,exports){
+},{"lodash/forEach":493,"lodash/includes":499,"lodash/isEmpty":508}],238:[function(require,module,exports){
 "use strict";
 
 var isUndefined = require("lodash/isUndefined");
@@ -21193,7 +21785,7 @@ module.exports = {
 };
 
 
-},{"../stringProcessing/matchWordInSentence.js":238,"../stringProcessing/stripSpaces.js":251,"lodash/forEach":488,"lodash/isUndefined":516}],234:[function(require,module,exports){
+},{"../stringProcessing/matchWordInSentence.js":243,"../stringProcessing/stripSpaces.js":256,"lodash/forEach":493,"lodash/isUndefined":521}],239:[function(require,module,exports){
 "use strict";
 
 var map = require("lodash/map");
@@ -21245,7 +21837,7 @@ module.exports = function (text) {
 };
 
 
-},{"../helpers/html":109,"lodash/filter":483,"lodash/flatMap":486,"lodash/map":519}],235:[function(require,module,exports){
+},{"../helpers/html":109,"lodash/filter":488,"lodash/flatMap":491,"lodash/map":524}],240:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/matchStringWithRegex */
 /**
@@ -21266,7 +21858,7 @@ module.exports = function (text, regexString) {
 };
 
 
-},{}],236:[function(require,module,exports){
+},{}],241:[function(require,module,exports){
 "use strict";
 
 var map = require("lodash/map");
@@ -21303,7 +21895,7 @@ module.exports = function (text, keyword, locale) {
 };
 
 
-},{"./addWordboundary.js":213,"./stripSpaces.js":251,"./transliterate.js":255,"lodash/map":519}],237:[function(require,module,exports){
+},{"./addWordboundary.js":218,"./stripSpaces.js":256,"./transliterate.js":260,"lodash/map":524}],242:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/matchTextWithWord */
 
@@ -21327,7 +21919,7 @@ module.exports = function (text, wordToMatch, locale, extraBoundary) {
 };
 
 
-},{"../stringProcessing/matchTextWithTransliteration.js":236,"../stringProcessing/stripNonTextTags.js":249,"../stringProcessing/unifyWhitespace.js":256}],238:[function(require,module,exports){
+},{"../stringProcessing/matchTextWithTransliteration.js":241,"../stringProcessing/stripNonTextTags.js":254,"../stringProcessing/unifyWhitespace.js":261}],243:[function(require,module,exports){
 "use strict";
 
 var wordBoundaries = require("../config/wordBoundaries.js")();
@@ -21380,10 +21972,10 @@ module.exports = {
 };
 
 
-},{"../config/wordBoundaries.js":96,"./addWordboundary.js":213,"lodash/includes":494}],239:[function(require,module,exports){
+},{"../config/wordBoundaries.js":96,"./addWordboundary.js":218,"lodash/includes":499}],244:[function(require,module,exports){
 "use strict";
 
-var getWordIndices = require("../researches/passiveVoice/getIndicesWithRegex.js");
+var getWordIndices = require("../researches/passiveVoice/periphrastic/getIndicesWithRegex.js");
 var precedesIndex = require("./precedesIndex");
 var arrayToRegex = require("./createRegexFromArray.js");
 var cannotBeBetweenAuxiliaryAndParticipleFrench = require("../researches/french/functionWords.js")().cannotBeBetweenPassiveAuxiliaryAndParticiple;
@@ -21395,20 +21987,21 @@ var cannotBeBetweenAuxiliaryAndParticipleSpanish = require("../researches/spanis
  *
  * @param {string} sentencePart The sentence part that contains the participle.
  * @param {number} participleIndex The index of the participle.
+ * @param {string} language The language of the participle.
  *
  * @returns {boolean} Returns true if a word from the precedence exception list occurs anywhere in the
  * sentence part before the participle, otherwise returns false.
  */
-module.exports = function (sentencePart, participleIndex) {
+module.exports = function (sentencePart, participleIndex, language) {
     var precedenceExceptionRegex;
-    switch (this.constructor.name) {
-        case "FrenchParticiple":
+    switch (language) {
+        case "fr":
             precedenceExceptionRegex = arrayToRegex(cannotBeBetweenAuxiliaryAndParticipleFrench);
             break;
-        case "SpanishParticiple":
+        case "es":
             precedenceExceptionRegex = arrayToRegex(cannotBeBetweenAuxiliaryAndParticipleSpanish);
             break;
-        case "EnglishParticiple":
+        case "en":
         default:
             precedenceExceptionRegex = arrayToRegex(cannotBeBetweenAuxiliaryAndParticipleEnglish);
             break;
@@ -21418,7 +22011,7 @@ module.exports = function (sentencePart, participleIndex) {
 };
 
 
-},{"../researches/english/functionWords.js":130,"../researches/french/functionWords.js":143,"../researches/passiveVoice/getIndicesWithRegex.js":190,"../researches/spanish/functionWords.js":197,"./createRegexFromArray.js":217,"./precedesIndex":240}],240:[function(require,module,exports){
+},{"../researches/english/functionWords.js":130,"../researches/french/functionWords.js":143,"../researches/passiveVoice/periphrastic/getIndicesWithRegex.js":190,"../researches/spanish/functionWords.js":202,"./createRegexFromArray.js":222,"./precedesIndex":245}],245:[function(require,module,exports){
 "use strict";
 
 var isEmpty = require("lodash/isEmpty");
@@ -21454,7 +22047,7 @@ module.exports = function (precedingWords, participleIndex) {
 };
 
 
-},{"lodash/forEach":488,"lodash/isEmpty":503}],241:[function(require,module,exports){
+},{"lodash/forEach":493,"lodash/isEmpty":508}],246:[function(require,module,exports){
 "use strict";
 /**
  * Normalizes single quotes to 'regular' quotes.
@@ -21491,7 +22084,7 @@ module.exports = {
 };
 
 
-},{}],242:[function(require,module,exports){
+},{}],247:[function(require,module,exports){
 "use strict";
 
 var getWords = require("../stringProcessing/getWords.js");
@@ -21504,6 +22097,7 @@ var dutchFunctionWords = require("../researches/dutch/functionWords.js");
 var spanishFunctionWords = require("../researches/spanish/functionWords.js");
 var italianFunctionWords = require("../researches/italian/functionWords.js");
 var frenchFunctionWords = require("../researches/french/functionWords.js");
+var portugueseFunctionWords = require("../researches/portuguese/functionWords.js");
 var getLanguage = require("../helpers/getLanguage.js");
 var filter = require("lodash/filter");
 var map = require("lodash/map");
@@ -21723,6 +22317,9 @@ function getRelevantWords(text, locale) {
         case "it":
             functionWords = italianFunctionWords;
             break;
+        case "pt":
+            functionWords = portugueseFunctionWords;
+            break;
         default:
         case "en":
             functionWords = englishFunctionWords;
@@ -21768,7 +22365,7 @@ module.exports = {
 };
 
 
-},{"../helpers/getLanguage.js":106,"../researches/dutch/functionWords.js":126,"../researches/english/functionWords.js":130,"../researches/french/functionWords.js":143,"../researches/german/functionWords.js":153,"../researches/italian/functionWords.js":177,"../researches/spanish/functionWords.js":197,"../stringProcessing/getSentences.js":226,"../stringProcessing/getWords.js":229,"../stringProcessing/quotes.js":241,"../values/WordCombination.js":265,"lodash/filter":483,"lodash/flatMap":486,"lodash/forEach":488,"lodash/has":490,"lodash/includes":494,"lodash/intersection":496,"lodash/isEmpty":503,"lodash/map":519,"lodash/take":535,"lodash/values":543}],243:[function(require,module,exports){
+},{"../helpers/getLanguage.js":106,"../researches/dutch/functionWords.js":126,"../researches/english/functionWords.js":130,"../researches/french/functionWords.js":143,"../researches/german/functionWords.js":153,"../researches/italian/functionWords.js":176,"../researches/portuguese/functionWords.js":194,"../researches/spanish/functionWords.js":202,"../stringProcessing/getSentences.js":231,"../stringProcessing/getWords.js":234,"../stringProcessing/quotes.js":246,"../values/WordCombination.js":270,"lodash/filter":488,"lodash/flatMap":491,"lodash/forEach":493,"lodash/has":495,"lodash/includes":499,"lodash/intersection":501,"lodash/isEmpty":508,"lodash/map":524,"lodash/take":540,"lodash/values":548}],248:[function(require,module,exports){
 "use strict";
 // Replace all other punctuation characters at the beginning or at the end of a word.
 
@@ -21789,7 +22386,7 @@ module.exports = function (text) {
 };
 
 
-},{}],244:[function(require,module,exports){
+},{}],249:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/replaceDiacritics */
 
@@ -21809,7 +22406,7 @@ module.exports = function (text) {
 };
 
 
-},{"../config/diacritics.js":86}],245:[function(require,module,exports){
+},{"../config/diacritics.js":86}],250:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/replaceString */
 /**
@@ -21827,7 +22424,7 @@ module.exports = function (text, stringToReplace, replacement) {
 };
 
 
-},{}],246:[function(require,module,exports){
+},{}],251:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/sanitizeString */
 
@@ -21846,7 +22443,7 @@ module.exports = function (text) {
 };
 
 
-},{"../stringProcessing/stripHTMLTags.js":248,"../stringProcessing/stripSpaces.js":251}],247:[function(require,module,exports){
+},{"../stringProcessing/stripHTMLTags.js":253,"../stringProcessing/stripSpaces.js":256}],252:[function(require,module,exports){
 "use strict";
 
 var wordCount = require("./countWords.js");
@@ -21875,7 +22472,7 @@ module.exports = function (sentences) {
 };
 
 
-},{"./countWords.js":216,"./stripHTMLTags.js":248,"lodash/forEach":488}],248:[function(require,module,exports){
+},{"./countWords.js":221,"./stripHTMLTags.js":253,"lodash/forEach":493}],253:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/stripHTMLTags */
 
@@ -21923,7 +22520,7 @@ module.exports = {
 };
 
 
-},{"../helpers/html.js":109,"../stringProcessing/stripSpaces.js":251}],249:[function(require,module,exports){
+},{"../helpers/html.js":109,"../stringProcessing/stripSpaces.js":256}],254:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/stripNonTextTags */
 
@@ -21941,7 +22538,7 @@ module.exports = function (text) {
 };
 
 
-},{"../stringProcessing/stripSpaces.js":251}],250:[function(require,module,exports){
+},{"../stringProcessing/stripSpaces.js":256}],255:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/stripNumbers */
 
@@ -21963,7 +22560,7 @@ module.exports = function (text) {
 };
 
 
-},{"../stringProcessing/stripSpaces.js":251}],251:[function(require,module,exports){
+},{"../stringProcessing/stripSpaces.js":256}],256:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/stripSpaces */
 /**
@@ -21984,7 +22581,7 @@ module.exports = function (text) {
 };
 
 
-},{}],252:[function(require,module,exports){
+},{}],257:[function(require,module,exports){
 "use strict";
 
 var replaceString = require("../stringProcessing/replaceString.js");
@@ -22016,7 +22613,7 @@ module.exports = function (matches, keyword, locale) {
 };
 
 
-},{"../config/removalWords.js":88,"../stringProcessing/matchTextWithTransliteration.js":236,"../stringProcessing/replaceString.js":245}],253:[function(require,module,exports){
+},{"../config/removalWords.js":88,"../stringProcessing/matchTextWithTransliteration.js":241,"../stringProcessing/replaceString.js":250}],258:[function(require,module,exports){
 "use strict";
 
 var isUndefined = require("lodash/isUndefined");
@@ -22113,7 +22710,7 @@ DeviationFragment.prototype.getSyllables = function () {
 module.exports = DeviationFragment;
 
 
-},{"lodash/isUndefined":516,"lodash/pick":527}],254:[function(require,module,exports){
+},{"lodash/isUndefined":521,"lodash/pick":532}],259:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/countSyllables */
 
@@ -22266,7 +22863,7 @@ var countSyllablesInText = function countSyllablesInText(text, locale) {
 module.exports = countSyllablesInText;
 
 
-},{"../../config/syllables.js":90,"../../helpers/syllableCountIterator.js":112,"../getWords.js":229,"./DeviationFragment":253,"lodash/filter":483,"lodash/find":484,"lodash/flatMap":486,"lodash/forEach":488,"lodash/isUndefined":516,"lodash/map":519,"lodash/memoize":520,"lodash/sum":534}],255:[function(require,module,exports){
+},{"../../config/syllables.js":90,"../../helpers/syllableCountIterator.js":112,"../getWords.js":234,"./DeviationFragment":258,"lodash/filter":488,"lodash/find":489,"lodash/flatMap":491,"lodash/forEach":493,"lodash/isUndefined":521,"lodash/map":524,"lodash/memoize":525,"lodash/sum":539}],260:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/replaceDiacritics */
 
@@ -22287,7 +22884,7 @@ module.exports = function (text, locale) {
 };
 
 
-},{"../config/transliterations.js":95}],256:[function(require,module,exports){
+},{"../config/transliterations.js":95}],261:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/unifyWhitespace */
 /**
@@ -22324,7 +22921,7 @@ module.exports = {
 };
 
 
-},{}],257:[function(require,module,exports){
+},{}],262:[function(require,module,exports){
 "use strict";
 
 var urlFromAnchorRegex = /href=(["'])([^"']+)\1/i;
@@ -22472,7 +23069,7 @@ module.exports = {
 };
 
 
-},{"url":45}],258:[function(require,module,exports){
+},{"url":45}],263:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -22954,7 +23551,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 }).call(undefined);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],259:[function(require,module,exports){
+},{}],264:[function(require,module,exports){
 "use strict";
 
 var isUndefined = require("lodash/isUndefined");
@@ -23103,7 +23700,7 @@ AssessmentResult.prototype.hasMarks = function () {
 module.exports = AssessmentResult;
 
 
-},{"lodash/isNumber":508,"lodash/isUndefined":516}],260:[function(require,module,exports){
+},{"lodash/isNumber":513,"lodash/isUndefined":521}],265:[function(require,module,exports){
 "use strict";
 
 var defaults = require("lodash/defaults");
@@ -23148,7 +23745,7 @@ Mark.prototype.applyWithReplace = function (text) {
 module.exports = Mark;
 
 
-},{"lodash/defaults":477}],261:[function(require,module,exports){
+},{"lodash/defaults":482}],266:[function(require,module,exports){
 "use strict";
 
 var defaults = require("lodash/defaults");
@@ -23295,7 +23892,7 @@ Paper.prototype.getPermalink = function () {
 module.exports = Paper;
 
 
-},{"lodash/defaults":477}],262:[function(require,module,exports){
+},{"lodash/defaults":482}],267:[function(require,module,exports){
 "use strict";
 
 var getType = require("./../helpers/types.js").getType;
@@ -23308,7 +23905,8 @@ var forEach = require("lodash/forEach");
  */
 var defaultAttributes = {
     auxiliaries: [],
-    type: ""
+    type: "",
+    language: ""
 };
 /**
  * Validates the type of all attributes. Throws an error if the type is invalid.
@@ -23393,6 +23991,13 @@ Participle.prototype.getAuxiliaries = function () {
     return this._attributes.auxiliaries;
 };
 /**
+ * Returns the language.
+ * @returns {string} The language.
+ */
+Participle.prototype.getLanguage = function () {
+    return this._attributes.language;
+};
+/**
  * Returns if the participle is passive or not.
  * @returns {boolean} True if it is passive.
  */
@@ -23413,7 +24018,7 @@ Participle.prototype.setSentencePartPassiveness = function (passive) {
 module.exports = Participle;
 
 
-},{"./../helpers/types.js":114,"lodash/defaults":477,"lodash/forEach":488}],263:[function(require,module,exports){
+},{"./../helpers/types.js":114,"lodash/defaults":482,"lodash/forEach":493}],268:[function(require,module,exports){
 "use strict";
 /**
  * Default attributes to be used by the Sentence if they are left undefined.
@@ -23449,10 +24054,27 @@ Sentence.prototype.getSentenceText = function () {
 Sentence.prototype.getLocale = function () {
   return this._locale;
 };
+/**
+ * Returns the passiveness of a sentence.
+ *
+ * @returns {boolean} True if passive, otherwise returns false.
+ */
+Sentence.prototype.isPassive = function () {
+  return this._isPassive;
+};
+/**
+ * Sets the passiveness of the sentence.
+ *
+ * @param {boolean} passive Whether the sentence is passive or not.
+ * @returns {void}
+ */
+Sentence.prototype.setPassive = function (passive) {
+  this._isPassive = passive;
+};
 module.exports = Sentence;
 
 
-},{}],264:[function(require,module,exports){
+},{}],269:[function(require,module,exports){
 "use strict";
 /**
  * Constructs a sentence part object.
@@ -23514,7 +24136,7 @@ SentencePart.prototype.setPassive = function (passive) {
 module.exports = SentencePart;
 
 
-},{}],265:[function(require,module,exports){
+},{}],270:[function(require,module,exports){
 "use strict";
 
 var forEach = require("lodash/forEach");
@@ -23675,7 +24297,7 @@ WordCombination.prototype.getDensity = function (wordCount) {
 module.exports = WordCombination;
 
 
-},{"lodash/forEach":488,"lodash/has":490}],266:[function(require,module,exports){
+},{"lodash/forEach":493,"lodash/has":495}],271:[function(require,module,exports){
 /*
   Module dependencies
 */
@@ -23855,7 +24477,7 @@ function renderComment(elem) {
   return '<!--' + elem.data + '-->';
 }
 
-},{"domelementtype":267,"entities":279}],267:[function(require,module,exports){
+},{"domelementtype":272,"entities":284}],272:[function(require,module,exports){
 //Types of elements found in the DOM
 module.exports = {
 	Text: "text", //Text
@@ -23870,7 +24492,7 @@ module.exports = {
 		return elem.type === "tag" || elem.type === "script" || elem.type === "style";
 	}
 };
-},{}],268:[function(require,module,exports){
+},{}],273:[function(require,module,exports){
 //Types of elements found in the DOM
 module.exports = {
 	Text: "text", //Text
@@ -23887,7 +24509,7 @@ module.exports = {
 	}
 };
 
-},{}],269:[function(require,module,exports){
+},{}],274:[function(require,module,exports){
 var ElementType = require("domelementtype");
 
 var re_whitespace = /\s+/g;
@@ -24106,7 +24728,7 @@ DomHandler.prototype.onprocessinginstruction = function(name, data){
 
 module.exports = DomHandler;
 
-},{"./lib/element":270,"./lib/node":271,"domelementtype":268}],270:[function(require,module,exports){
+},{"./lib/element":275,"./lib/node":276,"domelementtype":273}],275:[function(require,module,exports){
 // DOM-Level-1-compliant structure
 var NodePrototype = require('./node');
 var ElementPrototype = module.exports = Object.create(NodePrototype);
@@ -24128,7 +24750,7 @@ Object.keys(domLvl1).forEach(function(key) {
 	});
 });
 
-},{"./node":271}],271:[function(require,module,exports){
+},{"./node":276}],276:[function(require,module,exports){
 // This object will be used as the prototype for Nodes when creating a
 // DOM-Level-1-compliant structure.
 var NodePrototype = module.exports = {
@@ -24174,7 +24796,7 @@ Object.keys(domLvl1).forEach(function(key) {
 	});
 });
 
-},{}],272:[function(require,module,exports){
+},{}],277:[function(require,module,exports){
 var DomUtils = module.exports;
 
 [
@@ -24190,7 +24812,7 @@ var DomUtils = module.exports;
 	});
 });
 
-},{"./lib/helpers":273,"./lib/legacy":274,"./lib/manipulation":275,"./lib/querying":276,"./lib/stringify":277,"./lib/traversal":278}],273:[function(require,module,exports){
+},{"./lib/helpers":278,"./lib/legacy":279,"./lib/manipulation":280,"./lib/querying":281,"./lib/stringify":282,"./lib/traversal":283}],278:[function(require,module,exports){
 // removeSubsets
 // Given an array of nodes, remove any member that is contained by another.
 exports.removeSubsets = function(nodes) {
@@ -24333,7 +24955,7 @@ exports.uniqueSort = function(nodes) {
 	return nodes;
 };
 
-},{}],274:[function(require,module,exports){
+},{}],279:[function(require,module,exports){
 var ElementType = require("domelementtype");
 var isTag = exports.isTag = ElementType.isTag;
 
@@ -24422,7 +25044,7 @@ exports.getElementsByTagType = function(type, element, recurse, limit){
 	return this.filter(Checks.tag_type(type), element, recurse, limit);
 };
 
-},{"domelementtype":268}],275:[function(require,module,exports){
+},{"domelementtype":273}],280:[function(require,module,exports){
 exports.removeElement = function(elem){
 	if(elem.prev) elem.prev.next = elem.next;
 	if(elem.next) elem.next.prev = elem.prev;
@@ -24501,7 +25123,7 @@ exports.prepend = function(elem, prev){
 
 
 
-},{}],276:[function(require,module,exports){
+},{}],281:[function(require,module,exports){
 var isTag = require("domelementtype").isTag;
 
 module.exports = {
@@ -24586,23 +25208,19 @@ function existsOne(test, elems){
 
 function findAll(test, rootElems){
 	var result = [];
-	var stack = [rootElems];
+	var stack = rootElems.slice();
 	while(stack.length){
-		var elems = stack.pop();
-		for(var i = 0, j = elems.length; i < j; i++){
-			if(!isTag(elems[i])) continue;
-			if(test(elems[i])) result.push(elems[i]);
+		var elem = stack.shift();
+		if(!isTag(elem)) continue;
+		if (elem.children && elem.children.length > 0) {
+			stack.unshift.apply(stack, elem.children);
 		}
-		while(j-- > 0){
-			if(elems[j].children && elems[j].children.length > 0){
-				stack.push(elems[j].children);
-			}
-		}
+		if(test(elem)) result.push(elem);
 	}
 	return result;
 }
 
-},{"domelementtype":268}],277:[function(require,module,exports){
+},{"domelementtype":273}],282:[function(require,module,exports){
 var ElementType = require("domelementtype"),
     getOuterHTML = require("dom-serializer"),
     isTag = ElementType.isTag;
@@ -24627,7 +25245,7 @@ function getText(elem){
 	return "";
 }
 
-},{"dom-serializer":266,"domelementtype":268}],278:[function(require,module,exports){
+},{"dom-serializer":271,"domelementtype":273}],283:[function(require,module,exports){
 var getChildren = exports.getChildren = function(elem){
 	return elem.children;
 };
@@ -24653,7 +25271,7 @@ exports.getName = function(elem){
 	return elem.name;
 };
 
-},{}],279:[function(require,module,exports){
+},{}],284:[function(require,module,exports){
 var encode = require("./lib/encode.js"),
     decode = require("./lib/decode.js");
 
@@ -24688,7 +25306,7 @@ exports.decodeHTMLStrict = decode.HTMLStrict;
 
 exports.escape = encode.escape;
 
-},{"./lib/decode.js":280,"./lib/encode.js":282}],280:[function(require,module,exports){
+},{"./lib/decode.js":285,"./lib/encode.js":287}],285:[function(require,module,exports){
 var entityMap = require("../maps/entities.json"),
     legacyMap = require("../maps/legacy.json"),
     xmlMap    = require("../maps/xml.json"),
@@ -24761,7 +25379,7 @@ module.exports = {
 	HTML: decodeHTML,
 	HTMLStrict: decodeHTMLStrict
 };
-},{"../maps/entities.json":284,"../maps/legacy.json":285,"../maps/xml.json":286,"./decode_codepoint.js":281}],281:[function(require,module,exports){
+},{"../maps/entities.json":289,"../maps/legacy.json":290,"../maps/xml.json":291,"./decode_codepoint.js":286}],286:[function(require,module,exports){
 var decodeMap = require("../maps/decode.json");
 
 module.exports = decodeCodePoint;
@@ -24789,7 +25407,7 @@ function decodeCodePoint(codePoint){
 	return output;
 }
 
-},{"../maps/decode.json":283}],282:[function(require,module,exports){
+},{"../maps/decode.json":288}],287:[function(require,module,exports){
 var inverseXML = getInverseObj(require("../maps/xml.json")),
     xmlReplacer = getInverseReplacer(inverseXML);
 
@@ -24864,16 +25482,16 @@ function escapeXML(data){
 
 exports.escape = escapeXML;
 
-},{"../maps/entities.json":284,"../maps/xml.json":286}],283:[function(require,module,exports){
+},{"../maps/entities.json":289,"../maps/xml.json":291}],288:[function(require,module,exports){
 module.exports={"0":65533,"128":8364,"130":8218,"131":402,"132":8222,"133":8230,"134":8224,"135":8225,"136":710,"137":8240,"138":352,"139":8249,"140":338,"142":381,"145":8216,"146":8217,"147":8220,"148":8221,"149":8226,"150":8211,"151":8212,"152":732,"153":8482,"154":353,"155":8250,"156":339,"158":382,"159":376}
-},{}],284:[function(require,module,exports){
+},{}],289:[function(require,module,exports){
 module.exports={"Aacute":"\u00C1","aacute":"\u00E1","Abreve":"\u0102","abreve":"\u0103","ac":"\u223E","acd":"\u223F","acE":"\u223E\u0333","Acirc":"\u00C2","acirc":"\u00E2","acute":"\u00B4","Acy":"\u0410","acy":"\u0430","AElig":"\u00C6","aelig":"\u00E6","af":"\u2061","Afr":"\uD835\uDD04","afr":"\uD835\uDD1E","Agrave":"\u00C0","agrave":"\u00E0","alefsym":"\u2135","aleph":"\u2135","Alpha":"\u0391","alpha":"\u03B1","Amacr":"\u0100","amacr":"\u0101","amalg":"\u2A3F","amp":"&","AMP":"&","andand":"\u2A55","And":"\u2A53","and":"\u2227","andd":"\u2A5C","andslope":"\u2A58","andv":"\u2A5A","ang":"\u2220","ange":"\u29A4","angle":"\u2220","angmsdaa":"\u29A8","angmsdab":"\u29A9","angmsdac":"\u29AA","angmsdad":"\u29AB","angmsdae":"\u29AC","angmsdaf":"\u29AD","angmsdag":"\u29AE","angmsdah":"\u29AF","angmsd":"\u2221","angrt":"\u221F","angrtvb":"\u22BE","angrtvbd":"\u299D","angsph":"\u2222","angst":"\u00C5","angzarr":"\u237C","Aogon":"\u0104","aogon":"\u0105","Aopf":"\uD835\uDD38","aopf":"\uD835\uDD52","apacir":"\u2A6F","ap":"\u2248","apE":"\u2A70","ape":"\u224A","apid":"\u224B","apos":"'","ApplyFunction":"\u2061","approx":"\u2248","approxeq":"\u224A","Aring":"\u00C5","aring":"\u00E5","Ascr":"\uD835\uDC9C","ascr":"\uD835\uDCB6","Assign":"\u2254","ast":"*","asymp":"\u2248","asympeq":"\u224D","Atilde":"\u00C3","atilde":"\u00E3","Auml":"\u00C4","auml":"\u00E4","awconint":"\u2233","awint":"\u2A11","backcong":"\u224C","backepsilon":"\u03F6","backprime":"\u2035","backsim":"\u223D","backsimeq":"\u22CD","Backslash":"\u2216","Barv":"\u2AE7","barvee":"\u22BD","barwed":"\u2305","Barwed":"\u2306","barwedge":"\u2305","bbrk":"\u23B5","bbrktbrk":"\u23B6","bcong":"\u224C","Bcy":"\u0411","bcy":"\u0431","bdquo":"\u201E","becaus":"\u2235","because":"\u2235","Because":"\u2235","bemptyv":"\u29B0","bepsi":"\u03F6","bernou":"\u212C","Bernoullis":"\u212C","Beta":"\u0392","beta":"\u03B2","beth":"\u2136","between":"\u226C","Bfr":"\uD835\uDD05","bfr":"\uD835\uDD1F","bigcap":"\u22C2","bigcirc":"\u25EF","bigcup":"\u22C3","bigodot":"\u2A00","bigoplus":"\u2A01","bigotimes":"\u2A02","bigsqcup":"\u2A06","bigstar":"\u2605","bigtriangledown":"\u25BD","bigtriangleup":"\u25B3","biguplus":"\u2A04","bigvee":"\u22C1","bigwedge":"\u22C0","bkarow":"\u290D","blacklozenge":"\u29EB","blacksquare":"\u25AA","blacktriangle":"\u25B4","blacktriangledown":"\u25BE","blacktriangleleft":"\u25C2","blacktriangleright":"\u25B8","blank":"\u2423","blk12":"\u2592","blk14":"\u2591","blk34":"\u2593","block":"\u2588","bne":"=\u20E5","bnequiv":"\u2261\u20E5","bNot":"\u2AED","bnot":"\u2310","Bopf":"\uD835\uDD39","bopf":"\uD835\uDD53","bot":"\u22A5","bottom":"\u22A5","bowtie":"\u22C8","boxbox":"\u29C9","boxdl":"\u2510","boxdL":"\u2555","boxDl":"\u2556","boxDL":"\u2557","boxdr":"\u250C","boxdR":"\u2552","boxDr":"\u2553","boxDR":"\u2554","boxh":"\u2500","boxH":"\u2550","boxhd":"\u252C","boxHd":"\u2564","boxhD":"\u2565","boxHD":"\u2566","boxhu":"\u2534","boxHu":"\u2567","boxhU":"\u2568","boxHU":"\u2569","boxminus":"\u229F","boxplus":"\u229E","boxtimes":"\u22A0","boxul":"\u2518","boxuL":"\u255B","boxUl":"\u255C","boxUL":"\u255D","boxur":"\u2514","boxuR":"\u2558","boxUr":"\u2559","boxUR":"\u255A","boxv":"\u2502","boxV":"\u2551","boxvh":"\u253C","boxvH":"\u256A","boxVh":"\u256B","boxVH":"\u256C","boxvl":"\u2524","boxvL":"\u2561","boxVl":"\u2562","boxVL":"\u2563","boxvr":"\u251C","boxvR":"\u255E","boxVr":"\u255F","boxVR":"\u2560","bprime":"\u2035","breve":"\u02D8","Breve":"\u02D8","brvbar":"\u00A6","bscr":"\uD835\uDCB7","Bscr":"\u212C","bsemi":"\u204F","bsim":"\u223D","bsime":"\u22CD","bsolb":"\u29C5","bsol":"\\","bsolhsub":"\u27C8","bull":"\u2022","bullet":"\u2022","bump":"\u224E","bumpE":"\u2AAE","bumpe":"\u224F","Bumpeq":"\u224E","bumpeq":"\u224F","Cacute":"\u0106","cacute":"\u0107","capand":"\u2A44","capbrcup":"\u2A49","capcap":"\u2A4B","cap":"\u2229","Cap":"\u22D2","capcup":"\u2A47","capdot":"\u2A40","CapitalDifferentialD":"\u2145","caps":"\u2229\uFE00","caret":"\u2041","caron":"\u02C7","Cayleys":"\u212D","ccaps":"\u2A4D","Ccaron":"\u010C","ccaron":"\u010D","Ccedil":"\u00C7","ccedil":"\u00E7","Ccirc":"\u0108","ccirc":"\u0109","Cconint":"\u2230","ccups":"\u2A4C","ccupssm":"\u2A50","Cdot":"\u010A","cdot":"\u010B","cedil":"\u00B8","Cedilla":"\u00B8","cemptyv":"\u29B2","cent":"\u00A2","centerdot":"\u00B7","CenterDot":"\u00B7","cfr":"\uD835\uDD20","Cfr":"\u212D","CHcy":"\u0427","chcy":"\u0447","check":"\u2713","checkmark":"\u2713","Chi":"\u03A7","chi":"\u03C7","circ":"\u02C6","circeq":"\u2257","circlearrowleft":"\u21BA","circlearrowright":"\u21BB","circledast":"\u229B","circledcirc":"\u229A","circleddash":"\u229D","CircleDot":"\u2299","circledR":"\u00AE","circledS":"\u24C8","CircleMinus":"\u2296","CirclePlus":"\u2295","CircleTimes":"\u2297","cir":"\u25CB","cirE":"\u29C3","cire":"\u2257","cirfnint":"\u2A10","cirmid":"\u2AEF","cirscir":"\u29C2","ClockwiseContourIntegral":"\u2232","CloseCurlyDoubleQuote":"\u201D","CloseCurlyQuote":"\u2019","clubs":"\u2663","clubsuit":"\u2663","colon":":","Colon":"\u2237","Colone":"\u2A74","colone":"\u2254","coloneq":"\u2254","comma":",","commat":"@","comp":"\u2201","compfn":"\u2218","complement":"\u2201","complexes":"\u2102","cong":"\u2245","congdot":"\u2A6D","Congruent":"\u2261","conint":"\u222E","Conint":"\u222F","ContourIntegral":"\u222E","copf":"\uD835\uDD54","Copf":"\u2102","coprod":"\u2210","Coproduct":"\u2210","copy":"\u00A9","COPY":"\u00A9","copysr":"\u2117","CounterClockwiseContourIntegral":"\u2233","crarr":"\u21B5","cross":"\u2717","Cross":"\u2A2F","Cscr":"\uD835\uDC9E","cscr":"\uD835\uDCB8","csub":"\u2ACF","csube":"\u2AD1","csup":"\u2AD0","csupe":"\u2AD2","ctdot":"\u22EF","cudarrl":"\u2938","cudarrr":"\u2935","cuepr":"\u22DE","cuesc":"\u22DF","cularr":"\u21B6","cularrp":"\u293D","cupbrcap":"\u2A48","cupcap":"\u2A46","CupCap":"\u224D","cup":"\u222A","Cup":"\u22D3","cupcup":"\u2A4A","cupdot":"\u228D","cupor":"\u2A45","cups":"\u222A\uFE00","curarr":"\u21B7","curarrm":"\u293C","curlyeqprec":"\u22DE","curlyeqsucc":"\u22DF","curlyvee":"\u22CE","curlywedge":"\u22CF","curren":"\u00A4","curvearrowleft":"\u21B6","curvearrowright":"\u21B7","cuvee":"\u22CE","cuwed":"\u22CF","cwconint":"\u2232","cwint":"\u2231","cylcty":"\u232D","dagger":"\u2020","Dagger":"\u2021","daleth":"\u2138","darr":"\u2193","Darr":"\u21A1","dArr":"\u21D3","dash":"\u2010","Dashv":"\u2AE4","dashv":"\u22A3","dbkarow":"\u290F","dblac":"\u02DD","Dcaron":"\u010E","dcaron":"\u010F","Dcy":"\u0414","dcy":"\u0434","ddagger":"\u2021","ddarr":"\u21CA","DD":"\u2145","dd":"\u2146","DDotrahd":"\u2911","ddotseq":"\u2A77","deg":"\u00B0","Del":"\u2207","Delta":"\u0394","delta":"\u03B4","demptyv":"\u29B1","dfisht":"\u297F","Dfr":"\uD835\uDD07","dfr":"\uD835\uDD21","dHar":"\u2965","dharl":"\u21C3","dharr":"\u21C2","DiacriticalAcute":"\u00B4","DiacriticalDot":"\u02D9","DiacriticalDoubleAcute":"\u02DD","DiacriticalGrave":"`","DiacriticalTilde":"\u02DC","diam":"\u22C4","diamond":"\u22C4","Diamond":"\u22C4","diamondsuit":"\u2666","diams":"\u2666","die":"\u00A8","DifferentialD":"\u2146","digamma":"\u03DD","disin":"\u22F2","div":"\u00F7","divide":"\u00F7","divideontimes":"\u22C7","divonx":"\u22C7","DJcy":"\u0402","djcy":"\u0452","dlcorn":"\u231E","dlcrop":"\u230D","dollar":"$","Dopf":"\uD835\uDD3B","dopf":"\uD835\uDD55","Dot":"\u00A8","dot":"\u02D9","DotDot":"\u20DC","doteq":"\u2250","doteqdot":"\u2251","DotEqual":"\u2250","dotminus":"\u2238","dotplus":"\u2214","dotsquare":"\u22A1","doublebarwedge":"\u2306","DoubleContourIntegral":"\u222F","DoubleDot":"\u00A8","DoubleDownArrow":"\u21D3","DoubleLeftArrow":"\u21D0","DoubleLeftRightArrow":"\u21D4","DoubleLeftTee":"\u2AE4","DoubleLongLeftArrow":"\u27F8","DoubleLongLeftRightArrow":"\u27FA","DoubleLongRightArrow":"\u27F9","DoubleRightArrow":"\u21D2","DoubleRightTee":"\u22A8","DoubleUpArrow":"\u21D1","DoubleUpDownArrow":"\u21D5","DoubleVerticalBar":"\u2225","DownArrowBar":"\u2913","downarrow":"\u2193","DownArrow":"\u2193","Downarrow":"\u21D3","DownArrowUpArrow":"\u21F5","DownBreve":"\u0311","downdownarrows":"\u21CA","downharpoonleft":"\u21C3","downharpoonright":"\u21C2","DownLeftRightVector":"\u2950","DownLeftTeeVector":"\u295E","DownLeftVectorBar":"\u2956","DownLeftVector":"\u21BD","DownRightTeeVector":"\u295F","DownRightVectorBar":"\u2957","DownRightVector":"\u21C1","DownTeeArrow":"\u21A7","DownTee":"\u22A4","drbkarow":"\u2910","drcorn":"\u231F","drcrop":"\u230C","Dscr":"\uD835\uDC9F","dscr":"\uD835\uDCB9","DScy":"\u0405","dscy":"\u0455","dsol":"\u29F6","Dstrok":"\u0110","dstrok":"\u0111","dtdot":"\u22F1","dtri":"\u25BF","dtrif":"\u25BE","duarr":"\u21F5","duhar":"\u296F","dwangle":"\u29A6","DZcy":"\u040F","dzcy":"\u045F","dzigrarr":"\u27FF","Eacute":"\u00C9","eacute":"\u00E9","easter":"\u2A6E","Ecaron":"\u011A","ecaron":"\u011B","Ecirc":"\u00CA","ecirc":"\u00EA","ecir":"\u2256","ecolon":"\u2255","Ecy":"\u042D","ecy":"\u044D","eDDot":"\u2A77","Edot":"\u0116","edot":"\u0117","eDot":"\u2251","ee":"\u2147","efDot":"\u2252","Efr":"\uD835\uDD08","efr":"\uD835\uDD22","eg":"\u2A9A","Egrave":"\u00C8","egrave":"\u00E8","egs":"\u2A96","egsdot":"\u2A98","el":"\u2A99","Element":"\u2208","elinters":"\u23E7","ell":"\u2113","els":"\u2A95","elsdot":"\u2A97","Emacr":"\u0112","emacr":"\u0113","empty":"\u2205","emptyset":"\u2205","EmptySmallSquare":"\u25FB","emptyv":"\u2205","EmptyVerySmallSquare":"\u25AB","emsp13":"\u2004","emsp14":"\u2005","emsp":"\u2003","ENG":"\u014A","eng":"\u014B","ensp":"\u2002","Eogon":"\u0118","eogon":"\u0119","Eopf":"\uD835\uDD3C","eopf":"\uD835\uDD56","epar":"\u22D5","eparsl":"\u29E3","eplus":"\u2A71","epsi":"\u03B5","Epsilon":"\u0395","epsilon":"\u03B5","epsiv":"\u03F5","eqcirc":"\u2256","eqcolon":"\u2255","eqsim":"\u2242","eqslantgtr":"\u2A96","eqslantless":"\u2A95","Equal":"\u2A75","equals":"=","EqualTilde":"\u2242","equest":"\u225F","Equilibrium":"\u21CC","equiv":"\u2261","equivDD":"\u2A78","eqvparsl":"\u29E5","erarr":"\u2971","erDot":"\u2253","escr":"\u212F","Escr":"\u2130","esdot":"\u2250","Esim":"\u2A73","esim":"\u2242","Eta":"\u0397","eta":"\u03B7","ETH":"\u00D0","eth":"\u00F0","Euml":"\u00CB","euml":"\u00EB","euro":"\u20AC","excl":"!","exist":"\u2203","Exists":"\u2203","expectation":"\u2130","exponentiale":"\u2147","ExponentialE":"\u2147","fallingdotseq":"\u2252","Fcy":"\u0424","fcy":"\u0444","female":"\u2640","ffilig":"\uFB03","fflig":"\uFB00","ffllig":"\uFB04","Ffr":"\uD835\uDD09","ffr":"\uD835\uDD23","filig":"\uFB01","FilledSmallSquare":"\u25FC","FilledVerySmallSquare":"\u25AA","fjlig":"fj","flat":"\u266D","fllig":"\uFB02","fltns":"\u25B1","fnof":"\u0192","Fopf":"\uD835\uDD3D","fopf":"\uD835\uDD57","forall":"\u2200","ForAll":"\u2200","fork":"\u22D4","forkv":"\u2AD9","Fouriertrf":"\u2131","fpartint":"\u2A0D","frac12":"\u00BD","frac13":"\u2153","frac14":"\u00BC","frac15":"\u2155","frac16":"\u2159","frac18":"\u215B","frac23":"\u2154","frac25":"\u2156","frac34":"\u00BE","frac35":"\u2157","frac38":"\u215C","frac45":"\u2158","frac56":"\u215A","frac58":"\u215D","frac78":"\u215E","frasl":"\u2044","frown":"\u2322","fscr":"\uD835\uDCBB","Fscr":"\u2131","gacute":"\u01F5","Gamma":"\u0393","gamma":"\u03B3","Gammad":"\u03DC","gammad":"\u03DD","gap":"\u2A86","Gbreve":"\u011E","gbreve":"\u011F","Gcedil":"\u0122","Gcirc":"\u011C","gcirc":"\u011D","Gcy":"\u0413","gcy":"\u0433","Gdot":"\u0120","gdot":"\u0121","ge":"\u2265","gE":"\u2267","gEl":"\u2A8C","gel":"\u22DB","geq":"\u2265","geqq":"\u2267","geqslant":"\u2A7E","gescc":"\u2AA9","ges":"\u2A7E","gesdot":"\u2A80","gesdoto":"\u2A82","gesdotol":"\u2A84","gesl":"\u22DB\uFE00","gesles":"\u2A94","Gfr":"\uD835\uDD0A","gfr":"\uD835\uDD24","gg":"\u226B","Gg":"\u22D9","ggg":"\u22D9","gimel":"\u2137","GJcy":"\u0403","gjcy":"\u0453","gla":"\u2AA5","gl":"\u2277","glE":"\u2A92","glj":"\u2AA4","gnap":"\u2A8A","gnapprox":"\u2A8A","gne":"\u2A88","gnE":"\u2269","gneq":"\u2A88","gneqq":"\u2269","gnsim":"\u22E7","Gopf":"\uD835\uDD3E","gopf":"\uD835\uDD58","grave":"`","GreaterEqual":"\u2265","GreaterEqualLess":"\u22DB","GreaterFullEqual":"\u2267","GreaterGreater":"\u2AA2","GreaterLess":"\u2277","GreaterSlantEqual":"\u2A7E","GreaterTilde":"\u2273","Gscr":"\uD835\uDCA2","gscr":"\u210A","gsim":"\u2273","gsime":"\u2A8E","gsiml":"\u2A90","gtcc":"\u2AA7","gtcir":"\u2A7A","gt":">","GT":">","Gt":"\u226B","gtdot":"\u22D7","gtlPar":"\u2995","gtquest":"\u2A7C","gtrapprox":"\u2A86","gtrarr":"\u2978","gtrdot":"\u22D7","gtreqless":"\u22DB","gtreqqless":"\u2A8C","gtrless":"\u2277","gtrsim":"\u2273","gvertneqq":"\u2269\uFE00","gvnE":"\u2269\uFE00","Hacek":"\u02C7","hairsp":"\u200A","half":"\u00BD","hamilt":"\u210B","HARDcy":"\u042A","hardcy":"\u044A","harrcir":"\u2948","harr":"\u2194","hArr":"\u21D4","harrw":"\u21AD","Hat":"^","hbar":"\u210F","Hcirc":"\u0124","hcirc":"\u0125","hearts":"\u2665","heartsuit":"\u2665","hellip":"\u2026","hercon":"\u22B9","hfr":"\uD835\uDD25","Hfr":"\u210C","HilbertSpace":"\u210B","hksearow":"\u2925","hkswarow":"\u2926","hoarr":"\u21FF","homtht":"\u223B","hookleftarrow":"\u21A9","hookrightarrow":"\u21AA","hopf":"\uD835\uDD59","Hopf":"\u210D","horbar":"\u2015","HorizontalLine":"\u2500","hscr":"\uD835\uDCBD","Hscr":"\u210B","hslash":"\u210F","Hstrok":"\u0126","hstrok":"\u0127","HumpDownHump":"\u224E","HumpEqual":"\u224F","hybull":"\u2043","hyphen":"\u2010","Iacute":"\u00CD","iacute":"\u00ED","ic":"\u2063","Icirc":"\u00CE","icirc":"\u00EE","Icy":"\u0418","icy":"\u0438","Idot":"\u0130","IEcy":"\u0415","iecy":"\u0435","iexcl":"\u00A1","iff":"\u21D4","ifr":"\uD835\uDD26","Ifr":"\u2111","Igrave":"\u00CC","igrave":"\u00EC","ii":"\u2148","iiiint":"\u2A0C","iiint":"\u222D","iinfin":"\u29DC","iiota":"\u2129","IJlig":"\u0132","ijlig":"\u0133","Imacr":"\u012A","imacr":"\u012B","image":"\u2111","ImaginaryI":"\u2148","imagline":"\u2110","imagpart":"\u2111","imath":"\u0131","Im":"\u2111","imof":"\u22B7","imped":"\u01B5","Implies":"\u21D2","incare":"\u2105","in":"\u2208","infin":"\u221E","infintie":"\u29DD","inodot":"\u0131","intcal":"\u22BA","int":"\u222B","Int":"\u222C","integers":"\u2124","Integral":"\u222B","intercal":"\u22BA","Intersection":"\u22C2","intlarhk":"\u2A17","intprod":"\u2A3C","InvisibleComma":"\u2063","InvisibleTimes":"\u2062","IOcy":"\u0401","iocy":"\u0451","Iogon":"\u012E","iogon":"\u012F","Iopf":"\uD835\uDD40","iopf":"\uD835\uDD5A","Iota":"\u0399","iota":"\u03B9","iprod":"\u2A3C","iquest":"\u00BF","iscr":"\uD835\uDCBE","Iscr":"\u2110","isin":"\u2208","isindot":"\u22F5","isinE":"\u22F9","isins":"\u22F4","isinsv":"\u22F3","isinv":"\u2208","it":"\u2062","Itilde":"\u0128","itilde":"\u0129","Iukcy":"\u0406","iukcy":"\u0456","Iuml":"\u00CF","iuml":"\u00EF","Jcirc":"\u0134","jcirc":"\u0135","Jcy":"\u0419","jcy":"\u0439","Jfr":"\uD835\uDD0D","jfr":"\uD835\uDD27","jmath":"\u0237","Jopf":"\uD835\uDD41","jopf":"\uD835\uDD5B","Jscr":"\uD835\uDCA5","jscr":"\uD835\uDCBF","Jsercy":"\u0408","jsercy":"\u0458","Jukcy":"\u0404","jukcy":"\u0454","Kappa":"\u039A","kappa":"\u03BA","kappav":"\u03F0","Kcedil":"\u0136","kcedil":"\u0137","Kcy":"\u041A","kcy":"\u043A","Kfr":"\uD835\uDD0E","kfr":"\uD835\uDD28","kgreen":"\u0138","KHcy":"\u0425","khcy":"\u0445","KJcy":"\u040C","kjcy":"\u045C","Kopf":"\uD835\uDD42","kopf":"\uD835\uDD5C","Kscr":"\uD835\uDCA6","kscr":"\uD835\uDCC0","lAarr":"\u21DA","Lacute":"\u0139","lacute":"\u013A","laemptyv":"\u29B4","lagran":"\u2112","Lambda":"\u039B","lambda":"\u03BB","lang":"\u27E8","Lang":"\u27EA","langd":"\u2991","langle":"\u27E8","lap":"\u2A85","Laplacetrf":"\u2112","laquo":"\u00AB","larrb":"\u21E4","larrbfs":"\u291F","larr":"\u2190","Larr":"\u219E","lArr":"\u21D0","larrfs":"\u291D","larrhk":"\u21A9","larrlp":"\u21AB","larrpl":"\u2939","larrsim":"\u2973","larrtl":"\u21A2","latail":"\u2919","lAtail":"\u291B","lat":"\u2AAB","late":"\u2AAD","lates":"\u2AAD\uFE00","lbarr":"\u290C","lBarr":"\u290E","lbbrk":"\u2772","lbrace":"{","lbrack":"[","lbrke":"\u298B","lbrksld":"\u298F","lbrkslu":"\u298D","Lcaron":"\u013D","lcaron":"\u013E","Lcedil":"\u013B","lcedil":"\u013C","lceil":"\u2308","lcub":"{","Lcy":"\u041B","lcy":"\u043B","ldca":"\u2936","ldquo":"\u201C","ldquor":"\u201E","ldrdhar":"\u2967","ldrushar":"\u294B","ldsh":"\u21B2","le":"\u2264","lE":"\u2266","LeftAngleBracket":"\u27E8","LeftArrowBar":"\u21E4","leftarrow":"\u2190","LeftArrow":"\u2190","Leftarrow":"\u21D0","LeftArrowRightArrow":"\u21C6","leftarrowtail":"\u21A2","LeftCeiling":"\u2308","LeftDoubleBracket":"\u27E6","LeftDownTeeVector":"\u2961","LeftDownVectorBar":"\u2959","LeftDownVector":"\u21C3","LeftFloor":"\u230A","leftharpoondown":"\u21BD","leftharpoonup":"\u21BC","leftleftarrows":"\u21C7","leftrightarrow":"\u2194","LeftRightArrow":"\u2194","Leftrightarrow":"\u21D4","leftrightarrows":"\u21C6","leftrightharpoons":"\u21CB","leftrightsquigarrow":"\u21AD","LeftRightVector":"\u294E","LeftTeeArrow":"\u21A4","LeftTee":"\u22A3","LeftTeeVector":"\u295A","leftthreetimes":"\u22CB","LeftTriangleBar":"\u29CF","LeftTriangle":"\u22B2","LeftTriangleEqual":"\u22B4","LeftUpDownVector":"\u2951","LeftUpTeeVector":"\u2960","LeftUpVectorBar":"\u2958","LeftUpVector":"\u21BF","LeftVectorBar":"\u2952","LeftVector":"\u21BC","lEg":"\u2A8B","leg":"\u22DA","leq":"\u2264","leqq":"\u2266","leqslant":"\u2A7D","lescc":"\u2AA8","les":"\u2A7D","lesdot":"\u2A7F","lesdoto":"\u2A81","lesdotor":"\u2A83","lesg":"\u22DA\uFE00","lesges":"\u2A93","lessapprox":"\u2A85","lessdot":"\u22D6","lesseqgtr":"\u22DA","lesseqqgtr":"\u2A8B","LessEqualGreater":"\u22DA","LessFullEqual":"\u2266","LessGreater":"\u2276","lessgtr":"\u2276","LessLess":"\u2AA1","lesssim":"\u2272","LessSlantEqual":"\u2A7D","LessTilde":"\u2272","lfisht":"\u297C","lfloor":"\u230A","Lfr":"\uD835\uDD0F","lfr":"\uD835\uDD29","lg":"\u2276","lgE":"\u2A91","lHar":"\u2962","lhard":"\u21BD","lharu":"\u21BC","lharul":"\u296A","lhblk":"\u2584","LJcy":"\u0409","ljcy":"\u0459","llarr":"\u21C7","ll":"\u226A","Ll":"\u22D8","llcorner":"\u231E","Lleftarrow":"\u21DA","llhard":"\u296B","lltri":"\u25FA","Lmidot":"\u013F","lmidot":"\u0140","lmoustache":"\u23B0","lmoust":"\u23B0","lnap":"\u2A89","lnapprox":"\u2A89","lne":"\u2A87","lnE":"\u2268","lneq":"\u2A87","lneqq":"\u2268","lnsim":"\u22E6","loang":"\u27EC","loarr":"\u21FD","lobrk":"\u27E6","longleftarrow":"\u27F5","LongLeftArrow":"\u27F5","Longleftarrow":"\u27F8","longleftrightarrow":"\u27F7","LongLeftRightArrow":"\u27F7","Longleftrightarrow":"\u27FA","longmapsto":"\u27FC","longrightarrow":"\u27F6","LongRightArrow":"\u27F6","Longrightarrow":"\u27F9","looparrowleft":"\u21AB","looparrowright":"\u21AC","lopar":"\u2985","Lopf":"\uD835\uDD43","lopf":"\uD835\uDD5D","loplus":"\u2A2D","lotimes":"\u2A34","lowast":"\u2217","lowbar":"_","LowerLeftArrow":"\u2199","LowerRightArrow":"\u2198","loz":"\u25CA","lozenge":"\u25CA","lozf":"\u29EB","lpar":"(","lparlt":"\u2993","lrarr":"\u21C6","lrcorner":"\u231F","lrhar":"\u21CB","lrhard":"\u296D","lrm":"\u200E","lrtri":"\u22BF","lsaquo":"\u2039","lscr":"\uD835\uDCC1","Lscr":"\u2112","lsh":"\u21B0","Lsh":"\u21B0","lsim":"\u2272","lsime":"\u2A8D","lsimg":"\u2A8F","lsqb":"[","lsquo":"\u2018","lsquor":"\u201A","Lstrok":"\u0141","lstrok":"\u0142","ltcc":"\u2AA6","ltcir":"\u2A79","lt":"<","LT":"<","Lt":"\u226A","ltdot":"\u22D6","lthree":"\u22CB","ltimes":"\u22C9","ltlarr":"\u2976","ltquest":"\u2A7B","ltri":"\u25C3","ltrie":"\u22B4","ltrif":"\u25C2","ltrPar":"\u2996","lurdshar":"\u294A","luruhar":"\u2966","lvertneqq":"\u2268\uFE00","lvnE":"\u2268\uFE00","macr":"\u00AF","male":"\u2642","malt":"\u2720","maltese":"\u2720","Map":"\u2905","map":"\u21A6","mapsto":"\u21A6","mapstodown":"\u21A7","mapstoleft":"\u21A4","mapstoup":"\u21A5","marker":"\u25AE","mcomma":"\u2A29","Mcy":"\u041C","mcy":"\u043C","mdash":"\u2014","mDDot":"\u223A","measuredangle":"\u2221","MediumSpace":"\u205F","Mellintrf":"\u2133","Mfr":"\uD835\uDD10","mfr":"\uD835\uDD2A","mho":"\u2127","micro":"\u00B5","midast":"*","midcir":"\u2AF0","mid":"\u2223","middot":"\u00B7","minusb":"\u229F","minus":"\u2212","minusd":"\u2238","minusdu":"\u2A2A","MinusPlus":"\u2213","mlcp":"\u2ADB","mldr":"\u2026","mnplus":"\u2213","models":"\u22A7","Mopf":"\uD835\uDD44","mopf":"\uD835\uDD5E","mp":"\u2213","mscr":"\uD835\uDCC2","Mscr":"\u2133","mstpos":"\u223E","Mu":"\u039C","mu":"\u03BC","multimap":"\u22B8","mumap":"\u22B8","nabla":"\u2207","Nacute":"\u0143","nacute":"\u0144","nang":"\u2220\u20D2","nap":"\u2249","napE":"\u2A70\u0338","napid":"\u224B\u0338","napos":"\u0149","napprox":"\u2249","natural":"\u266E","naturals":"\u2115","natur":"\u266E","nbsp":"\u00A0","nbump":"\u224E\u0338","nbumpe":"\u224F\u0338","ncap":"\u2A43","Ncaron":"\u0147","ncaron":"\u0148","Ncedil":"\u0145","ncedil":"\u0146","ncong":"\u2247","ncongdot":"\u2A6D\u0338","ncup":"\u2A42","Ncy":"\u041D","ncy":"\u043D","ndash":"\u2013","nearhk":"\u2924","nearr":"\u2197","neArr":"\u21D7","nearrow":"\u2197","ne":"\u2260","nedot":"\u2250\u0338","NegativeMediumSpace":"\u200B","NegativeThickSpace":"\u200B","NegativeThinSpace":"\u200B","NegativeVeryThinSpace":"\u200B","nequiv":"\u2262","nesear":"\u2928","nesim":"\u2242\u0338","NestedGreaterGreater":"\u226B","NestedLessLess":"\u226A","NewLine":"\n","nexist":"\u2204","nexists":"\u2204","Nfr":"\uD835\uDD11","nfr":"\uD835\uDD2B","ngE":"\u2267\u0338","nge":"\u2271","ngeq":"\u2271","ngeqq":"\u2267\u0338","ngeqslant":"\u2A7E\u0338","nges":"\u2A7E\u0338","nGg":"\u22D9\u0338","ngsim":"\u2275","nGt":"\u226B\u20D2","ngt":"\u226F","ngtr":"\u226F","nGtv":"\u226B\u0338","nharr":"\u21AE","nhArr":"\u21CE","nhpar":"\u2AF2","ni":"\u220B","nis":"\u22FC","nisd":"\u22FA","niv":"\u220B","NJcy":"\u040A","njcy":"\u045A","nlarr":"\u219A","nlArr":"\u21CD","nldr":"\u2025","nlE":"\u2266\u0338","nle":"\u2270","nleftarrow":"\u219A","nLeftarrow":"\u21CD","nleftrightarrow":"\u21AE","nLeftrightarrow":"\u21CE","nleq":"\u2270","nleqq":"\u2266\u0338","nleqslant":"\u2A7D\u0338","nles":"\u2A7D\u0338","nless":"\u226E","nLl":"\u22D8\u0338","nlsim":"\u2274","nLt":"\u226A\u20D2","nlt":"\u226E","nltri":"\u22EA","nltrie":"\u22EC","nLtv":"\u226A\u0338","nmid":"\u2224","NoBreak":"\u2060","NonBreakingSpace":"\u00A0","nopf":"\uD835\uDD5F","Nopf":"\u2115","Not":"\u2AEC","not":"\u00AC","NotCongruent":"\u2262","NotCupCap":"\u226D","NotDoubleVerticalBar":"\u2226","NotElement":"\u2209","NotEqual":"\u2260","NotEqualTilde":"\u2242\u0338","NotExists":"\u2204","NotGreater":"\u226F","NotGreaterEqual":"\u2271","NotGreaterFullEqual":"\u2267\u0338","NotGreaterGreater":"\u226B\u0338","NotGreaterLess":"\u2279","NotGreaterSlantEqual":"\u2A7E\u0338","NotGreaterTilde":"\u2275","NotHumpDownHump":"\u224E\u0338","NotHumpEqual":"\u224F\u0338","notin":"\u2209","notindot":"\u22F5\u0338","notinE":"\u22F9\u0338","notinva":"\u2209","notinvb":"\u22F7","notinvc":"\u22F6","NotLeftTriangleBar":"\u29CF\u0338","NotLeftTriangle":"\u22EA","NotLeftTriangleEqual":"\u22EC","NotLess":"\u226E","NotLessEqual":"\u2270","NotLessGreater":"\u2278","NotLessLess":"\u226A\u0338","NotLessSlantEqual":"\u2A7D\u0338","NotLessTilde":"\u2274","NotNestedGreaterGreater":"\u2AA2\u0338","NotNestedLessLess":"\u2AA1\u0338","notni":"\u220C","notniva":"\u220C","notnivb":"\u22FE","notnivc":"\u22FD","NotPrecedes":"\u2280","NotPrecedesEqual":"\u2AAF\u0338","NotPrecedesSlantEqual":"\u22E0","NotReverseElement":"\u220C","NotRightTriangleBar":"\u29D0\u0338","NotRightTriangle":"\u22EB","NotRightTriangleEqual":"\u22ED","NotSquareSubset":"\u228F\u0338","NotSquareSubsetEqual":"\u22E2","NotSquareSuperset":"\u2290\u0338","NotSquareSupersetEqual":"\u22E3","NotSubset":"\u2282\u20D2","NotSubsetEqual":"\u2288","NotSucceeds":"\u2281","NotSucceedsEqual":"\u2AB0\u0338","NotSucceedsSlantEqual":"\u22E1","NotSucceedsTilde":"\u227F\u0338","NotSuperset":"\u2283\u20D2","NotSupersetEqual":"\u2289","NotTilde":"\u2241","NotTildeEqual":"\u2244","NotTildeFullEqual":"\u2247","NotTildeTilde":"\u2249","NotVerticalBar":"\u2224","nparallel":"\u2226","npar":"\u2226","nparsl":"\u2AFD\u20E5","npart":"\u2202\u0338","npolint":"\u2A14","npr":"\u2280","nprcue":"\u22E0","nprec":"\u2280","npreceq":"\u2AAF\u0338","npre":"\u2AAF\u0338","nrarrc":"\u2933\u0338","nrarr":"\u219B","nrArr":"\u21CF","nrarrw":"\u219D\u0338","nrightarrow":"\u219B","nRightarrow":"\u21CF","nrtri":"\u22EB","nrtrie":"\u22ED","nsc":"\u2281","nsccue":"\u22E1","nsce":"\u2AB0\u0338","Nscr":"\uD835\uDCA9","nscr":"\uD835\uDCC3","nshortmid":"\u2224","nshortparallel":"\u2226","nsim":"\u2241","nsime":"\u2244","nsimeq":"\u2244","nsmid":"\u2224","nspar":"\u2226","nsqsube":"\u22E2","nsqsupe":"\u22E3","nsub":"\u2284","nsubE":"\u2AC5\u0338","nsube":"\u2288","nsubset":"\u2282\u20D2","nsubseteq":"\u2288","nsubseteqq":"\u2AC5\u0338","nsucc":"\u2281","nsucceq":"\u2AB0\u0338","nsup":"\u2285","nsupE":"\u2AC6\u0338","nsupe":"\u2289","nsupset":"\u2283\u20D2","nsupseteq":"\u2289","nsupseteqq":"\u2AC6\u0338","ntgl":"\u2279","Ntilde":"\u00D1","ntilde":"\u00F1","ntlg":"\u2278","ntriangleleft":"\u22EA","ntrianglelefteq":"\u22EC","ntriangleright":"\u22EB","ntrianglerighteq":"\u22ED","Nu":"\u039D","nu":"\u03BD","num":"#","numero":"\u2116","numsp":"\u2007","nvap":"\u224D\u20D2","nvdash":"\u22AC","nvDash":"\u22AD","nVdash":"\u22AE","nVDash":"\u22AF","nvge":"\u2265\u20D2","nvgt":">\u20D2","nvHarr":"\u2904","nvinfin":"\u29DE","nvlArr":"\u2902","nvle":"\u2264\u20D2","nvlt":"<\u20D2","nvltrie":"\u22B4\u20D2","nvrArr":"\u2903","nvrtrie":"\u22B5\u20D2","nvsim":"\u223C\u20D2","nwarhk":"\u2923","nwarr":"\u2196","nwArr":"\u21D6","nwarrow":"\u2196","nwnear":"\u2927","Oacute":"\u00D3","oacute":"\u00F3","oast":"\u229B","Ocirc":"\u00D4","ocirc":"\u00F4","ocir":"\u229A","Ocy":"\u041E","ocy":"\u043E","odash":"\u229D","Odblac":"\u0150","odblac":"\u0151","odiv":"\u2A38","odot":"\u2299","odsold":"\u29BC","OElig":"\u0152","oelig":"\u0153","ofcir":"\u29BF","Ofr":"\uD835\uDD12","ofr":"\uD835\uDD2C","ogon":"\u02DB","Ograve":"\u00D2","ograve":"\u00F2","ogt":"\u29C1","ohbar":"\u29B5","ohm":"\u03A9","oint":"\u222E","olarr":"\u21BA","olcir":"\u29BE","olcross":"\u29BB","oline":"\u203E","olt":"\u29C0","Omacr":"\u014C","omacr":"\u014D","Omega":"\u03A9","omega":"\u03C9","Omicron":"\u039F","omicron":"\u03BF","omid":"\u29B6","ominus":"\u2296","Oopf":"\uD835\uDD46","oopf":"\uD835\uDD60","opar":"\u29B7","OpenCurlyDoubleQuote":"\u201C","OpenCurlyQuote":"\u2018","operp":"\u29B9","oplus":"\u2295","orarr":"\u21BB","Or":"\u2A54","or":"\u2228","ord":"\u2A5D","order":"\u2134","orderof":"\u2134","ordf":"\u00AA","ordm":"\u00BA","origof":"\u22B6","oror":"\u2A56","orslope":"\u2A57","orv":"\u2A5B","oS":"\u24C8","Oscr":"\uD835\uDCAA","oscr":"\u2134","Oslash":"\u00D8","oslash":"\u00F8","osol":"\u2298","Otilde":"\u00D5","otilde":"\u00F5","otimesas":"\u2A36","Otimes":"\u2A37","otimes":"\u2297","Ouml":"\u00D6","ouml":"\u00F6","ovbar":"\u233D","OverBar":"\u203E","OverBrace":"\u23DE","OverBracket":"\u23B4","OverParenthesis":"\u23DC","para":"\u00B6","parallel":"\u2225","par":"\u2225","parsim":"\u2AF3","parsl":"\u2AFD","part":"\u2202","PartialD":"\u2202","Pcy":"\u041F","pcy":"\u043F","percnt":"%","period":".","permil":"\u2030","perp":"\u22A5","pertenk":"\u2031","Pfr":"\uD835\uDD13","pfr":"\uD835\uDD2D","Phi":"\u03A6","phi":"\u03C6","phiv":"\u03D5","phmmat":"\u2133","phone":"\u260E","Pi":"\u03A0","pi":"\u03C0","pitchfork":"\u22D4","piv":"\u03D6","planck":"\u210F","planckh":"\u210E","plankv":"\u210F","plusacir":"\u2A23","plusb":"\u229E","pluscir":"\u2A22","plus":"+","plusdo":"\u2214","plusdu":"\u2A25","pluse":"\u2A72","PlusMinus":"\u00B1","plusmn":"\u00B1","plussim":"\u2A26","plustwo":"\u2A27","pm":"\u00B1","Poincareplane":"\u210C","pointint":"\u2A15","popf":"\uD835\uDD61","Popf":"\u2119","pound":"\u00A3","prap":"\u2AB7","Pr":"\u2ABB","pr":"\u227A","prcue":"\u227C","precapprox":"\u2AB7","prec":"\u227A","preccurlyeq":"\u227C","Precedes":"\u227A","PrecedesEqual":"\u2AAF","PrecedesSlantEqual":"\u227C","PrecedesTilde":"\u227E","preceq":"\u2AAF","precnapprox":"\u2AB9","precneqq":"\u2AB5","precnsim":"\u22E8","pre":"\u2AAF","prE":"\u2AB3","precsim":"\u227E","prime":"\u2032","Prime":"\u2033","primes":"\u2119","prnap":"\u2AB9","prnE":"\u2AB5","prnsim":"\u22E8","prod":"\u220F","Product":"\u220F","profalar":"\u232E","profline":"\u2312","profsurf":"\u2313","prop":"\u221D","Proportional":"\u221D","Proportion":"\u2237","propto":"\u221D","prsim":"\u227E","prurel":"\u22B0","Pscr":"\uD835\uDCAB","pscr":"\uD835\uDCC5","Psi":"\u03A8","psi":"\u03C8","puncsp":"\u2008","Qfr":"\uD835\uDD14","qfr":"\uD835\uDD2E","qint":"\u2A0C","qopf":"\uD835\uDD62","Qopf":"\u211A","qprime":"\u2057","Qscr":"\uD835\uDCAC","qscr":"\uD835\uDCC6","quaternions":"\u210D","quatint":"\u2A16","quest":"?","questeq":"\u225F","quot":"\"","QUOT":"\"","rAarr":"\u21DB","race":"\u223D\u0331","Racute":"\u0154","racute":"\u0155","radic":"\u221A","raemptyv":"\u29B3","rang":"\u27E9","Rang":"\u27EB","rangd":"\u2992","range":"\u29A5","rangle":"\u27E9","raquo":"\u00BB","rarrap":"\u2975","rarrb":"\u21E5","rarrbfs":"\u2920","rarrc":"\u2933","rarr":"\u2192","Rarr":"\u21A0","rArr":"\u21D2","rarrfs":"\u291E","rarrhk":"\u21AA","rarrlp":"\u21AC","rarrpl":"\u2945","rarrsim":"\u2974","Rarrtl":"\u2916","rarrtl":"\u21A3","rarrw":"\u219D","ratail":"\u291A","rAtail":"\u291C","ratio":"\u2236","rationals":"\u211A","rbarr":"\u290D","rBarr":"\u290F","RBarr":"\u2910","rbbrk":"\u2773","rbrace":"}","rbrack":"]","rbrke":"\u298C","rbrksld":"\u298E","rbrkslu":"\u2990","Rcaron":"\u0158","rcaron":"\u0159","Rcedil":"\u0156","rcedil":"\u0157","rceil":"\u2309","rcub":"}","Rcy":"\u0420","rcy":"\u0440","rdca":"\u2937","rdldhar":"\u2969","rdquo":"\u201D","rdquor":"\u201D","rdsh":"\u21B3","real":"\u211C","realine":"\u211B","realpart":"\u211C","reals":"\u211D","Re":"\u211C","rect":"\u25AD","reg":"\u00AE","REG":"\u00AE","ReverseElement":"\u220B","ReverseEquilibrium":"\u21CB","ReverseUpEquilibrium":"\u296F","rfisht":"\u297D","rfloor":"\u230B","rfr":"\uD835\uDD2F","Rfr":"\u211C","rHar":"\u2964","rhard":"\u21C1","rharu":"\u21C0","rharul":"\u296C","Rho":"\u03A1","rho":"\u03C1","rhov":"\u03F1","RightAngleBracket":"\u27E9","RightArrowBar":"\u21E5","rightarrow":"\u2192","RightArrow":"\u2192","Rightarrow":"\u21D2","RightArrowLeftArrow":"\u21C4","rightarrowtail":"\u21A3","RightCeiling":"\u2309","RightDoubleBracket":"\u27E7","RightDownTeeVector":"\u295D","RightDownVectorBar":"\u2955","RightDownVector":"\u21C2","RightFloor":"\u230B","rightharpoondown":"\u21C1","rightharpoonup":"\u21C0","rightleftarrows":"\u21C4","rightleftharpoons":"\u21CC","rightrightarrows":"\u21C9","rightsquigarrow":"\u219D","RightTeeArrow":"\u21A6","RightTee":"\u22A2","RightTeeVector":"\u295B","rightthreetimes":"\u22CC","RightTriangleBar":"\u29D0","RightTriangle":"\u22B3","RightTriangleEqual":"\u22B5","RightUpDownVector":"\u294F","RightUpTeeVector":"\u295C","RightUpVectorBar":"\u2954","RightUpVector":"\u21BE","RightVectorBar":"\u2953","RightVector":"\u21C0","ring":"\u02DA","risingdotseq":"\u2253","rlarr":"\u21C4","rlhar":"\u21CC","rlm":"\u200F","rmoustache":"\u23B1","rmoust":"\u23B1","rnmid":"\u2AEE","roang":"\u27ED","roarr":"\u21FE","robrk":"\u27E7","ropar":"\u2986","ropf":"\uD835\uDD63","Ropf":"\u211D","roplus":"\u2A2E","rotimes":"\u2A35","RoundImplies":"\u2970","rpar":")","rpargt":"\u2994","rppolint":"\u2A12","rrarr":"\u21C9","Rrightarrow":"\u21DB","rsaquo":"\u203A","rscr":"\uD835\uDCC7","Rscr":"\u211B","rsh":"\u21B1","Rsh":"\u21B1","rsqb":"]","rsquo":"\u2019","rsquor":"\u2019","rthree":"\u22CC","rtimes":"\u22CA","rtri":"\u25B9","rtrie":"\u22B5","rtrif":"\u25B8","rtriltri":"\u29CE","RuleDelayed":"\u29F4","ruluhar":"\u2968","rx":"\u211E","Sacute":"\u015A","sacute":"\u015B","sbquo":"\u201A","scap":"\u2AB8","Scaron":"\u0160","scaron":"\u0161","Sc":"\u2ABC","sc":"\u227B","sccue":"\u227D","sce":"\u2AB0","scE":"\u2AB4","Scedil":"\u015E","scedil":"\u015F","Scirc":"\u015C","scirc":"\u015D","scnap":"\u2ABA","scnE":"\u2AB6","scnsim":"\u22E9","scpolint":"\u2A13","scsim":"\u227F","Scy":"\u0421","scy":"\u0441","sdotb":"\u22A1","sdot":"\u22C5","sdote":"\u2A66","searhk":"\u2925","searr":"\u2198","seArr":"\u21D8","searrow":"\u2198","sect":"\u00A7","semi":";","seswar":"\u2929","setminus":"\u2216","setmn":"\u2216","sext":"\u2736","Sfr":"\uD835\uDD16","sfr":"\uD835\uDD30","sfrown":"\u2322","sharp":"\u266F","SHCHcy":"\u0429","shchcy":"\u0449","SHcy":"\u0428","shcy":"\u0448","ShortDownArrow":"\u2193","ShortLeftArrow":"\u2190","shortmid":"\u2223","shortparallel":"\u2225","ShortRightArrow":"\u2192","ShortUpArrow":"\u2191","shy":"\u00AD","Sigma":"\u03A3","sigma":"\u03C3","sigmaf":"\u03C2","sigmav":"\u03C2","sim":"\u223C","simdot":"\u2A6A","sime":"\u2243","simeq":"\u2243","simg":"\u2A9E","simgE":"\u2AA0","siml":"\u2A9D","simlE":"\u2A9F","simne":"\u2246","simplus":"\u2A24","simrarr":"\u2972","slarr":"\u2190","SmallCircle":"\u2218","smallsetminus":"\u2216","smashp":"\u2A33","smeparsl":"\u29E4","smid":"\u2223","smile":"\u2323","smt":"\u2AAA","smte":"\u2AAC","smtes":"\u2AAC\uFE00","SOFTcy":"\u042C","softcy":"\u044C","solbar":"\u233F","solb":"\u29C4","sol":"/","Sopf":"\uD835\uDD4A","sopf":"\uD835\uDD64","spades":"\u2660","spadesuit":"\u2660","spar":"\u2225","sqcap":"\u2293","sqcaps":"\u2293\uFE00","sqcup":"\u2294","sqcups":"\u2294\uFE00","Sqrt":"\u221A","sqsub":"\u228F","sqsube":"\u2291","sqsubset":"\u228F","sqsubseteq":"\u2291","sqsup":"\u2290","sqsupe":"\u2292","sqsupset":"\u2290","sqsupseteq":"\u2292","square":"\u25A1","Square":"\u25A1","SquareIntersection":"\u2293","SquareSubset":"\u228F","SquareSubsetEqual":"\u2291","SquareSuperset":"\u2290","SquareSupersetEqual":"\u2292","SquareUnion":"\u2294","squarf":"\u25AA","squ":"\u25A1","squf":"\u25AA","srarr":"\u2192","Sscr":"\uD835\uDCAE","sscr":"\uD835\uDCC8","ssetmn":"\u2216","ssmile":"\u2323","sstarf":"\u22C6","Star":"\u22C6","star":"\u2606","starf":"\u2605","straightepsilon":"\u03F5","straightphi":"\u03D5","strns":"\u00AF","sub":"\u2282","Sub":"\u22D0","subdot":"\u2ABD","subE":"\u2AC5","sube":"\u2286","subedot":"\u2AC3","submult":"\u2AC1","subnE":"\u2ACB","subne":"\u228A","subplus":"\u2ABF","subrarr":"\u2979","subset":"\u2282","Subset":"\u22D0","subseteq":"\u2286","subseteqq":"\u2AC5","SubsetEqual":"\u2286","subsetneq":"\u228A","subsetneqq":"\u2ACB","subsim":"\u2AC7","subsub":"\u2AD5","subsup":"\u2AD3","succapprox":"\u2AB8","succ":"\u227B","succcurlyeq":"\u227D","Succeeds":"\u227B","SucceedsEqual":"\u2AB0","SucceedsSlantEqual":"\u227D","SucceedsTilde":"\u227F","succeq":"\u2AB0","succnapprox":"\u2ABA","succneqq":"\u2AB6","succnsim":"\u22E9","succsim":"\u227F","SuchThat":"\u220B","sum":"\u2211","Sum":"\u2211","sung":"\u266A","sup1":"\u00B9","sup2":"\u00B2","sup3":"\u00B3","sup":"\u2283","Sup":"\u22D1","supdot":"\u2ABE","supdsub":"\u2AD8","supE":"\u2AC6","supe":"\u2287","supedot":"\u2AC4","Superset":"\u2283","SupersetEqual":"\u2287","suphsol":"\u27C9","suphsub":"\u2AD7","suplarr":"\u297B","supmult":"\u2AC2","supnE":"\u2ACC","supne":"\u228B","supplus":"\u2AC0","supset":"\u2283","Supset":"\u22D1","supseteq":"\u2287","supseteqq":"\u2AC6","supsetneq":"\u228B","supsetneqq":"\u2ACC","supsim":"\u2AC8","supsub":"\u2AD4","supsup":"\u2AD6","swarhk":"\u2926","swarr":"\u2199","swArr":"\u21D9","swarrow":"\u2199","swnwar":"\u292A","szlig":"\u00DF","Tab":"\t","target":"\u2316","Tau":"\u03A4","tau":"\u03C4","tbrk":"\u23B4","Tcaron":"\u0164","tcaron":"\u0165","Tcedil":"\u0162","tcedil":"\u0163","Tcy":"\u0422","tcy":"\u0442","tdot":"\u20DB","telrec":"\u2315","Tfr":"\uD835\uDD17","tfr":"\uD835\uDD31","there4":"\u2234","therefore":"\u2234","Therefore":"\u2234","Theta":"\u0398","theta":"\u03B8","thetasym":"\u03D1","thetav":"\u03D1","thickapprox":"\u2248","thicksim":"\u223C","ThickSpace":"\u205F\u200A","ThinSpace":"\u2009","thinsp":"\u2009","thkap":"\u2248","thksim":"\u223C","THORN":"\u00DE","thorn":"\u00FE","tilde":"\u02DC","Tilde":"\u223C","TildeEqual":"\u2243","TildeFullEqual":"\u2245","TildeTilde":"\u2248","timesbar":"\u2A31","timesb":"\u22A0","times":"\u00D7","timesd":"\u2A30","tint":"\u222D","toea":"\u2928","topbot":"\u2336","topcir":"\u2AF1","top":"\u22A4","Topf":"\uD835\uDD4B","topf":"\uD835\uDD65","topfork":"\u2ADA","tosa":"\u2929","tprime":"\u2034","trade":"\u2122","TRADE":"\u2122","triangle":"\u25B5","triangledown":"\u25BF","triangleleft":"\u25C3","trianglelefteq":"\u22B4","triangleq":"\u225C","triangleright":"\u25B9","trianglerighteq":"\u22B5","tridot":"\u25EC","trie":"\u225C","triminus":"\u2A3A","TripleDot":"\u20DB","triplus":"\u2A39","trisb":"\u29CD","tritime":"\u2A3B","trpezium":"\u23E2","Tscr":"\uD835\uDCAF","tscr":"\uD835\uDCC9","TScy":"\u0426","tscy":"\u0446","TSHcy":"\u040B","tshcy":"\u045B","Tstrok":"\u0166","tstrok":"\u0167","twixt":"\u226C","twoheadleftarrow":"\u219E","twoheadrightarrow":"\u21A0","Uacute":"\u00DA","uacute":"\u00FA","uarr":"\u2191","Uarr":"\u219F","uArr":"\u21D1","Uarrocir":"\u2949","Ubrcy":"\u040E","ubrcy":"\u045E","Ubreve":"\u016C","ubreve":"\u016D","Ucirc":"\u00DB","ucirc":"\u00FB","Ucy":"\u0423","ucy":"\u0443","udarr":"\u21C5","Udblac":"\u0170","udblac":"\u0171","udhar":"\u296E","ufisht":"\u297E","Ufr":"\uD835\uDD18","ufr":"\uD835\uDD32","Ugrave":"\u00D9","ugrave":"\u00F9","uHar":"\u2963","uharl":"\u21BF","uharr":"\u21BE","uhblk":"\u2580","ulcorn":"\u231C","ulcorner":"\u231C","ulcrop":"\u230F","ultri":"\u25F8","Umacr":"\u016A","umacr":"\u016B","uml":"\u00A8","UnderBar":"_","UnderBrace":"\u23DF","UnderBracket":"\u23B5","UnderParenthesis":"\u23DD","Union":"\u22C3","UnionPlus":"\u228E","Uogon":"\u0172","uogon":"\u0173","Uopf":"\uD835\uDD4C","uopf":"\uD835\uDD66","UpArrowBar":"\u2912","uparrow":"\u2191","UpArrow":"\u2191","Uparrow":"\u21D1","UpArrowDownArrow":"\u21C5","updownarrow":"\u2195","UpDownArrow":"\u2195","Updownarrow":"\u21D5","UpEquilibrium":"\u296E","upharpoonleft":"\u21BF","upharpoonright":"\u21BE","uplus":"\u228E","UpperLeftArrow":"\u2196","UpperRightArrow":"\u2197","upsi":"\u03C5","Upsi":"\u03D2","upsih":"\u03D2","Upsilon":"\u03A5","upsilon":"\u03C5","UpTeeArrow":"\u21A5","UpTee":"\u22A5","upuparrows":"\u21C8","urcorn":"\u231D","urcorner":"\u231D","urcrop":"\u230E","Uring":"\u016E","uring":"\u016F","urtri":"\u25F9","Uscr":"\uD835\uDCB0","uscr":"\uD835\uDCCA","utdot":"\u22F0","Utilde":"\u0168","utilde":"\u0169","utri":"\u25B5","utrif":"\u25B4","uuarr":"\u21C8","Uuml":"\u00DC","uuml":"\u00FC","uwangle":"\u29A7","vangrt":"\u299C","varepsilon":"\u03F5","varkappa":"\u03F0","varnothing":"\u2205","varphi":"\u03D5","varpi":"\u03D6","varpropto":"\u221D","varr":"\u2195","vArr":"\u21D5","varrho":"\u03F1","varsigma":"\u03C2","varsubsetneq":"\u228A\uFE00","varsubsetneqq":"\u2ACB\uFE00","varsupsetneq":"\u228B\uFE00","varsupsetneqq":"\u2ACC\uFE00","vartheta":"\u03D1","vartriangleleft":"\u22B2","vartriangleright":"\u22B3","vBar":"\u2AE8","Vbar":"\u2AEB","vBarv":"\u2AE9","Vcy":"\u0412","vcy":"\u0432","vdash":"\u22A2","vDash":"\u22A8","Vdash":"\u22A9","VDash":"\u22AB","Vdashl":"\u2AE6","veebar":"\u22BB","vee":"\u2228","Vee":"\u22C1","veeeq":"\u225A","vellip":"\u22EE","verbar":"|","Verbar":"\u2016","vert":"|","Vert":"\u2016","VerticalBar":"\u2223","VerticalLine":"|","VerticalSeparator":"\u2758","VerticalTilde":"\u2240","VeryThinSpace":"\u200A","Vfr":"\uD835\uDD19","vfr":"\uD835\uDD33","vltri":"\u22B2","vnsub":"\u2282\u20D2","vnsup":"\u2283\u20D2","Vopf":"\uD835\uDD4D","vopf":"\uD835\uDD67","vprop":"\u221D","vrtri":"\u22B3","Vscr":"\uD835\uDCB1","vscr":"\uD835\uDCCB","vsubnE":"\u2ACB\uFE00","vsubne":"\u228A\uFE00","vsupnE":"\u2ACC\uFE00","vsupne":"\u228B\uFE00","Vvdash":"\u22AA","vzigzag":"\u299A","Wcirc":"\u0174","wcirc":"\u0175","wedbar":"\u2A5F","wedge":"\u2227","Wedge":"\u22C0","wedgeq":"\u2259","weierp":"\u2118","Wfr":"\uD835\uDD1A","wfr":"\uD835\uDD34","Wopf":"\uD835\uDD4E","wopf":"\uD835\uDD68","wp":"\u2118","wr":"\u2240","wreath":"\u2240","Wscr":"\uD835\uDCB2","wscr":"\uD835\uDCCC","xcap":"\u22C2","xcirc":"\u25EF","xcup":"\u22C3","xdtri":"\u25BD","Xfr":"\uD835\uDD1B","xfr":"\uD835\uDD35","xharr":"\u27F7","xhArr":"\u27FA","Xi":"\u039E","xi":"\u03BE","xlarr":"\u27F5","xlArr":"\u27F8","xmap":"\u27FC","xnis":"\u22FB","xodot":"\u2A00","Xopf":"\uD835\uDD4F","xopf":"\uD835\uDD69","xoplus":"\u2A01","xotime":"\u2A02","xrarr":"\u27F6","xrArr":"\u27F9","Xscr":"\uD835\uDCB3","xscr":"\uD835\uDCCD","xsqcup":"\u2A06","xuplus":"\u2A04","xutri":"\u25B3","xvee":"\u22C1","xwedge":"\u22C0","Yacute":"\u00DD","yacute":"\u00FD","YAcy":"\u042F","yacy":"\u044F","Ycirc":"\u0176","ycirc":"\u0177","Ycy":"\u042B","ycy":"\u044B","yen":"\u00A5","Yfr":"\uD835\uDD1C","yfr":"\uD835\uDD36","YIcy":"\u0407","yicy":"\u0457","Yopf":"\uD835\uDD50","yopf":"\uD835\uDD6A","Yscr":"\uD835\uDCB4","yscr":"\uD835\uDCCE","YUcy":"\u042E","yucy":"\u044E","yuml":"\u00FF","Yuml":"\u0178","Zacute":"\u0179","zacute":"\u017A","Zcaron":"\u017D","zcaron":"\u017E","Zcy":"\u0417","zcy":"\u0437","Zdot":"\u017B","zdot":"\u017C","zeetrf":"\u2128","ZeroWidthSpace":"\u200B","Zeta":"\u0396","zeta":"\u03B6","zfr":"\uD835\uDD37","Zfr":"\u2128","ZHcy":"\u0416","zhcy":"\u0436","zigrarr":"\u21DD","zopf":"\uD835\uDD6B","Zopf":"\u2124","Zscr":"\uD835\uDCB5","zscr":"\uD835\uDCCF","zwj":"\u200D","zwnj":"\u200C"}
-},{}],285:[function(require,module,exports){
+},{}],290:[function(require,module,exports){
 module.exports={"Aacute":"\u00C1","aacute":"\u00E1","Acirc":"\u00C2","acirc":"\u00E2","acute":"\u00B4","AElig":"\u00C6","aelig":"\u00E6","Agrave":"\u00C0","agrave":"\u00E0","amp":"&","AMP":"&","Aring":"\u00C5","aring":"\u00E5","Atilde":"\u00C3","atilde":"\u00E3","Auml":"\u00C4","auml":"\u00E4","brvbar":"\u00A6","Ccedil":"\u00C7","ccedil":"\u00E7","cedil":"\u00B8","cent":"\u00A2","copy":"\u00A9","COPY":"\u00A9","curren":"\u00A4","deg":"\u00B0","divide":"\u00F7","Eacute":"\u00C9","eacute":"\u00E9","Ecirc":"\u00CA","ecirc":"\u00EA","Egrave":"\u00C8","egrave":"\u00E8","ETH":"\u00D0","eth":"\u00F0","Euml":"\u00CB","euml":"\u00EB","frac12":"\u00BD","frac14":"\u00BC","frac34":"\u00BE","gt":">","GT":">","Iacute":"\u00CD","iacute":"\u00ED","Icirc":"\u00CE","icirc":"\u00EE","iexcl":"\u00A1","Igrave":"\u00CC","igrave":"\u00EC","iquest":"\u00BF","Iuml":"\u00CF","iuml":"\u00EF","laquo":"\u00AB","lt":"<","LT":"<","macr":"\u00AF","micro":"\u00B5","middot":"\u00B7","nbsp":"\u00A0","not":"\u00AC","Ntilde":"\u00D1","ntilde":"\u00F1","Oacute":"\u00D3","oacute":"\u00F3","Ocirc":"\u00D4","ocirc":"\u00F4","Ograve":"\u00D2","ograve":"\u00F2","ordf":"\u00AA","ordm":"\u00BA","Oslash":"\u00D8","oslash":"\u00F8","Otilde":"\u00D5","otilde":"\u00F5","Ouml":"\u00D6","ouml":"\u00F6","para":"\u00B6","plusmn":"\u00B1","pound":"\u00A3","quot":"\"","QUOT":"\"","raquo":"\u00BB","reg":"\u00AE","REG":"\u00AE","sect":"\u00A7","shy":"\u00AD","sup1":"\u00B9","sup2":"\u00B2","sup3":"\u00B3","szlig":"\u00DF","THORN":"\u00DE","thorn":"\u00FE","times":"\u00D7","Uacute":"\u00DA","uacute":"\u00FA","Ucirc":"\u00DB","ucirc":"\u00FB","Ugrave":"\u00D9","ugrave":"\u00F9","uml":"\u00A8","Uuml":"\u00DC","uuml":"\u00FC","Yacute":"\u00DD","yacute":"\u00FD","yen":"\u00A5","yuml":"\u00FF"}
-},{}],286:[function(require,module,exports){
+},{}],291:[function(require,module,exports){
 module.exports={"amp":"&","apos":"'","gt":">","lt":"<","quot":"\""}
 
-},{}],287:[function(require,module,exports){
+},{}],292:[function(require,module,exports){
 module.exports = CollectingHandler;
 
 function CollectingHandler(cbs){
@@ -24930,7 +25548,7 @@ CollectingHandler.prototype.restart = function(){
 	}
 };
 
-},{"./":294}],288:[function(require,module,exports){
+},{"./":299}],293:[function(require,module,exports){
 var index = require("./index.js"),
     DomHandler = index.DomHandler,
     DomUtils = index.DomUtils;
@@ -25027,7 +25645,7 @@ FeedHandler.prototype.onend = function(){
 
 module.exports = FeedHandler;
 
-},{"./index.js":294,"inherits":295}],289:[function(require,module,exports){
+},{"./index.js":299,"inherits":300}],294:[function(require,module,exports){
 var Tokenizer = require("./Tokenizer.js");
 
 /*
@@ -25382,7 +26000,7 @@ Parser.prototype.done = Parser.prototype.end;
 
 module.exports = Parser;
 
-},{"./Tokenizer.js":292,"events":6,"inherits":295}],290:[function(require,module,exports){
+},{"./Tokenizer.js":297,"events":6,"inherits":300}],295:[function(require,module,exports){
 module.exports = ProxyHandler;
 
 function ProxyHandler(cbs){
@@ -25410,7 +26028,7 @@ Object.keys(EVENTS).forEach(function(name){
 		throw Error("wrong number of arguments");
 	}
 });
-},{"./":294}],291:[function(require,module,exports){
+},{"./":299}],296:[function(require,module,exports){
 module.exports = Stream;
 
 var Parser = require("./WritableStream.js");
@@ -25446,7 +26064,7 @@ Object.keys(EVENTS).forEach(function(name){
 		throw Error("wrong number of arguments!");
 	}
 });
-},{"../":294,"./WritableStream.js":293,"inherits":295}],292:[function(require,module,exports){
+},{"../":299,"./WritableStream.js":298,"inherits":300}],297:[function(require,module,exports){
 module.exports = Tokenizer;
 
 var decodeCodePoint = require("entities/lib/decode_codepoint.js"),
@@ -26354,7 +26972,7 @@ Tokenizer.prototype._emitPartial = function(value){
 	}
 };
 
-},{"entities/lib/decode_codepoint.js":281,"entities/maps/entities.json":284,"entities/maps/legacy.json":285,"entities/maps/xml.json":286}],293:[function(require,module,exports){
+},{"entities/lib/decode_codepoint.js":286,"entities/maps/entities.json":289,"entities/maps/legacy.json":290,"entities/maps/xml.json":291}],298:[function(require,module,exports){
 module.exports = Stream;
 
 var Parser = require("./Parser.js"),
@@ -26380,7 +26998,7 @@ WritableStream.prototype._write = function(chunk, encoding, cb){
 	this._parser.write(chunk);
 	cb();
 };
-},{"./Parser.js":289,"buffer":4,"inherits":295,"readable-stream":3,"stream":43,"string_decoder":44}],294:[function(require,module,exports){
+},{"./Parser.js":294,"buffer":4,"inherits":300,"readable-stream":3,"stream":43,"string_decoder":44}],299:[function(require,module,exports){
 var Parser = require("./Parser.js"),
     DomHandler = require("domhandler");
 
@@ -26450,9 +27068,9 @@ module.exports = {
 	}
 };
 
-},{"./CollectingHandler.js":287,"./FeedHandler.js":288,"./Parser.js":289,"./ProxyHandler.js":290,"./Stream.js":291,"./Tokenizer.js":292,"./WritableStream.js":293,"domelementtype":268,"domhandler":269,"domutils":272}],295:[function(require,module,exports){
+},{"./CollectingHandler.js":292,"./FeedHandler.js":293,"./Parser.js":294,"./ProxyHandler.js":295,"./Stream.js":296,"./Tokenizer.js":297,"./WritableStream.js":298,"domelementtype":273,"domhandler":274,"domutils":277}],300:[function(require,module,exports){
 arguments[4][8][0].apply(exports,arguments)
-},{"dup":8}],296:[function(require,module,exports){
+},{"dup":8}],301:[function(require,module,exports){
 /**
  * @preserve jed.js https://github.com/SlexAxton/Jed
  */
@@ -27481,7 +28099,7 @@ return parser;
 
 })(this);
 
-},{}],297:[function(require,module,exports){
+},{}],302:[function(require,module,exports){
 var getNative = require('./_getNative'),
     root = require('./_root');
 
@@ -27490,7 +28108,7 @@ var DataView = getNative(root, 'DataView');
 
 module.exports = DataView;
 
-},{"./_getNative":414,"./_root":458}],298:[function(require,module,exports){
+},{"./_getNative":419,"./_root":463}],303:[function(require,module,exports){
 var hashClear = require('./_hashClear'),
     hashDelete = require('./_hashDelete'),
     hashGet = require('./_hashGet'),
@@ -27524,7 +28142,7 @@ Hash.prototype.set = hashSet;
 
 module.exports = Hash;
 
-},{"./_hashClear":422,"./_hashDelete":423,"./_hashGet":424,"./_hashHas":425,"./_hashSet":426}],299:[function(require,module,exports){
+},{"./_hashClear":427,"./_hashDelete":428,"./_hashGet":429,"./_hashHas":430,"./_hashSet":431}],304:[function(require,module,exports){
 var listCacheClear = require('./_listCacheClear'),
     listCacheDelete = require('./_listCacheDelete'),
     listCacheGet = require('./_listCacheGet'),
@@ -27558,7 +28176,7 @@ ListCache.prototype.set = listCacheSet;
 
 module.exports = ListCache;
 
-},{"./_listCacheClear":438,"./_listCacheDelete":439,"./_listCacheGet":440,"./_listCacheHas":441,"./_listCacheSet":442}],300:[function(require,module,exports){
+},{"./_listCacheClear":443,"./_listCacheDelete":444,"./_listCacheGet":445,"./_listCacheHas":446,"./_listCacheSet":447}],305:[function(require,module,exports){
 var getNative = require('./_getNative'),
     root = require('./_root');
 
@@ -27567,7 +28185,7 @@ var Map = getNative(root, 'Map');
 
 module.exports = Map;
 
-},{"./_getNative":414,"./_root":458}],301:[function(require,module,exports){
+},{"./_getNative":419,"./_root":463}],306:[function(require,module,exports){
 var mapCacheClear = require('./_mapCacheClear'),
     mapCacheDelete = require('./_mapCacheDelete'),
     mapCacheGet = require('./_mapCacheGet'),
@@ -27601,7 +28219,7 @@ MapCache.prototype.set = mapCacheSet;
 
 module.exports = MapCache;
 
-},{"./_mapCacheClear":443,"./_mapCacheDelete":444,"./_mapCacheGet":445,"./_mapCacheHas":446,"./_mapCacheSet":447}],302:[function(require,module,exports){
+},{"./_mapCacheClear":448,"./_mapCacheDelete":449,"./_mapCacheGet":450,"./_mapCacheHas":451,"./_mapCacheSet":452}],307:[function(require,module,exports){
 var getNative = require('./_getNative'),
     root = require('./_root');
 
@@ -27610,7 +28228,7 @@ var Promise = getNative(root, 'Promise');
 
 module.exports = Promise;
 
-},{"./_getNative":414,"./_root":458}],303:[function(require,module,exports){
+},{"./_getNative":419,"./_root":463}],308:[function(require,module,exports){
 var getNative = require('./_getNative'),
     root = require('./_root');
 
@@ -27619,7 +28237,7 @@ var Set = getNative(root, 'Set');
 
 module.exports = Set;
 
-},{"./_getNative":414,"./_root":458}],304:[function(require,module,exports){
+},{"./_getNative":419,"./_root":463}],309:[function(require,module,exports){
 var MapCache = require('./_MapCache'),
     setCacheAdd = require('./_setCacheAdd'),
     setCacheHas = require('./_setCacheHas');
@@ -27648,7 +28266,7 @@ SetCache.prototype.has = setCacheHas;
 
 module.exports = SetCache;
 
-},{"./_MapCache":301,"./_setCacheAdd":460,"./_setCacheHas":461}],305:[function(require,module,exports){
+},{"./_MapCache":306,"./_setCacheAdd":465,"./_setCacheHas":466}],310:[function(require,module,exports){
 var ListCache = require('./_ListCache'),
     stackClear = require('./_stackClear'),
     stackDelete = require('./_stackDelete'),
@@ -27677,9 +28295,9 @@ Stack.prototype.set = stackSet;
 
 module.exports = Stack;
 
-},{"./_ListCache":299,"./_stackClear":465,"./_stackDelete":466,"./_stackGet":467,"./_stackHas":468,"./_stackSet":469}],306:[function(require,module,exports){
+},{"./_ListCache":304,"./_stackClear":470,"./_stackDelete":471,"./_stackGet":472,"./_stackHas":473,"./_stackSet":474}],311:[function(require,module,exports){
 arguments[4][11][0].apply(exports,arguments)
-},{"./_root":458,"dup":11}],307:[function(require,module,exports){
+},{"./_root":463,"dup":11}],312:[function(require,module,exports){
 var root = require('./_root');
 
 /** Built-in value references. */
@@ -27687,7 +28305,7 @@ var Uint8Array = root.Uint8Array;
 
 module.exports = Uint8Array;
 
-},{"./_root":458}],308:[function(require,module,exports){
+},{"./_root":463}],313:[function(require,module,exports){
 var getNative = require('./_getNative'),
     root = require('./_root');
 
@@ -27696,7 +28314,7 @@ var WeakMap = getNative(root, 'WeakMap');
 
 module.exports = WeakMap;
 
-},{"./_getNative":414,"./_root":458}],309:[function(require,module,exports){
+},{"./_getNative":419,"./_root":463}],314:[function(require,module,exports){
 /**
  * A faster alternative to `Function#apply`, this function invokes `func`
  * with the `this` binding of `thisArg` and the arguments of `args`.
@@ -27719,7 +28337,7 @@ function apply(func, thisArg, args) {
 
 module.exports = apply;
 
-},{}],310:[function(require,module,exports){
+},{}],315:[function(require,module,exports){
 /**
  * A specialized version of `baseAggregator` for arrays.
  *
@@ -27743,7 +28361,7 @@ function arrayAggregator(array, setter, iteratee, accumulator) {
 
 module.exports = arrayAggregator;
 
-},{}],311:[function(require,module,exports){
+},{}],316:[function(require,module,exports){
 /**
  * A specialized version of `_.forEach` for arrays without support for
  * iteratee shorthands.
@@ -27767,7 +28385,7 @@ function arrayEach(array, iteratee) {
 
 module.exports = arrayEach;
 
-},{}],312:[function(require,module,exports){
+},{}],317:[function(require,module,exports){
 /**
  * A specialized version of `_.filter` for arrays without support for
  * iteratee shorthands.
@@ -27794,7 +28412,7 @@ function arrayFilter(array, predicate) {
 
 module.exports = arrayFilter;
 
-},{}],313:[function(require,module,exports){
+},{}],318:[function(require,module,exports){
 var baseIndexOf = require('./_baseIndexOf');
 
 /**
@@ -27813,7 +28431,7 @@ function arrayIncludes(array, value) {
 
 module.exports = arrayIncludes;
 
-},{"./_baseIndexOf":342}],314:[function(require,module,exports){
+},{"./_baseIndexOf":347}],319:[function(require,module,exports){
 /**
  * This function is like `arrayIncludes` except that it accepts a comparator.
  *
@@ -27837,7 +28455,7 @@ function arrayIncludesWith(array, value, comparator) {
 
 module.exports = arrayIncludesWith;
 
-},{}],315:[function(require,module,exports){
+},{}],320:[function(require,module,exports){
 var baseTimes = require('./_baseTimes'),
     isArguments = require('./isArguments'),
     isArray = require('./isArray'),
@@ -27888,7 +28506,7 @@ function arrayLikeKeys(value, inherited) {
 
 module.exports = arrayLikeKeys;
 
-},{"./_baseTimes":374,"./_isIndex":431,"./isArguments":497,"./isArray":498,"./isBuffer":501,"./isTypedArray":515}],316:[function(require,module,exports){
+},{"./_baseTimes":379,"./_isIndex":436,"./isArguments":502,"./isArray":503,"./isBuffer":506,"./isTypedArray":520}],321:[function(require,module,exports){
 /**
  * A specialized version of `_.map` for arrays without support for iteratee
  * shorthands.
@@ -27911,7 +28529,7 @@ function arrayMap(array, iteratee) {
 
 module.exports = arrayMap;
 
-},{}],317:[function(require,module,exports){
+},{}],322:[function(require,module,exports){
 /**
  * Appends the elements of `values` to `array`.
  *
@@ -27933,7 +28551,7 @@ function arrayPush(array, values) {
 
 module.exports = arrayPush;
 
-},{}],318:[function(require,module,exports){
+},{}],323:[function(require,module,exports){
 /**
  * A specialized version of `_.reduce` for arrays without support for
  * iteratee shorthands.
@@ -27961,7 +28579,7 @@ function arrayReduce(array, iteratee, accumulator, initAccum) {
 
 module.exports = arrayReduce;
 
-},{}],319:[function(require,module,exports){
+},{}],324:[function(require,module,exports){
 /**
  * A specialized version of `_.some` for arrays without support for iteratee
  * shorthands.
@@ -27986,7 +28604,7 @@ function arraySome(array, predicate) {
 
 module.exports = arraySome;
 
-},{}],320:[function(require,module,exports){
+},{}],325:[function(require,module,exports){
 var baseAssignValue = require('./_baseAssignValue'),
     eq = require('./eq');
 
@@ -28008,7 +28626,7 @@ function assignMergeValue(object, key, value) {
 
 module.exports = assignMergeValue;
 
-},{"./_baseAssignValue":326,"./eq":480}],321:[function(require,module,exports){
+},{"./_baseAssignValue":331,"./eq":485}],326:[function(require,module,exports){
 var baseAssignValue = require('./_baseAssignValue'),
     eq = require('./eq');
 
@@ -28038,7 +28656,7 @@ function assignValue(object, key, value) {
 
 module.exports = assignValue;
 
-},{"./_baseAssignValue":326,"./eq":480}],322:[function(require,module,exports){
+},{"./_baseAssignValue":331,"./eq":485}],327:[function(require,module,exports){
 var eq = require('./eq');
 
 /**
@@ -28061,7 +28679,7 @@ function assocIndexOf(array, key) {
 
 module.exports = assocIndexOf;
 
-},{"./eq":480}],323:[function(require,module,exports){
+},{"./eq":485}],328:[function(require,module,exports){
 var baseEach = require('./_baseEach');
 
 /**
@@ -28084,7 +28702,7 @@ function baseAggregator(collection, setter, iteratee, accumulator) {
 
 module.exports = baseAggregator;
 
-},{"./_baseEach":330}],324:[function(require,module,exports){
+},{"./_baseEach":335}],329:[function(require,module,exports){
 var copyObject = require('./_copyObject'),
     keys = require('./keys');
 
@@ -28103,7 +28721,7 @@ function baseAssign(object, source) {
 
 module.exports = baseAssign;
 
-},{"./_copyObject":392,"./keys":517}],325:[function(require,module,exports){
+},{"./_copyObject":397,"./keys":522}],330:[function(require,module,exports){
 var copyObject = require('./_copyObject'),
     keysIn = require('./keysIn');
 
@@ -28122,7 +28740,7 @@ function baseAssignIn(object, source) {
 
 module.exports = baseAssignIn;
 
-},{"./_copyObject":392,"./keysIn":518}],326:[function(require,module,exports){
+},{"./_copyObject":397,"./keysIn":523}],331:[function(require,module,exports){
 var defineProperty = require('./_defineProperty');
 
 /**
@@ -28149,7 +28767,7 @@ function baseAssignValue(object, key, value) {
 
 module.exports = baseAssignValue;
 
-},{"./_defineProperty":403}],327:[function(require,module,exports){
+},{"./_defineProperty":408}],332:[function(require,module,exports){
 var Stack = require('./_Stack'),
     arrayEach = require('./_arrayEach'),
     assignValue = require('./_assignValue'),
@@ -28322,7 +28940,7 @@ function baseClone(value, bitmask, customizer, key, object, stack) {
 
 module.exports = baseClone;
 
-},{"./_Stack":305,"./_arrayEach":311,"./_assignValue":321,"./_baseAssign":324,"./_baseAssignIn":325,"./_cloneBuffer":384,"./_copyArray":391,"./_copySymbols":393,"./_copySymbolsIn":394,"./_getAllKeys":410,"./_getAllKeysIn":411,"./_getTag":419,"./_initCloneArray":427,"./_initCloneByTag":428,"./_initCloneObject":429,"./isArray":498,"./isBuffer":501,"./isMap":506,"./isObject":509,"./isSet":512,"./keys":517}],328:[function(require,module,exports){
+},{"./_Stack":310,"./_arrayEach":316,"./_assignValue":326,"./_baseAssign":329,"./_baseAssignIn":330,"./_cloneBuffer":389,"./_copyArray":396,"./_copySymbols":398,"./_copySymbolsIn":399,"./_getAllKeys":415,"./_getAllKeysIn":416,"./_getTag":424,"./_initCloneArray":432,"./_initCloneByTag":433,"./_initCloneObject":434,"./isArray":503,"./isBuffer":506,"./isMap":511,"./isObject":514,"./isSet":517,"./keys":522}],333:[function(require,module,exports){
 var isObject = require('./isObject');
 
 /** Built-in value references. */
@@ -28354,7 +28972,7 @@ var baseCreate = (function() {
 
 module.exports = baseCreate;
 
-},{"./isObject":509}],329:[function(require,module,exports){
+},{"./isObject":514}],334:[function(require,module,exports){
 var SetCache = require('./_SetCache'),
     arrayIncludes = require('./_arrayIncludes'),
     arrayIncludesWith = require('./_arrayIncludesWith'),
@@ -28423,7 +29041,7 @@ function baseDifference(array, values, iteratee, comparator) {
 
 module.exports = baseDifference;
 
-},{"./_SetCache":304,"./_arrayIncludes":313,"./_arrayIncludesWith":314,"./_arrayMap":316,"./_baseUnary":376,"./_cacheHas":379}],330:[function(require,module,exports){
+},{"./_SetCache":309,"./_arrayIncludes":318,"./_arrayIncludesWith":319,"./_arrayMap":321,"./_baseUnary":381,"./_cacheHas":384}],335:[function(require,module,exports){
 var baseForOwn = require('./_baseForOwn'),
     createBaseEach = require('./_createBaseEach');
 
@@ -28439,7 +29057,7 @@ var baseEach = createBaseEach(baseForOwn);
 
 module.exports = baseEach;
 
-},{"./_baseForOwn":335,"./_createBaseEach":398}],331:[function(require,module,exports){
+},{"./_baseForOwn":340,"./_createBaseEach":403}],336:[function(require,module,exports){
 var baseEach = require('./_baseEach');
 
 /**
@@ -28462,7 +29080,7 @@ function baseFilter(collection, predicate) {
 
 module.exports = baseFilter;
 
-},{"./_baseEach":330}],332:[function(require,module,exports){
+},{"./_baseEach":335}],337:[function(require,module,exports){
 /**
  * The base implementation of `_.findIndex` and `_.findLastIndex` without
  * support for iteratee shorthands.
@@ -28488,7 +29106,7 @@ function baseFindIndex(array, predicate, fromIndex, fromRight) {
 
 module.exports = baseFindIndex;
 
-},{}],333:[function(require,module,exports){
+},{}],338:[function(require,module,exports){
 var arrayPush = require('./_arrayPush'),
     isFlattenable = require('./_isFlattenable');
 
@@ -28528,7 +29146,7 @@ function baseFlatten(array, depth, predicate, isStrict, result) {
 
 module.exports = baseFlatten;
 
-},{"./_arrayPush":317,"./_isFlattenable":430}],334:[function(require,module,exports){
+},{"./_arrayPush":322,"./_isFlattenable":435}],339:[function(require,module,exports){
 var createBaseFor = require('./_createBaseFor');
 
 /**
@@ -28546,7 +29164,7 @@ var baseFor = createBaseFor();
 
 module.exports = baseFor;
 
-},{"./_createBaseFor":399}],335:[function(require,module,exports){
+},{"./_createBaseFor":404}],340:[function(require,module,exports){
 var baseFor = require('./_baseFor'),
     keys = require('./keys');
 
@@ -28564,7 +29182,7 @@ function baseForOwn(object, iteratee) {
 
 module.exports = baseForOwn;
 
-},{"./_baseFor":334,"./keys":517}],336:[function(require,module,exports){
+},{"./_baseFor":339,"./keys":522}],341:[function(require,module,exports){
 var castPath = require('./_castPath'),
     toKey = require('./_toKey');
 
@@ -28590,7 +29208,7 @@ function baseGet(object, path) {
 
 module.exports = baseGet;
 
-},{"./_castPath":382,"./_toKey":472}],337:[function(require,module,exports){
+},{"./_castPath":387,"./_toKey":477}],342:[function(require,module,exports){
 var arrayPush = require('./_arrayPush'),
     isArray = require('./isArray');
 
@@ -28612,9 +29230,9 @@ function baseGetAllKeys(object, keysFunc, symbolsFunc) {
 
 module.exports = baseGetAllKeys;
 
-},{"./_arrayPush":317,"./isArray":498}],338:[function(require,module,exports){
+},{"./_arrayPush":322,"./isArray":503}],343:[function(require,module,exports){
 arguments[4][12][0].apply(exports,arguments)
-},{"./_Symbol":306,"./_getRawTag":416,"./_objectToString":455,"dup":12}],339:[function(require,module,exports){
+},{"./_Symbol":311,"./_getRawTag":421,"./_objectToString":460,"dup":12}],344:[function(require,module,exports){
 /** Used for built-in method references. */
 var objectProto = Object.prototype;
 
@@ -28635,7 +29253,7 @@ function baseHas(object, key) {
 
 module.exports = baseHas;
 
-},{}],340:[function(require,module,exports){
+},{}],345:[function(require,module,exports){
 /**
  * The base implementation of `_.hasIn` without support for deep paths.
  *
@@ -28650,7 +29268,7 @@ function baseHasIn(object, key) {
 
 module.exports = baseHasIn;
 
-},{}],341:[function(require,module,exports){
+},{}],346:[function(require,module,exports){
 /* Built-in method references for those with the same name as other `lodash` methods. */
 var nativeMax = Math.max,
     nativeMin = Math.min;
@@ -28670,7 +29288,7 @@ function baseInRange(number, start, end) {
 
 module.exports = baseInRange;
 
-},{}],342:[function(require,module,exports){
+},{}],347:[function(require,module,exports){
 var baseFindIndex = require('./_baseFindIndex'),
     baseIsNaN = require('./_baseIsNaN'),
     strictIndexOf = require('./_strictIndexOf');
@@ -28692,7 +29310,7 @@ function baseIndexOf(array, value, fromIndex) {
 
 module.exports = baseIndexOf;
 
-},{"./_baseFindIndex":332,"./_baseIsNaN":349,"./_strictIndexOf":470}],343:[function(require,module,exports){
+},{"./_baseFindIndex":337,"./_baseIsNaN":354,"./_strictIndexOf":475}],348:[function(require,module,exports){
 var SetCache = require('./_SetCache'),
     arrayIncludes = require('./_arrayIncludes'),
     arrayIncludesWith = require('./_arrayIncludesWith'),
@@ -28768,7 +29386,7 @@ function baseIntersection(arrays, iteratee, comparator) {
 
 module.exports = baseIntersection;
 
-},{"./_SetCache":304,"./_arrayIncludes":313,"./_arrayIncludesWith":314,"./_arrayMap":316,"./_baseUnary":376,"./_cacheHas":379}],344:[function(require,module,exports){
+},{"./_SetCache":309,"./_arrayIncludes":318,"./_arrayIncludesWith":319,"./_arrayMap":321,"./_baseUnary":381,"./_cacheHas":384}],349:[function(require,module,exports){
 var baseGetTag = require('./_baseGetTag'),
     isObjectLike = require('./isObjectLike');
 
@@ -28788,7 +29406,7 @@ function baseIsArguments(value) {
 
 module.exports = baseIsArguments;
 
-},{"./_baseGetTag":338,"./isObjectLike":510}],345:[function(require,module,exports){
+},{"./_baseGetTag":343,"./isObjectLike":515}],350:[function(require,module,exports){
 var baseIsEqualDeep = require('./_baseIsEqualDeep'),
     isObjectLike = require('./isObjectLike');
 
@@ -28818,7 +29436,7 @@ function baseIsEqual(value, other, bitmask, customizer, stack) {
 
 module.exports = baseIsEqual;
 
-},{"./_baseIsEqualDeep":346,"./isObjectLike":510}],346:[function(require,module,exports){
+},{"./_baseIsEqualDeep":351,"./isObjectLike":515}],351:[function(require,module,exports){
 var Stack = require('./_Stack'),
     equalArrays = require('./_equalArrays'),
     equalByTag = require('./_equalByTag'),
@@ -28903,7 +29521,7 @@ function baseIsEqualDeep(object, other, bitmask, customizer, equalFunc, stack) {
 
 module.exports = baseIsEqualDeep;
 
-},{"./_Stack":305,"./_equalArrays":404,"./_equalByTag":405,"./_equalObjects":406,"./_getTag":419,"./isArray":498,"./isBuffer":501,"./isTypedArray":515}],347:[function(require,module,exports){
+},{"./_Stack":310,"./_equalArrays":409,"./_equalByTag":410,"./_equalObjects":411,"./_getTag":424,"./isArray":503,"./isBuffer":506,"./isTypedArray":520}],352:[function(require,module,exports){
 var getTag = require('./_getTag'),
     isObjectLike = require('./isObjectLike');
 
@@ -28923,7 +29541,7 @@ function baseIsMap(value) {
 
 module.exports = baseIsMap;
 
-},{"./_getTag":419,"./isObjectLike":510}],348:[function(require,module,exports){
+},{"./_getTag":424,"./isObjectLike":515}],353:[function(require,module,exports){
 var Stack = require('./_Stack'),
     baseIsEqual = require('./_baseIsEqual');
 
@@ -28987,7 +29605,7 @@ function baseIsMatch(object, source, matchData, customizer) {
 
 module.exports = baseIsMatch;
 
-},{"./_Stack":305,"./_baseIsEqual":345}],349:[function(require,module,exports){
+},{"./_Stack":310,"./_baseIsEqual":350}],354:[function(require,module,exports){
 /**
  * The base implementation of `_.isNaN` without support for number objects.
  *
@@ -29001,7 +29619,7 @@ function baseIsNaN(value) {
 
 module.exports = baseIsNaN;
 
-},{}],350:[function(require,module,exports){
+},{}],355:[function(require,module,exports){
 var isFunction = require('./isFunction'),
     isMasked = require('./_isMasked'),
     isObject = require('./isObject'),
@@ -29050,7 +29668,7 @@ function baseIsNative(value) {
 
 module.exports = baseIsNative;
 
-},{"./_isMasked":435,"./_toSource":473,"./isFunction":504,"./isObject":509}],351:[function(require,module,exports){
+},{"./_isMasked":440,"./_toSource":478,"./isFunction":509,"./isObject":514}],356:[function(require,module,exports){
 var getTag = require('./_getTag'),
     isObjectLike = require('./isObjectLike');
 
@@ -29070,7 +29688,7 @@ function baseIsSet(value) {
 
 module.exports = baseIsSet;
 
-},{"./_getTag":419,"./isObjectLike":510}],352:[function(require,module,exports){
+},{"./_getTag":424,"./isObjectLike":515}],357:[function(require,module,exports){
 var baseGetTag = require('./_baseGetTag'),
     isLength = require('./isLength'),
     isObjectLike = require('./isObjectLike');
@@ -29132,7 +29750,7 @@ function baseIsTypedArray(value) {
 
 module.exports = baseIsTypedArray;
 
-},{"./_baseGetTag":338,"./isLength":505,"./isObjectLike":510}],353:[function(require,module,exports){
+},{"./_baseGetTag":343,"./isLength":510,"./isObjectLike":515}],358:[function(require,module,exports){
 var baseMatches = require('./_baseMatches'),
     baseMatchesProperty = require('./_baseMatchesProperty'),
     identity = require('./identity'),
@@ -29165,7 +29783,7 @@ function baseIteratee(value) {
 
 module.exports = baseIteratee;
 
-},{"./_baseMatches":357,"./_baseMatchesProperty":358,"./identity":492,"./isArray":498,"./property":528}],354:[function(require,module,exports){
+},{"./_baseMatches":362,"./_baseMatchesProperty":363,"./identity":497,"./isArray":503,"./property":533}],359:[function(require,module,exports){
 var isPrototype = require('./_isPrototype'),
     nativeKeys = require('./_nativeKeys');
 
@@ -29197,7 +29815,7 @@ function baseKeys(object) {
 
 module.exports = baseKeys;
 
-},{"./_isPrototype":436,"./_nativeKeys":452}],355:[function(require,module,exports){
+},{"./_isPrototype":441,"./_nativeKeys":457}],360:[function(require,module,exports){
 var isObject = require('./isObject'),
     isPrototype = require('./_isPrototype'),
     nativeKeysIn = require('./_nativeKeysIn');
@@ -29232,7 +29850,7 @@ function baseKeysIn(object) {
 
 module.exports = baseKeysIn;
 
-},{"./_isPrototype":436,"./_nativeKeysIn":453,"./isObject":509}],356:[function(require,module,exports){
+},{"./_isPrototype":441,"./_nativeKeysIn":458,"./isObject":514}],361:[function(require,module,exports){
 var baseEach = require('./_baseEach'),
     isArrayLike = require('./isArrayLike');
 
@@ -29256,7 +29874,7 @@ function baseMap(collection, iteratee) {
 
 module.exports = baseMap;
 
-},{"./_baseEach":330,"./isArrayLike":499}],357:[function(require,module,exports){
+},{"./_baseEach":335,"./isArrayLike":504}],362:[function(require,module,exports){
 var baseIsMatch = require('./_baseIsMatch'),
     getMatchData = require('./_getMatchData'),
     matchesStrictComparable = require('./_matchesStrictComparable');
@@ -29280,7 +29898,7 @@ function baseMatches(source) {
 
 module.exports = baseMatches;
 
-},{"./_baseIsMatch":348,"./_getMatchData":413,"./_matchesStrictComparable":449}],358:[function(require,module,exports){
+},{"./_baseIsMatch":353,"./_getMatchData":418,"./_matchesStrictComparable":454}],363:[function(require,module,exports){
 var baseIsEqual = require('./_baseIsEqual'),
     get = require('./get'),
     hasIn = require('./hasIn'),
@@ -29315,7 +29933,7 @@ function baseMatchesProperty(path, srcValue) {
 
 module.exports = baseMatchesProperty;
 
-},{"./_baseIsEqual":345,"./_isKey":433,"./_isStrictComparable":437,"./_matchesStrictComparable":449,"./_toKey":472,"./get":489,"./hasIn":491}],359:[function(require,module,exports){
+},{"./_baseIsEqual":350,"./_isKey":438,"./_isStrictComparable":442,"./_matchesStrictComparable":454,"./_toKey":477,"./get":494,"./hasIn":496}],364:[function(require,module,exports){
 var Stack = require('./_Stack'),
     assignMergeValue = require('./_assignMergeValue'),
     baseFor = require('./_baseFor'),
@@ -29359,7 +29977,7 @@ function baseMerge(object, source, srcIndex, customizer, stack) {
 
 module.exports = baseMerge;
 
-},{"./_Stack":305,"./_assignMergeValue":320,"./_baseFor":334,"./_baseMergeDeep":360,"./_safeGet":459,"./isObject":509,"./keysIn":518}],360:[function(require,module,exports){
+},{"./_Stack":310,"./_assignMergeValue":325,"./_baseFor":339,"./_baseMergeDeep":365,"./_safeGet":464,"./isObject":514,"./keysIn":523}],365:[function(require,module,exports){
 var assignMergeValue = require('./_assignMergeValue'),
     cloneBuffer = require('./_cloneBuffer'),
     cloneTypedArray = require('./_cloneTypedArray'),
@@ -29455,7 +30073,7 @@ function baseMergeDeep(object, source, key, srcIndex, mergeFunc, customizer, sta
 
 module.exports = baseMergeDeep;
 
-},{"./_assignMergeValue":320,"./_cloneBuffer":384,"./_cloneTypedArray":388,"./_copyArray":391,"./_initCloneObject":429,"./_safeGet":459,"./isArguments":497,"./isArray":498,"./isArrayLikeObject":500,"./isBuffer":501,"./isFunction":504,"./isObject":509,"./isPlainObject":511,"./isTypedArray":515,"./toPlainObject":540}],361:[function(require,module,exports){
+},{"./_assignMergeValue":325,"./_cloneBuffer":389,"./_cloneTypedArray":393,"./_copyArray":396,"./_initCloneObject":434,"./_safeGet":464,"./isArguments":502,"./isArray":503,"./isArrayLikeObject":505,"./isBuffer":506,"./isFunction":509,"./isObject":514,"./isPlainObject":516,"./isTypedArray":520,"./toPlainObject":545}],366:[function(require,module,exports){
 var arrayMap = require('./_arrayMap'),
     baseIteratee = require('./_baseIteratee'),
     baseMap = require('./_baseMap'),
@@ -29491,7 +30109,7 @@ function baseOrderBy(collection, iteratees, orders) {
 
 module.exports = baseOrderBy;
 
-},{"./_arrayMap":316,"./_baseIteratee":353,"./_baseMap":356,"./_baseSortBy":372,"./_baseUnary":376,"./_compareMultiple":390,"./identity":492}],362:[function(require,module,exports){
+},{"./_arrayMap":321,"./_baseIteratee":358,"./_baseMap":361,"./_baseSortBy":377,"./_baseUnary":381,"./_compareMultiple":395,"./identity":497}],367:[function(require,module,exports){
 var basePickBy = require('./_basePickBy'),
     hasIn = require('./hasIn');
 
@@ -29512,7 +30130,7 @@ function basePick(object, paths) {
 
 module.exports = basePick;
 
-},{"./_basePickBy":363,"./hasIn":491}],363:[function(require,module,exports){
+},{"./_basePickBy":368,"./hasIn":496}],368:[function(require,module,exports){
 var baseGet = require('./_baseGet'),
     baseSet = require('./_baseSet'),
     castPath = require('./_castPath');
@@ -29544,7 +30162,7 @@ function basePickBy(object, paths, predicate) {
 
 module.exports = basePickBy;
 
-},{"./_baseGet":336,"./_baseSet":369,"./_castPath":382}],364:[function(require,module,exports){
+},{"./_baseGet":341,"./_baseSet":374,"./_castPath":387}],369:[function(require,module,exports){
 /**
  * The base implementation of `_.property` without support for deep paths.
  *
@@ -29560,7 +30178,7 @@ function baseProperty(key) {
 
 module.exports = baseProperty;
 
-},{}],365:[function(require,module,exports){
+},{}],370:[function(require,module,exports){
 var baseGet = require('./_baseGet');
 
 /**
@@ -29578,7 +30196,7 @@ function basePropertyDeep(path) {
 
 module.exports = basePropertyDeep;
 
-},{"./_baseGet":336}],366:[function(require,module,exports){
+},{"./_baseGet":341}],371:[function(require,module,exports){
 /**
  * The base implementation of `_.propertyOf` without support for deep paths.
  *
@@ -29594,7 +30212,7 @@ function basePropertyOf(object) {
 
 module.exports = basePropertyOf;
 
-},{}],367:[function(require,module,exports){
+},{}],372:[function(require,module,exports){
 /**
  * The base implementation of `_.reduce` and `_.reduceRight`, without support
  * for iteratee shorthands, which iterates over `collection` using `eachFunc`.
@@ -29619,7 +30237,7 @@ function baseReduce(collection, iteratee, accumulator, initAccum, eachFunc) {
 
 module.exports = baseReduce;
 
-},{}],368:[function(require,module,exports){
+},{}],373:[function(require,module,exports){
 var identity = require('./identity'),
     overRest = require('./_overRest'),
     setToString = require('./_setToString');
@@ -29638,7 +30256,7 @@ function baseRest(func, start) {
 
 module.exports = baseRest;
 
-},{"./_overRest":457,"./_setToString":463,"./identity":492}],369:[function(require,module,exports){
+},{"./_overRest":462,"./_setToString":468,"./identity":497}],374:[function(require,module,exports){
 var assignValue = require('./_assignValue'),
     castPath = require('./_castPath'),
     isIndex = require('./_isIndex'),
@@ -29687,7 +30305,7 @@ function baseSet(object, path, value, customizer) {
 
 module.exports = baseSet;
 
-},{"./_assignValue":321,"./_castPath":382,"./_isIndex":431,"./_toKey":472,"./isObject":509}],370:[function(require,module,exports){
+},{"./_assignValue":326,"./_castPath":387,"./_isIndex":436,"./_toKey":477,"./isObject":514}],375:[function(require,module,exports){
 var constant = require('./constant'),
     defineProperty = require('./_defineProperty'),
     identity = require('./identity');
@@ -29711,7 +30329,7 @@ var baseSetToString = !defineProperty ? identity : function(func, string) {
 
 module.exports = baseSetToString;
 
-},{"./_defineProperty":403,"./constant":475,"./identity":492}],371:[function(require,module,exports){
+},{"./_defineProperty":408,"./constant":480,"./identity":497}],376:[function(require,module,exports){
 /**
  * The base implementation of `_.slice` without an iteratee call guard.
  *
@@ -29744,7 +30362,7 @@ function baseSlice(array, start, end) {
 
 module.exports = baseSlice;
 
-},{}],372:[function(require,module,exports){
+},{}],377:[function(require,module,exports){
 /**
  * The base implementation of `_.sortBy` which uses `comparer` to define the
  * sort order of `array` and replaces criteria objects with their corresponding
@@ -29767,7 +30385,7 @@ function baseSortBy(array, comparer) {
 
 module.exports = baseSortBy;
 
-},{}],373:[function(require,module,exports){
+},{}],378:[function(require,module,exports){
 /**
  * The base implementation of `_.sum` and `_.sumBy` without support for
  * iteratee shorthands.
@@ -29793,7 +30411,7 @@ function baseSum(array, iteratee) {
 
 module.exports = baseSum;
 
-},{}],374:[function(require,module,exports){
+},{}],379:[function(require,module,exports){
 /**
  * The base implementation of `_.times` without support for iteratee shorthands
  * or max array length checks.
@@ -29815,7 +30433,7 @@ function baseTimes(n, iteratee) {
 
 module.exports = baseTimes;
 
-},{}],375:[function(require,module,exports){
+},{}],380:[function(require,module,exports){
 var Symbol = require('./_Symbol'),
     arrayMap = require('./_arrayMap'),
     isArray = require('./isArray'),
@@ -29854,7 +30472,7 @@ function baseToString(value) {
 
 module.exports = baseToString;
 
-},{"./_Symbol":306,"./_arrayMap":316,"./isArray":498,"./isSymbol":514}],376:[function(require,module,exports){
+},{"./_Symbol":311,"./_arrayMap":321,"./isArray":503,"./isSymbol":519}],381:[function(require,module,exports){
 /**
  * The base implementation of `_.unary` without support for storing metadata.
  *
@@ -29870,7 +30488,7 @@ function baseUnary(func) {
 
 module.exports = baseUnary;
 
-},{}],377:[function(require,module,exports){
+},{}],382:[function(require,module,exports){
 var SetCache = require('./_SetCache'),
     arrayIncludes = require('./_arrayIncludes'),
     arrayIncludesWith = require('./_arrayIncludesWith'),
@@ -29944,7 +30562,7 @@ function baseUniq(array, iteratee, comparator) {
 
 module.exports = baseUniq;
 
-},{"./_SetCache":304,"./_arrayIncludes":313,"./_arrayIncludesWith":314,"./_cacheHas":379,"./_createSet":401,"./_setToArray":462}],378:[function(require,module,exports){
+},{"./_SetCache":309,"./_arrayIncludes":318,"./_arrayIncludesWith":319,"./_cacheHas":384,"./_createSet":406,"./_setToArray":467}],383:[function(require,module,exports){
 var arrayMap = require('./_arrayMap');
 
 /**
@@ -29965,7 +30583,7 @@ function baseValues(object, props) {
 
 module.exports = baseValues;
 
-},{"./_arrayMap":316}],379:[function(require,module,exports){
+},{"./_arrayMap":321}],384:[function(require,module,exports){
 /**
  * Checks if a `cache` value for `key` exists.
  *
@@ -29980,7 +30598,7 @@ function cacheHas(cache, key) {
 
 module.exports = cacheHas;
 
-},{}],380:[function(require,module,exports){
+},{}],385:[function(require,module,exports){
 var isArrayLikeObject = require('./isArrayLikeObject');
 
 /**
@@ -29996,7 +30614,7 @@ function castArrayLikeObject(value) {
 
 module.exports = castArrayLikeObject;
 
-},{"./isArrayLikeObject":500}],381:[function(require,module,exports){
+},{"./isArrayLikeObject":505}],386:[function(require,module,exports){
 var identity = require('./identity');
 
 /**
@@ -30012,7 +30630,7 @@ function castFunction(value) {
 
 module.exports = castFunction;
 
-},{"./identity":492}],382:[function(require,module,exports){
+},{"./identity":497}],387:[function(require,module,exports){
 var isArray = require('./isArray'),
     isKey = require('./_isKey'),
     stringToPath = require('./_stringToPath'),
@@ -30035,7 +30653,7 @@ function castPath(value, object) {
 
 module.exports = castPath;
 
-},{"./_isKey":433,"./_stringToPath":471,"./isArray":498,"./toString":541}],383:[function(require,module,exports){
+},{"./_isKey":438,"./_stringToPath":476,"./isArray":503,"./toString":546}],388:[function(require,module,exports){
 var Uint8Array = require('./_Uint8Array');
 
 /**
@@ -30053,7 +30671,7 @@ function cloneArrayBuffer(arrayBuffer) {
 
 module.exports = cloneArrayBuffer;
 
-},{"./_Uint8Array":307}],384:[function(require,module,exports){
+},{"./_Uint8Array":312}],389:[function(require,module,exports){
 var root = require('./_root');
 
 /** Detect free variable `exports`. */
@@ -30090,7 +30708,7 @@ function cloneBuffer(buffer, isDeep) {
 
 module.exports = cloneBuffer;
 
-},{"./_root":458}],385:[function(require,module,exports){
+},{"./_root":463}],390:[function(require,module,exports){
 var cloneArrayBuffer = require('./_cloneArrayBuffer');
 
 /**
@@ -30108,7 +30726,7 @@ function cloneDataView(dataView, isDeep) {
 
 module.exports = cloneDataView;
 
-},{"./_cloneArrayBuffer":383}],386:[function(require,module,exports){
+},{"./_cloneArrayBuffer":388}],391:[function(require,module,exports){
 /** Used to match `RegExp` flags from their coerced string values. */
 var reFlags = /\w*$/;
 
@@ -30127,7 +30745,7 @@ function cloneRegExp(regexp) {
 
 module.exports = cloneRegExp;
 
-},{}],387:[function(require,module,exports){
+},{}],392:[function(require,module,exports){
 var Symbol = require('./_Symbol');
 
 /** Used to convert symbols to primitives and strings. */
@@ -30147,7 +30765,7 @@ function cloneSymbol(symbol) {
 
 module.exports = cloneSymbol;
 
-},{"./_Symbol":306}],388:[function(require,module,exports){
+},{"./_Symbol":311}],393:[function(require,module,exports){
 var cloneArrayBuffer = require('./_cloneArrayBuffer');
 
 /**
@@ -30165,7 +30783,7 @@ function cloneTypedArray(typedArray, isDeep) {
 
 module.exports = cloneTypedArray;
 
-},{"./_cloneArrayBuffer":383}],389:[function(require,module,exports){
+},{"./_cloneArrayBuffer":388}],394:[function(require,module,exports){
 var isSymbol = require('./isSymbol');
 
 /**
@@ -30208,7 +30826,7 @@ function compareAscending(value, other) {
 
 module.exports = compareAscending;
 
-},{"./isSymbol":514}],390:[function(require,module,exports){
+},{"./isSymbol":519}],395:[function(require,module,exports){
 var compareAscending = require('./_compareAscending');
 
 /**
@@ -30254,7 +30872,7 @@ function compareMultiple(object, other, orders) {
 
 module.exports = compareMultiple;
 
-},{"./_compareAscending":389}],391:[function(require,module,exports){
+},{"./_compareAscending":394}],396:[function(require,module,exports){
 /**
  * Copies the values of `source` to `array`.
  *
@@ -30276,7 +30894,7 @@ function copyArray(source, array) {
 
 module.exports = copyArray;
 
-},{}],392:[function(require,module,exports){
+},{}],397:[function(require,module,exports){
 var assignValue = require('./_assignValue'),
     baseAssignValue = require('./_baseAssignValue');
 
@@ -30318,7 +30936,7 @@ function copyObject(source, props, object, customizer) {
 
 module.exports = copyObject;
 
-},{"./_assignValue":321,"./_baseAssignValue":326}],393:[function(require,module,exports){
+},{"./_assignValue":326,"./_baseAssignValue":331}],398:[function(require,module,exports){
 var copyObject = require('./_copyObject'),
     getSymbols = require('./_getSymbols');
 
@@ -30336,7 +30954,7 @@ function copySymbols(source, object) {
 
 module.exports = copySymbols;
 
-},{"./_copyObject":392,"./_getSymbols":417}],394:[function(require,module,exports){
+},{"./_copyObject":397,"./_getSymbols":422}],399:[function(require,module,exports){
 var copyObject = require('./_copyObject'),
     getSymbolsIn = require('./_getSymbolsIn');
 
@@ -30354,7 +30972,7 @@ function copySymbolsIn(source, object) {
 
 module.exports = copySymbolsIn;
 
-},{"./_copyObject":392,"./_getSymbolsIn":418}],395:[function(require,module,exports){
+},{"./_copyObject":397,"./_getSymbolsIn":423}],400:[function(require,module,exports){
 var root = require('./_root');
 
 /** Used to detect overreaching core-js shims. */
@@ -30362,7 +30980,7 @@ var coreJsData = root['__core-js_shared__'];
 
 module.exports = coreJsData;
 
-},{"./_root":458}],396:[function(require,module,exports){
+},{"./_root":463}],401:[function(require,module,exports){
 var arrayAggregator = require('./_arrayAggregator'),
     baseAggregator = require('./_baseAggregator'),
     baseIteratee = require('./_baseIteratee'),
@@ -30387,7 +31005,7 @@ function createAggregator(setter, initializer) {
 
 module.exports = createAggregator;
 
-},{"./_arrayAggregator":310,"./_baseAggregator":323,"./_baseIteratee":353,"./isArray":498}],397:[function(require,module,exports){
+},{"./_arrayAggregator":315,"./_baseAggregator":328,"./_baseIteratee":358,"./isArray":503}],402:[function(require,module,exports){
 var baseRest = require('./_baseRest'),
     isIterateeCall = require('./_isIterateeCall');
 
@@ -30426,7 +31044,7 @@ function createAssigner(assigner) {
 
 module.exports = createAssigner;
 
-},{"./_baseRest":368,"./_isIterateeCall":432}],398:[function(require,module,exports){
+},{"./_baseRest":373,"./_isIterateeCall":437}],403:[function(require,module,exports){
 var isArrayLike = require('./isArrayLike');
 
 /**
@@ -30460,7 +31078,7 @@ function createBaseEach(eachFunc, fromRight) {
 
 module.exports = createBaseEach;
 
-},{"./isArrayLike":499}],399:[function(require,module,exports){
+},{"./isArrayLike":504}],404:[function(require,module,exports){
 /**
  * Creates a base function for methods like `_.forIn` and `_.forOwn`.
  *
@@ -30487,7 +31105,7 @@ function createBaseFor(fromRight) {
 
 module.exports = createBaseFor;
 
-},{}],400:[function(require,module,exports){
+},{}],405:[function(require,module,exports){
 var baseIteratee = require('./_baseIteratee'),
     isArrayLike = require('./isArrayLike'),
     keys = require('./keys');
@@ -30514,7 +31132,7 @@ function createFind(findIndexFunc) {
 
 module.exports = createFind;
 
-},{"./_baseIteratee":353,"./isArrayLike":499,"./keys":517}],401:[function(require,module,exports){
+},{"./_baseIteratee":358,"./isArrayLike":504,"./keys":522}],406:[function(require,module,exports){
 var Set = require('./_Set'),
     noop = require('./noop'),
     setToArray = require('./_setToArray');
@@ -30535,7 +31153,7 @@ var createSet = !(Set && (1 / setToArray(new Set([,-0]))[1]) == INFINITY) ? noop
 
 module.exports = createSet;
 
-},{"./_Set":303,"./_setToArray":462,"./noop":524}],402:[function(require,module,exports){
+},{"./_Set":308,"./_setToArray":467,"./noop":529}],407:[function(require,module,exports){
 var baseMerge = require('./_baseMerge'),
     isObject = require('./isObject');
 
@@ -30565,7 +31183,7 @@ function customDefaultsMerge(objValue, srcValue, key, object, source, stack) {
 
 module.exports = customDefaultsMerge;
 
-},{"./_baseMerge":359,"./isObject":509}],403:[function(require,module,exports){
+},{"./_baseMerge":364,"./isObject":514}],408:[function(require,module,exports){
 var getNative = require('./_getNative');
 
 var defineProperty = (function() {
@@ -30578,7 +31196,7 @@ var defineProperty = (function() {
 
 module.exports = defineProperty;
 
-},{"./_getNative":414}],404:[function(require,module,exports){
+},{"./_getNative":419}],409:[function(require,module,exports){
 var SetCache = require('./_SetCache'),
     arraySome = require('./_arraySome'),
     cacheHas = require('./_cacheHas');
@@ -30663,7 +31281,7 @@ function equalArrays(array, other, bitmask, customizer, equalFunc, stack) {
 
 module.exports = equalArrays;
 
-},{"./_SetCache":304,"./_arraySome":319,"./_cacheHas":379}],405:[function(require,module,exports){
+},{"./_SetCache":309,"./_arraySome":324,"./_cacheHas":384}],410:[function(require,module,exports){
 var Symbol = require('./_Symbol'),
     Uint8Array = require('./_Uint8Array'),
     eq = require('./eq'),
@@ -30777,7 +31395,7 @@ function equalByTag(object, other, tag, bitmask, customizer, equalFunc, stack) {
 
 module.exports = equalByTag;
 
-},{"./_Symbol":306,"./_Uint8Array":307,"./_equalArrays":404,"./_mapToArray":448,"./_setToArray":462,"./eq":480}],406:[function(require,module,exports){
+},{"./_Symbol":311,"./_Uint8Array":312,"./_equalArrays":409,"./_mapToArray":453,"./_setToArray":467,"./eq":485}],411:[function(require,module,exports){
 var getAllKeys = require('./_getAllKeys');
 
 /** Used to compose bitmasks for value comparisons. */
@@ -30868,7 +31486,7 @@ function equalObjects(object, other, bitmask, customizer, equalFunc, stack) {
 
 module.exports = equalObjects;
 
-},{"./_getAllKeys":410}],407:[function(require,module,exports){
+},{"./_getAllKeys":415}],412:[function(require,module,exports){
 var basePropertyOf = require('./_basePropertyOf');
 
 /** Used to map characters to HTML entities. */
@@ -30891,7 +31509,7 @@ var escapeHtmlChar = basePropertyOf(htmlEscapes);
 
 module.exports = escapeHtmlChar;
 
-},{"./_basePropertyOf":366}],408:[function(require,module,exports){
+},{"./_basePropertyOf":371}],413:[function(require,module,exports){
 var flatten = require('./flatten'),
     overRest = require('./_overRest'),
     setToString = require('./_setToString');
@@ -30909,9 +31527,9 @@ function flatRest(func) {
 
 module.exports = flatRest;
 
-},{"./_overRest":457,"./_setToString":463,"./flatten":487}],409:[function(require,module,exports){
+},{"./_overRest":462,"./_setToString":468,"./flatten":492}],414:[function(require,module,exports){
 arguments[4][13][0].apply(exports,arguments)
-},{"dup":13}],410:[function(require,module,exports){
+},{"dup":13}],415:[function(require,module,exports){
 var baseGetAllKeys = require('./_baseGetAllKeys'),
     getSymbols = require('./_getSymbols'),
     keys = require('./keys');
@@ -30929,7 +31547,7 @@ function getAllKeys(object) {
 
 module.exports = getAllKeys;
 
-},{"./_baseGetAllKeys":337,"./_getSymbols":417,"./keys":517}],411:[function(require,module,exports){
+},{"./_baseGetAllKeys":342,"./_getSymbols":422,"./keys":522}],416:[function(require,module,exports){
 var baseGetAllKeys = require('./_baseGetAllKeys'),
     getSymbolsIn = require('./_getSymbolsIn'),
     keysIn = require('./keysIn');
@@ -30948,7 +31566,7 @@ function getAllKeysIn(object) {
 
 module.exports = getAllKeysIn;
 
-},{"./_baseGetAllKeys":337,"./_getSymbolsIn":418,"./keysIn":518}],412:[function(require,module,exports){
+},{"./_baseGetAllKeys":342,"./_getSymbolsIn":423,"./keysIn":523}],417:[function(require,module,exports){
 var isKeyable = require('./_isKeyable');
 
 /**
@@ -30968,7 +31586,7 @@ function getMapData(map, key) {
 
 module.exports = getMapData;
 
-},{"./_isKeyable":434}],413:[function(require,module,exports){
+},{"./_isKeyable":439}],418:[function(require,module,exports){
 var isStrictComparable = require('./_isStrictComparable'),
     keys = require('./keys');
 
@@ -30994,7 +31612,7 @@ function getMatchData(object) {
 
 module.exports = getMatchData;
 
-},{"./_isStrictComparable":437,"./keys":517}],414:[function(require,module,exports){
+},{"./_isStrictComparable":442,"./keys":522}],419:[function(require,module,exports){
 var baseIsNative = require('./_baseIsNative'),
     getValue = require('./_getValue');
 
@@ -31013,7 +31631,7 @@ function getNative(object, key) {
 
 module.exports = getNative;
 
-},{"./_baseIsNative":350,"./_getValue":420}],415:[function(require,module,exports){
+},{"./_baseIsNative":355,"./_getValue":425}],420:[function(require,module,exports){
 var overArg = require('./_overArg');
 
 /** Built-in value references. */
@@ -31021,9 +31639,9 @@ var getPrototype = overArg(Object.getPrototypeOf, Object);
 
 module.exports = getPrototype;
 
-},{"./_overArg":456}],416:[function(require,module,exports){
+},{"./_overArg":461}],421:[function(require,module,exports){
 arguments[4][14][0].apply(exports,arguments)
-},{"./_Symbol":306,"dup":14}],417:[function(require,module,exports){
+},{"./_Symbol":311,"dup":14}],422:[function(require,module,exports){
 var arrayFilter = require('./_arrayFilter'),
     stubArray = require('./stubArray');
 
@@ -31055,7 +31673,7 @@ var getSymbols = !nativeGetSymbols ? stubArray : function(object) {
 
 module.exports = getSymbols;
 
-},{"./_arrayFilter":312,"./stubArray":532}],418:[function(require,module,exports){
+},{"./_arrayFilter":317,"./stubArray":537}],423:[function(require,module,exports){
 var arrayPush = require('./_arrayPush'),
     getPrototype = require('./_getPrototype'),
     getSymbols = require('./_getSymbols'),
@@ -31082,7 +31700,7 @@ var getSymbolsIn = !nativeGetSymbols ? stubArray : function(object) {
 
 module.exports = getSymbolsIn;
 
-},{"./_arrayPush":317,"./_getPrototype":415,"./_getSymbols":417,"./stubArray":532}],419:[function(require,module,exports){
+},{"./_arrayPush":322,"./_getPrototype":420,"./_getSymbols":422,"./stubArray":537}],424:[function(require,module,exports){
 var DataView = require('./_DataView'),
     Map = require('./_Map'),
     Promise = require('./_Promise'),
@@ -31142,7 +31760,7 @@ if ((DataView && getTag(new DataView(new ArrayBuffer(1))) != dataViewTag) ||
 
 module.exports = getTag;
 
-},{"./_DataView":297,"./_Map":300,"./_Promise":302,"./_Set":303,"./_WeakMap":308,"./_baseGetTag":338,"./_toSource":473}],420:[function(require,module,exports){
+},{"./_DataView":302,"./_Map":305,"./_Promise":307,"./_Set":308,"./_WeakMap":313,"./_baseGetTag":343,"./_toSource":478}],425:[function(require,module,exports){
 /**
  * Gets the value at `key` of `object`.
  *
@@ -31157,7 +31775,7 @@ function getValue(object, key) {
 
 module.exports = getValue;
 
-},{}],421:[function(require,module,exports){
+},{}],426:[function(require,module,exports){
 var castPath = require('./_castPath'),
     isArguments = require('./isArguments'),
     isArray = require('./isArray'),
@@ -31198,7 +31816,7 @@ function hasPath(object, path, hasFunc) {
 
 module.exports = hasPath;
 
-},{"./_castPath":382,"./_isIndex":431,"./_toKey":472,"./isArguments":497,"./isArray":498,"./isLength":505}],422:[function(require,module,exports){
+},{"./_castPath":387,"./_isIndex":436,"./_toKey":477,"./isArguments":502,"./isArray":503,"./isLength":510}],427:[function(require,module,exports){
 var nativeCreate = require('./_nativeCreate');
 
 /**
@@ -31215,7 +31833,7 @@ function hashClear() {
 
 module.exports = hashClear;
 
-},{"./_nativeCreate":451}],423:[function(require,module,exports){
+},{"./_nativeCreate":456}],428:[function(require,module,exports){
 /**
  * Removes `key` and its value from the hash.
  *
@@ -31234,7 +31852,7 @@ function hashDelete(key) {
 
 module.exports = hashDelete;
 
-},{}],424:[function(require,module,exports){
+},{}],429:[function(require,module,exports){
 var nativeCreate = require('./_nativeCreate');
 
 /** Used to stand-in for `undefined` hash values. */
@@ -31266,7 +31884,7 @@ function hashGet(key) {
 
 module.exports = hashGet;
 
-},{"./_nativeCreate":451}],425:[function(require,module,exports){
+},{"./_nativeCreate":456}],430:[function(require,module,exports){
 var nativeCreate = require('./_nativeCreate');
 
 /** Used for built-in method references. */
@@ -31291,7 +31909,7 @@ function hashHas(key) {
 
 module.exports = hashHas;
 
-},{"./_nativeCreate":451}],426:[function(require,module,exports){
+},{"./_nativeCreate":456}],431:[function(require,module,exports){
 var nativeCreate = require('./_nativeCreate');
 
 /** Used to stand-in for `undefined` hash values. */
@@ -31316,7 +31934,7 @@ function hashSet(key, value) {
 
 module.exports = hashSet;
 
-},{"./_nativeCreate":451}],427:[function(require,module,exports){
+},{"./_nativeCreate":456}],432:[function(require,module,exports){
 /** Used for built-in method references. */
 var objectProto = Object.prototype;
 
@@ -31344,7 +31962,7 @@ function initCloneArray(array) {
 
 module.exports = initCloneArray;
 
-},{}],428:[function(require,module,exports){
+},{}],433:[function(require,module,exports){
 var cloneArrayBuffer = require('./_cloneArrayBuffer'),
     cloneDataView = require('./_cloneDataView'),
     cloneRegExp = require('./_cloneRegExp'),
@@ -31423,7 +32041,7 @@ function initCloneByTag(object, tag, isDeep) {
 
 module.exports = initCloneByTag;
 
-},{"./_cloneArrayBuffer":383,"./_cloneDataView":385,"./_cloneRegExp":386,"./_cloneSymbol":387,"./_cloneTypedArray":388}],429:[function(require,module,exports){
+},{"./_cloneArrayBuffer":388,"./_cloneDataView":390,"./_cloneRegExp":391,"./_cloneSymbol":392,"./_cloneTypedArray":393}],434:[function(require,module,exports){
 var baseCreate = require('./_baseCreate'),
     getPrototype = require('./_getPrototype'),
     isPrototype = require('./_isPrototype');
@@ -31443,7 +32061,7 @@ function initCloneObject(object) {
 
 module.exports = initCloneObject;
 
-},{"./_baseCreate":328,"./_getPrototype":415,"./_isPrototype":436}],430:[function(require,module,exports){
+},{"./_baseCreate":333,"./_getPrototype":420,"./_isPrototype":441}],435:[function(require,module,exports){
 var Symbol = require('./_Symbol'),
     isArguments = require('./isArguments'),
     isArray = require('./isArray');
@@ -31465,7 +32083,7 @@ function isFlattenable(value) {
 
 module.exports = isFlattenable;
 
-},{"./_Symbol":306,"./isArguments":497,"./isArray":498}],431:[function(require,module,exports){
+},{"./_Symbol":311,"./isArguments":502,"./isArray":503}],436:[function(require,module,exports){
 /** Used as references for various `Number` constants. */
 var MAX_SAFE_INTEGER = 9007199254740991;
 
@@ -31492,7 +32110,7 @@ function isIndex(value, length) {
 
 module.exports = isIndex;
 
-},{}],432:[function(require,module,exports){
+},{}],437:[function(require,module,exports){
 var eq = require('./eq'),
     isArrayLike = require('./isArrayLike'),
     isIndex = require('./_isIndex'),
@@ -31524,7 +32142,7 @@ function isIterateeCall(value, index, object) {
 
 module.exports = isIterateeCall;
 
-},{"./_isIndex":431,"./eq":480,"./isArrayLike":499,"./isObject":509}],433:[function(require,module,exports){
+},{"./_isIndex":436,"./eq":485,"./isArrayLike":504,"./isObject":514}],438:[function(require,module,exports){
 var isArray = require('./isArray'),
     isSymbol = require('./isSymbol');
 
@@ -31555,7 +32173,7 @@ function isKey(value, object) {
 
 module.exports = isKey;
 
-},{"./isArray":498,"./isSymbol":514}],434:[function(require,module,exports){
+},{"./isArray":503,"./isSymbol":519}],439:[function(require,module,exports){
 /**
  * Checks if `value` is suitable for use as unique object key.
  *
@@ -31572,7 +32190,7 @@ function isKeyable(value) {
 
 module.exports = isKeyable;
 
-},{}],435:[function(require,module,exports){
+},{}],440:[function(require,module,exports){
 var coreJsData = require('./_coreJsData');
 
 /** Used to detect methods masquerading as native. */
@@ -31594,7 +32212,7 @@ function isMasked(func) {
 
 module.exports = isMasked;
 
-},{"./_coreJsData":395}],436:[function(require,module,exports){
+},{"./_coreJsData":400}],441:[function(require,module,exports){
 /** Used for built-in method references. */
 var objectProto = Object.prototype;
 
@@ -31614,7 +32232,7 @@ function isPrototype(value) {
 
 module.exports = isPrototype;
 
-},{}],437:[function(require,module,exports){
+},{}],442:[function(require,module,exports){
 var isObject = require('./isObject');
 
 /**
@@ -31631,7 +32249,7 @@ function isStrictComparable(value) {
 
 module.exports = isStrictComparable;
 
-},{"./isObject":509}],438:[function(require,module,exports){
+},{"./isObject":514}],443:[function(require,module,exports){
 /**
  * Removes all key-value entries from the list cache.
  *
@@ -31646,7 +32264,7 @@ function listCacheClear() {
 
 module.exports = listCacheClear;
 
-},{}],439:[function(require,module,exports){
+},{}],444:[function(require,module,exports){
 var assocIndexOf = require('./_assocIndexOf');
 
 /** Used for built-in method references. */
@@ -31683,7 +32301,7 @@ function listCacheDelete(key) {
 
 module.exports = listCacheDelete;
 
-},{"./_assocIndexOf":322}],440:[function(require,module,exports){
+},{"./_assocIndexOf":327}],445:[function(require,module,exports){
 var assocIndexOf = require('./_assocIndexOf');
 
 /**
@@ -31704,7 +32322,7 @@ function listCacheGet(key) {
 
 module.exports = listCacheGet;
 
-},{"./_assocIndexOf":322}],441:[function(require,module,exports){
+},{"./_assocIndexOf":327}],446:[function(require,module,exports){
 var assocIndexOf = require('./_assocIndexOf');
 
 /**
@@ -31722,7 +32340,7 @@ function listCacheHas(key) {
 
 module.exports = listCacheHas;
 
-},{"./_assocIndexOf":322}],442:[function(require,module,exports){
+},{"./_assocIndexOf":327}],447:[function(require,module,exports){
 var assocIndexOf = require('./_assocIndexOf');
 
 /**
@@ -31750,7 +32368,7 @@ function listCacheSet(key, value) {
 
 module.exports = listCacheSet;
 
-},{"./_assocIndexOf":322}],443:[function(require,module,exports){
+},{"./_assocIndexOf":327}],448:[function(require,module,exports){
 var Hash = require('./_Hash'),
     ListCache = require('./_ListCache'),
     Map = require('./_Map');
@@ -31773,7 +32391,7 @@ function mapCacheClear() {
 
 module.exports = mapCacheClear;
 
-},{"./_Hash":298,"./_ListCache":299,"./_Map":300}],444:[function(require,module,exports){
+},{"./_Hash":303,"./_ListCache":304,"./_Map":305}],449:[function(require,module,exports){
 var getMapData = require('./_getMapData');
 
 /**
@@ -31793,7 +32411,7 @@ function mapCacheDelete(key) {
 
 module.exports = mapCacheDelete;
 
-},{"./_getMapData":412}],445:[function(require,module,exports){
+},{"./_getMapData":417}],450:[function(require,module,exports){
 var getMapData = require('./_getMapData');
 
 /**
@@ -31811,7 +32429,7 @@ function mapCacheGet(key) {
 
 module.exports = mapCacheGet;
 
-},{"./_getMapData":412}],446:[function(require,module,exports){
+},{"./_getMapData":417}],451:[function(require,module,exports){
 var getMapData = require('./_getMapData');
 
 /**
@@ -31829,7 +32447,7 @@ function mapCacheHas(key) {
 
 module.exports = mapCacheHas;
 
-},{"./_getMapData":412}],447:[function(require,module,exports){
+},{"./_getMapData":417}],452:[function(require,module,exports){
 var getMapData = require('./_getMapData');
 
 /**
@@ -31853,7 +32471,7 @@ function mapCacheSet(key, value) {
 
 module.exports = mapCacheSet;
 
-},{"./_getMapData":412}],448:[function(require,module,exports){
+},{"./_getMapData":417}],453:[function(require,module,exports){
 /**
  * Converts `map` to its key-value pairs.
  *
@@ -31873,7 +32491,7 @@ function mapToArray(map) {
 
 module.exports = mapToArray;
 
-},{}],449:[function(require,module,exports){
+},{}],454:[function(require,module,exports){
 /**
  * A specialized version of `matchesProperty` for source values suitable
  * for strict equality comparisons, i.e. `===`.
@@ -31895,7 +32513,7 @@ function matchesStrictComparable(key, srcValue) {
 
 module.exports = matchesStrictComparable;
 
-},{}],450:[function(require,module,exports){
+},{}],455:[function(require,module,exports){
 var memoize = require('./memoize');
 
 /** Used as the maximum memoize cache size. */
@@ -31923,7 +32541,7 @@ function memoizeCapped(func) {
 
 module.exports = memoizeCapped;
 
-},{"./memoize":520}],451:[function(require,module,exports){
+},{"./memoize":525}],456:[function(require,module,exports){
 var getNative = require('./_getNative');
 
 /* Built-in method references that are verified to be native. */
@@ -31931,7 +32549,7 @@ var nativeCreate = getNative(Object, 'create');
 
 module.exports = nativeCreate;
 
-},{"./_getNative":414}],452:[function(require,module,exports){
+},{"./_getNative":419}],457:[function(require,module,exports){
 var overArg = require('./_overArg');
 
 /* Built-in method references for those with the same name as other `lodash` methods. */
@@ -31939,7 +32557,7 @@ var nativeKeys = overArg(Object.keys, Object);
 
 module.exports = nativeKeys;
 
-},{"./_overArg":456}],453:[function(require,module,exports){
+},{"./_overArg":461}],458:[function(require,module,exports){
 /**
  * This function is like
  * [`Object.keys`](http://ecma-international.org/ecma-262/7.0/#sec-object.keys)
@@ -31961,7 +32579,7 @@ function nativeKeysIn(object) {
 
 module.exports = nativeKeysIn;
 
-},{}],454:[function(require,module,exports){
+},{}],459:[function(require,module,exports){
 var freeGlobal = require('./_freeGlobal');
 
 /** Detect free variable `exports`. */
@@ -31985,9 +32603,9 @@ var nodeUtil = (function() {
 
 module.exports = nodeUtil;
 
-},{"./_freeGlobal":409}],455:[function(require,module,exports){
+},{"./_freeGlobal":414}],460:[function(require,module,exports){
 arguments[4][15][0].apply(exports,arguments)
-},{"dup":15}],456:[function(require,module,exports){
+},{"dup":15}],461:[function(require,module,exports){
 /**
  * Creates a unary function that invokes `func` with its argument transformed.
  *
@@ -32004,7 +32622,7 @@ function overArg(func, transform) {
 
 module.exports = overArg;
 
-},{}],457:[function(require,module,exports){
+},{}],462:[function(require,module,exports){
 var apply = require('./_apply');
 
 /* Built-in method references for those with the same name as other `lodash` methods. */
@@ -32042,9 +32660,9 @@ function overRest(func, start, transform) {
 
 module.exports = overRest;
 
-},{"./_apply":309}],458:[function(require,module,exports){
+},{"./_apply":314}],463:[function(require,module,exports){
 arguments[4][16][0].apply(exports,arguments)
-},{"./_freeGlobal":409,"dup":16}],459:[function(require,module,exports){
+},{"./_freeGlobal":414,"dup":16}],464:[function(require,module,exports){
 /**
  * Gets the value at `key`, unless `key` is "__proto__".
  *
@@ -32061,7 +32679,7 @@ function safeGet(object, key) {
 
 module.exports = safeGet;
 
-},{}],460:[function(require,module,exports){
+},{}],465:[function(require,module,exports){
 /** Used to stand-in for `undefined` hash values. */
 var HASH_UNDEFINED = '__lodash_hash_undefined__';
 
@@ -32082,7 +32700,7 @@ function setCacheAdd(value) {
 
 module.exports = setCacheAdd;
 
-},{}],461:[function(require,module,exports){
+},{}],466:[function(require,module,exports){
 /**
  * Checks if `value` is in the array cache.
  *
@@ -32098,7 +32716,7 @@ function setCacheHas(value) {
 
 module.exports = setCacheHas;
 
-},{}],462:[function(require,module,exports){
+},{}],467:[function(require,module,exports){
 /**
  * Converts `set` to an array of its values.
  *
@@ -32118,7 +32736,7 @@ function setToArray(set) {
 
 module.exports = setToArray;
 
-},{}],463:[function(require,module,exports){
+},{}],468:[function(require,module,exports){
 var baseSetToString = require('./_baseSetToString'),
     shortOut = require('./_shortOut');
 
@@ -32134,7 +32752,7 @@ var setToString = shortOut(baseSetToString);
 
 module.exports = setToString;
 
-},{"./_baseSetToString":370,"./_shortOut":464}],464:[function(require,module,exports){
+},{"./_baseSetToString":375,"./_shortOut":469}],469:[function(require,module,exports){
 /** Used to detect hot functions by number of calls within a span of milliseconds. */
 var HOT_COUNT = 800,
     HOT_SPAN = 16;
@@ -32173,7 +32791,7 @@ function shortOut(func) {
 
 module.exports = shortOut;
 
-},{}],465:[function(require,module,exports){
+},{}],470:[function(require,module,exports){
 var ListCache = require('./_ListCache');
 
 /**
@@ -32190,7 +32808,7 @@ function stackClear() {
 
 module.exports = stackClear;
 
-},{"./_ListCache":299}],466:[function(require,module,exports){
+},{"./_ListCache":304}],471:[function(require,module,exports){
 /**
  * Removes `key` and its value from the stack.
  *
@@ -32210,7 +32828,7 @@ function stackDelete(key) {
 
 module.exports = stackDelete;
 
-},{}],467:[function(require,module,exports){
+},{}],472:[function(require,module,exports){
 /**
  * Gets the stack value for `key`.
  *
@@ -32226,7 +32844,7 @@ function stackGet(key) {
 
 module.exports = stackGet;
 
-},{}],468:[function(require,module,exports){
+},{}],473:[function(require,module,exports){
 /**
  * Checks if a stack value for `key` exists.
  *
@@ -32242,7 +32860,7 @@ function stackHas(key) {
 
 module.exports = stackHas;
 
-},{}],469:[function(require,module,exports){
+},{}],474:[function(require,module,exports){
 var ListCache = require('./_ListCache'),
     Map = require('./_Map'),
     MapCache = require('./_MapCache');
@@ -32278,7 +32896,7 @@ function stackSet(key, value) {
 
 module.exports = stackSet;
 
-},{"./_ListCache":299,"./_Map":300,"./_MapCache":301}],470:[function(require,module,exports){
+},{"./_ListCache":304,"./_Map":305,"./_MapCache":306}],475:[function(require,module,exports){
 /**
  * A specialized version of `_.indexOf` which performs strict equality
  * comparisons of values, i.e. `===`.
@@ -32303,7 +32921,7 @@ function strictIndexOf(array, value, fromIndex) {
 
 module.exports = strictIndexOf;
 
-},{}],471:[function(require,module,exports){
+},{}],476:[function(require,module,exports){
 var memoizeCapped = require('./_memoizeCapped');
 
 /** Used to match property names within property paths. */
@@ -32332,7 +32950,7 @@ var stringToPath = memoizeCapped(function(string) {
 
 module.exports = stringToPath;
 
-},{"./_memoizeCapped":450}],472:[function(require,module,exports){
+},{"./_memoizeCapped":455}],477:[function(require,module,exports){
 var isSymbol = require('./isSymbol');
 
 /** Used as references for various `Number` constants. */
@@ -32355,7 +32973,7 @@ function toKey(value) {
 
 module.exports = toKey;
 
-},{"./isSymbol":514}],473:[function(require,module,exports){
+},{"./isSymbol":519}],478:[function(require,module,exports){
 /** Used for built-in method references. */
 var funcProto = Function.prototype;
 
@@ -32383,7 +33001,7 @@ function toSource(func) {
 
 module.exports = toSource;
 
-},{}],474:[function(require,module,exports){
+},{}],479:[function(require,module,exports){
 var baseClone = require('./_baseClone');
 
 /** Used to compose bitmasks for cloning. */
@@ -32421,7 +33039,7 @@ function clone(value) {
 
 module.exports = clone;
 
-},{"./_baseClone":327}],475:[function(require,module,exports){
+},{"./_baseClone":332}],480:[function(require,module,exports){
 /**
  * Creates a function that returns `value`.
  *
@@ -32449,9 +33067,9 @@ function constant(value) {
 
 module.exports = constant;
 
-},{}],476:[function(require,module,exports){
+},{}],481:[function(require,module,exports){
 arguments[4][17][0].apply(exports,arguments)
-},{"./isObject":509,"./now":525,"./toNumber":539,"dup":17}],477:[function(require,module,exports){
+},{"./isObject":514,"./now":530,"./toNumber":544,"dup":17}],482:[function(require,module,exports){
 var baseRest = require('./_baseRest'),
     eq = require('./eq'),
     isIterateeCall = require('./_isIterateeCall'),
@@ -32517,7 +33135,7 @@ var defaults = baseRest(function(object, sources) {
 
 module.exports = defaults;
 
-},{"./_baseRest":368,"./_isIterateeCall":432,"./eq":480,"./keysIn":518}],478:[function(require,module,exports){
+},{"./_baseRest":373,"./_isIterateeCall":437,"./eq":485,"./keysIn":523}],483:[function(require,module,exports){
 var apply = require('./_apply'),
     baseRest = require('./_baseRest'),
     customDefaultsMerge = require('./_customDefaultsMerge'),
@@ -32549,7 +33167,7 @@ var defaultsDeep = baseRest(function(args) {
 
 module.exports = defaultsDeep;
 
-},{"./_apply":309,"./_baseRest":368,"./_customDefaultsMerge":402,"./mergeWith":522}],479:[function(require,module,exports){
+},{"./_apply":314,"./_baseRest":373,"./_customDefaultsMerge":407,"./mergeWith":527}],484:[function(require,module,exports){
 var baseDifference = require('./_baseDifference'),
     baseFlatten = require('./_baseFlatten'),
     baseRest = require('./_baseRest'),
@@ -32584,7 +33202,7 @@ var difference = baseRest(function(array, values) {
 
 module.exports = difference;
 
-},{"./_baseDifference":329,"./_baseFlatten":333,"./_baseRest":368,"./isArrayLikeObject":500}],480:[function(require,module,exports){
+},{"./_baseDifference":334,"./_baseFlatten":338,"./_baseRest":373,"./isArrayLikeObject":505}],485:[function(require,module,exports){
 /**
  * Performs a
  * [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
@@ -32623,7 +33241,7 @@ function eq(value, other) {
 
 module.exports = eq;
 
-},{}],481:[function(require,module,exports){
+},{}],486:[function(require,module,exports){
 var escapeHtmlChar = require('./_escapeHtmlChar'),
     toString = require('./toString');
 
@@ -32668,7 +33286,7 @@ function escape(string) {
 
 module.exports = escape;
 
-},{"./_escapeHtmlChar":407,"./toString":541}],482:[function(require,module,exports){
+},{"./_escapeHtmlChar":412,"./toString":546}],487:[function(require,module,exports){
 var toString = require('./toString');
 
 /**
@@ -32702,7 +33320,7 @@ function escapeRegExp(string) {
 
 module.exports = escapeRegExp;
 
-},{"./toString":541}],483:[function(require,module,exports){
+},{"./toString":546}],488:[function(require,module,exports){
 var arrayFilter = require('./_arrayFilter'),
     baseFilter = require('./_baseFilter'),
     baseIteratee = require('./_baseIteratee'),
@@ -32752,7 +33370,7 @@ function filter(collection, predicate) {
 
 module.exports = filter;
 
-},{"./_arrayFilter":312,"./_baseFilter":331,"./_baseIteratee":353,"./isArray":498}],484:[function(require,module,exports){
+},{"./_arrayFilter":317,"./_baseFilter":336,"./_baseIteratee":358,"./isArray":503}],489:[function(require,module,exports){
 var createFind = require('./_createFind'),
     findIndex = require('./findIndex');
 
@@ -32796,7 +33414,7 @@ var find = createFind(findIndex);
 
 module.exports = find;
 
-},{"./_createFind":400,"./findIndex":485}],485:[function(require,module,exports){
+},{"./_createFind":405,"./findIndex":490}],490:[function(require,module,exports){
 var baseFindIndex = require('./_baseFindIndex'),
     baseIteratee = require('./_baseIteratee'),
     toInteger = require('./toInteger');
@@ -32853,7 +33471,7 @@ function findIndex(array, predicate, fromIndex) {
 
 module.exports = findIndex;
 
-},{"./_baseFindIndex":332,"./_baseIteratee":353,"./toInteger":538}],486:[function(require,module,exports){
+},{"./_baseFindIndex":337,"./_baseIteratee":358,"./toInteger":543}],491:[function(require,module,exports){
 var baseFlatten = require('./_baseFlatten'),
     map = require('./map');
 
@@ -32884,7 +33502,7 @@ function flatMap(collection, iteratee) {
 
 module.exports = flatMap;
 
-},{"./_baseFlatten":333,"./map":519}],487:[function(require,module,exports){
+},{"./_baseFlatten":338,"./map":524}],492:[function(require,module,exports){
 var baseFlatten = require('./_baseFlatten');
 
 /**
@@ -32908,7 +33526,7 @@ function flatten(array) {
 
 module.exports = flatten;
 
-},{"./_baseFlatten":333}],488:[function(require,module,exports){
+},{"./_baseFlatten":338}],493:[function(require,module,exports){
 var arrayEach = require('./_arrayEach'),
     baseEach = require('./_baseEach'),
     castFunction = require('./_castFunction'),
@@ -32951,7 +33569,7 @@ function forEach(collection, iteratee) {
 
 module.exports = forEach;
 
-},{"./_arrayEach":311,"./_baseEach":330,"./_castFunction":381,"./isArray":498}],489:[function(require,module,exports){
+},{"./_arrayEach":316,"./_baseEach":335,"./_castFunction":386,"./isArray":503}],494:[function(require,module,exports){
 var baseGet = require('./_baseGet');
 
 /**
@@ -32986,7 +33604,7 @@ function get(object, path, defaultValue) {
 
 module.exports = get;
 
-},{"./_baseGet":336}],490:[function(require,module,exports){
+},{"./_baseGet":341}],495:[function(require,module,exports){
 var baseHas = require('./_baseHas'),
     hasPath = require('./_hasPath');
 
@@ -33023,7 +33641,7 @@ function has(object, path) {
 
 module.exports = has;
 
-},{"./_baseHas":339,"./_hasPath":421}],491:[function(require,module,exports){
+},{"./_baseHas":344,"./_hasPath":426}],496:[function(require,module,exports){
 var baseHasIn = require('./_baseHasIn'),
     hasPath = require('./_hasPath');
 
@@ -33059,7 +33677,7 @@ function hasIn(object, path) {
 
 module.exports = hasIn;
 
-},{"./_baseHasIn":340,"./_hasPath":421}],492:[function(require,module,exports){
+},{"./_baseHasIn":345,"./_hasPath":426}],497:[function(require,module,exports){
 /**
  * This method returns the first argument it receives.
  *
@@ -33082,7 +33700,7 @@ function identity(value) {
 
 module.exports = identity;
 
-},{}],493:[function(require,module,exports){
+},{}],498:[function(require,module,exports){
 var baseInRange = require('./_baseInRange'),
     toFinite = require('./toFinite'),
     toNumber = require('./toNumber');
@@ -33139,7 +33757,7 @@ function inRange(number, start, end) {
 
 module.exports = inRange;
 
-},{"./_baseInRange":341,"./toFinite":537,"./toNumber":539}],494:[function(require,module,exports){
+},{"./_baseInRange":346,"./toFinite":542,"./toNumber":544}],499:[function(require,module,exports){
 var baseIndexOf = require('./_baseIndexOf'),
     isArrayLike = require('./isArrayLike'),
     isString = require('./isString'),
@@ -33194,7 +33812,7 @@ function includes(collection, value, fromIndex, guard) {
 
 module.exports = includes;
 
-},{"./_baseIndexOf":342,"./isArrayLike":499,"./isString":513,"./toInteger":538,"./values":543}],495:[function(require,module,exports){
+},{"./_baseIndexOf":347,"./isArrayLike":504,"./isString":518,"./toInteger":543,"./values":548}],500:[function(require,module,exports){
 var baseIndexOf = require('./_baseIndexOf'),
     toInteger = require('./toInteger');
 
@@ -33238,7 +33856,7 @@ function indexOf(array, value, fromIndex) {
 
 module.exports = indexOf;
 
-},{"./_baseIndexOf":342,"./toInteger":538}],496:[function(require,module,exports){
+},{"./_baseIndexOf":347,"./toInteger":543}],501:[function(require,module,exports){
 var arrayMap = require('./_arrayMap'),
     baseIntersection = require('./_baseIntersection'),
     baseRest = require('./_baseRest'),
@@ -33270,7 +33888,7 @@ var intersection = baseRest(function(arrays) {
 
 module.exports = intersection;
 
-},{"./_arrayMap":316,"./_baseIntersection":343,"./_baseRest":368,"./_castArrayLikeObject":380}],497:[function(require,module,exports){
+},{"./_arrayMap":321,"./_baseIntersection":348,"./_baseRest":373,"./_castArrayLikeObject":385}],502:[function(require,module,exports){
 var baseIsArguments = require('./_baseIsArguments'),
     isObjectLike = require('./isObjectLike');
 
@@ -33308,7 +33926,7 @@ var isArguments = baseIsArguments(function() { return arguments; }()) ? baseIsAr
 
 module.exports = isArguments;
 
-},{"./_baseIsArguments":344,"./isObjectLike":510}],498:[function(require,module,exports){
+},{"./_baseIsArguments":349,"./isObjectLike":515}],503:[function(require,module,exports){
 /**
  * Checks if `value` is classified as an `Array` object.
  *
@@ -33336,7 +33954,7 @@ var isArray = Array.isArray;
 
 module.exports = isArray;
 
-},{}],499:[function(require,module,exports){
+},{}],504:[function(require,module,exports){
 var isFunction = require('./isFunction'),
     isLength = require('./isLength');
 
@@ -33371,7 +33989,7 @@ function isArrayLike(value) {
 
 module.exports = isArrayLike;
 
-},{"./isFunction":504,"./isLength":505}],500:[function(require,module,exports){
+},{"./isFunction":509,"./isLength":510}],505:[function(require,module,exports){
 var isArrayLike = require('./isArrayLike'),
     isObjectLike = require('./isObjectLike');
 
@@ -33406,7 +34024,7 @@ function isArrayLikeObject(value) {
 
 module.exports = isArrayLikeObject;
 
-},{"./isArrayLike":499,"./isObjectLike":510}],501:[function(require,module,exports){
+},{"./isArrayLike":504,"./isObjectLike":515}],506:[function(require,module,exports){
 var root = require('./_root'),
     stubFalse = require('./stubFalse');
 
@@ -33446,7 +34064,7 @@ var isBuffer = nativeIsBuffer || stubFalse;
 
 module.exports = isBuffer;
 
-},{"./_root":458,"./stubFalse":533}],502:[function(require,module,exports){
+},{"./_root":463,"./stubFalse":538}],507:[function(require,module,exports){
 var isObjectLike = require('./isObjectLike'),
     isPlainObject = require('./isPlainObject');
 
@@ -33473,7 +34091,7 @@ function isElement(value) {
 
 module.exports = isElement;
 
-},{"./isObjectLike":510,"./isPlainObject":511}],503:[function(require,module,exports){
+},{"./isObjectLike":515,"./isPlainObject":516}],508:[function(require,module,exports){
 var baseKeys = require('./_baseKeys'),
     getTag = require('./_getTag'),
     isArguments = require('./isArguments'),
@@ -33552,7 +34170,7 @@ function isEmpty(value) {
 
 module.exports = isEmpty;
 
-},{"./_baseKeys":354,"./_getTag":419,"./_isPrototype":436,"./isArguments":497,"./isArray":498,"./isArrayLike":499,"./isBuffer":501,"./isTypedArray":515}],504:[function(require,module,exports){
+},{"./_baseKeys":359,"./_getTag":424,"./_isPrototype":441,"./isArguments":502,"./isArray":503,"./isArrayLike":504,"./isBuffer":506,"./isTypedArray":520}],509:[function(require,module,exports){
 var baseGetTag = require('./_baseGetTag'),
     isObject = require('./isObject');
 
@@ -33591,7 +34209,7 @@ function isFunction(value) {
 
 module.exports = isFunction;
 
-},{"./_baseGetTag":338,"./isObject":509}],505:[function(require,module,exports){
+},{"./_baseGetTag":343,"./isObject":514}],510:[function(require,module,exports){
 /** Used as references for various `Number` constants. */
 var MAX_SAFE_INTEGER = 9007199254740991;
 
@@ -33628,7 +34246,7 @@ function isLength(value) {
 
 module.exports = isLength;
 
-},{}],506:[function(require,module,exports){
+},{}],511:[function(require,module,exports){
 var baseIsMap = require('./_baseIsMap'),
     baseUnary = require('./_baseUnary'),
     nodeUtil = require('./_nodeUtil');
@@ -33657,7 +34275,7 @@ var isMap = nodeIsMap ? baseUnary(nodeIsMap) : baseIsMap;
 
 module.exports = isMap;
 
-},{"./_baseIsMap":347,"./_baseUnary":376,"./_nodeUtil":454}],507:[function(require,module,exports){
+},{"./_baseIsMap":352,"./_baseUnary":381,"./_nodeUtil":459}],512:[function(require,module,exports){
 var isNumber = require('./isNumber');
 
 /**
@@ -33697,7 +34315,7 @@ function isNaN(value) {
 
 module.exports = isNaN;
 
-},{"./isNumber":508}],508:[function(require,module,exports){
+},{"./isNumber":513}],513:[function(require,module,exports){
 var baseGetTag = require('./_baseGetTag'),
     isObjectLike = require('./isObjectLike');
 
@@ -33737,11 +34355,11 @@ function isNumber(value) {
 
 module.exports = isNumber;
 
-},{"./_baseGetTag":338,"./isObjectLike":510}],509:[function(require,module,exports){
+},{"./_baseGetTag":343,"./isObjectLike":515}],514:[function(require,module,exports){
 arguments[4][18][0].apply(exports,arguments)
-},{"dup":18}],510:[function(require,module,exports){
+},{"dup":18}],515:[function(require,module,exports){
 arguments[4][19][0].apply(exports,arguments)
-},{"dup":19}],511:[function(require,module,exports){
+},{"dup":19}],516:[function(require,module,exports){
 var baseGetTag = require('./_baseGetTag'),
     getPrototype = require('./_getPrototype'),
     isObjectLike = require('./isObjectLike');
@@ -33805,7 +34423,7 @@ function isPlainObject(value) {
 
 module.exports = isPlainObject;
 
-},{"./_baseGetTag":338,"./_getPrototype":415,"./isObjectLike":510}],512:[function(require,module,exports){
+},{"./_baseGetTag":343,"./_getPrototype":420,"./isObjectLike":515}],517:[function(require,module,exports){
 var baseIsSet = require('./_baseIsSet'),
     baseUnary = require('./_baseUnary'),
     nodeUtil = require('./_nodeUtil');
@@ -33834,7 +34452,7 @@ var isSet = nodeIsSet ? baseUnary(nodeIsSet) : baseIsSet;
 
 module.exports = isSet;
 
-},{"./_baseIsSet":351,"./_baseUnary":376,"./_nodeUtil":454}],513:[function(require,module,exports){
+},{"./_baseIsSet":356,"./_baseUnary":381,"./_nodeUtil":459}],518:[function(require,module,exports){
 var baseGetTag = require('./_baseGetTag'),
     isArray = require('./isArray'),
     isObjectLike = require('./isObjectLike');
@@ -33866,9 +34484,9 @@ function isString(value) {
 
 module.exports = isString;
 
-},{"./_baseGetTag":338,"./isArray":498,"./isObjectLike":510}],514:[function(require,module,exports){
+},{"./_baseGetTag":343,"./isArray":503,"./isObjectLike":515}],519:[function(require,module,exports){
 arguments[4][20][0].apply(exports,arguments)
-},{"./_baseGetTag":338,"./isObjectLike":510,"dup":20}],515:[function(require,module,exports){
+},{"./_baseGetTag":343,"./isObjectLike":515,"dup":20}],520:[function(require,module,exports){
 var baseIsTypedArray = require('./_baseIsTypedArray'),
     baseUnary = require('./_baseUnary'),
     nodeUtil = require('./_nodeUtil');
@@ -33897,7 +34515,7 @@ var isTypedArray = nodeIsTypedArray ? baseUnary(nodeIsTypedArray) : baseIsTypedA
 
 module.exports = isTypedArray;
 
-},{"./_baseIsTypedArray":352,"./_baseUnary":376,"./_nodeUtil":454}],516:[function(require,module,exports){
+},{"./_baseIsTypedArray":357,"./_baseUnary":381,"./_nodeUtil":459}],521:[function(require,module,exports){
 /**
  * Checks if `value` is `undefined`.
  *
@@ -33921,7 +34539,7 @@ function isUndefined(value) {
 
 module.exports = isUndefined;
 
-},{}],517:[function(require,module,exports){
+},{}],522:[function(require,module,exports){
 var arrayLikeKeys = require('./_arrayLikeKeys'),
     baseKeys = require('./_baseKeys'),
     isArrayLike = require('./isArrayLike');
@@ -33960,7 +34578,7 @@ function keys(object) {
 
 module.exports = keys;
 
-},{"./_arrayLikeKeys":315,"./_baseKeys":354,"./isArrayLike":499}],518:[function(require,module,exports){
+},{"./_arrayLikeKeys":320,"./_baseKeys":359,"./isArrayLike":504}],523:[function(require,module,exports){
 var arrayLikeKeys = require('./_arrayLikeKeys'),
     baseKeysIn = require('./_baseKeysIn'),
     isArrayLike = require('./isArrayLike');
@@ -33994,7 +34612,7 @@ function keysIn(object) {
 
 module.exports = keysIn;
 
-},{"./_arrayLikeKeys":315,"./_baseKeysIn":355,"./isArrayLike":499}],519:[function(require,module,exports){
+},{"./_arrayLikeKeys":320,"./_baseKeysIn":360,"./isArrayLike":504}],524:[function(require,module,exports){
 var arrayMap = require('./_arrayMap'),
     baseIteratee = require('./_baseIteratee'),
     baseMap = require('./_baseMap'),
@@ -34049,7 +34667,7 @@ function map(collection, iteratee) {
 
 module.exports = map;
 
-},{"./_arrayMap":316,"./_baseIteratee":353,"./_baseMap":356,"./isArray":498}],520:[function(require,module,exports){
+},{"./_arrayMap":321,"./_baseIteratee":358,"./_baseMap":361,"./isArray":503}],525:[function(require,module,exports){
 var MapCache = require('./_MapCache');
 
 /** Error message constants. */
@@ -34124,7 +34742,7 @@ memoize.Cache = MapCache;
 
 module.exports = memoize;
 
-},{"./_MapCache":301}],521:[function(require,module,exports){
+},{"./_MapCache":306}],526:[function(require,module,exports){
 var baseMerge = require('./_baseMerge'),
     createAssigner = require('./_createAssigner');
 
@@ -34165,7 +34783,7 @@ var merge = createAssigner(function(object, source, srcIndex) {
 
 module.exports = merge;
 
-},{"./_baseMerge":359,"./_createAssigner":397}],522:[function(require,module,exports){
+},{"./_baseMerge":364,"./_createAssigner":402}],527:[function(require,module,exports){
 var baseMerge = require('./_baseMerge'),
     createAssigner = require('./_createAssigner');
 
@@ -34206,7 +34824,7 @@ var mergeWith = createAssigner(function(object, source, srcIndex, customizer) {
 
 module.exports = mergeWith;
 
-},{"./_baseMerge":359,"./_createAssigner":397}],523:[function(require,module,exports){
+},{"./_baseMerge":364,"./_createAssigner":402}],528:[function(require,module,exports){
 /** Error message constants. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -34248,7 +34866,7 @@ function negate(predicate) {
 
 module.exports = negate;
 
-},{}],524:[function(require,module,exports){
+},{}],529:[function(require,module,exports){
 /**
  * This method returns `undefined`.
  *
@@ -34267,9 +34885,9 @@ function noop() {
 
 module.exports = noop;
 
-},{}],525:[function(require,module,exports){
+},{}],530:[function(require,module,exports){
 arguments[4][21][0].apply(exports,arguments)
-},{"./_root":458,"dup":21}],526:[function(require,module,exports){
+},{"./_root":463,"dup":21}],531:[function(require,module,exports){
 var createAggregator = require('./_createAggregator');
 
 /**
@@ -34314,7 +34932,7 @@ var partition = createAggregator(function(result, value, key) {
 
 module.exports = partition;
 
-},{"./_createAggregator":396}],527:[function(require,module,exports){
+},{"./_createAggregator":401}],532:[function(require,module,exports){
 var basePick = require('./_basePick'),
     flatRest = require('./_flatRest');
 
@@ -34341,7 +34959,7 @@ var pick = flatRest(function(object, paths) {
 
 module.exports = pick;
 
-},{"./_basePick":362,"./_flatRest":408}],528:[function(require,module,exports){
+},{"./_basePick":367,"./_flatRest":413}],533:[function(require,module,exports){
 var baseProperty = require('./_baseProperty'),
     basePropertyDeep = require('./_basePropertyDeep'),
     isKey = require('./_isKey'),
@@ -34375,7 +34993,7 @@ function property(path) {
 
 module.exports = property;
 
-},{"./_baseProperty":364,"./_basePropertyDeep":365,"./_isKey":433,"./_toKey":472}],529:[function(require,module,exports){
+},{"./_baseProperty":369,"./_basePropertyDeep":370,"./_isKey":438,"./_toKey":477}],534:[function(require,module,exports){
 var arrayReduce = require('./_arrayReduce'),
     baseEach = require('./_baseEach'),
     baseIteratee = require('./_baseIteratee'),
@@ -34428,7 +35046,7 @@ function reduce(collection, iteratee, accumulator) {
 
 module.exports = reduce;
 
-},{"./_arrayReduce":318,"./_baseEach":330,"./_baseIteratee":353,"./_baseReduce":367,"./isArray":498}],530:[function(require,module,exports){
+},{"./_arrayReduce":323,"./_baseEach":335,"./_baseIteratee":358,"./_baseReduce":372,"./isArray":503}],535:[function(require,module,exports){
 var arrayFilter = require('./_arrayFilter'),
     baseFilter = require('./_baseFilter'),
     baseIteratee = require('./_baseIteratee'),
@@ -34476,7 +35094,7 @@ function reject(collection, predicate) {
 
 module.exports = reject;
 
-},{"./_arrayFilter":312,"./_baseFilter":331,"./_baseIteratee":353,"./isArray":498,"./negate":523}],531:[function(require,module,exports){
+},{"./_arrayFilter":317,"./_baseFilter":336,"./_baseIteratee":358,"./isArray":503,"./negate":528}],536:[function(require,module,exports){
 var baseFlatten = require('./_baseFlatten'),
     baseOrderBy = require('./_baseOrderBy'),
     baseRest = require('./_baseRest'),
@@ -34526,7 +35144,7 @@ var sortBy = baseRest(function(collection, iteratees) {
 
 module.exports = sortBy;
 
-},{"./_baseFlatten":333,"./_baseOrderBy":361,"./_baseRest":368,"./_isIterateeCall":432}],532:[function(require,module,exports){
+},{"./_baseFlatten":338,"./_baseOrderBy":366,"./_baseRest":373,"./_isIterateeCall":437}],537:[function(require,module,exports){
 /**
  * This method returns a new empty array.
  *
@@ -34551,7 +35169,7 @@ function stubArray() {
 
 module.exports = stubArray;
 
-},{}],533:[function(require,module,exports){
+},{}],538:[function(require,module,exports){
 /**
  * This method returns `false`.
  *
@@ -34571,7 +35189,7 @@ function stubFalse() {
 
 module.exports = stubFalse;
 
-},{}],534:[function(require,module,exports){
+},{}],539:[function(require,module,exports){
 var baseSum = require('./_baseSum'),
     identity = require('./identity');
 
@@ -34597,7 +35215,7 @@ function sum(array) {
 
 module.exports = sum;
 
-},{"./_baseSum":373,"./identity":492}],535:[function(require,module,exports){
+},{"./_baseSum":378,"./identity":497}],540:[function(require,module,exports){
 var baseSlice = require('./_baseSlice'),
     toInteger = require('./toInteger');
 
@@ -34636,7 +35254,7 @@ function take(array, n, guard) {
 
 module.exports = take;
 
-},{"./_baseSlice":371,"./toInteger":538}],536:[function(require,module,exports){
+},{"./_baseSlice":376,"./toInteger":543}],541:[function(require,module,exports){
 var debounce = require('./debounce'),
     isObject = require('./isObject');
 
@@ -34707,7 +35325,7 @@ function throttle(func, wait, options) {
 
 module.exports = throttle;
 
-},{"./debounce":476,"./isObject":509}],537:[function(require,module,exports){
+},{"./debounce":481,"./isObject":514}],542:[function(require,module,exports){
 var toNumber = require('./toNumber');
 
 /** Used as references for various `Number` constants. */
@@ -34751,7 +35369,7 @@ function toFinite(value) {
 
 module.exports = toFinite;
 
-},{"./toNumber":539}],538:[function(require,module,exports){
+},{"./toNumber":544}],543:[function(require,module,exports){
 var toFinite = require('./toFinite');
 
 /**
@@ -34789,9 +35407,9 @@ function toInteger(value) {
 
 module.exports = toInteger;
 
-},{"./toFinite":537}],539:[function(require,module,exports){
+},{"./toFinite":542}],544:[function(require,module,exports){
 arguments[4][22][0].apply(exports,arguments)
-},{"./isObject":509,"./isSymbol":514,"dup":22}],540:[function(require,module,exports){
+},{"./isObject":514,"./isSymbol":519,"dup":22}],545:[function(require,module,exports){
 var copyObject = require('./_copyObject'),
     keysIn = require('./keysIn');
 
@@ -34825,7 +35443,7 @@ function toPlainObject(value) {
 
 module.exports = toPlainObject;
 
-},{"./_copyObject":392,"./keysIn":518}],541:[function(require,module,exports){
+},{"./_copyObject":397,"./keysIn":523}],546:[function(require,module,exports){
 var baseToString = require('./_baseToString');
 
 /**
@@ -34855,7 +35473,7 @@ function toString(value) {
 
 module.exports = toString;
 
-},{"./_baseToString":375}],542:[function(require,module,exports){
+},{"./_baseToString":380}],547:[function(require,module,exports){
 var baseIteratee = require('./_baseIteratee'),
     baseUniq = require('./_baseUniq');
 
@@ -34888,7 +35506,7 @@ function uniqBy(array, iteratee) {
 
 module.exports = uniqBy;
 
-},{"./_baseIteratee":353,"./_baseUniq":377}],543:[function(require,module,exports){
+},{"./_baseIteratee":358,"./_baseUniq":382}],548:[function(require,module,exports){
 var baseValues = require('./_baseValues'),
     keys = require('./keys');
 
@@ -34924,7 +35542,7 @@ function values(object) {
 
 module.exports = values;
 
-},{"./_baseValues":378,"./keys":517}],544:[function(require,module,exports){
+},{"./_baseValues":383,"./keys":522}],549:[function(require,module,exports){
 var findMatchingRule = function(rules, text){
   var i;
   for(i=0; i<rules.length; i++)
