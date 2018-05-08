@@ -56,7 +56,7 @@ CREATE TABLE tx_news_domain_model_news (
 );
 
 #
-# Table structure for table 'tx_news_domain_model_news'
+# Table structure for table 'tx_cal_event'
 
 CREATE TABLE tx_cal_event (
 	seo_title varchar(255) DEFAULT '' NOT NULL,
