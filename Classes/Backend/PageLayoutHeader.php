@@ -126,7 +126,7 @@ class PageLayoutHeader
 
             $focusKeyword = YoastUtility::getFocusKeywordOfPage($recordId, $tableName);
 
-            $domain = CMS\Backend\Utility\BackendUtility::getViewDomain($currentPage['uid']);
+            $domain = CMS\Backend\Utility\BackendUtility::getViewDomain((int)$pageLayoutController->id);
 
             // Allow Overwrite of the domain via ExtConf
             if (array_key_exists('previewDomain', $this->configuration) && $this->configuration['previewDomain']) {
