@@ -4,4 +4,5 @@
 <INCLUDE_TYPOSCRIPT: source="FILE:EXT:yoast_seo/Configuration/TypoScript/Setup/Module.typoscript">
 <INCLUDE_TYPOSCRIPT: source="FILE:EXT:yoast_seo/Configuration/TypoScript/Setup/Preview.typoscript">
 
-<INCLUDE_TYPOSCRIPT: source="DIR:EXT:yoast_seo/Configuration/TypoScript/Setup/Plugins">
+<INCLUDE_TYPOSCRIPT: source="FILE:EXT:yoast_seo/Configuration/TypoScript/Setup/Plugins/Cal.typoscript" condition="[userFunc = TYPO3\\CMS\\Core\\Utility\\ExtensionManagementUtility::isLoaded('cal')]">
+<INCLUDE_TYPOSCRIPT: source="FILE:EXT:yoast_seo/Configuration/TypoScript/Setup/Plugins/News.typoscript" condition="[userFunc = TYPO3\\CMS\\Core\\Utility\\ExtensionManagementUtility::isLoaded('news')]">

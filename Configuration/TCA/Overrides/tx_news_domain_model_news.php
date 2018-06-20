@@ -1,4 +1,8 @@
 <?php
+if (!\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('news')) {
+    return;
+}
+
 $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns(
     'tx_news_domain_model_news',
