@@ -86,7 +86,7 @@ How to use the snippet preview in other plugins
 -----------------------------------------------
 One important thing to know is that the snippet preview of records other than pages, only works when you have set a
 proper preview link. The only thing you need to do is set some PageTsconfig. More information about the configuration of
-the preview links can be found in the `documentation <https://docs.typo3.org/typo3cms/TSconfigReference/PageTsconfig/TCEmain/Index.html#preview>`__.\
+the preview links can be found in the `documentation <https://docs.typo3.org/typo3cms/TSconfigReference/PageTsconfig/TceMain.html#preview>`__.\
 
 An example configuration of the preview links for EXT:news records is:
 
