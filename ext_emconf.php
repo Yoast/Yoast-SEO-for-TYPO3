@@ -14,6 +14,7 @@ $EM_CONF[$_EXTKEY] = array(
     'constraints' => array(
         'depends' => array(
             'typo3' => '7.6.13-8.7.99',
+            'realurl' => ''
         ),
         'conflicts' => array(),
         'suggests' => array(),
