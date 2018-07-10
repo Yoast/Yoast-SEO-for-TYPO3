@@ -16,8 +16,8 @@ namespace YoastSeoForTypo3\YoastSeo\UserFunc;
 
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
+use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
 /**
  * Class SitemapXml
@@ -122,13 +122,29 @@ class SitemapXml
                 $where = $sitemapSettings['additionalWhere'] ?: '';
 
                 $docs[] = $tsfe->sys_page->getPage($rootPid);
-                $docs = $this->getSubPages($rootPid, $docs, $where);
+                $docs = array_filter(
+                    $this->getSubPages($rootPid, $docs, $where),
+                    '\YoastSeoForTypo3\YoastSeo\UserFunc\SitemapXml::filterNoIndexPages'
+                );
             } else {
-                $where = $sitemapSettings['additionalWhere'] ?: '1=1';
-                $where .= $tsfe->sys_page->enableFields($sitemapSettings['table']);
+                $where[] = $sitemapSettings['additionalWhere'] ?: '1=1';
+                $where[] = $tsfe->sys_page->enableFields($sitemapSettings['table']);
                 $sortField = $sitemapSettings['sortField'] ?: 'tstamp DESC';
 
-                $docs = $db->exec_SELECTgetRows('*', $sitemapSettings['table'], $where, '', $sortField);
+                $docs = $db->exec_SELECTgetRows('*', $sitemapSettings['table'], implode('', $where), '', $sortField);
+
+                $cObject = GeneralUtility::makeInstance(ContentObjectRenderer::class);
+                $typoLinkConf = [
+                    'parameter' => $sitemapSettings['detailPid'],
+                    'forceAbsoluteUrl' => 1,
+                    'useCacheHash' => !empty($sitemapSettings['useCacheHash'])
+                ];
+
+                foreach ($docs as $k => $record) {
+                    $typoLinkConf['additionalParams'] = '&' . $sitemapSettings['additionalParams'] . '=' . $record['uid'];
+
+                    $docs[$k]['loc'] = $cObject->typoLink_URL($typoLinkConf);
+                }
             }
         }
 
@@ -223,5 +239,13 @@ class SitemapXml
     protected function getDb()
     {
         return $GLOBALS['TYPO3_DB'];
+    }
+
+    public function filterNoIndexPages($var)
+    {
+        if ((int)$var['no_index'] === 1) {
+            return false;
+        }
+        return true;
     }
 }

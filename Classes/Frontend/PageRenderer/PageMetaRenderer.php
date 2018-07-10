@@ -36,7 +36,7 @@ class PageMetaRenderer implements SingletonInterface
             && (int) $GLOBALS['TSFE']->config['config']['yoast_seo.']['enabled'] !== 0
             && $GLOBALS['TSFE']->cObj instanceof ContentObjectRenderer
         ) {
-            $tagsToRender = [];
+            $tagsToRender = ['<!-- This site is optimized with Yoast SEO plugin -->'];
             $tagsArray = $this->getUniqueTagsFromConfig();
             foreach ($tagsArray as $tag => $v) {
                 if ($content = $this->getTagToRender($tag)) {
@@ -47,6 +47,7 @@ class PageMetaRenderer implements SingletonInterface
                     $tagsToRender[$key] = $content;
                 }
             }
+            $tagsToRender[] = '<!-- / Yoast SEO plugin. -->';
             $metaTags = array_filter($parameters['metaTags'], function ($metaTag) use ($tagsToRender) {
                 if (preg_match('/\<meta (name|property)="([a-z0-9:_]*)"/', $metaTag, $matches)) {
                     if (array_key_exists($matches[1] . '|' . $matches[2], $tagsToRender)) {
@@ -55,6 +56,7 @@ class PageMetaRenderer implements SingletonInterface
                 }
                 return true;
             });
+
             $parameters['metaTags'] = array_merge($metaTags, $tagsToRender);
         }
     }
