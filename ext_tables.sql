@@ -45,21 +45,5 @@ CREATE TABLE pages_language_overlay (
 );
 
 #
-# Table structure for table 'tx_news_domain_model_news'
-
-CREATE TABLE tx_news_domain_model_news (
-	uid int(11) NOT NULL auto_increment,
-	pid int(11) DEFAULT '0' NOT NULL,
-	tx_yoastseo_focuskeyword varchar(32) DEFAULT '' NOT NULL,
-	PRIMARY KEY (uid),
-	KEY parent (pid)
-);
-
+# Additional sql for extension within php class \YoastSeoForTypo3\YoastSeo\DataHandling\DatabaseSchemaService
 #
-# Table structure for table 'tx_cal_event'
-
-CREATE TABLE tx_cal_event (
-	seo_title varchar(255) DEFAULT '' NOT NULL,
-	seo_description text,
-	tx_yoastseo_focuskeyword varchar(32) DEFAULT '' NOT NULL,
-);

@@ -1,4 +1,8 @@
 <?php
+if (!\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('cal')) {
+    return;
+}
+
 $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns(
     'tx_cal_event',
