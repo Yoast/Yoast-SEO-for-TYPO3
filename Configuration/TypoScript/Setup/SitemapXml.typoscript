@@ -6,6 +6,7 @@ plugin.tx_yoastseo.sitemap {
     }
     config {
         pages {
+            partialName = Pages
             table = pages
             additionalWhere = AND doktype IN (1, 6)
         }

@@ -152,6 +152,7 @@ class SitemapXml
             $this->variables,
             [
                 'config' => $sitemapConfig,
+                'partialName' => $sitemapSettings['partialName'] ?: $sitemapConfig,
                 'docs' => $docs
             ]
         );
