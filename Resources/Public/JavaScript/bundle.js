@@ -41,65 +41,97 @@ for (var i = 0, len = code.length; i < len; ++i) {
 revLookup['-'.charCodeAt(0)] = 62
 revLookup['_'.charCodeAt(0)] = 63
 
-function placeHoldersCount (b64) {
+function getLens (b64) {
   var len = b64.length
+
   if (len % 4 > 0) {
     throw new Error('Invalid string. Length must be a multiple of 4')
   }
 
-  // the number of equal signs (place holders)
-  // if there are two placeholders, than the two characters before it
-  // represent one byte
-  // if there is only one, then the three characters before it represent 2 bytes
-  // this is just a cheap hack to not do indexOf twice
-  return b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0
+  // Trim off extra bytes after placeholder bytes are found
+  // See: https://github.com/beatgammit/base64-js/issues/42
+  var validLen = b64.indexOf('=')
+  if (validLen === -1) validLen = len
+
+  var placeHoldersLen = validLen === len
+    ? 0
+    : 4 - (validLen % 4)
+
+  return [validLen, placeHoldersLen]
 }
 
+// base64 is 4/3 + up to two characters of the original data
 function byteLength (b64) {
-  // base64 is 4/3 + up to two characters of the original data
-  return (b64.length * 3 / 4) - placeHoldersCount(b64)
+  var lens = getLens(b64)
+  var validLen = lens[0]
+  var placeHoldersLen = lens[1]
+  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
+}
+
+function _byteLength (b64, validLen, placeHoldersLen) {
+  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
 }
 
 function toByteArray (b64) {
-  var i, l, tmp, placeHolders, arr
-  var len = b64.length
-  placeHolders = placeHoldersCount(b64)
+  var tmp
+  var lens = getLens(b64)
+  var validLen = lens[0]
+  var placeHoldersLen = lens[1]
 
-  arr = new Arr((len * 3 / 4) - placeHolders)
+  var arr = new Arr(_byteLength(b64, validLen, placeHoldersLen))
+
+  var curByte = 0
 
   // if there are placeholders, only get up to the last complete 4 chars
-  l = placeHolders > 0 ? len - 4 : len
+  var len = placeHoldersLen > 0
+    ? validLen - 4
+    : validLen
 
-  var L = 0
-
-  for (i = 0; i < l; i += 4) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 18) | (revLookup[b64.charCodeAt(i + 1)] << 12) | (revLookup[b64.charCodeAt(i + 2)] << 6) | revLookup[b64.charCodeAt(i + 3)]
-    arr[L++] = (tmp >> 16) & 0xFF
-    arr[L++] = (tmp >> 8) & 0xFF
-    arr[L++] = tmp & 0xFF
+  for (var i = 0; i < len; i += 4) {
+    tmp =
+      (revLookup[b64.charCodeAt(i)] << 18) |
+      (revLookup[b64.charCodeAt(i + 1)] << 12) |
+      (revLookup[b64.charCodeAt(i + 2)] << 6) |
+      revLookup[b64.charCodeAt(i + 3)]
+    arr[curByte++] = (tmp >> 16) & 0xFF
+    arr[curByte++] = (tmp >> 8) & 0xFF
+    arr[curByte++] = tmp & 0xFF
   }
 
-  if (placeHolders === 2) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 2) | (revLookup[b64.charCodeAt(i + 1)] >> 4)
-    arr[L++] = tmp & 0xFF
-  } else if (placeHolders === 1) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 10) | (revLookup[b64.charCodeAt(i + 1)] << 4) | (revLookup[b64.charCodeAt(i + 2)] >> 2)
-    arr[L++] = (tmp >> 8) & 0xFF
-    arr[L++] = tmp & 0xFF
+  if (placeHoldersLen === 2) {
+    tmp =
+      (revLookup[b64.charCodeAt(i)] << 2) |
+      (revLookup[b64.charCodeAt(i + 1)] >> 4)
+    arr[curByte++] = tmp & 0xFF
+  }
+
+  if (placeHoldersLen === 1) {
+    tmp =
+      (revLookup[b64.charCodeAt(i)] << 10) |
+      (revLookup[b64.charCodeAt(i + 1)] << 4) |
+      (revLookup[b64.charCodeAt(i + 2)] >> 2)
+    arr[curByte++] = (tmp >> 8) & 0xFF
+    arr[curByte++] = tmp & 0xFF
   }
 
   return arr
 }
 
 function tripletToBase64 (num) {
-  return lookup[num >> 18 & 0x3F] + lookup[num >> 12 & 0x3F] + lookup[num >> 6 & 0x3F] + lookup[num & 0x3F]
+  return lookup[num >> 18 & 0x3F] +
+    lookup[num >> 12 & 0x3F] +
+    lookup[num >> 6 & 0x3F] +
+    lookup[num & 0x3F]
 }
 
 function encodeChunk (uint8, start, end) {
   var tmp
   var output = []
   for (var i = start; i < end; i += 3) {
-    tmp = ((uint8[i] << 16) & 0xFF0000) + ((uint8[i + 1] << 8) & 0xFF00) + (uint8[i + 2] & 0xFF)
+    tmp =
+      ((uint8[i] << 16) & 0xFF0000) +
+      ((uint8[i + 1] << 8) & 0xFF00) +
+      (uint8[i + 2] & 0xFF)
     output.push(tripletToBase64(tmp))
   }
   return output.join('')
@@ -109,30 +141,33 @@ function fromByteArray (uint8) {
   var tmp
   var len = uint8.length
   var extraBytes = len % 3 // if we have 1 byte left, pad 2 bytes
-  var output = ''
   var parts = []
   var maxChunkLength = 16383 // must be multiple of 3
 
   // go through the array every three bytes, we'll deal with trailing stuff later
   for (var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength) {
-    parts.push(encodeChunk(uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)))
+    parts.push(encodeChunk(
+      uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)
+    ))
   }
 
   // pad the end with zeros, but make sure to not forget the extra bytes
   if (extraBytes === 1) {
     tmp = uint8[len - 1]
-    output += lookup[tmp >> 2]
-    output += lookup[(tmp << 4) & 0x3F]
-    output += '=='
+    parts.push(
+      lookup[tmp >> 2] +
+      lookup[(tmp << 4) & 0x3F] +
+      '=='
+    )
   } else if (extraBytes === 2) {
-    tmp = (uint8[len - 2] << 8) + (uint8[len - 1])
-    output += lookup[tmp >> 10]
-    output += lookup[(tmp >> 4) & 0x3F]
-    output += lookup[(tmp << 2) & 0x3F]
-    output += '='
+    tmp = (uint8[len - 2] << 8) + uint8[len - 1]
+    parts.push(
+      lookup[tmp >> 10] +
+      lookup[(tmp >> 4) & 0x3F] +
+      lookup[(tmp << 2) & 0x3F] +
+      '='
+    )
   }
-
-  parts.push(output)
 
   return parts.join('')
 }
@@ -2419,24 +2454,28 @@ EventEmitter.prototype.removeAllListeners =
       return this;
     };
 
-EventEmitter.prototype.listeners = function listeners(type) {
-  var evlistener;
-  var ret;
-  var events = this._events;
+function _listeners(target, type, unwrap) {
+  var events = target._events;
 
   if (!events)
-    ret = [];
-  else {
-    evlistener = events[type];
-    if (!evlistener)
-      ret = [];
-    else if (typeof evlistener === 'function')
-      ret = [evlistener.listener || evlistener];
-    else
-      ret = unwrapListeners(evlistener);
-  }
+    return [];
 
-  return ret;
+  var evlistener = events[type];
+  if (!evlistener)
+    return [];
+
+  if (typeof evlistener === 'function')
+    return unwrap ? [evlistener.listener || evlistener] : [evlistener];
+
+  return unwrap ? unwrapListeners(evlistener) : arrayClone(evlistener, evlistener.length);
+}
+
+EventEmitter.prototype.listeners = function listeners(type) {
+  return _listeners(this, type, true);
+};
+
+EventEmitter.prototype.rawListeners = function rawListeners(type) {
+  return _listeners(this, type, false);
 };
 
 EventEmitter.listenerCount = function(emitter, type) {
@@ -5530,7 +5569,7 @@ function done(stream, er, data) {
   return stream.push(null);
 }
 },{"./_stream_duplex":30,"core-util-is":5,"inherits":8}],34:[function(require,module,exports){
-(function (process,global){
+(function (process,global,setImmediate){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -6218,8 +6257,8 @@ Writable.prototype._destroy = function (err, cb) {
   this.end();
   cb(err);
 };
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./_stream_duplex":30,"./internal/streams/destroy":36,"./internal/streams/stream":37,"_process":24,"core-util-is":5,"inherits":8,"process-nextick-args":23,"safe-buffer":42,"util-deprecate":47}],35:[function(require,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("timers").setImmediate)
+},{"./_stream_duplex":30,"./internal/streams/destroy":36,"./internal/streams/stream":37,"_process":24,"core-util-is":5,"inherits":8,"process-nextick-args":23,"safe-buffer":42,"timers":45,"util-deprecate":48}],35:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -6886,6 +6925,85 @@ function simpleEnd(buf) {
   return buf && buf.length ? this.write(buf) : '';
 }
 },{"safe-buffer":42}],45:[function(require,module,exports){
+(function (setImmediate,clearImmediate){
+var nextTick = require('process/browser.js').nextTick;
+var apply = Function.prototype.apply;
+var slice = Array.prototype.slice;
+var immediateIds = {};
+var nextImmediateId = 0;
+
+// DOM APIs, for completeness
+
+exports.setTimeout = function() {
+  return new Timeout(apply.call(setTimeout, window, arguments), clearTimeout);
+};
+exports.setInterval = function() {
+  return new Timeout(apply.call(setInterval, window, arguments), clearInterval);
+};
+exports.clearTimeout =
+exports.clearInterval = function(timeout) { timeout.close(); };
+
+function Timeout(id, clearFn) {
+  this._id = id;
+  this._clearFn = clearFn;
+}
+Timeout.prototype.unref = Timeout.prototype.ref = function() {};
+Timeout.prototype.close = function() {
+  this._clearFn.call(window, this._id);
+};
+
+// Does not start the time, just sets up the members needed.
+exports.enroll = function(item, msecs) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = msecs;
+};
+
+exports.unenroll = function(item) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = -1;
+};
+
+exports._unrefActive = exports.active = function(item) {
+  clearTimeout(item._idleTimeoutId);
+
+  var msecs = item._idleTimeout;
+  if (msecs >= 0) {
+    item._idleTimeoutId = setTimeout(function onTimeout() {
+      if (item._onTimeout)
+        item._onTimeout();
+    }, msecs);
+  }
+};
+
+// That's not how node.js implements it but the exposed api is the same.
+exports.setImmediate = typeof setImmediate === "function" ? setImmediate : function(fn) {
+  var id = nextImmediateId++;
+  var args = arguments.length < 2 ? false : slice.call(arguments, 1);
+
+  immediateIds[id] = true;
+
+  nextTick(function onNextTick() {
+    if (immediateIds[id]) {
+      // fn.call() is faster so we optimize for the common use-case
+      // @see http://jsperf.com/call-apply-segu
+      if (args) {
+        fn.apply(null, args);
+      } else {
+        fn.call(null);
+      }
+      // Prevent ids from leaking
+      exports.clearImmediate(id);
+    }
+  });
+
+  return id;
+};
+
+exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate : function(id) {
+  delete immediateIds[id];
+};
+}).call(this,require("timers").setImmediate,require("timers").clearImmediate)
+},{"process/browser.js":24,"timers":45}],46:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -7619,7 +7737,7 @@ Url.prototype.parseHost = function() {
   if (host) this.hostname = host;
 };
 
-},{"./util":46,"punycode":25,"querystring":28}],46:[function(require,module,exports){
+},{"./util":47,"punycode":25,"querystring":28}],47:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -7637,7 +7755,7 @@ module.exports = {
   }
 };
 
-},{}],47:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 (function (global){
 
 /**
@@ -7708,9 +7826,7 @@ function config (name) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],48:[function(require,module,exports){
-arguments[4][8][0].apply(exports,arguments)
-},{"dup":8}],49:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
@@ -8307,7 +8423,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":49,"_process":24,"inherits":48}],51:[function(require,module,exports){
+},{"./support/isBuffer":49,"_process":24,"inherits":8}],51:[function(require,module,exports){
 "use strict";
 
 var plugins = {
@@ -8334,9 +8450,10 @@ module.exports = {
 	helpers: helpers
 };
 
-},{"./js/app":52,"./js/assessor":80,"./js/bundledPlugins/previouslyUsedKeywords":81,"./js/contentAssessor":97,"./js/interpreters/scoreToRating":115,"./js/pluggable":118,"./js/researcher":120,"./js/seoAssessor":215,"./js/snippetPreview.js":216,"./js/values/AssessmentResult":264,"./js/values/Paper":266}],52:[function(require,module,exports){
+},{"./js/app":52,"./js/assessor":81,"./js/bundledPlugins/previouslyUsedKeywords":82,"./js/contentAssessor":102,"./js/interpreters/scoreToRating":122,"./js/pluggable":126,"./js/researcher":128,"./js/seoAssessor":237,"./js/snippetPreview.js":238,"./js/values/AssessmentResult":289,"./js/values/Paper":291}],52:[function(require,module,exports){
 "use strict";
 
+Object.defineProperty(exports, "__esModule", { value: true });
 require("./config/config.js");
 var SnippetPreview = require("./snippetPreview.js");
 var defaultsDeep = require("lodash/defaultsDeep");
@@ -8345,11 +8462,15 @@ var isString = require("lodash/isString");
 var MissingArgument = require("./errors/missingArgument");
 var isUndefined = require("lodash/isUndefined");
 var isEmpty = require("lodash/isEmpty");
+var isFunction = require("lodash/isFunction");
+var isArray = require("lodash/isArray");
 var forEach = require("lodash/forEach");
 var debounce = require("lodash/debounce");
 var throttle = require("lodash/throttle");
+var merge = require("lodash/merge");
 var Jed = require("jed");
 var SEOAssessor = require("./seoAssessor.js");
+var LargestKeywordDistanceAssessment_js_1 = require("./assessments/seo/LargestKeywordDistanceAssessment.js");
 var ContentAssessor = require("./contentAssessor.js");
 var CornerstoneSEOAssessor = require("./cornerstone/seoAssessor.js");
 var CornerstoneContentAssessor = require("./cornerstone/contentAssessor.js");
@@ -8357,7 +8478,9 @@ var Researcher = require("./researcher.js");
 var AssessorPresenter = require("./renderers/AssessorPresenter.js");
 var Pluggable = require("./pluggable.js");
 var Paper = require("./values/Paper.js");
+var createMeasurementElement_js_1 = require("./helpers/createMeasurementElement.js");
 var removeHtmlBlocks = require("./stringProcessing/htmlParser.js");
+var largestKeywordDistance = new LargestKeywordDistanceAssessment_js_1.default();
 var inputDebounceDelay = 400;
 /**
  * Default config for YoastSEO.js
@@ -8401,7 +8524,8 @@ var defaults = {
     elementTarget: [],
     marker: function marker() {},
     keywordAnalysisActive: true,
-    contentAnalysisActive: true
+    contentAnalysisActive: true,
+    hasSnippetPreview: true
 };
 /**
  * Creates a default snippet preview, this can be used if no snippet preview has been passed.
@@ -8445,7 +8569,7 @@ function verifyArguments(args) {
         throw new MissingArgument("`targets` is a required App argument, `targets` is not an object.");
     }
     // The args.targets.snippet argument is only required if not SnippetPreview object has been passed.
-    if (!isValidSnippetPreview(args.snippetPreview) && !isString(args.targets.snippet)) {
+    if (args.hasSnippetPreview && !isValidSnippetPreview(args.snippetPreview) && !isString(args.targets.snippet)) {
         throw new MissingArgument("A snippet preview is required. When no SnippetPreview object isn't passed to " + "the App, the `targets.snippet` is a required App argument. `targets.snippet` is not a string.");
     }
 }
@@ -8567,9 +8691,13 @@ var App = function App(args) {
             this.snippetPreview.refObj = this;
             this.snippetPreview.i18n = this.i18n;
         }
-    } else {
+    } else if (args.hasSnippetPreview) {
         this.snippetPreview = createDefaultSnippetPreview.call(this);
     }
+    this._assessorOptions = {
+        useCornerStone: false,
+        useKeywordDistribution: false
+    };
     this.initSnippetPreview();
     this.initAssessorPresenters();
 };
@@ -8589,39 +8717,44 @@ App.prototype.getDefaultOutputElement = function (args) {
     return "";
 };
 /**
- * Switches between the cornerstone and default assessors.
+ * Sets the assessors based on the assessor options and refreshes them.
  *
- * @param {boolean} useCornerStone True when cornerstone should be used.
- *
+ * @param {Object} assessorOptions The specific options.
  * @returns {void}
  */
-App.prototype.switchAssessors = function (useCornerStone) {
-    this.seoAssessor = this.getSeoAssessor(useCornerStone);
-    this.contentAssessor = this.getContentAssessor(useCornerStone);
+App.prototype.changeAssessorOptions = function (assessorOptions) {
+    this._assessorOptions = merge(this._assessorOptions, assessorOptions);
+    // Set the assessors based on the new assessor options.
+    this.seoAssessor = this.getSeoAssessor();
+    this.contentAssessor = this.getContentAssessor();
+    // Refresh everything so the user sees the changes.
     this.initAssessorPresenters();
     this.refresh();
 };
 /**
  * Returns an instance of the seo assessor to use.
  *
- * @param {boolean} useCornerStone True if the cornerstone assessor should be used.
- *
  * @returns {Assessor} The assessor instance.
  */
-App.prototype.getSeoAssessor = function (useCornerStone) {
-    if (useCornerStone) {
-        return this.cornerStoneSeoAssessor;
+App.prototype.getSeoAssessor = function () {
+    var _assessorOptions = this._assessorOptions,
+        useCornerStone = _assessorOptions.useCornerStone,
+        useKeywordDistribution = _assessorOptions.useKeywordDistribution;
+
+    var assessor = useCornerStone ? this.cornerStoneSeoAssessor : this.defaultSeoAssessor;
+    if (useKeywordDistribution && isUndefined(assessor.getAssessment("largestKeywordDistance"))) {
+        assessor.addAssessment("largestKeywordDistance", largestKeywordDistance);
     }
-    return this.defaultSeoAssessor;
+    return assessor;
 };
 /**
  * Returns an instance of the content assessor to use.
  *
- * @param {boolean} useCornerStone True if the cornerstone assessor should be used.
- *
  * @returns {Assessor} The assessor instance.
  */
-App.prototype.getContentAssessor = function (useCornerStone) {
+App.prototype.getContentAssessor = function () {
+    var useCornerStone = this._assessorOptions.useCornerStone;
+
     if (useCornerStone) {
         return this.cornerStoneContentAssessor;
     }
@@ -8725,13 +8858,37 @@ App.prototype.constructI18n = function (translations) {
     return new Jed(translations);
 };
 /**
+ * Registers a custom data callback.
+ *
+ * @param {Function} callback The callback to register.
+ *
+ * @returns {void}
+ */
+App.prototype.registerCustomDataCallback = function (callback) {
+    if (!this.callbacks.custom) {
+        this.callbacks.custom = [];
+    }
+    if (isFunction(callback)) {
+        this.callbacks.custom.push(callback);
+    }
+};
+/**
  * Retrieves data from the callbacks.getData and applies modification to store these in this.rawData.
  *
  * @returns {void}
  */
 App.prototype.getData = function () {
+    var _this = this;
+
     this.rawData = this.callbacks.getData();
-    if (!isUndefined(this.snippetPreview)) {
+    // Add the custom data to the raw data.
+    if (isArray(this.callbacks.custom)) {
+        this.callbacks.custom.forEach(function (customCallback) {
+            var customData = customCallback();
+            _this.rawData = merge(_this.rawData, customData);
+        });
+    }
+    if (this.hasSnippetPreview()) {
         // Gets the data FOR the analyzer
         var data = this.snippetPreview.getAnalyzerData();
         this.rawData.metaTitle = data.title;
@@ -8742,6 +8899,7 @@ App.prototype.getData = function () {
         this.rawData.metaTitle = this.pluggable._applyModifications("data_page_title", this.rawData.metaTitle);
         this.rawData.meta = this.pluggable._applyModifications("data_meta_desc", this.rawData.meta);
     }
+    this.rawData.titleWidth = createMeasurementElement_js_1.measureTextWidth(this.rawData.metaTitle);
     this.rawData.locale = this.config.locale;
 };
 /**
@@ -8768,15 +8926,25 @@ App.prototype._pureRefresh = function () {
     this.runAnalyzer();
 };
 /**
+ * Determines whether or not this app has a snippet preview.
+ *
+ * @returns {boolean} Whether or not this app has a snippet preview.
+ */
+App.prototype.hasSnippetPreview = function () {
+    return this.snippetPreview !== null && !isUndefined(this.snippetPreview);
+};
+/**
  * Initializes the snippet preview for this App.
  *
  * @returns {void}
  */
 App.prototype.initSnippetPreview = function () {
-    this.snippetPreview.renderTemplate();
-    this.snippetPreview.callRegisteredEventBinder();
-    this.snippetPreview.bindEvents();
-    this.snippetPreview.init();
+    if (this.hasSnippetPreview()) {
+        this.snippetPreview.renderTemplate();
+        this.snippetPreview.callRegisteredEventBinder();
+        this.snippetPreview.bindEvents();
+        this.snippetPreview.init();
+    }
 };
 /**
  * Initializes the assessorpresenters for content and SEO.
@@ -8822,7 +8990,7 @@ App.prototype.bindInputEvent = function () {
  * @returns {void}
  */
 App.prototype.reloadSnippetText = function () {
-    if (isUndefined(this.snippetPreview)) {
+    if (this.hasSnippetPreview()) {
         this.snippetPreview.reRender();
     }
 };
@@ -8861,17 +9029,24 @@ App.prototype.runAnalyzer = function () {
         this.startTime();
     }
     this.analyzerData = this.modifyData(this.rawData);
-    this.snippetPreview.refresh();
+    if (this.hasSnippetPreview()) {
+        this.snippetPreview.refresh();
+    }
     var text = this.analyzerData.text;
     // Insert HTML stripping code
     text = removeHtmlBlocks(text);
+    var titleWidth = this.analyzerData.titleWidth;
+    if (this.hasSnippetPreview()) {
+        titleWidth = this.snippetPreview.getTitleWidth();
+    }
     // Create a paper object for the Researcher
     this.paper = new Paper(text, {
         keyword: this.analyzerData.keyword,
+        synonyms: this.analyzerData.synonyms,
         description: this.analyzerData.meta,
         url: this.analyzerData.url,
         title: this.analyzerData.metaTitle,
-        titleWidth: this.snippetPreview.getTitleWidth(),
+        titleWidth: titleWidth,
         locale: this.config.locale,
         permalink: this.analyzerData.permalink
     });
@@ -8887,7 +9062,9 @@ App.prototype.runAnalyzer = function () {
     if (this.config.dynamicDelay) {
         this.endTime();
     }
-    this.snippetPreview.reRender();
+    if (this.hasSnippetPreview()) {
+        this.snippetPreview.reRender();
+    }
 };
 /**
  * Runs the keyword analysis and calls the appropriate callbacks.
@@ -9123,10 +9300,24 @@ App.prototype.createSnippetPreview = function () {
     this.snippetPreview = createDefaultSnippetPreview.call(this);
     this.initSnippetPreview();
 };
+/**
+ * Switches between the cornerstone and default assessors.
+ *
+ * @deprecated 1.35.0 - Use changeAssessorOption instead.
+ *
+ * @param {boolean} useCornerStone True when cornerstone should be used.
+ *
+ * @returns {void}
+ */
+App.prototype.switchAssessors = function (useCornerStone) {
+    this.changeAssessorOptions({
+        useCornerStone: useCornerStone
+    });
+};
 module.exports = App;
 
 
-},{"./config/config.js":82,"./contentAssessor.js":97,"./cornerstone/contentAssessor.js":98,"./cornerstone/seoAssessor.js":99,"./errors/missingArgument":101,"./pluggable.js":118,"./renderers/AssessorPresenter.js":119,"./researcher.js":120,"./seoAssessor.js":215,"./snippetPreview.js":216,"./stringProcessing/htmlParser.js":235,"./values/Paper.js":266,"jed":301,"lodash/debounce":481,"lodash/defaultsDeep":483,"lodash/forEach":493,"lodash/isEmpty":508,"lodash/isObject":514,"lodash/isString":518,"lodash/isUndefined":521,"lodash/throttle":541}],53:[function(require,module,exports){
+},{"./assessments/seo/LargestKeywordDistanceAssessment.js":66,"./config/config.js":83,"./contentAssessor.js":102,"./cornerstone/contentAssessor.js":103,"./cornerstone/seoAssessor.js":104,"./errors/missingArgument":106,"./helpers/createMeasurementElement.js":107,"./pluggable.js":126,"./renderers/AssessorPresenter.js":127,"./researcher.js":128,"./seoAssessor.js":237,"./snippetPreview.js":238,"./stringProcessing/htmlParser.js":257,"./values/Paper.js":291,"jed":326,"lodash/debounce":509,"lodash/defaultsDeep":511,"lodash/forEach":521,"lodash/isArray":531,"lodash/isEmpty":536,"lodash/isFunction":537,"lodash/isObject":541,"lodash/isString":544,"lodash/isUndefined":547,"lodash/merge":552,"lodash/throttle":567}],53:[function(require,module,exports){
 "use strict";
 /* eslint-disable no-unused-vars */
 /**
@@ -9199,109 +9390,162 @@ module.exports = function (sentences, recommendedValue) {
 };
 
 
-},{"../helpers/isValueTooLong":111,"lodash/filter":488}],55:[function(require,module,exports){
+},{"../helpers/isValueTooLong":118,"lodash/filter":516}],55:[function(require,module,exports){
 "use strict";
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 var AssessmentResult = require("../../values/AssessmentResult.js");
+var Assessment = require("../../assessment.js");
 var inRange = require("lodash/inRange");
 var getLanguageAvailability = require("../../helpers/getLanguageAvailability.js");
-var availableLanguages = ["en", "nl", "de", "it"];
-/**
- * Calculates the assessment result based on the fleschReadingScore
- * @param {int} fleschReadingScore The score from the fleschReadingtest
- * @param {object} i18n The i18n-object used for parsing translations
- * @returns {object} object with score, resultText and note
- */
-var calculateFleschReadingResult = function calculateFleschReadingResult(fleschReadingScore, i18n) {
-    if (fleschReadingScore > 90) {
-        return {
-            score: 9,
-            resultText: i18n.dgettext("js-text-analysis", "very easy"),
-            note: ""
-        };
+var availableLanguages = ["en", "nl", "de", "it", "ru", "fr", "es"];
+
+var FleschReadingEaseAssessment = function (_Assessment) {
+    _inherits(FleschReadingEaseAssessment, _Assessment);
+
+    /**
+     * Sets the identifier and the config.
+     *
+     * @param {Object} config The configuration to use.
+     * @returns {void}
+     */
+    function FleschReadingEaseAssessment(config) {
+        _classCallCheck(this, FleschReadingEaseAssessment);
+
+        var _this = _possibleConstructorReturn(this, (FleschReadingEaseAssessment.__proto__ || Object.getPrototypeOf(FleschReadingEaseAssessment)).call(this));
+
+        _this.identifier = "fleschReadingEase";
+        _this._config = config;
+        return _this;
     }
-    if (inRange(fleschReadingScore, 80, 90)) {
-        return {
-            score: 9,
-            resultText: i18n.dgettext("js-text-analysis", "easy"),
-            note: ""
-        };
-    }
-    if (inRange(fleschReadingScore, 70, 80)) {
-        return {
-            score: 9,
-            resultText: i18n.dgettext("js-text-analysis", "fairly easy"),
-            note: ""
-        };
-    }
-    if (inRange(fleschReadingScore, 60, 70)) {
-        return {
-            score: 9,
-            resultText: i18n.dgettext("js-text-analysis", "ok"),
-            note: ""
-        };
-    }
-    if (inRange(fleschReadingScore, 50, 60)) {
-        return {
-            score: 6,
-            resultText: i18n.dgettext("js-text-analysis", "fairly difficult"),
-            note: i18n.dgettext("js-text-analysis", "Try to make shorter sentences to improve readability.")
-        };
-    }
-    if (inRange(fleschReadingScore, 30, 50)) {
-        return {
-            score: 3,
-            resultText: i18n.dgettext("js-text-analysis", "difficult"),
-            note: i18n.dgettext("js-text-analysis", "Try to make shorter sentences, using less difficult words to improve readability.")
-        };
-    }
-    if (fleschReadingScore < 30) {
-        return {
-            score: 3,
-            resultText: i18n.dgettext("js-text-analysis", "very difficult"),
-            note: i18n.dgettext("js-text-analysis", "Try to make shorter sentences, using less difficult words to improve readability.")
-        };
-    }
-};
-/**
- * The assessment that runs the FleschReading on the paper.
- *
- * @param {object} paper The paper to run this assessment on
- * @param {object} researcher The researcher used for the assessment
- * @param {object} i18n The i18n-object used for parsing translations
- * @returns {object} an assessmentresult with the score and formatted text.
- */
-var fleschReadingEaseAssessment = function fleschReadingEaseAssessment(paper, researcher, i18n) {
-    var fleschReadingScore = researcher.getResearch("calculateFleschReading");
-    /* Translators: %1$s expands to the numeric flesch reading ease score, %2$s to a link to a Yoast.com article about Flesch ease reading score,
-     %3$s to the easyness of reading, %4$s expands to a note about the flesch reading score. */
-    var text = i18n.dgettext("js-text-analysis", "The copy scores %1$s in the %2$s test, which is considered %3$s to read. %4$s");
-    var url = "<a href='https://yoa.st/flesch-reading' target='_blank'>Flesch Reading Ease</a>";
-    // Scores must be between 0 and 100;
-    if (fleschReadingScore < 0) {
-        fleschReadingScore = 0;
-    }
-    if (fleschReadingScore > 100) {
-        fleschReadingScore = 100;
-    }
-    var fleschReadingResult = calculateFleschReadingResult(fleschReadingScore, i18n);
-    text = i18n.sprintf(text, fleschReadingScore, url, fleschReadingResult.resultText, fleschReadingResult.note);
-    var assessmentResult = new AssessmentResult();
-    assessmentResult.setScore(fleschReadingResult.score);
-    assessmentResult.setText(text);
-    return assessmentResult;
-};
-module.exports = {
-    identifier: "fleschReadingEase",
-    getResult: fleschReadingEaseAssessment,
-    isApplicable: function isApplicable(paper) {
-        var isLanguageAvailable = getLanguageAvailability(paper.getLocale(), availableLanguages);
-        return isLanguageAvailable && paper.hasText();
-    }
-};
+    /**
+     * The assessment that runs the FleschReading on the paper.
+     *
+     * @param {Object} paper The paper to run this assessment on.
+     * @param {Object} researcher The researcher used for the assessment.
+     * @param {Object} i18n The i18n-object used for parsing translations.
+     *
+     * @returns {Object} An assessmentResult with the score and formatted text.
+     */
 
 
-},{"../../helpers/getLanguageAvailability.js":107,"../../values/AssessmentResult.js":264,"lodash/inRange":498}],56:[function(require,module,exports){
+    _createClass(FleschReadingEaseAssessment, [{
+        key: "getResult",
+        value: function getResult(paper, researcher, i18n) {
+            this.fleschReadingResult = researcher.getResearch("calculateFleschReading");
+            if (this.isApplicable(paper)) {
+                var assessmentResult = new AssessmentResult(i18n);
+                var calculatedResult = this.calculateResult(i18n);
+                assessmentResult.setScore(calculatedResult.score);
+                assessmentResult.setText(calculatedResult.resultText);
+                return assessmentResult;
+            }
+            return null;
+        }
+        /**
+         * Calculates the assessment result based on the fleschReadingScore.
+         *
+         * @param {Object} i18n The i18n-object used for parsing translations.
+         *
+         * @returns {Object} Object with score and resultText.
+         */
+
+    }, {
+        key: "calculateResult",
+        value: function calculateResult(i18n) {
+            // Results must be between 0 and 100;
+            if (this.fleschReadingResult < 0) {
+                this.fleschReadingResult = 0;
+            }
+            if (this.fleschReadingResult > 100) {
+                this.fleschReadingResult = 100;
+            }
+            /* Translators: %1$s expands to the numeric Flesch reading ease score,
+            %2$s to a link to a Yoast.com article about Flesch reading ease score,
+            %3$s to the easyness of reading,
+            %4$s expands to a note about the flesch reading score. */
+            var text = i18n.dgettext("js-text-analysis", "The copy scores %1$s in the %2$s test, which is considered %3$s to read. %4$s");
+            var url = "<a href='https://yoa.st/flesch-reading' target='_blank'>Flesch Reading Ease</a>";
+            if (this.fleschReadingResult > this._config.borders.veryEasy) {
+                var _feedback = i18n.dgettext("js-text-analysis", "very easy");
+                return {
+                    score: this._config.scores.veryEasy,
+                    resultText: i18n.sprintf(text, this.fleschReadingResult, url, _feedback, "")
+                };
+            }
+            if (inRange(this.fleschReadingResult, this._config.borders.easy, this._config.borders.veryEasy)) {
+                var _feedback2 = i18n.dgettext("js-text-analysis", "easy");
+                return {
+                    score: this._config.scores.easy,
+                    resultText: i18n.sprintf(text, this.fleschReadingResult, url, _feedback2, "")
+                };
+            }
+            if (inRange(this.fleschReadingResult, this._config.borders.fairlyEasy, this._config.borders.easy)) {
+                var _feedback3 = i18n.dgettext("js-text-analysis", "fairly easy");
+                return {
+                    score: this._config.scores.fairlyEasy,
+                    resultText: i18n.sprintf(text, this.fleschReadingResult, url, _feedback3, "")
+                };
+            }
+            if (inRange(this.fleschReadingResult, this._config.borders.okay, this._config.borders.fairlyEasy)) {
+                var _feedback4 = i18n.dgettext("js-text-analysis", "ok");
+                return {
+                    score: this._config.scores.okay,
+                    resultText: i18n.sprintf(text, this.fleschReadingResult, url, _feedback4, "")
+                };
+            }
+            if (inRange(this.fleschReadingResult, this._config.borders.fairlyDifficult, this._config.borders.okay)) {
+                var _feedback5 = i18n.dgettext("js-text-analysis", "fairly difficult");
+                var _note = i18n.dgettext("js-text-analysis", "Try to make shorter sentences to improve readability.");
+                return {
+                    score: this._config.scores.fairlyDifficult,
+                    resultText: i18n.sprintf(text, this.fleschReadingResult, url, _feedback5, _note)
+                };
+            }
+            if (inRange(this.fleschReadingResult, this._config.borders.difficult, this._config.borders.fairlyDifficult)) {
+                var _feedback6 = i18n.dgettext("js-text-analysis", "difficult");
+                var _note2 = i18n.dgettext("js-text-analysis", "Try to make shorter sentences, using less difficult words to improve readability.");
+                return {
+                    score: this._config.scores.difficult,
+                    resultText: i18n.sprintf(text, this.fleschReadingResult, url, _feedback6, _note2)
+                };
+            }
+            var feedback = i18n.dgettext("js-text-analysis", "very difficult");
+            var note = i18n.dgettext("js-text-analysis", "Try to make shorter sentences, using less difficult words to improve readability.");
+            return {
+                score: this._config.scores.veryDifficult,
+                resultText: i18n.sprintf(text, this.fleschReadingResult, url, feedback, note)
+            };
+        }
+        /**
+         * Checks if Flesch reading analysis is available for the language of the paper.
+         *
+         * @param {Object} paper The paper to have the Flesch score to be calculated for.
+         * @returns {boolean} Returns true if the language is available and the paper is not empty.
+         */
+
+    }, {
+        key: "isApplicable",
+        value: function isApplicable(paper) {
+            var isLanguageAvailable = getLanguageAvailability(paper.getLocale(), availableLanguages);
+            return isLanguageAvailable && paper.hasText();
+        }
+    }]);
+
+    return FleschReadingEaseAssessment;
+}(Assessment);
+
+module.exports = FleschReadingEaseAssessment;
+
+
+},{"../../assessment.js":53,"../../helpers/getLanguageAvailability.js":114,"../../values/AssessmentResult.js":289,"lodash/inRange":526}],56:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -9421,7 +9665,7 @@ module.exports = {
 };
 
 
-},{"../../helpers/inRange.js":110,"../../helpers/isValueTooLong":111,"../../markers/addMark.js":116,"../../stringProcessing/stripHTMLTags":253,"../../values/AssessmentResult.js":264,"../../values/Mark.js":265,"lodash/filter":488,"lodash/map":524}],57:[function(require,module,exports){
+},{"../../helpers/inRange.js":117,"../../helpers/isValueTooLong":118,"../../markers/addMark.js":123,"../../stringProcessing/stripHTMLTags":277,"../../values/AssessmentResult.js":289,"../../values/Mark.js":290,"lodash/filter":516,"lodash/map":550}],57:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -9432,7 +9676,7 @@ var Mark = require("../../values/Mark.js");
 var marker = require("../../markers/addMark.js");
 var map = require("lodash/map");
 var getLanguageAvailability = require("../../helpers/getLanguageAvailability.js");
-var availableLanguages = ["en", "de", "fr", "es"];
+var availableLanguages = ["en", "de", "fr", "es", "ru", "it"];
 /**
  * Calculates the result based on the number of sentences and passives.
  * @param {object} passiveVoice The object containing the number of sentences and passives
@@ -9526,7 +9770,7 @@ module.exports = {
 };
 
 
-},{"../../helpers/formatNumber.js":104,"../../helpers/getLanguageAvailability.js":107,"../../helpers/inRange.js":110,"../../markers/addMark.js":116,"../../stringProcessing/stripHTMLTags":253,"../../values/AssessmentResult.js":264,"../../values/Mark.js":265,"lodash/map":524}],58:[function(require,module,exports){
+},{"../../helpers/formatNumber.js":110,"../../helpers/getLanguageAvailability.js":114,"../../helpers/inRange.js":117,"../../markers/addMark.js":123,"../../stringProcessing/stripHTMLTags":277,"../../values/AssessmentResult.js":289,"../../values/Mark.js":290,"lodash/map":550}],58:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -9540,7 +9784,7 @@ var Mark = require("../../values/Mark.js");
 var marker = require("../../markers/addMark.js");
 var maximumConsecutiveDuplicates = 2;
 var getLanguageAvailability = require("../../helpers/getLanguageAvailability.js");
-var availableLanguages = ["en", "de", "es", "fr", "nl", "it"];
+var availableLanguages = ["en", "de", "es", "fr", "nl", "it", "ru"];
 /**
  * Counts and groups the number too often used sentence beginnings and determines the lowest count within that group.
  * @param {array} sentenceBeginnings The array containing the objects containing the beginning words and counts.
@@ -9628,7 +9872,7 @@ module.exports = {
 };
 
 
-},{"../../helpers/getLanguageAvailability.js":107,"../../markers/addMark.js":116,"../../stringProcessing/stripHTMLTags":253,"../../values/AssessmentResult.js":264,"../../values/Mark.js":265,"lodash/filter":488,"lodash/flatten":492,"lodash/map":524,"lodash/partition":531,"lodash/sortBy":536}],59:[function(require,module,exports){
+},{"../../helpers/getLanguageAvailability.js":114,"../../markers/addMark.js":123,"../../stringProcessing/stripHTMLTags":277,"../../values/AssessmentResult.js":289,"../../values/Mark.js":290,"lodash/filter":516,"lodash/flatten":520,"lodash/map":550,"lodash/partition":557,"lodash/sortBy":562}],59:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -9836,7 +10080,7 @@ var SentenceLengthInTextAssessment = function (_Assessment) {
 module.exports = SentenceLengthInTextAssessment;
 
 
-},{"../../assessment.js":53,"../../assessmentHelpers/checkForTooLongSentences.js":54,"../../helpers/formatNumber.js":104,"../../helpers/inRange.js":110,"../../markers/addMark.js":116,"../../stringProcessing/stripHTMLTags":253,"../../values/AssessmentResult.js":264,"../../values/Mark.js":265,"lodash/map":524,"lodash/merge":526}],60:[function(require,module,exports){
+},{"../../assessment.js":53,"../../assessmentHelpers/checkForTooLongSentences.js":54,"../../helpers/formatNumber.js":110,"../../helpers/inRange.js":117,"../../markers/addMark.js":123,"../../stringProcessing/stripHTMLTags":277,"../../values/AssessmentResult.js":289,"../../values/Mark.js":290,"lodash/map":550,"lodash/merge":552}],60:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -9850,6 +10094,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var AssessmentResult = require("../../values/AssessmentResult.js");
 var Assessment = require("../../assessment.js");
 var isTextTooLong = require("../../helpers/isValueTooLong");
+var getSubheadings = require("../../stringProcessing/getSubheadings.js").getSubheadings;
+var getWords = require("../../stringProcessing/getWords.js");
 var filter = require("lodash/filter");
 var map = require("lodash/map");
 var merge = require("lodash/merge");
@@ -9866,7 +10112,7 @@ var SubheadingsDistributionTooLong = function (_Assessment) {
     /**
      * Sets the identifier and the config.
      *
-     * @param {object} config The configuration to use.
+     * @param {Object} config The configuration to use.
      * @returns {void}
      */
     function SubheadingsDistributionTooLong() {
@@ -9877,10 +10123,20 @@ var SubheadingsDistributionTooLong = function (_Assessment) {
         var _this = _possibleConstructorReturn(this, (SubheadingsDistributionTooLong.__proto__ || Object.getPrototypeOf(SubheadingsDistributionTooLong)).call(this));
 
         var defaultConfig = {
-            // The maximum recommended value of the subheading text.
-            recommendedMaximumWordCount: 300,
-            slightlyTooMany: 300,
-            farTooMany: 350
+            parameters: {
+                // The maximum recommended value of the subheading text.
+                recommendedMaximumWordCount: 300,
+                slightlyTooMany: 300,
+                farTooMany: 350
+            },
+            url: "<a href='https://yoa.st/headings' target='_blank'>",
+            scores: {
+                goodShortTextNoSubheadings: 9,
+                goodSubheadings: 9,
+                okSubheadings: 6,
+                badSubheadings: 3,
+                badLongTextNoSubheadings: 2
+            }
         };
         _this.identifier = "subheadingsTooLong";
         _this._config = merge(defaultConfig, config);
@@ -9891,7 +10147,7 @@ var SubheadingsDistributionTooLong = function (_Assessment) {
      *
      * @param {Paper} paper The paper to use for the assessment.
      * @param {Researcher} researcher The researcher used for calling research.
-     * @param {object} i18n The object used for translations.
+     * @param {Object} i18n The object used for translations.
      *
      * @returns {AssessmentResult} The assessment result.
      */
@@ -9900,16 +10156,24 @@ var SubheadingsDistributionTooLong = function (_Assessment) {
     _createClass(SubheadingsDistributionTooLong, [{
         key: "getResult",
         value: function getResult(paper, researcher, i18n) {
-            var subheadingTextsLength = researcher.getResearch("getSubheadingTextLengths");
-            subheadingTextsLength = subheadingTextsLength.sort(function (a, b) {
+            this._subheadingTextsLength = researcher.getResearch("getSubheadingTextLengths");
+            this._subheadingTextsLength = this._subheadingTextsLength.sort(function (a, b) {
                 return b.wordCount - a.wordCount;
             });
-            var tooLongTexts = this.getTooLongSubheadingTexts(subheadingTextsLength).length;
-            var score = this.calculateScore(subheadingTextsLength);
+            this._tooLongTexts = this.getTooLongSubheadingTexts();
+            this._tooLongTextsNumber = this.getTooLongSubheadingTexts().length;
             var assessmentResult = new AssessmentResult();
-            assessmentResult.setScore(score);
-            assessmentResult.setText(this.translateScore(score, tooLongTexts, i18n));
-            assessmentResult.setHasMarks(score > 2 && score < 7);
+            assessmentResult.setIdentifier(this.identifier);
+            this._hasSubheadings = this.hasSubheadings(paper);
+            this._textLength = getWords(paper.getText()).length;
+            var calculatedResult = this.calculateResult(i18n);
+            calculatedResult.resultTextPlural = calculatedResult.resultTextPlural || "";
+            assessmentResult.setScore(calculatedResult.score);
+            assessmentResult.setText(calculatedResult.resultText);
+            if (calculatedResult.score > 2 && calculatedResult.score < 7) {
+                assessmentResult.setHasMarks(true);
+                assessmentResult.setMarker(this.getMarks());
+            }
             return assessmentResult;
         }
         /**
@@ -9926,18 +10190,28 @@ var SubheadingsDistributionTooLong = function (_Assessment) {
             return paper.hasText();
         }
         /**
-         * Creates a marker for each text following a subheading that is too long.
+         * Checks whether the paper has subheadings.
+         *
          * @param {Paper} paper The paper to use for the assessment.
-         * @param {object} researcher The researcher used for calling research.
+         *
+         * @returns {boolean} True when there is at least one subheading.
+         */
+
+    }, {
+        key: "hasSubheadings",
+        value: function hasSubheadings(paper) {
+            var subheadings = getSubheadings(paper.getText());
+            return subheadings.length > 0;
+        }
+        /**
+         * Creates a marker for each text following a subheading that is too long.
          * @returns {Array} All markers for the current text.
          */
 
     }, {
         key: "getMarks",
-        value: function getMarks(paper, researcher) {
-            var subheadingTextsLength = researcher.getResearch("getSubheadingTextLengths");
-            var tooLongTexts = this.getTooLongSubheadingTexts(subheadingTextsLength);
-            return map(tooLongTexts, function (tooLongText) {
+        value: function getMarks() {
+            return map(this._tooLongTexts, function (tooLongText) {
                 var marked = marker(tooLongText.text);
                 return new Mark({
                     original: tooLongText.text,
@@ -9948,69 +10222,88 @@ var SubheadingsDistributionTooLong = function (_Assessment) {
         /**
          * Counts the number of subheading texts that are too long.
          *
-         * @param {Array} subheadingTextsLength Array with subheading text lengths.
          * @returns {number} The number of subheading texts that are too long.
          */
 
     }, {
         key: "getTooLongSubheadingTexts",
-        value: function getTooLongSubheadingTexts(subheadingTextsLength) {
-            return filter(subheadingTextsLength, function (subheading) {
-                return isTextTooLong(this._config.recommendedMaximumWordCount, subheading.wordCount);
+        value: function getTooLongSubheadingTexts() {
+            return filter(this._subheadingTextsLength, function (subheading) {
+                return isTextTooLong(this._config.parameters.recommendedMaximumWordCount, subheading.wordCount);
             }.bind(this));
         }
         /**
-         * Calculates the score based on the subheading texts length.
+         * Calculates the score and creates a feedback string based on the subheading texts length.
          *
-         * @param {Array} subheadingTextsLength Array with subheading text lengths.
-         * @returns {number} The calculated score.
+         * @param {Object} i18n The object used for translations.
+         *
+         * @returns {Object} The calculated result.
          */
 
     }, {
-        key: "calculateScore",
-        value: function calculateScore(subheadingTextsLength) {
-            var score = void 0;
-            if (subheadingTextsLength.length === 0) {
+        key: "calculateResult",
+        value: function calculateResult(i18n) {
+            if (this._textLength > 300) {
+                if (this._hasSubheadings) {
+                    var longestSubheadingTextLength = this._subheadingTextsLength[0].wordCount;
+                    if (longestSubheadingTextLength <= this._config.parameters.slightlyTooMany) {
+                        // Green indicator.
+                        return {
+                            score: this._config.scores.goodSubheadings,
+                            resultText: i18n.sprintf(
+                            // Translators: %1$s expands to a link to https://yoa.st/headings, %2$s expands to the link closing tag.
+                            i18n.dgettext("js-text-analysis", "Great job with using %1$ssubheadings%2$s!"), this._config.url, "</a>")
+                        };
+                    }
+                    if (inRange(longestSubheadingTextLength, this._config.parameters.slightlyTooMany, this._config.parameters.farTooMany)) {
+                        // Orange indicator.
+                        return {
+                            score: this._config.scores.okSubheadings,
+                            resultText: i18n.sprintf(
+                            /*
+                             * Translators: %1$d expands to the number of subheadings, %2$d expands to the recommended number
+                             * of words following a subheading, %3$s expands to a link to https://yoa.st/headings,
+                             * %4$s expands to the link closing tag.
+                             */
+                            i18n.dngettext("js-text-analysis", "%1$d section of your text is longer than %2$d words and is not separated by any subheadings. " + "Add %3$ssubheadings%4$s to improve readability.", "%1$d sections of your text are longer than %2$d words and are not separated by any subheadings. " + "Add %3$ssubheadings%4$s to improve readability.", this._tooLongTextsNumber), this._tooLongTextsNumber, this._config.parameters.recommendedMaximumWordCount, this._config.url, "</a>")
+                        };
+                    }
+                    // Red indicator.
+                    return {
+                        score: this._config.scores.badSubheadings,
+                        resultText: i18n.sprintf(
+                        /*
+                         * Translators: %1$d expands to the number of subheadings, %2$d expands to the recommended number
+                         * of words following a subheading, %3$s expands to a link to https://yoa.st/headings,
+                         * %4$s expands to the link closing tag.
+                         */
+                        i18n.dngettext("js-text-analysis", "%1$d section of your text is longer than %2$d words and is not separated by any subheadings. " + "Add %3$ssubheadings%4$s to improve readability.", "%1$d sections of your text are longer than %2$d words and are not separated by any subheadings. " + "Add %3$ssubheadings%4$s to improve readability.", this._tooLongTextsNumber), this._tooLongTextsNumber, this._config.parameters.recommendedMaximumWordCount, this._config.url, "</a>")
+                    };
+                }
                 // Red indicator, use '2' so we can differentiate in external analysis.
-                return 2;
+                return {
+                    score: this._config.scores.badLongTextNoSubheadings,
+                    resultText: i18n.sprintf(
+                    // Translators: %1$s expands to a link to https://yoa.st/headings, %2$s expands to the link closing tag.
+                    i18n.dgettext("js-text-analysis", "You are not using any subheadings, although your text is rather long. " + "Try and add  some %1$ssubheadings%2$s."), this._config.url, "</a>")
+                };
             }
-            var longestSubheadingTextLength = subheadingTextsLength[0].wordCount;
+            if (this._hasSubheadings) {
+                // Green indicator.
+                return {
+                    score: this._config.scores.goodSubheadings,
+                    resultText: i18n.sprintf(
+                    // Translators: %1$s expands to a link to https://yoa.st/headings, %2$s expands to the link closing tag.
+                    i18n.dgettext("js-text-analysis", "Great job with using %1$ssubheadings%2$s!"), this._config.url, "</a>")
+                };
+            }
             // Green indicator.
-            if (longestSubheadingTextLength <= this._config.slightlyTooMany) {
-                score = 9;
-            }
-            // Orange indicator.
-            if (inRange(longestSubheadingTextLength, this._config.slightlyTooMany, this._config.farTooMany)) {
-                score = 6;
-            }
-            // Red indicator.
-            if (longestSubheadingTextLength > this._config.farTooMany) {
-                score = 3;
-            }
-            return score;
-        }
-        /**
-         * Translates the score to a message the user can understand.
-         *
-         * @param {number} score The score.
-         * @param {number} tooLongTexts The amount of too long texts.
-         * @param {object} i18n The object used for translations.
-         *
-         * @returns {string} A string.
-         */
-
-    }, {
-        key: "translateScore",
-        value: function translateScore(score, tooLongTexts, i18n) {
-            if (score === 2) {
+            return {
+                score: this._config.scores.goodShortTextNoSubheadings,
+                resultText: i18n.sprintf(
                 // Translators: %1$s expands to a link to https://yoa.st/headings, %2$s expands to the link closing tag.
-                return i18n.sprintf(i18n.dgettext("js-text-analysis", "The text does not contain any %1$ssubheadings%2$s. Add at least one subheading."), "<a href='https://yoa.st/headings' target='_blank'>", "</a>");
-            }
-            if (score >= 7) {
-                return i18n.sprintf(i18n.dgettext("js-text-analysis", "The amount of words following each of the subheadings doesn't exceed the recommended maximum of %1$d words, which is great."), this._config.recommendedMaximumWordCount);
-            }
-            // Translators: %1$d expands to the number of subheadings, %2$d expands to the recommended value
-            return i18n.sprintf(i18n.dngettext("js-text-analysis", "%1$d subheading is followed by more than the recommended maximum of %2$d words. Try to insert another subheading.", "%1$d of the subheadings are followed by more than the recommended maximum of %2$d words. Try to insert additional subheadings.", tooLongTexts), tooLongTexts, this._config.recommendedMaximumWordCount);
+                i18n.dgettext("js-text-analysis", "You are not using any %1$ssubheadings%2$s, but your text is short enough and probably doesn't need them."), this._config.url, "</a>")
+            };
         }
     }]);
 
@@ -10020,7 +10313,7 @@ var SubheadingsDistributionTooLong = function (_Assessment) {
 module.exports = SubheadingsDistributionTooLong;
 
 
-},{"../../assessment.js":53,"../../helpers/inRange.js":110,"../../helpers/isValueTooLong":111,"../../markers/addMark.js":116,"../../values/AssessmentResult.js":264,"../../values/Mark.js":265,"lodash/filter":488,"lodash/map":524,"lodash/merge":526}],61:[function(require,module,exports){
+},{"../../assessment.js":53,"../../helpers/inRange.js":117,"../../helpers/isValueTooLong":118,"../../markers/addMark.js":123,"../../stringProcessing/getSubheadings.js":255,"../../stringProcessing/getWords.js":256,"../../values/AssessmentResult.js":289,"../../values/Mark.js":290,"lodash/filter":516,"lodash/map":550,"lodash/merge":552}],61:[function(require,module,exports){
 "use strict";
 
 var stripHTMLTags = require("../../stringProcessing/stripHTMLTags").stripFullTags;
@@ -10049,7 +10342,7 @@ module.exports = {
 };
 
 
-},{"../../stringProcessing/stripHTMLTags":253,"../../values/AssessmentResult":264}],62:[function(require,module,exports){
+},{"../../stringProcessing/stripHTMLTags":277,"../../values/AssessmentResult":289}],62:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -10060,7 +10353,7 @@ var stripTags = require("../../stringProcessing/stripHTMLTags").stripIncompleteT
 var Mark = require("../../values/Mark.js");
 var marker = require("../../markers/addMark.js");
 var getLanguageAvailability = require("../../helpers/getLanguageAvailability.js");
-var availableLanguages = ["en", "de", "es", "fr", "nl", "it", "pt"];
+var availableLanguages = ["en", "de", "es", "fr", "nl", "it", "pt", "ru", "ca"];
 /**
  * Calculates the actual percentage of transition words in the sentences.
  *
@@ -10162,76 +10455,809 @@ module.exports = {
 };
 
 
-},{"../../helpers/formatNumber.js":104,"../../helpers/getLanguageAvailability.js":107,"../../helpers/inRange.js":110,"../../markers/addMark.js":116,"../../stringProcessing/stripHTMLTags":253,"../../values/AssessmentResult.js":264,"../../values/Mark.js":265,"lodash/map":524}],63:[function(require,module,exports){
+},{"../../helpers/formatNumber.js":110,"../../helpers/getLanguageAvailability.js":114,"../../helpers/inRange.js":117,"../../markers/addMark.js":123,"../../stringProcessing/stripHTMLTags":277,"../../values/AssessmentResult.js":289,"../../values/Mark.js":290,"lodash/map":550}],63:[function(require,module,exports){
 "use strict";
 
-var AssessmentResult = require("../../values/AssessmentResult.js");
-var isEmpty = require("lodash/isEmpty");
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var merge = require("lodash/merge");
+var Assessment = require("../../assessment");
+var AssessmentResult = require("../../values/AssessmentResult");
 /**
- * Returns a score and text based on the linkStatistics object.
- *
- * @param {object} linkStatistics The object with all linkstatistics.
- * @param {object} i18n The object used for translations
- * @returns {object} resultObject with score and text
+ * Assessment to check whether the text has internal links and whether they are followed or no-followed.
  */
-var calculateLinkStatisticsResult = function calculateLinkStatisticsResult(linkStatistics, i18n) {
-    if (linkStatistics.internalTotal === 0) {
-        return {
-            score: 3,
-            text: i18n.dgettext("js-text-analysis", "No internal links appear in this page, consider adding some as appropriate.")
+
+var InternalLinksAssessment = function (_Assessment) {
+    _inherits(InternalLinksAssessment, _Assessment);
+
+    /**
+     * Sets the identifier and the config.
+     *
+     * @param {Object} config The configuration to use.
+     * @param {number} [config.parameters.recommendedMinimum] The recommended minimum number of internal links in the text.
+     * @param {number} [config.scores.allInternalFollow] The score to return if all internal links are do-follow.
+     * @param {number} [config.scores.someInternalFollow] The score to return if some but not all internal links are do-follow.
+     * @param {number} [config.scores.noneInternalFollow] The score to return if all internal links are no-follow.
+     * @param {number} [config.scores.noInternal] The score to return if there are no internal links.
+     * @param {string} [config.url] The URL to the relevant KB article.
+     *
+     * @returns {void}
+     */
+    function InternalLinksAssessment() {
+        var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+        _classCallCheck(this, InternalLinksAssessment);
+
+        var _this = _possibleConstructorReturn(this, (InternalLinksAssessment.__proto__ || Object.getPrototypeOf(InternalLinksAssessment)).call(this));
+
+        var defaultConfig = {
+            parameters: {
+                recommendedMinimum: 1
+            },
+            scores: {
+                allInternalFollow: 9,
+                someInternalFollow: 8,
+                noneInternalFollow: 7,
+                noInternal: 3
+            },
+            url: "<a href='https://yoa.st/2pm' target='_blank'>"
         };
+        _this.identifier = "internalLinks";
+        _this._config = merge(defaultConfig, config);
+        return _this;
     }
-    if (linkStatistics.internalNofollow === linkStatistics.total) {
-        return {
-            score: 7,
-            /* Translators: %1$s expands the number of internal links */
-            text: i18n.sprintf(i18n.dgettext("js-text-analysis", "This page has %1$s internal link(s), all nofollowed."), linkStatistics.internalNofollow)
-        };
-    }
-    if (linkStatistics.internalNofollow < linkStatistics.internalTotal) {
-        return {
-            score: 8,
-            /* Translators: %1$s expands to the number of nofollow links, %2$s to the number of internal links */
-            text: i18n.sprintf(i18n.dgettext("js-text-analysis", "This page has %1$s nofollowed internal link(s) and %2$s normal internal link(s)."), linkStatistics.internalNofollow, linkStatistics.internalDofollow)
-        };
-    }
-    if (linkStatistics.internalDofollow === linkStatistics.total) {
-        return {
-            score: 9,
-            /* Translators: %1$s expands to the number of internal links */
-            text: i18n.sprintf(i18n.dgettext("js-text-analysis", "This page has %1$s internal link(s)."), linkStatistics.internalTotal)
-        };
-    }
-    return {};
-};
-/**
- * Runs the getLinkStatistics module, based on this returns an assessment result with score.
- *
- * @param {object} paper The paper to use for the assessment.
- * @param {object} researcher The researcher used for calling research.
- * @param {object} i18n The object used for translations
- * @returns {object} the Assessmentresult
- */
-var textHasInternalLinksAssessment = function textHasInternalLinksAssessment(paper, researcher, i18n) {
-    var linkStatistics = researcher.getResearch("getLinkStatistics");
-    var assessmentResult = new AssessmentResult();
-    if (!isEmpty(linkStatistics)) {
-        var linkStatisticsResult = calculateLinkStatisticsResult(linkStatistics, i18n);
-        assessmentResult.setScore(linkStatisticsResult.score);
-        assessmentResult.setText(linkStatisticsResult.text);
-    }
-    return assessmentResult;
-};
-module.exports = {
-    identifier: "internalLinks",
-    getResult: textHasInternalLinksAssessment,
-    isApplicable: function isApplicable(paper) {
-        return paper.hasText();
-    }
-};
+    /**
+     * Runs the getLinkStatistics module, based on this returns an assessment result with score.
+     *
+     * @param {Paper} paper The paper to use for the assessment.
+     * @param {Researcher} researcher The researcher used for calling research.
+     * @param {Jed} i18n The object used for translations.
+     *
+     * @returns {AssessmentResult} The result of the assessment.
+     */
 
 
-},{"../../values/AssessmentResult.js":264,"lodash/isEmpty":508}],64:[function(require,module,exports){
+    _createClass(InternalLinksAssessment, [{
+        key: "getResult",
+        value: function getResult(paper, researcher, i18n) {
+            this.linkStatistics = researcher.getResearch("getLinkStatistics");
+            var assessmentResult = new AssessmentResult();
+            var calculatedResult = this.calculateResult(i18n);
+            assessmentResult.setScore(calculatedResult.score);
+            assessmentResult.setText(calculatedResult.resultText);
+            return assessmentResult;
+        }
+        /**
+         * Checks if assessment is applicable to the paper.
+         *
+         * @param {Paper} paper The paper to be analyzed.
+         *
+         * @returns {boolean} Whether the paper has text.
+         */
+
+    }, {
+        key: "isApplicable",
+        value: function isApplicable(paper) {
+            return paper.hasText();
+        }
+        /**
+         * Returns a score and text based on the linkStatistics object.
+         *
+         * @param {Jed} i18n The object used for translations.
+         *
+         * @returns {Object} ResultObject with score and text
+         */
+
+    }, {
+        key: "calculateResult",
+        value: function calculateResult(i18n) {
+            if (this.linkStatistics.internalTotal === 0) {
+                return {
+                    score: this._config.scores.noInternal,
+                    resultText: i18n.sprintf(
+                    /* Translators: %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag */
+                    i18n.dgettext("js-text-analysis", "No %1$sinternal links%2$s appear in this page, consider adding some as appropriate."), this._config.url, "</a>")
+                };
+            }
+            if (this.linkStatistics.internalNofollow === this.linkStatistics.internalTotal) {
+                return {
+                    score: this._config.scores.noneInternalFollow,
+                    resultText: i18n.sprintf(
+                    /* Translators: %1$s expands the number of internal links, %2$s expands to a link on yoast.com,
+                    %3$s expands to the anchor end tag */
+                    i18n.dgettext("js-text-analysis", "This page has %1$s %2$sinternal link(s)%3$s, all nofollowed."), this.linkStatistics.internalNofollow, this._config.url, "</a>")
+                };
+            }
+            if (this.linkStatistics.internalDofollow === this.linkStatistics.internalTotal) {
+                return {
+                    score: this._config.scores.allInternalFollow,
+                    resultText: i18n.sprintf(
+                    /* Translators: %1$s expands to the number of internal links, %2$s expands to a link on yoast.com,
+                    %3$s expands to the anchor end tag */
+                    i18n.dgettext("js-text-analysis", "This page has %1$s %2$sinternal link(s)%3$s."), this.linkStatistics.internalTotal, this._config.url, "</a>")
+                };
+            }
+            return {
+                score: this._config.scores.someInternalFollow,
+                resultText: i18n.sprintf(
+                /* Translators: %1$s expands to the number of nofollow links, %2$s expands to a link on yoast.com,
+                %3$s expands to the anchor end tag, %4$s to the number of internal links */
+                i18n.dgettext("js-text-analysis", "This page has %1$s nofollowed %2$sinternal link(s)%3$s and %4$s normal internal link(s)."), this.linkStatistics.internalNofollow, this._config.url, "</a>", this.linkStatistics.internalDofollow)
+            };
+        }
+    }]);
+
+    return InternalLinksAssessment;
+}(Assessment);
+
+exports.default = InternalLinksAssessment;
+
+
+},{"../../assessment":53,"../../values/AssessmentResult":289,"lodash/merge":552}],64:[function(require,module,exports){
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var isUndefined = require("lodash/isUndefined");
+var merge = require("lodash/merge");
+var AssessmentResult = require("../../values/AssessmentResult");
+var Assessment = require("../../assessment");
+/**
+ * Assessment to check whether the keyphrase has a good length.
+ */
+
+var KeyphraseLengthAssessment = function (_Assessment) {
+    _inherits(KeyphraseLengthAssessment, _Assessment);
+
+    /**
+     * Sets the identifier and the config.
+     *
+     * @param {Object} config The configuration to use.
+     * @param {number} [config.parameters.recommendedMinimum] The recommended minimum length of the keyphrase (in words).
+     * @param {number} [config.parameters.acceptableMaximum] The acceptable maximum length of the keyphrase (in words).
+     * @param {number} [config.scores.veryBad] The score to return if the length of the keyphrase is below recommended minimum.
+     * @param {number} [config.scores.consideration] The score to return if the length of the keyphrase is above acceptable maximum.
+     *
+     * @returns {void}
+     */
+    function KeyphraseLengthAssessment() {
+        var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+        _classCallCheck(this, KeyphraseLengthAssessment);
+
+        var _this = _possibleConstructorReturn(this, (KeyphraseLengthAssessment.__proto__ || Object.getPrototypeOf(KeyphraseLengthAssessment)).call(this));
+
+        var defaultConfig = {
+            parameters: {
+                recommendedMinimum: 1,
+                acceptableMaximum: 10
+            },
+            scores: {
+                veryBad: -999,
+                consideration: 0
+            },
+            urlNoOrGoodKeyword: "<a href='https://yoa.st/2pdd' target='_blank'>",
+            urlKeyphraseTooLong: "<a href='https://yoa.st/2pd' target='_blank'>"
+        };
+        _this.identifier = "keyphraseLength";
+        _this._config = merge(defaultConfig, config);
+        return _this;
+    }
+    /**
+     * Assesses the keyphrase presence and length.
+     *
+     * @param {Paper} paper The paper to use for the assessment.
+     * @param {Researcher} researcher The researcher used for calling research.
+     * @param {Jed} i18n The object used for translations.
+     *
+     * @returns {AssessmentResult} The result of this assessment.
+     */
+
+
+    _createClass(KeyphraseLengthAssessment, [{
+        key: "getResult",
+        value: function getResult(paper, researcher, i18n) {
+            this._keyphraseLength = researcher.getResearch("keyphraseLength");
+            var assessmentResult = new AssessmentResult();
+            var calculatedResult = this.calculateResult(i18n);
+            if (!isUndefined(calculatedResult)) {
+                assessmentResult.setScore(calculatedResult.score);
+                assessmentResult.setText(calculatedResult.resultText);
+            }
+            return assessmentResult;
+        }
+        /**
+         * Calculates the result based on the keyphraseLength research.
+         *
+         * @param {Jed} i18n The object used for translations.
+         *
+         * @returns {Object} Object with score and text.
+         */
+
+    }, {
+        key: "calculateResult",
+        value: function calculateResult(i18n) {
+            if (this._keyphraseLength < this._config.parameters.recommendedMinimum) {
+                return {
+                    score: this._config.scores.veryBad,
+                    resultText: i18n.sprintf(
+                    /* Translators: %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag. */
+                    i18n.dgettext("js-text-analysis", "No %1$sfocus keyword%2$s was set for this page. If you do not set a focus keyword, no score can be calculated."), this._config.urlNoOrGoodKeyword, "</a>")
+                };
+            }
+            if (this._keyphraseLength > this._config.parameters.acceptableMaximum) {
+                return {
+                    score: this._config.scores.consideration,
+                    resultText: i18n.sprintf(
+                    /* Translators: %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag */
+                    i18n.dgettext("js-text-analysis", "The %1$skeyphrase%2$s is over 10 words, a keyphrase should be shorter."), this._config.urlKeyphraseTooLong, "</a>")
+                };
+            }
+        }
+    }]);
+
+    return KeyphraseLengthAssessment;
+}(Assessment);
+
+exports.default = KeyphraseLengthAssessment;
+
+
+},{"../../assessment":53,"../../values/AssessmentResult":289,"lodash/isUndefined":547,"lodash/merge":552}],65:[function(require,module,exports){
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var merge = require("lodash/merge");
+var Assessment = require("../../assessment");
+var AssessmentResult = require("../../values/AssessmentResult");
+var countWords = require("../../stringProcessing/countWords");
+var inRange = require("../../helpers/inRange");
+var formatNumber = require("../../helpers/formatNumber");
+var topicCount = require("../../researches/topicCount");
+var inRangeEndInclusive = inRange.inRangeEndInclusive;
+var inRangeStartInclusive = inRange.inRangeStartInclusive;
+var inRangeStartEndInclusive = inRange.inRangeStartEndInclusive;
+/**
+ * Represents the assessment that will look if the keyword density is within the recommended range.
+ */
+
+var KeywordDensityAssessment = function (_Assessment) {
+    _inherits(KeywordDensityAssessment, _Assessment);
+
+    /**
+     * Sets the identifier and the config.
+     *
+     * @param {Object} config The configuration to use.
+     * @param {number} [config.parameters.overMaximum] The percentage of keyword instances in the text that is way over the maximum.
+     * @param {number} [config.parameters.maximum] The maximum percentage of keyword instances in the text.
+     * @param {number} [config.parameters.minimum] The minimum percentage of keyword instances in the text.
+     * @param {number} [config.scores.wayOverMaximum] The score to return if there are way too many instances of keyword in the text.
+     * @param {number} [config.scores.overMaximum] The score to return if there are too many instances of keyword in the text.
+     * @param {number} [config.scores.correctDensity] The score to return if there is a good number of keyword instances in the text.
+     * @param {number} [config.scores.underMinimum] The score to return if there is not enough keyword instances in the text.
+     * @param {string} [config.url] The URL to the relevant KB article.
+     *
+     * @returns {void}
+     */
+    function KeywordDensityAssessment() {
+        var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+        _classCallCheck(this, KeywordDensityAssessment);
+
+        var _this = _possibleConstructorReturn(this, (KeywordDensityAssessment.__proto__ || Object.getPrototypeOf(KeywordDensityAssessment)).call(this));
+
+        var defaultConfig = {
+            parameters: {
+                overMaximum: 3.5,
+                maximum: 2.5,
+                minimum: 0.5
+            },
+            scores: {
+                wayOverMaximum: -50,
+                overMaximum: -10,
+                correctDensity: 9,
+                underMinimum: 4
+            },
+            url: "<a href='https://yoa.st/2pe' target='_blank'>"
+        };
+        _this.identifier = "keywordDensity";
+        _this._config = merge(defaultConfig, config);
+        return _this;
+    }
+    /**
+     * Runs the keyword density module, based on this returns an assessment
+     * result with score.
+     *
+     * @param {Paper} paper The paper to use for the assessment.
+     * @param {Researcher} researcher The researcher used for calling the
+     *                                research.
+     * @param {Jed} i18n The object used for translations.
+     *
+     * @returns {AssessmentResult} The result of the assessment.
+     */
+
+
+    _createClass(KeywordDensityAssessment, [{
+        key: "getResult",
+        value: function getResult(paper, researcher, i18n) {
+            var assessmentResult = new AssessmentResult();
+            this._keywordCount = researcher.getResearch("keywordCount").count;
+            this._keywordDensity = researcher.getResearch("getKeywordDensity");
+            var calculatedScore = this.calculateResult(i18n);
+            assessmentResult.setScore(calculatedScore.score);
+            assessmentResult.setText(calculatedScore.resultText);
+            assessmentResult.setHasMarks(this._keywordCount > 0);
+            return assessmentResult;
+        }
+        /**
+         * Checks whether there are no keyword matches in the text.
+         *
+         * @returns {boolean} Returns true if the keyword count is 0.
+         */
+
+    }, {
+        key: "hasNoMatches",
+        value: function hasNoMatches() {
+            return this._keywordCount === 0;
+        }
+        /**
+         * Checks whether there are too few keyword matches in the text.
+         *
+         * @returns {boolean} Returns true if the rounded keyword density is between
+         *                    0 and the recommended minimum.
+         */
+
+    }, {
+        key: "hasTooFewMatches",
+        value: function hasTooFewMatches() {
+            return inRangeStartInclusive(this._keywordDensity, 0, this._config.parameters.minimum);
+        }
+        /**
+         * Checks whether there is a good number of keyword matches in the text.
+         *
+         * @returns {boolean} Returns true if the rounded keyword density is between
+         *                    the recommended minimum and the recommended maximum.
+         */
+
+    }, {
+        key: "hasGoodNumberOfMatches",
+        value: function hasGoodNumberOfMatches() {
+            return inRangeStartEndInclusive(this._keywordDensity, this._config.parameters.minimum, this._config.parameters.maximum);
+        }
+        /**
+         * Checks whether the number of keyword matches in the text is between the
+         * recommended maximum and the specified overMaximum value.
+         *
+         * @returns {boolean} Returns true if the rounded keyword density is between
+         *                    the recommended maximum and the specified overMaximum
+         *                    value.
+         */
+
+    }, {
+        key: "hasTooManyMatches",
+        value: function hasTooManyMatches() {
+            return inRangeEndInclusive(this._keywordDensity, this._config.parameters.maximum, this._config.parameters.overMaximum);
+        }
+        /**
+         * Returns the score for the keyword density.
+         *
+         * @param {Jed} i18n The object used for translations.
+         *
+         * @returns {Object} The object with calculated score and resultText.
+         */
+
+    }, {
+        key: "calculateResult",
+        value: function calculateResult(i18n) {
+            var max = this._config.parameters.maximum + "%";
+            var roundedKeywordDensity = formatNumber(this._keywordDensity);
+            var keywordDensityPercentage = roundedKeywordDensity + "%";
+            if (this.hasNoMatches()) {
+                return {
+                    score: this._config.scores.underMinimum,
+                    resultText: i18n.sprintf(
+                    /* Translators:
+                    %1$s expands to the keyword density percentage,
+                    %2$d expands to the keyword count,
+                    %3$s expands to a link to a Yoast.com article about keyword density,
+                    %4$s expands to the anchor end tag. */
+                    i18n.dgettext("js-text-analysis", "The exact-match %3$skeyword density%4$s is %1$s," + " which is too low; the focus keyword was found %2$d times.", this._keywordCount), keywordDensityPercentage, this._keywordCount, this._config.url, "</a>")
+                };
+            }
+            if (this.hasTooFewMatches()) {
+                return {
+                    score: this._config.scores.underMinimum,
+                    resultText: i18n.sprintf(
+                    /* Translators:
+                    %1$s expands to the keyword density percentage,
+                    %2$d expands to the keyword count,
+                    %3$s expands to a link to a Yoast.com article about keyword density,
+                    %4$s expands to the anchor end tag. */
+                    i18n.dngettext("js-text-analysis", "The exact-match %3$skeyword density%4$s is %1$s," + " which is too low; the focus keyword was found %2$d time.", "The exact-match %3$skeyword density%4$s is %1$s," + " which is too low; the focus keyword was found %2$d times.", this._keywordCount), keywordDensityPercentage, this._keywordCount, this._config.url, "</a>")
+                };
+            }
+            if (this.hasGoodNumberOfMatches()) {
+                return {
+                    score: this._config.scores.correctDensity,
+                    resultText: i18n.sprintf(
+                    /* Translators:
+                    %1$s expands to the keyword density percentage,
+                    %2$d expands to the keyword count,
+                    %3$s expands to a link to a Yoast.com article about keyword density,
+                    %4$s expands to the anchor end tag. */
+                    i18n.dngettext("js-text-analysis", "The exact-match %3$skeyword density%4$s is %1$s," + " which is great; the focus keyword was found %2$d time.", "The exact-match %3$skeyword density%4$s is %1$s," + " which is great; the focus keyword was found %2$d times.", this._keywordCount), keywordDensityPercentage, this._keywordCount, this._config.url, "</a>")
+                };
+            }
+            if (this.hasTooManyMatches()) {
+                return {
+                    score: this._config.scores.overMaximum,
+                    resultText: i18n.sprintf(
+                    /* Translators:
+                    %1$s expands to the keyword density percentage,
+                    %2$d expands to the keyword count,
+                    %3$s expands to the maximum keyword density percentage,
+                    %4$s expands to a link to a Yoast.com article about keyword density,
+                    %5$s expands to the anchor end tag. */
+                    i18n.dngettext("js-text-analysis", "The exact-match %4$skeyword density%5$s is %1$s," + " which is over the advised %3$s maximum; the focus keyword was found %2$d time.", "The exact-match %4$skeyword density%5$s is %1$s," + " which is over the advised %3$s maximum; the focus keyword was found %2$d times.", this._keywordCount), keywordDensityPercentage, this._keywordCount, max, this._config.url, "</a>")
+                };
+            }
+            // Implicitly returns this if the rounded keyword density is higher than overMaximum.
+            return {
+                score: this._config.scores.wayOverMaximum,
+                resultText: i18n.sprintf(
+                /* Translators:
+                %1$s expands to the keyword density percentage,
+                %2$d expands to the keyword count,
+                %3$s expands to the maximum keyword density percentage,
+                %4$s expands to a link to a Yoast.com article about keyword density,
+                %5$s expands to the anchor end tag. */
+                i18n.dngettext("js-text-analysis", "The exact-match %4$skeyword density%5$s is %1$s," + " which is way over the advised %3$s maximum; the focus keyword was found %2$d time.", "The exact-match %4$skeyword density%5$s is %1$s," + " which is way over the advised %3$s maximum; the focus keyword was found %2$d times.", this._keywordCount), keywordDensityPercentage, this._keywordCount, max, this._config.url, "</a>")
+            };
+        }
+        /**
+         * Marks keywords in the text for the keyword density assessment.
+         *
+         * @param {Object} paper The paper to use for the assessment.
+         *
+         * @returns {Array<Mark>} Marks that should be applied.
+         */
+
+    }, {
+        key: "getMarks",
+        value: function getMarks(paper) {
+            return topicCount(paper, true).markings;
+        }
+        /**
+         * Checks whether the paper has a text with at least 100 words and a keyword
+         * is set.
+         *
+         * @param {Paper} paper The paper to use for the assessment.
+         *
+         * @returns {boolean} True if applicable.
+         */
+
+    }, {
+        key: "isApplicable",
+        value: function isApplicable(paper) {
+            return paper.hasText() && paper.hasKeyword() && countWords(paper.getText()) >= 100;
+        }
+    }]);
+
+    return KeywordDensityAssessment;
+}(Assessment);
+
+exports.default = KeywordDensityAssessment;
+
+
+},{"../../assessment":53,"../../helpers/formatNumber":110,"../../helpers/inRange":117,"../../researches/topicCount":234,"../../stringProcessing/countWords":243,"../../values/AssessmentResult":289,"lodash/merge":552}],66:[function(require,module,exports){
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var merge = require("lodash/merge");
+var AssessmentResult = require("../../values/AssessmentResult");
+var Assessment = require("../../assessment");
+var countWords = require("../../stringProcessing/countWords");
+var topicCount = require("../../researches/topicCount");
+var inRange_1 = require("../../helpers/inRange");
+/**
+ * Returns a score based on the largest percentage of text in
+ * which no keyword occurs.
+ */
+
+var LargestKeywordDistanceAssessment = function (_Assessment) {
+    _inherits(LargestKeywordDistanceAssessment, _Assessment);
+
+    /**
+     * Sets the identifier and the config.
+     *
+     * @param {Object} config The configuration to use.
+     * @param {number} [config.parameters.overRecommendedMaximumKeywordDistance]
+     *      The percentage of the text that is already way too high to be allowed to be in between two keyword occurrences.
+     * @param {number} [config.parameters.recommendedMaximumKeywordDistance]
+     *      The percentage of the text that is maximally allowed to be in between two keyword occurrences.
+     * @param {number} [config.scores.good] The score to return if there is not too much text between keyword occurrences.
+     * @param {number} [config.scores.okay] The score to return if there is somewhat much text between keyword occurrences.
+     * @param {number} [config.scores.bad] The score to return if there is way too much text between keyword occurrences.
+     * @param {string} [config.url] The URL to the relevant KB article.
+     *
+     * @returns {void}
+     */
+    function LargestKeywordDistanceAssessment() {
+        var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+        _classCallCheck(this, LargestKeywordDistanceAssessment);
+
+        var _this = _possibleConstructorReturn(this, (LargestKeywordDistanceAssessment.__proto__ || Object.getPrototypeOf(LargestKeywordDistanceAssessment)).call(this));
+
+        var defaultConfig = {
+            parameters: {
+                overRecommendedMaximumKeywordDistance: 50,
+                recommendedMaximumKeywordDistance: 40
+            },
+            scores: {
+                good: 9,
+                okay: 6,
+                bad: 1,
+                consideration: 0
+            },
+            url: "<a href='https://yoa.st/2w7' target='_blank'>"
+        };
+        _this.identifier = "largestKeywordDistance";
+        _this._config = merge(defaultConfig, config);
+        return _this;
+    }
+    /**
+     * Runs the largestKeywordDistance research and based on this returns an assessment result.
+     *
+     * @param {Paper}       paper       The paper to use for the assessment.
+     * @param {Researcher}  researcher  The researcher used for calling research.
+     * @param {Jed}      i18n        The object used for translations.
+     *
+     * @returns {AssessmentResult} The assessment result.
+     */
+
+
+    _createClass(LargestKeywordDistanceAssessment, [{
+        key: "getResult",
+        value: function getResult(paper, researcher, i18n) {
+            this._largestKeywordDistance = researcher.getResearch("largestKeywordDistance");
+            this._hasSynonyms = paper.hasSynonyms();
+            this._topicUsed = topicCount(paper).count;
+            var assessmentResult = new AssessmentResult();
+            var calculatedResult = this.calculateResult(i18n);
+            assessmentResult.setScore(calculatedResult.score);
+            assessmentResult.setText(calculatedResult.resultText);
+            assessmentResult.setHasMarks(calculatedResult.score > 0);
+            return assessmentResult;
+        }
+        /**
+         *  Calculates the result based on the largestKeywordDistance research.
+         *
+         * @param {Jed} i18n The object used for translations.
+         *
+         * @returns {Object} Object with score and feedback text.
+         */
+
+    }, {
+        key: "calculateResult",
+        value: function calculateResult(i18n) {
+            if (this._topicUsed < 2) {
+                return {
+                    score: this._config.scores.consideration,
+                    resultText: i18n.sprintf(
+                    /* Translators: %1$s expands to a link to a Yoast.com article about keyword and topic distribution,
+                    %2$s expands to the anchor end tag */
+                    i18n.dgettext("js-text-analysis", "Use your keyword or synonyms more often in your text so that we can check %1$skeyword distribution%2$s."), this._config.url, "</a>")
+                };
+            }
+            if (this._largestKeywordDistance > this._config.parameters.overRecommendedMaximumKeywordDistance) {
+                return {
+                    score: this._config.scores.bad,
+                    resultText: i18n.sprintf(
+                    /* Translators: %1$s expands to a link to a Yoast.com article about keyword and topic distribution,
+                    %2$s expands to the anchor end tag */
+                    i18n.dngettext("js-text-analysis", "Large parts of your text do not contain the keyword. Try to %1$sdistribute%2$s the keyword more evenly.", "Large parts of your text do not contain the keyword or its synonyms. Try to %1$sdistribute%2$s them more evenly.", this._hasSynonyms + 1), this._config.url, "</a>")
+                };
+            }
+            if (inRange_1.inRangeStartEndInclusive(this._largestKeywordDistance, this._config.parameters.recommendedMaximumKeywordDistance, this._config.parameters.overRecommendedMaximumKeywordDistance)) {
+                return {
+                    score: this._config.scores.okay,
+                    resultText: i18n.sprintf(
+                    /* Translators: %1$s expands to a link to a Yoast.com article about keyword and topic distribution,
+                    %2$s expands to the anchor end tag */
+                    i18n.dngettext("js-text-analysis", "Some parts of your text do not contain the keyword. Try to %1$sdistribute%2$s the keyword more evenly.", "Some parts of your text do not contain the keyword or its synonyms. Try to %1$sdistribute%2$s them more evenly.", this._hasSynonyms + 1), this._config.url, "</a>")
+                };
+            }
+            return {
+                score: this._config.scores.good,
+                resultText: i18n.sprintf(
+                /* Translators: %1$s expands to a link to a Yoast.com article about keyword and topic distribution,
+                %2$s expands to the anchor end tag */
+                i18n.dngettext("js-text-analysis", "Your keyword is %1$sdistributed%2$s evenly throughout the text. That's great.", "Your keyword and its synonyms are %1$sdistributed%2$s evenly throughout the text. That's great.", this._hasSynonyms + 1), this._config.url, "</a>")
+            };
+        }
+        /**
+         * Creates a marker for the keyword.
+         *
+         * @param {Paper} paper The paper to use for the assessment.
+         *
+         * @returns {Array} All markers for the current text.
+         */
+
+    }, {
+        key: "getMarks",
+        value: function getMarks(paper) {
+            return topicCount(paper).markings;
+        }
+        /**
+         * Checks whether the paper has a text with at least 200 words and a keyword.
+         *
+         * @param {Paper} paper The paper to use for the assessment.
+         *
+         * @returns {boolean} True when there is a keyword and a text with 200 words or more.
+         */
+
+    }, {
+        key: "isApplicable",
+        value: function isApplicable(paper) {
+            return paper.hasText() && paper.hasKeyword() && countWords(paper.getText()) >= 200;
+        }
+    }]);
+
+    return LargestKeywordDistanceAssessment;
+}(Assessment);
+
+exports.default = LargestKeywordDistanceAssessment;
+
+
+},{"../../assessment":53,"../../helpers/inRange":117,"../../researches/topicCount":234,"../../stringProcessing/countWords":243,"../../values/AssessmentResult":289,"lodash/merge":552}],67:[function(require,module,exports){
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var merge = require("lodash/merge");
+var Assessment = require("../../assessment");
+var AssessmentResult = require("../../values/AssessmentResult");
+/**
+ * Represents the URL keyword assessments. This assessments will check if the keyword is present in the url.
+ */
+
+var UrlKeywordAssessment = function (_Assessment) {
+    _inherits(UrlKeywordAssessment, _Assessment);
+
+    /**
+     * Sets the identifier and the config.
+     *
+     * @param {Object} config The configuration to use.
+     * @param {number} [config.scores.noKeywordInUrl] The score to return if the keyword is not in the URL.
+     * @param {number} [config.scores.good] The score to return if the keyword is in the URL.
+     * @param {string} [config.url] The URL to the relevant KB article.
+     *
+     * @returns {void}
+     */
+    function UrlKeywordAssessment() {
+        var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+        _classCallCheck(this, UrlKeywordAssessment);
+
+        var _this = _possibleConstructorReturn(this, (UrlKeywordAssessment.__proto__ || Object.getPrototypeOf(UrlKeywordAssessment)).call(this));
+
+        var defaultConfig = {
+            scores: {
+                noKeywordInUrl: 6,
+                good: 9
+            },
+            url: "<a href='https://yoa.st/2pp' target='_blank'>"
+        };
+        _this.identifier = "urlKeyword";
+        _this._config = merge(defaultConfig, config);
+        return _this;
+    }
+    /**
+     * Executes the Assessment and returns a result.
+     *
+     * @param {Paper} paper The Paper object to assess.
+     * @param {Researcher} researcher The Researcher object containing all available researches.
+     * @param {Jed} i18n The object used for translations.
+     *
+     * @returns {AssessmentResult} The result of the assessment, containing both a score and a descriptive text.
+     */
+
+
+    _createClass(UrlKeywordAssessment, [{
+        key: "getResult",
+        value: function getResult(paper, researcher, i18n) {
+            this._totalKeywords = researcher.getResearch("keywordCountInUrl");
+            var assessmentResult = new AssessmentResult();
+            var calculatedResult = this.calculateResult(i18n);
+            assessmentResult.setScore(calculatedResult.score);
+            assessmentResult.setText(calculatedResult.resultText);
+            return assessmentResult;
+        }
+        /**
+         * Checks whether the paper has a keyword and a url.
+         *
+         * @param {Paper} paper The paper to use for the assessment.
+         *
+         * @returns {boolean} True when there is a keyword and an url.
+         */
+
+    }, {
+        key: "isApplicable",
+        value: function isApplicable(paper) {
+            return paper.hasKeyword() && paper.hasUrl();
+        }
+        /**
+         * Determines the score and the result text based on whether or not there's a keyword in the url.
+         *
+         * @param {Jed} i18n The object used for translations.
+         *
+         * @returns {Object} The object with calculated score and resultText.
+         */
+
+    }, {
+        key: "calculateResult",
+        value: function calculateResult(i18n) {
+            if (this._totalKeywords === 0) {
+                return {
+                    score: this._config.scores.noKeywordInUrl,
+                    resultText: i18n.sprintf(
+                    /* Translators:  %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag */
+                    i18n.dgettext("js-text-analysis", "The focus keyword does not appear in the %1$sURL%2$s for this page. " + "If you decide to rename the URL be sure to check the old URL 301 redirects to the new one!"), this._config.url, "</a>")
+                };
+            }
+            return {
+                score: this._config.scores.good,
+                resultText: i18n.sprintf(
+                /* Translators:  %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag */
+                i18n.dgettext("js-text-analysis", "The focus keyword appears in the %1$sURL%2$s for this page."), this._config.url, "</a>")
+            };
+        }
+    }]);
+
+    return UrlKeywordAssessment;
+}(Assessment);
+
+exports.default = UrlKeywordAssessment;
+
+
+},{"../../assessment":53,"../../values/AssessmentResult":289,"lodash/merge":552}],68:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -10243,15 +11269,20 @@ var AssessmentResult = require("../../values/AssessmentResult.js");
  * @returns {object} resultObject with score and text
  */
 var calculateFirstParagraphResult = function calculateFirstParagraphResult(firstParagraphMatches, i18n) {
+    var url = "<a href='https://yoa.st/2pc' target='_blank'>";
     if (firstParagraphMatches > 0) {
         return {
             score: 9,
-            text: i18n.dgettext("js-text-analysis", "The focus keyword appears in the first paragraph of the copy.")
+            text: i18n.sprintf(
+            /* Translators: %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag */
+            i18n.dgettext("js-text-analysis", "The focus keyword appears in the %1$sfirst paragraph%2$s of the copy."), url, "</a>")
         };
     }
     return {
         score: 3,
-        text: i18n.dgettext("js-text-analysis", "The focus keyword doesn\'t appear in the first paragraph of the copy. " + "Make sure the topic is clear immediately.")
+        text: i18n.sprintf(
+        /* Translators: %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag */
+        i18n.dgettext("js-text-analysis", "The focus keyword doesn't appear in the %1$sfirst paragraph%2$s of the copy. " + "Make sure the topic is clear immediately."), url, "</a>")
     };
 };
 /**
@@ -10279,118 +11310,7 @@ module.exports = {
 };
 
 
-},{"../../values/AssessmentResult.js":264}],65:[function(require,module,exports){
-"use strict";
-
-var AssessmentResult = require("../../values/AssessmentResult.js");
-/**
- * Assesses the keyphrase presence and length
- *
- * @param {Paper} paper The paper to use for the assessment.
- * @param {Researcher} researcher The researcher used for calling research.
- * @param {Jed} i18n The object used for translations
- * @returns {AssessmentResult} The result of this assessment
-*/
-function keyphraseAssessment(paper, researcher, i18n) {
-    var keyphraseLength = researcher.getResearch("keyphraseLength");
-    var assessmentResult = new AssessmentResult();
-    if (!paper.hasKeyword()) {
-        assessmentResult.setScore(-999);
-        assessmentResult.setText(i18n.dgettext("js-text-analysis", "No focus keyword was set for this page. " + "If you do not set a focus keyword, no score can be calculated."));
-    } else if (keyphraseLength > 10) {
-        assessmentResult.setScore(0);
-        assessmentResult.setText(i18n.dgettext("js-text-analysis", "The keyphrase is over 10 words, a keyphrase should be shorter."));
-    }
-    return assessmentResult;
-}
-module.exports = {
-    identifier: "keyphraseLength",
-    getResult: keyphraseAssessment
-};
-
-
-},{"../../values/AssessmentResult.js":264}],66:[function(require,module,exports){
-"use strict";
-
-var AssessmentResult = require("../../values/AssessmentResult.js");
-var countWords = require("../../stringProcessing/countWords.js");
-var formatNumber = require("../../helpers/formatNumber.js");
-var inRange = require("../../helpers/inRange.js");
-var inRangeEndInclusive = inRange.inRangeEndInclusive;
-var inRangeStartInclusive = inRange.inRangeStartInclusive;
-var inRangeStartEndInclusive = inRange.inRangeStartEndInclusive;
-/**
- * Returns the scores and text for keyword density
- *
- * @param {string} keywordDensity The keyword density
- * @param {object} i18n The i18n object used for translations
- * @param {number} keywordCount The number of times the keyword has been found in the text.
- * @returns {{score: number, text: *}} The assessment result
- */
-var calculateKeywordDensityResult = function calculateKeywordDensityResult(keywordDensity, i18n, keywordCount) {
-    var score, text, max;
-    var roundedKeywordDensity = formatNumber(keywordDensity);
-    var keywordDensityPercentage = roundedKeywordDensity + "%";
-    if (roundedKeywordDensity > 3.5) {
-        score = -50;
-        /* Translators: %1$s expands to the keyword density percentage, %2$d expands to the keyword count,
-        %3$s expands to the maximum keyword density percentage. */
-        text = i18n.dgettext("js-text-analysis", "The keyword density is %1$s," + " which is way over the advised %3$s maximum;" + " the focus keyword was found %2$d times.");
-        max = "2.5%";
-        text = i18n.sprintf(text, keywordDensityPercentage, keywordCount, max);
-    }
-    if (inRangeEndInclusive(roundedKeywordDensity, 2.5, 3.5)) {
-        score = -10;
-        /* Translators: %1$s expands to the keyword density percentage, %2$d expands to the keyword count,
-        %3$s expands to the maximum keyword density percentage. */
-        text = i18n.dgettext("js-text-analysis", "The keyword density is %1$s," + " which is over the advised %3$s maximum;" + " the focus keyword was found %2$d times.");
-        max = "2.5%";
-        text = i18n.sprintf(text, keywordDensityPercentage, keywordCount, max);
-    }
-    if (inRangeStartEndInclusive(roundedKeywordDensity, 0.5, 2.5)) {
-        score = 9;
-        /* Translators: %1$s expands to the keyword density percentage, %2$d expands to the keyword count. */
-        text = i18n.dgettext("js-text-analysis", "The keyword density is %1$s, which is great;" + " the focus keyword was found %2$d times.");
-        text = i18n.sprintf(text, keywordDensityPercentage, keywordCount);
-    }
-    if (inRangeStartInclusive(roundedKeywordDensity, 0, 0.5)) {
-        score = 4;
-        /* Translators: %1$s expands to the keyword density percentage, %2$d expands to the keyword count. */
-        text = i18n.dgettext("js-text-analysis", "The keyword density is %1$s, which is too low;" + " the focus keyword was found %2$d times.");
-        text = i18n.sprintf(text, keywordDensityPercentage, keywordCount);
-    }
-    return {
-        score: score,
-        text: text
-    };
-};
-/**
- * Runs the getkeywordDensity module, based on this returns an assessment result with score.
- *
- * @param {object} paper The paper to use for the assessment.
- * @param {object} researcher The researcher used for calling research.
- * @param {object} i18n The object used for translations
- * @returns {object} the Assessmentresult
- */
-var keywordDensityAssessment = function keywordDensityAssessment(paper, researcher, i18n) {
-    var keywordDensity = researcher.getResearch("getKeywordDensity");
-    var keywordCount = researcher.getResearch("keywordCount");
-    var keywordDensityResult = calculateKeywordDensityResult(keywordDensity, i18n, keywordCount);
-    var assessmentResult = new AssessmentResult();
-    assessmentResult.setScore(keywordDensityResult.score);
-    assessmentResult.setText(keywordDensityResult.text);
-    return assessmentResult;
-};
-module.exports = {
-    identifier: "keywordDensity",
-    getResult: keywordDensityAssessment,
-    isApplicable: function isApplicable(paper) {
-        return paper.hasText() && paper.hasKeyword() && countWords(paper.getText()) >= 100;
-    }
-};
-
-
-},{"../../helpers/formatNumber.js":104,"../../helpers/inRange.js":110,"../../stringProcessing/countWords.js":221,"../../values/AssessmentResult.js":264}],67:[function(require,module,exports){
+},{"../../values/AssessmentResult.js":289}],69:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -10438,7 +11358,7 @@ module.exports = {
 };
 
 
-},{"../../helpers/getLanguageAvailability.js":107,"../../values/AssessmentResult.js":264}],68:[function(require,module,exports){
+},{"../../helpers/getLanguageAvailability.js":114,"../../values/AssessmentResult.js":289}],70:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -10449,16 +11369,21 @@ var AssessmentResult = require("../../values/AssessmentResult.js");
  * @returns {Object} An object with values for the assessment result.
  */
 var calculateKeywordMatchesResult = function calculateKeywordMatchesResult(keywordMatches, i18n) {
+    var url = "<a href='https://yoa.st/2pf' target='_blank'>";
     if (keywordMatches > 0) {
         return {
             score: 9,
-            text: i18n.dgettext("js-text-analysis", "The meta description contains the focus keyword.")
+            text: i18n.sprintf(
+            /* Translators: %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag */
+            i18n.dgettext("js-text-analysis", "The meta description %1$scontains the focus keyword%2$s."), url, "</a>")
         };
     }
     if (keywordMatches === 0) {
         return {
             score: 3,
-            text: i18n.dgettext("js-text-analysis", "A meta description has been specified, but it does not contain the focus keyword.")
+            text: i18n.sprintf(
+            /* Translators: %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag */
+            i18n.dgettext("js-text-analysis", "A meta description has been specified, but it %1$sdoes not contain the focus keyword%2$s."), url, "</a>")
         };
     }
     return {};
@@ -10488,7 +11413,7 @@ module.exports = {
 };
 
 
-},{"../../values/AssessmentResult.js":264}],69:[function(require,module,exports){
+},{"../../values/AssessmentResult.js":289}],71:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -10499,9 +11424,12 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+Object.defineProperty(exports, "__esModule", { value: true });
 var AssessmentResult = require("../../values/AssessmentResult.js");
 var Assessment = require("../../assessment.js");
 var merge = require("lodash/merge");
+var config_1 = require("../../config/config");
+var maximumMetaDescriptionLength = config_1.default.maxMeta;
 /**
  * Assessment for calculating the length of the meta description.
  */
@@ -10525,7 +11453,7 @@ var MetaDescriptionLengthAssessment = function (_Assessment) {
 
         var defaultConfig = {
             recommendedMaximumLength: 120,
-            maximumLength: 320,
+            maximumLength: maximumMetaDescriptionLength,
             scores: {
                 noMetaDescription: 1,
                 tooLong: 6,
@@ -10538,23 +11466,37 @@ var MetaDescriptionLengthAssessment = function (_Assessment) {
         return _this;
     }
     /**
-     * Runs the metaDescriptionLength module, based on this returns an assessment result with score.
+     * Returns the maximum length.
      *
-     * @param {Paper} paper The paper to use for the assessment.
-     * @param {Researcher} researcher The researcher used for calling research.
-     * @param {object} i18n The object used for translations
-     *
-     * @returns {AssessmentResult} The assessment result.
+     * @returns {number} The maximum length.
      */
 
 
     _createClass(MetaDescriptionLengthAssessment, [{
+        key: "getMaximumLength",
+        value: function getMaximumLength() {
+            return this._config.maximumLength;
+        }
+        /**
+         * Runs the metaDescriptionLength module, based on this returns an assessment result with score.
+         *
+         * @param {Paper} paper The paper to use for the assessment.
+         * @param {Researcher} researcher The researcher used for calling research.
+         * @param {object} i18n The object used for translations
+         *
+         * @returns {AssessmentResult} The assessment result.
+         */
+
+    }, {
         key: "getResult",
         value: function getResult(paper, researcher, i18n) {
             var descriptionLength = researcher.getResearch("metaDescriptionLength");
             var assessmentResult = new AssessmentResult();
             assessmentResult.setScore(this.calculateScore(descriptionLength));
             assessmentResult.setText(this.translateScore(descriptionLength, i18n));
+            // Max and actual are used in the snippet editor progress bar.
+            assessmentResult.max = this._config.maximumLength;
+            assessmentResult.actual = descriptionLength;
             return assessmentResult;
         }
         /**
@@ -10594,17 +11536,29 @@ var MetaDescriptionLengthAssessment = function (_Assessment) {
     }, {
         key: "translateScore",
         value: function translateScore(descriptionLength, i18n) {
+            var url = "<a href='https://yoa.st/2pg' target='_blank'>";
             if (descriptionLength === 0) {
-                return i18n.dgettext("js-text-analysis", "No meta description has been specified. " + "Search engines will display copy from the page instead.");
+                return i18n.sprintf(
+                /* Translators:  %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag */
+                i18n.dgettext("js-text-analysis", "No %1$smeta description%2$s has been specified. " + "Search engines will display copy from the page instead."), url, "</a>");
             }
             if (descriptionLength <= this._config.recommendedMaximumLength) {
-                return i18n.sprintf(i18n.dgettext("js-text-analysis", "The meta description is under %1$d characters long. " + "However, up to %2$d characters are available."), this._config.recommendedMaximumLength, this._config.maximumLength);
+                return i18n.sprintf(
+                /* Translators: %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag,
+                %3$d expands to the number of characters in the meta description, %4$d expands to
+                the total available number of characters in the meta description */
+                i18n.dgettext("js-text-analysis", "The %1$smeta description%2$s is under %3$d characters long. " + "However, up to %4$d characters are available."), url, "</a>", this._config.recommendedMaximumLength, this._config.maximumLength);
             }
             if (descriptionLength > this._config.maximumLength) {
-                return i18n.sprintf(i18n.dgettext("js-text-analysis", "The meta description is over %1$d characters. " + "Reducing the length will ensure the entire description will be visible."), this._config.maximumLength);
+                return i18n.sprintf(
+                /* Translators: %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag,
+                %3$d expands to	the total available number of characters in the meta description */
+                i18n.dgettext("js-text-analysis", "The %1$smeta description%2$s is over %3$d characters. " + "Reducing the length will ensure the entire description will be visible."), url, "</a>", this._config.maximumLength);
             }
             if (descriptionLength >= this._config.recommendedMaximumLength && descriptionLength <= this._config.maximumLength) {
-                return i18n.dgettext("js-text-analysis", "The meta description has a nice length.");
+                return i18n.sprintf(
+                /* Translators:  %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag */
+                i18n.dgettext("js-text-analysis", "The %1$smeta description%2$s has a nice length."), url, "</a>");
             }
         }
     }]);
@@ -10615,7 +11569,7 @@ var MetaDescriptionLengthAssessment = function (_Assessment) {
 module.exports = MetaDescriptionLengthAssessment;
 
 
-},{"../../assessment.js":53,"../../values/AssessmentResult.js":264,"lodash/merge":526}],70:[function(require,module,exports){
+},{"../../assessment.js":53,"../../config/config":83,"../../values/AssessmentResult.js":289,"lodash/merge":552}],72:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -10735,20 +11689,29 @@ var OutboundLinksAssessment = function (_Assessment) {
     }, {
         key: "translateScore",
         value: function translateScore(linkStatistics, i18n) {
+            var url = "<a href='https://yoa.st/2pl' target='_blank'>";
             if (linkStatistics.externalTotal === 0) {
-                return i18n.dgettext("js-text-analysis", "No outbound links appear in this page, consider adding some as appropriate.");
+                return i18n.sprintf(
+                /* Translators: %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag */
+                i18n.dgettext("js-text-analysis", "No %1$soutbound links%2$s appear in this page, consider adding some as appropriate."), url, "</a>");
             }
             if (linkStatistics.externalNofollow === linkStatistics.total) {
-                /* Translators: %1$s expands the number of outbound links */
-                return i18n.sprintf(i18n.dgettext("js-text-analysis", "This page has %1$s outbound link(s), all nofollowed."), linkStatistics.externalNofollow);
+                return i18n.sprintf(
+                /* Translators: %1$s expands the number of outbound links, %2$s expands to a link on yoast.com,
+                %3$s expands to the anchor end tag */
+                i18n.dgettext("js-text-analysis", "This page has %1$s %2$soutbound link(s)%3$s, all nofollowed."), linkStatistics.externalNofollow, url, "</a>");
             }
             if (linkStatistics.externalNofollow < linkStatistics.externalTotal) {
-                /* Translators: %1$s expands to the number of nofollow links, %2$s to the number of outbound links */
-                return i18n.sprintf(i18n.dgettext("js-text-analysis", "This page has %1$s nofollowed outbound link(s) and %2$s normal outbound link(s)."), linkStatistics.externalNofollow, linkStatistics.externalDofollow);
+                return i18n.sprintf(
+                /* Translators: %1$s expands to the number of nofollow links, %2$s expands to a link on yoast.com,
+                %3$s expands to the anchor end tag, %4$s to the number of outbound links */
+                i18n.dgettext("js-text-analysis", "This page has %1$s nofollowed %2$soutbound link(s)%3$s and %4$s normal outbound link(s)."), linkStatistics.externalNofollow, url, "</a>", linkStatistics.externalDofollow);
             }
             if (linkStatistics.externalDofollow === linkStatistics.total) {
-                /* Translators: %1$s expands to the number of outbound links */
-                return i18n.sprintf(i18n.dgettext("js-text-analysis", "This page has %1$s outbound link(s)."), linkStatistics.externalTotal);
+                return i18n.sprintf(
+                /* Translators: %1$s expands to the number of outbound links, %2$s expands to a link on yoast.com,
+                %3$s expands to the anchor end tag */
+                i18n.dgettext("js-text-analysis", "This page has %1$s %2$soutbound link(s)%3$s."), linkStatistics.externalTotal);
             }
             return "";
         }
@@ -10760,7 +11723,7 @@ var OutboundLinksAssessment = function (_Assessment) {
 module.exports = OutboundLinksAssessment;
 
 
-},{"../../assessment.js":53,"../../values/AssessmentResult.js":264,"lodash/isEmpty":508,"lodash/merge":526}],71:[function(require,module,exports){
+},{"../../assessment.js":53,"../../values/AssessmentResult.js":289,"lodash/isEmpty":536,"lodash/merge":552}],73:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -10775,6 +11738,7 @@ var AssessmentResult = require("../../values/AssessmentResult.js");
 var Assessment = require("../../assessment.js");
 var inRange = require("../../helpers/inRange").inRangeEndInclusive;
 var merge = require("lodash/merge");
+var maximumLength = 600;
 /**
  * Represents the assessmenth that will calculate if the width of the page title is correct.
  */
@@ -10798,11 +11762,11 @@ var PageTitleWidthAssesment = function (_Assessment) {
 
         var defaultConfig = {
             minLength: 400,
-            maxLength: 600,
+            maxLength: maximumLength,
             scores: {
                 noTitle: 1,
                 widthTooShort: 6,
-                widthTooLong: 6,
+                widthTooLong: 3,
                 widthCorrect: 9
             }
         };
@@ -10811,23 +11775,37 @@ var PageTitleWidthAssesment = function (_Assessment) {
         return _this;
     }
     /**
-     * Runs the pageTitleWidth module, based on this returns an assessment result with score.
+     * Returns the maximum length.
      *
-     * @param {Paper} paper The paper to use for the assessment.
-     * @param {Researcher} researcher The researcher used for calling research.
-     * @param {object} i18n The object used for translations
-     *
-     * @returns {AssessmentResult} The assessment result.
+     * @returns {number} The maximum length.
      */
 
 
     _createClass(PageTitleWidthAssesment, [{
+        key: "getMaximumLength",
+        value: function getMaximumLength() {
+            return maximumLength;
+        }
+        /**
+         * Runs the pageTitleWidth module, based on this returns an assessment result with score.
+         *
+         * @param {Paper} paper The paper to use for the assessment.
+         * @param {Researcher} researcher The researcher used for calling research.
+         * @param {object} i18n The object used for translations
+         *
+         * @returns {AssessmentResult} The assessment result.
+         */
+
+    }, {
         key: "getResult",
         value: function getResult(paper, researcher, i18n) {
             var pageTitleWidth = researcher.getResearch("pageTitleWidth");
             var assessmentResult = new AssessmentResult();
             assessmentResult.setScore(this.calculateScore(pageTitleWidth));
             assessmentResult.setText(this.translateScore(pageTitleWidth, i18n));
+            // Max and actual are used in the snippet editor progress bar.
+            assessmentResult.max = this._config.maxLength;
+            assessmentResult.actual = pageTitleWidth;
             return assessmentResult;
         }
         /**
@@ -10864,16 +11842,25 @@ var PageTitleWidthAssesment = function (_Assessment) {
     }, {
         key: "translateScore",
         value: function translateScore(pageTitleWidth, i18n) {
+            var url = "<a href='https://yoa.st/2po' target='_blank'>";
             if (inRange(pageTitleWidth, 1, 400)) {
-                return i18n.dgettext("js-text-analysis", "The SEO title is too short. Use the space to add keyword variations or create compelling call-to-action copy.");
+                return i18n.sprintf(
+                /* Translators:  %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag */
+                i18n.dgettext("js-text-analysis", "The %1$sSEO title%2$s is too short. Use the space to add keyword variations or create compelling call-to-action copy."), url, "</a>");
             }
             if (inRange(pageTitleWidth, this._config.minLength, this._config.maxLength)) {
-                return i18n.dgettext("js-text-analysis", "The SEO title has a nice length.");
+                return i18n.sprintf(
+                /* Translators:  %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag */
+                i18n.dgettext("js-text-analysis", "The %1$sSEO title%2$s has a nice length."), url, "</a>");
             }
             if (pageTitleWidth > this._config.maxLength) {
-                return i18n.dgettext("js-text-analysis", "The SEO title is wider than the viewable limit.");
+                return i18n.sprintf(
+                /* Translators:  %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag */
+                i18n.dgettext("js-text-analysis", "The %1$sSEO title%2$s is wider than the viewable limit."), url, "</a>");
             }
-            return i18n.dgettext("js-text-analysis", "Please create an SEO title.");
+            return i18n.sprintf(
+            /* Translators:  %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag */
+            i18n.dgettext("js-text-analysis", "Please create an %1$sSEO title%2$s."), url, "</a>");
         }
     }]);
 
@@ -10883,7 +11870,7 @@ var PageTitleWidthAssesment = function (_Assessment) {
 module.exports = PageTitleWidthAssesment;
 
 
-},{"../../assessment.js":53,"../../helpers/inRange":110,"../../values/AssessmentResult.js":264,"lodash/merge":526}],72:[function(require,module,exports){
+},{"../../assessment.js":53,"../../helpers/inRange":117,"../../values/AssessmentResult.js":289,"lodash/merge":552}],74:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -10998,11 +11985,17 @@ var SubHeadingsKeywordAssessment = function (_Assessment) {
     }, {
         key: "translateScore",
         value: function translateScore(score, subHeadings, i18n) {
+            var url = "<a href='https://yoa.st/2ph' target='_blank'>";
             if (score === this._config.scores.multipleMatches || score === this._config.scores.oneMatch) {
-                return i18n.sprintf(i18n.dgettext("js-text-analysis", "The focus keyword appears in %2$d (out of %1$d) subheadings in your copy."), subHeadings.count, subHeadings.matches);
+                return i18n.sprintf(
+                /* Translators: %1$d expands to the number of subheadings containing the keyword, %2$d expands to the
+                total number of subheadings, %3$s expands to a link on yoast.com, %4$s expands to the anchor end tag */
+                i18n.dgettext("js-text-analysis", "The focus keyword appears in %1$d (out of %2$d) %3$ssubheadings%4$s in your copy."), subHeadings.matches, subHeadings.count, url, "</a>");
             }
             if (score === this._config.scores.noMatches) {
-                return i18n.dgettext("js-text-analysis", "You have not used the focus keyword in any subheading (such as an H2) in your copy.");
+                return i18n.sprintf(
+                /* Translators:  %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag */
+                i18n.dgettext("js-text-analysis", "You have not used the focus keyword in any %1$ssubheading%2$s (such as an H2) in your copy."), url, "</a>");
             }
             return "";
         }
@@ -11014,7 +12007,7 @@ var SubHeadingsKeywordAssessment = function (_Assessment) {
 module.exports = SubHeadingsKeywordAssessment;
 
 
-},{"../../assessment.js":53,"../../values/AssessmentResult.js":264,"lodash/merge":526}],73:[function(require,module,exports){
+},{"../../assessment.js":53,"../../values/AssessmentResult.js":289,"lodash/merge":552}],75:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -11029,11 +12022,14 @@ var map = require("lodash/map");
  * @returns {object} resultObject with score and text
  */
 var calculateLinkCountResult = function calculateLinkCountResult(linkStatistics, i18n) {
+    var url = "<a href='https://yoa.st/2pi' target='_blank'>";
     if (linkStatistics.keyword.totalKeyword > 0) {
         return {
             score: 2,
             hasMarks: true,
-            text: i18n.dgettext("js-text-analysis", "You\'re linking to another page with the focus keyword you want this page to rank for. " + "Consider changing that if you truly want this page to rank.")
+            text: i18n.sprintf(
+            /* Translators:  %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag */
+            i18n.dgettext("js-text-analysis", "You're %1$slinking to another page with the focus keyword%2$s you want this page to rank for. " + "Consider changing that if you truly want this page to rank."), url, "</a>")
         };
     }
     return {};
@@ -11081,7 +12077,7 @@ module.exports = {
 };
 
 
-},{"../../markers/addMark.js":116,"../../values/AssessmentResult.js":264,"../../values/Mark.js":265,"lodash/map":524}],74:[function(require,module,exports){
+},{"../../markers/addMark.js":123,"../../values/AssessmentResult.js":289,"../../values/Mark.js":290,"lodash/map":550}],76:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -11209,24 +12205,27 @@ var TextImagesAssessment = function (_Assessment) {
     }, {
         key: "translateScore",
         value: function translateScore(imageCount, altProperties, i18n) {
+            var url = "<a href='https://yoa.st/2pj' target='_blank'>";
             if (imageCount === 0) {
-                return i18n.dgettext("js-text-analysis", "No images appear in this page, consider adding some as appropriate.");
+                return i18n.sprintf(
+                /* Translators:  %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag */
+                i18n.dgettext("js-text-analysis", "No %1$simages%2$s appear in this page, consider adding some as appropriate."), url, "</a>");
             }
             // Has alt-tag and keywords
             if (altProperties.withAltKeyword > 0) {
-                return i18n.dgettext("js-text-analysis", "The images on this page contain alt attributes with the focus keyword.");
+                return i18n.sprintf(i18n.dgettext("js-text-analysis", "The %1$simages%2$s on this page contain alt attributes with the focus keyword."), url, "</a>");
             }
             // Has alt-tag, but no keywords and it's not okay
             if (altProperties.withAltNonKeyword > 0) {
-                return i18n.dgettext("js-text-analysis", "The images on this page do not have alt attributes containing the focus keyword.");
+                return i18n.sprintf(i18n.dgettext("js-text-analysis", "The %1$simages%2$s on this page do not have alt attributes containing the focus keyword."), url, "</a>");
             }
             // Has alt-tag, but no keyword is set
             if (altProperties.withAlt > 0) {
-                return i18n.dgettext("js-text-analysis", "The images on this page contain alt attributes.");
+                return i18n.sprintf(i18n.dgettext("js-text-analysis", "The %1$simages%2$s on this page contain alt attributes."), url, "</a>");
             }
             // Has no alt-tag
             if (altProperties.noAlt > 0) {
-                return i18n.dgettext("js-text-analysis", "The images on this page are missing alt attributes.");
+                return i18n.sprintf(i18n.dgettext("js-text-analysis", "The %1$simages%2$s on this page are missing alt attributes."), url, "</a>");
             }
             return "";
         }
@@ -11238,7 +12237,7 @@ var TextImagesAssessment = function (_Assessment) {
 module.exports = TextImagesAssessment;
 
 
-},{"../../assessment.js":53,"../../values/AssessmentResult.js":264,"lodash/merge":526}],75:[function(require,module,exports){
+},{"../../assessment.js":53,"../../values/AssessmentResult.js":289,"lodash/merge":552}],77:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -11351,33 +12350,38 @@ var TextLengthAssessment = function (_Assessment) {
     }, {
         key: "translateScore",
         value: function translateScore(score, wordCount, i18n) {
+            var url = "<a href='https://yoa.st/2pk' target='_blank'>";
             if (score === this._config.scores.recommendedMinimum) {
-                return i18n.dngettext("js-text-analysis",
+                return i18n.sprintf(i18n.dngettext("js-text-analysis",
                 /* Translators: %1$d expands to the number of words in the text */
                 "The text contains %1$d word.", "The text contains %1$d words.", wordCount) + " " + i18n.dngettext("js-text-analysis",
-                /* Translators: The preceding sentence is "The text contains x words.", %2$s expands to the recommended minimum of words. */
-                "This is more than or equal to the recommended minimum of %2$d word.", "This is more than or equal to the recommended minimum of %2$d words.", this._config.recommendedMinimum);
+                /* Translators: The preceding sentence is "The text contains x words.", %2$s expands to a link on yoast.com,
+                %3$s expands to the anchor end tag,	%4$s expands to the recommended minimum of words. */
+                "This is more than or equal to the %2$srecommended minimum%3$s of %4$d word.", "This is more than or equal to the %2$srecommended minimum%3$s of %4$d words.", this._config.recommendedMinimum), wordCount, url, "</a>", this._config.recommendedMinimum);
             }
             if (score === this._config.scores.slightlyBelowMinimum) {
-                return i18n.dngettext("js-text-analysis",
+                return i18n.sprintf(i18n.dngettext("js-text-analysis",
                 /* Translators: %1$d expands to the number of words in the text */
                 "The text contains %1$d word.", "The text contains %1$d words.", wordCount) + " " + i18n.dngettext("js-text-analysis",
-                /* Translators: The preceding sentence is "The text contains x words.", %2$s expands to the recommended minimum of words */
-                "This is slightly below the recommended minimum of %2$d word. Add a bit more copy.", "This is slightly below the recommended minimum of %2$d words. Add a bit more copy.", this._config.recommendedMinimum);
+                /* Translators: The preceding sentence is "The text contains x words.", %2$s expands to a link on yoast.com,
+                %3$s expands to the anchor end tag, %4$s expands to the recommended minimum of words. */
+                "This is slightly below the %2$srecommended minimum%3$s of %4$d word. Add a bit more copy.", "This is slightly below the %2$srecommended minimum%3$s of %4$d words. Add a bit more copy.", this._config.recommendedMinimum), wordCount, url, "</a>", this._config.recommendedMinimum);
             }
             if (score === this._config.scores.belowMinimum) {
-                return i18n.dngettext("js-text-analysis",
+                return i18n.sprintf(i18n.dngettext("js-text-analysis",
                 /* Translators: %1$d expands to the number of words in the text */
                 "The text contains %1$d word.", "The text contains %1$d words.", wordCount) + " " + i18n.dngettext("js-text-analysis",
-                /* Translators: The preceding sentence is "The text contains x words.", %2$s expands to the recommended minimum of words */
-                "This is below the recommended minimum of %2$d word. Add more content that is relevant for the topic.", "This is below the recommended minimum of %2$d words. Add more content that is relevant for the topic.", this._config.recommendedMinimum);
+                /* Translators: The preceding sentence is "The text contains x words.", %2$s expands to a link on yoast.com,
+                %3$s expands to the anchor end tag, %4$s expands to the recommended minimum of words. */
+                "This is below the %2$srecommended minimum%3$s of %4$d word. Add more content that is relevant for the topic.", "This is below the %2$srecommended minimum%3$s of %4$d words. Add more content that is relevant for the topic.", this._config.recommendedMinimum), wordCount, url, "</a>", this._config.recommendedMinimum);
             }
             if (score === this._config.scores.farBelowMinimum || score === this._config.scores.veryFarBelowMinimum) {
-                return i18n.dngettext("js-text-analysis",
+                return i18n.sprintf(i18n.dngettext("js-text-analysis",
                 /* Translators: %1$d expands to the number of words in the text */
                 "The text contains %1$d word.", "The text contains %1$d words.", wordCount) + " " + i18n.dngettext("js-text-analysis",
-                /* Translators: The preceding sentence is "The text contains x words.", %2$s expands to the recommended minimum of words */
-                "This is far below the recommended minimum of %2$d word. Add more content that is relevant for the topic.", "This is far below the recommended minimum of %2$d words. Add more content that is relevant for the topic.", this._config.recommendedMinimum);
+                /* Translators: The preceding sentence is "The text contains x words.", %2$s expands to a link on yoast.com,
+                %3$s expands to the anchor end tag,  %4$s expands to the recommended minimum of words. */
+                "This is far below the %2$srecommended minimum%3$s of %4$d word. Add more content that is relevant for the topic.", "This is far below the %2$srecommended minimum%3$s of %4$d words. Add more content that is relevant for the topic.", this._config.recommendedMinimum), wordCount, url, "</a>", this._config.recommendedMinimum);
             }
             return "";
         }
@@ -11389,7 +12393,7 @@ var TextLengthAssessment = function (_Assessment) {
 module.exports = TextLengthAssessment;
 
 
-},{"../../assessment.js":53,"../../values/AssessmentResult.js":264,"lodash/inRange":498,"lodash/merge":526}],76:[function(require,module,exports){
+},{"../../assessment.js":53,"../../values/AssessmentResult.js":289,"lodash/inRange":526,"lodash/merge":552}],78:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -11404,17 +12408,23 @@ var escape = require("lodash/escape");
 var titleHasKeywordAssessment = function titleHasKeywordAssessment(paper, researcher, i18n) {
     var keywordMatches = researcher.getResearch("findKeywordInPageTitle");
     var score, text;
+    var url = "<a href='https://yoa.st/2pn' target='_blank'>";
     if (keywordMatches.matches === 0) {
         score = 2;
-        text = i18n.sprintf(i18n.dgettext("js-text-analysis", "The focus keyword '%1$s' does " + "not appear in the SEO title."), escape(paper.getKeyword()));
+        text = i18n.sprintf(
+        /* Translators: %1$s expands to the focus keyword, %2$s expands to a link on yoast.com,
+        %3$s expands to the anchor end tag */
+        i18n.dgettext("js-text-analysis", "The focus keyword '%1$s' does " + "not appear in the %2$sSEO title%3$s."), escape(paper.getKeyword()), url, "</a>");
     }
     if (keywordMatches.matches > 0 && keywordMatches.position === 0) {
         score = 9;
-        text = i18n.dgettext("js-text-analysis", "The SEO title contains the focus keyword, at the beginning which is considered " + "to improve rankings.");
+        text = i18n.sprintf(
+        /* Translators:  %1$s expands to a link on yoast.com, %2$s expands to the anchor end tag */
+        i18n.dgettext("js-text-analysis", "The %1$sSEO title%2$s contains the focus keyword, at the beginning which is considered " + "to improve rankings."), url, "</a>");
     }
     if (keywordMatches.matches > 0 && keywordMatches.position > 0) {
         score = 6;
-        text = i18n.dgettext("js-text-analysis", "The SEO title contains the focus keyword, but it does not appear at the beginning;" + " try and move it to the beginning.");
+        text = i18n.sprintf(i18n.dgettext("js-text-analysis", "The %1$sSEO title%2$s contains the focus keyword, but it does not appear at the beginning;" + " try and move it to the beginning."), url, "</a>");
     }
     var assessmentResult = new AssessmentResult();
     assessmentResult.setScore(score);
@@ -11430,125 +12440,7 @@ module.exports = {
 };
 
 
-},{"../../values/AssessmentResult.js":264,"lodash/escape":486}],77:[function(require,module,exports){
-"use strict";
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var AssessmentResult = require("../../values/AssessmentResult.js");
-var Assessment = require("../../assessment.js");
-var merge = require("lodash/merge");
-/**
- * Represents the URL keyword assessments. This assessments will check if the keyword is present in the url.
- */
-
-var UrlKeywordAssessment = function (_Assessment) {
-    _inherits(UrlKeywordAssessment, _Assessment);
-
-    /**
-     * Sets the identifier and the config.
-     *
-     * @param {object} config The configuration to use.
-     *
-     * @returns {void}
-     */
-    function UrlKeywordAssessment() {
-        var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-        _classCallCheck(this, UrlKeywordAssessment);
-
-        var _this = _possibleConstructorReturn(this, (UrlKeywordAssessment.__proto__ || Object.getPrototypeOf(UrlKeywordAssessment)).call(this));
-
-        var defaultConfig = {
-            scores: {
-                noKeywordInUrl: 6
-            }
-        };
-        _this.identifier = "urlKeyword";
-        _this._config = merge(defaultConfig, config);
-        return _this;
-    }
-    /**
-     * Executes the Assessment and returns a result.
-     *
-     * @param {Paper} paper The Paper object to assess.
-     * @param {Researcher} researcher The Researcher object containing all available researches.
-     * @param {object} i18n The locale object.
-     *
-     * @returns {AssessmentResult} The result of the assessment, containing both a score and a descriptive text.
-     */
-
-
-    _createClass(UrlKeywordAssessment, [{
-        key: "getResult",
-        value: function getResult(paper, researcher, i18n) {
-            var totalKeywords = researcher.getResearch("keywordCountInUrl");
-            var assessmentResult = new AssessmentResult();
-            assessmentResult.setScore(this.calculateScore(totalKeywords));
-            assessmentResult.setText(this.translateScore(totalKeywords, i18n));
-            return assessmentResult;
-        }
-        /**
-         * Checks whether the paper has a keyword and a url.
-         *
-         * @param {Paper} paper The paper to use for the assessment.
-         *
-         * @returns {boolean} True when there is a keyword and an url.
-         */
-
-    }, {
-        key: "isApplicable",
-        value: function isApplicable(paper) {
-            return paper.hasKeyword() && paper.hasUrl();
-        }
-        /**
-         * Calculates the score based on whether or not there's a keyword in the url.
-         *
-         * @param {number} totalKeywords The amount of keywords to be checked against.
-         *
-         * @returns {number} The calculated score.
-         */
-
-    }, {
-        key: "calculateScore",
-        value: function calculateScore(totalKeywords) {
-            if (totalKeywords === 0) {
-                return this._config.scores.noKeywordInUrl;
-            }
-            return 9;
-        }
-        /**
-         * Translates the score to a message the user can understand.
-         *
-         * @param {number} totalKeywords The amount of keywords to be checked against.
-         * @param {object} i18n The object used for translations.
-         *
-         * @returns {string} The translated string.
-         */
-
-    }, {
-        key: "translateScore",
-        value: function translateScore(totalKeywords, i18n) {
-            if (totalKeywords === 0) {
-                return i18n.dgettext("js-text-analysis", "The focus keyword does not appear in the URL for this page. " + "If you decide to rename the URL be sure to check the old URL 301 redirects to the new one!");
-            }
-            return i18n.dgettext("js-text-analysis", "The focus keyword appears in the URL for this page.");
-        }
-    }]);
-
-    return UrlKeywordAssessment;
-}(Assessment);
-
-module.exports = UrlKeywordAssessment;
-
-
-},{"../../assessment.js":53,"../../values/AssessmentResult.js":264,"lodash/merge":526}],78:[function(require,module,exports){
+},{"../../values/AssessmentResult.js":289,"lodash/escape":514}],79:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -11666,7 +12558,7 @@ var UrlLengthAssessment = function (_Assessment) {
 module.exports = UrlLengthAssessment;
 
 
-},{"../../assessment.js":53,"../../values/AssessmentResult.js":264,"lodash/merge":526}],79:[function(require,module,exports){
+},{"../../assessment.js":53,"../../values/AssessmentResult.js":289,"lodash/merge":552}],80:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../../values/AssessmentResult.js");
@@ -11715,7 +12607,7 @@ module.exports = {
 };
 
 
-},{"../../helpers/getLanguageAvailability.js":107,"../../values/AssessmentResult.js":264}],80:[function(require,module,exports){
+},{"../../helpers/getLanguageAvailability.js":114,"../../values/AssessmentResult.js":289}],81:[function(require,module,exports){
 "use strict";
 
 var Researcher = require("./researcher.js");
@@ -11971,7 +12863,7 @@ Assessor.prototype.getApplicableAssessments = function () {
 module.exports = Assessor;
 
 
-},{"./errors/missingArgument":101,"./helpers/errors.js":103,"./markers/removeDuplicateMarks":117,"./researcher.js":120,"./values/AssessmentResult.js":264,"lodash/filter":488,"lodash/find":489,"lodash/findIndex":490,"lodash/forEach":493,"lodash/isFunction":509,"lodash/isUndefined":521,"lodash/map":524}],81:[function(require,module,exports){
+},{"./errors/missingArgument":106,"./helpers/errors.js":109,"./markers/removeDuplicateMarks":125,"./researcher.js":128,"./values/AssessmentResult.js":289,"lodash/filter":516,"lodash/find":517,"lodash/findIndex":518,"lodash/forEach":521,"lodash/isFunction":537,"lodash/isUndefined":547,"lodash/map":550}],82:[function(require,module,exports){
 "use strict";
 
 var AssessmentResult = require("../values/AssessmentResult.js");
@@ -12036,7 +12928,11 @@ PreviouslyUsedKeyword.prototype.scoreAssessment = function (previouslyUsedKeywor
     var id = previouslyUsedKeywords.id;
     if (count === 0) {
         return {
-            text: i18n.dgettext("js-text-analysis", "You've never used this focus keyword before, very good."),
+            text: i18n.sprintf(
+            /* Translators:
+            %1$s expands to a link to an article on yoast.com about why you should not use a keyword more than once,
+            %2$s expands to an anchor tag. */
+            i18n.dgettext("js-text-analysis", "You've %1$snever used this focus keyword before%2$s, very good."), "<a href='https://yoa.st/20x' target='_blank' rel='noopener noreferrer'>", "</a>"),
             score: 9
         };
     }
@@ -12098,9 +12994,10 @@ PreviouslyUsedKeyword.prototype.assess = function (paper, researcher, i18n) {
 module.exports = PreviouslyUsedKeyword;
 
 
-},{"../errors/missingArgument":101,"../values/AssessmentResult.js":264,"lodash/isUndefined":521}],82:[function(require,module,exports){
+},{"../errors/missingArgument":106,"../values/AssessmentResult.js":289,"lodash/isUndefined":547}],83:[function(require,module,exports){
 "use strict";
 
+Object.defineProperty(exports, "__esModule", { value: true });
 var analyzerConfig = {
     queue: ["wordCount", "keywordDensity", "subHeadings", "stopwords", "fleschReading", "linkCount", "imageCount", "urlKeyword", "urlLength", "metaDescriptionLength", "metaDescriptionKeyword", "pageTitleKeyword", "pageTitleLength", "firstParagraph", "urlStopwords", "keywordDoubles", "keyphraseSizeCheck"],
     stopWords: ["a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "as", "at", "be", "because", "been", "before", "being", "below", "between", "both", "but", "by", "could", "did", "do", "does", "doing", "down", "during", "each", "few", "for", "from", "further", "had", "has", "have", "having", "he", "he'd", "he'll", "he's", "her", "here", "here's", "hers", "herself", "him", "himself", "his", "how", "how's", "i", "i'd", "i'll", "i'm", "i've", "if", "in", "into", "is", "it", "it's", "its", "itself", "let's", "me", "more", "most", "my", "myself", "nor", "of", "on", "once", "only", "or", "other", "ought", "our", "ours", "ourselves", "out", "over", "own", "same", "she", "she'd", "she'll", "she's", "should", "so", "some", "such", "than", "that", "that's", "the", "their", "theirs", "them", "themselves", "then", "there", "there's", "these", "they", "they'd", "they'll", "they're", "they've", "this", "those", "through", "to", "too", "under", "until", "up", "very", "was", "we", "we'd", "we'll", "we're", "we've", "were", "what", "what's", "when", "when's", "where", "where's", "which", "while", "who", "who's", "whom", "why", "why's", "with", "would", "you", "you'd", "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves"],
@@ -12109,18 +13006,20 @@ var analyzerConfig = {
     maxUrlLength: 40,
     maxMeta: 156
 };
-module.exports = analyzerConfig;
+exports.default = analyzerConfig;
 
 
-},{}],83:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 "use strict";
 
 var defaultsDeep = require("lodash/defaultsDeep");
 var getLanguage = require("./../../helpers/getLanguage");
 var defaultConfig = require("./default");
 var it = require("./it");
+var ru = require("./ru");
 var configurations = {
-    it: it
+    it: it,
+    ru: ru
 };
 module.exports = function (locale) {
     var language = getLanguage(locale);
@@ -12131,7 +13030,7 @@ module.exports = function (locale) {
 };
 
 
-},{"./../../helpers/getLanguage":106,"./default":84,"./it":85,"lodash/defaultsDeep":483}],84:[function(require,module,exports){
+},{"./../../helpers/getLanguage":113,"./default":85,"./it":86,"./ru":87,"lodash/defaultsDeep":511}],85:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -12139,11 +13038,31 @@ module.exports = {
         recommendedWordCount: 20,
         slightlyTooMany: 25,
         farTooMany: 30
+    },
+    fleschReading: {
+        borders: {
+            veryEasy: 90,
+            easy: 80,
+            fairlyEasy: 70,
+            okay: 60,
+            fairlyDifficult: 50,
+            difficult: 30,
+            veryDifficult: 0
+        },
+        scores: {
+            veryEasy: 9,
+            easy: 9,
+            fairlyEasy: 9,
+            okay: 9,
+            fairlyDifficult: 6,
+            difficult: 3,
+            veryDifficult: 3
+        }
     }
 };
 
 
-},{}],85:[function(require,module,exports){
+},{}],86:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -12153,7 +13072,27 @@ module.exports = {
 };
 
 
-},{}],86:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
+"use strict";
+
+module.exports = {
+    sentenceLength: {
+        recommendedWordCount: 15
+    },
+    fleschReading: {
+        borders: {
+            veryEasy: 80,
+            easy: 70,
+            fairlyEasy: 60,
+            okay: 50,
+            fairlyDifficult: 40,
+            difficult: 20
+        }
+    }
+};
+
+
+},{}],88:[function(require,module,exports){
 "use strict";
 /** @module config/diacritics */
 /**
@@ -12221,7 +13160,7 @@ module.exports = function () {
 };
 
 
-},{}],87:[function(require,module,exports){
+},{}],89:[function(require,module,exports){
 "use strict";
 /**
  * Returns the configuration used for score ratings and the AssessorPresenter.
@@ -12259,7 +13198,7 @@ module.exports = function (i18n) {
 };
 
 
-},{}],88:[function(require,module,exports){
+},{}],90:[function(require,module,exports){
 "use strict";
 /** @module config/removalWords */
 /**
@@ -12273,7 +13212,7 @@ module.exports = function () {
 };
 
 
-},{}],89:[function(require,module,exports){
+},{}],91:[function(require,module,exports){
 "use strict";
 /** @module config/stopwords */
 /**
@@ -12287,7 +13226,7 @@ module.exports = function () {
 };
 
 
-},{}],90:[function(require,module,exports){
+},{}],92:[function(require,module,exports){
 "use strict";
 /** @module config/syllables */
 
@@ -12297,7 +13236,10 @@ var de = require("./syllables/de.json");
 var en = require('./syllables/en.json');
 var nl = require('./syllables/nl.json');
 var it = require('./syllables/it.json');
-var languages = { de: de, nl: nl, en: en, it: it };
+var ru = require('./syllables/ru.json');
+var fr = require('./syllables/fr.json');
+var es = require('./syllables/es.json');
+var languages = { de: de, nl: nl, en: en, it: it, ru: ru, fr: fr, es: es };
 module.exports = function () {
     var locale = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "en_US";
 
@@ -12310,7 +13252,7 @@ module.exports = function () {
 };
 
 
-},{"../helpers/getLanguage.js":106,"./syllables/de.json":91,"./syllables/en.json":92,"./syllables/it.json":93,"./syllables/nl.json":94,"lodash/isUndefined":521}],91:[function(require,module,exports){
+},{"../helpers/getLanguage.js":113,"./syllables/de.json":93,"./syllables/en.json":94,"./syllables/es.json":95,"./syllables/fr.json":96,"./syllables/it.json":97,"./syllables/nl.json":98,"./syllables/ru.json":99,"lodash/isUndefined":547}],93:[function(require,module,exports){
 module.exports={
 	"vowels": "aeiouyäöüáéâàèîêâûôœ",
 	"deviations": {
@@ -12772,7 +13714,7 @@ module.exports={
 	}
 }
 
-},{}],92:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 module.exports={
 	"vowels": "aeiouy",
 	"deviations": {
@@ -12860,7 +13802,1612 @@ module.exports={
 	}
 }
 
-},{}],93:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
+module.exports={
+  "vowels": "aeiouáéíóúü",
+  "deviations": {
+    "vowels": [
+      {
+        "fragments": [
+          "i[ií]",
+          "[íú][aeo]",
+          "o[aáeéíóú]",
+          "uu",
+          "flu[iea]",
+          "ru[ie]",
+          "eio",
+          "eu[aá]",
+          "oi[aó]",
+          "[iu]ei",
+          "ui[éu]",
+          "^anti[aeoá]",
+          "^zoo",
+          "coo",
+          "microo"
+        ],
+        "countModifier": 1
+      },
+      {
+        "fragments": [
+          "[eéó][aáeéíoóú]"
+        ],
+        "countModifier": 1
+      },
+      {
+        "fragments": [
+          "[aáü][aáeéiíoóú]",
+          "eoi",
+          "oeu",
+          "[eu]au"
+        ],
+        "countModifier": 1
+      }
+    ],
+    "words": {
+      "full": [
+        {
+          "word": "scooter",
+          "syllables": 2
+        },
+        {
+          "word": "y",
+          "syllables": 1
+        },
+        {
+          "word": "beat",
+          "syllables": 1
+        },
+        {
+          "word": "via",
+          "syllables": 2
+        },
+        {
+          "word": "ok",
+          "syllables": 2
+        }
+      ],
+      "fragments": {
+        "global": [
+          {
+            "word": "business",
+            "syllables": 2
+          },
+          {
+            "word": "coach",
+            "syllables": 1
+          },
+          {
+            "word": "reggae",
+            "syllables": 2
+          },
+          {
+            "word": "mail",
+            "syllables": 1
+          },
+          {
+            "word": "airbag",
+            "syllables": 2
+          },
+          {
+            "word": "affaire",
+            "syllables": 2
+          },
+          {
+            "word": "training",
+            "syllables": 2
+          },
+          {
+            "word": "hawaian",
+            "syllables": 3
+          },
+          {
+            "word": "saharaui",
+            "syllables": 3
+          },
+          {
+            "word": "nouveau",
+            "syllables": 2
+          },
+          {
+            "word": "chapeau",
+            "syllables": 2
+          },
+          {
+            "word": "free",
+            "syllables": 1
+          },
+          {
+            "word": "green",
+            "syllables": 1
+          },
+          {
+            "word": "jeep",
+            "syllables": 1
+          },
+          {
+            "word": "toffee",
+            "syllables": 2
+          },
+          {
+            "word": "tweet",
+            "syllables": 1
+          },
+          {
+            "word": "tweed",
+            "syllables": 1
+          },
+          {
+            "word": "semiautomátic",
+            "syllables": 6
+          },
+          {
+            "word": "estadou",
+            "syllables": 4
+          },
+          {
+            "word": "broadway",
+            "syllables": 2
+          },
+          {
+            "word": "board",
+            "syllables": 1
+          },
+          {
+            "word": "load",
+            "syllables": 1
+          },
+          {
+            "word": "roaming",
+            "syllables": 2
+          },
+          {
+            "word": "heavy",
+            "syllables": 2
+          },
+          {
+            "word": "break",
+            "syllables": 1
+          }
+        ]
+      }
+    }
+  }
+}
+
+
+
+
+
+
+
+},{}],96:[function(require,module,exports){
+module.exports={
+  "vowels": "aeiouyàâéèêëîïûüùôæœ",
+  "deviations": {
+    "vowels": [
+      {
+        "fragments": [
+          "[ptf]aon(ne)?[s]?$"
+        ],
+        "countModifier": -1
+      },
+      {
+        "fragments": [
+          "aoul",
+          "[^eéiïou]e(s|nt)?$",
+          "[qg]ue(s|nt)?$"
+        ],
+        "countModifier": -1
+      },
+      {
+        "fragments": [
+          "o[ëaéèï]"
+        ],
+        "countModifier": 1
+      },
+      {
+        "fragments": [
+          "a[eéèïüo]",
+          "é[aâèéiîuo]",
+          "ii[oe]",
+          "[aeéuo]y[aâeéèoui]",
+          "coe[^u]",
+          "zoo",
+          "coop",
+          "coord",
+          "poly[ae]",
+          "[bcd]ry[oa]",
+          "[bcdfgptv][rl](ou|u|i)[aéèouâ]",
+          "ouez",
+          "[blmnt]uio",
+          "uoia",
+          "ment$",
+          "yua",
+          "[bcdfgptv][rl](i|u|eu)e([ltz]|r[s]?$|n[^t])",
+          "[^aeiuyàâéèêëîïûüùôæœqg]uie[rz]$"
+        ],
+        "countModifier": 1
+      }
+    ],
+    "words": {
+      "full": [
+        {
+          "word": "ok",
+          "syllables": 2
+        },
+        {
+          "word": "eyeliner",
+          "syllables": 3
+        },
+        {
+          "word": "coati",
+          "syllables": 3
+        },
+        {
+          "word": "que",
+          "syllables": 1
+        },
+        {
+          "word": "flouer",
+          "syllables": 2
+        },
+        {
+          "word": "relouer",
+          "syllables": 3
+        },
+        {
+          "word": "évaluons",
+          "syllables": 4
+        },
+        {
+          "word": "instituons",
+          "syllables": 4
+        },
+        {
+          "word": "atténuons",
+          "syllables": 4
+        },
+        {
+          "word": "remuons",
+          "syllables": 3
+        },
+        {
+          "word": "redestribuons",
+          "syllables": 5
+        },
+        {
+          "word": "suons",
+          "syllables": 2
+        },
+        {
+          "word": "reconstituons",
+          "syllables": 5
+        },
+        {
+          "word": "dent",
+          "syllables": 1
+        },
+        {
+          "word": "fréquent",
+          "syllables": 2
+        },
+        {
+          "word": "permanent",
+          "syllables": 3
+        },
+        {
+          "word": "mécontent",
+          "syllables": 3
+        },
+        {
+          "word": "grandiloquent",
+          "syllables": 4
+        },
+        {
+          "word": "continent",
+          "syllables": 3
+        },
+        {
+          "word": "occident",
+          "syllables": 3
+        },
+        {
+          "word": "référent",
+          "syllables": 3
+        },
+        {
+          "word": "indigent",
+          "syllables": 3
+        },
+        {
+          "word": "concurrent",
+          "syllables": 3
+        },
+        {
+          "word": "gent",
+          "syllables": 1
+        },
+        {
+          "word": "différent",
+          "syllables": 3
+        },
+        {
+          "word": "strident",
+          "syllables": 2
+        },
+        {
+          "word": "équivalent",
+          "syllables": 4
+        },
+        {
+          "word": "ardent",
+          "syllables": 2
+        },
+        {
+          "word": "impotent",
+          "syllables": 3
+        },
+        {
+          "word": "argent",
+          "syllables": 2
+        },
+        {
+          "word": "immanent",
+          "syllables": 3
+        },
+        {
+          "word": "indécent",
+          "syllables": 3
+        },
+        {
+          "word": "effluent",
+          "syllables": 3
+        },
+        {
+          "word": "agent",
+          "syllables": 2
+        },
+        {
+          "word": "dolent",
+          "syllables": 2
+        },
+        {
+          "word": "contingent",
+          "syllables": 3
+        },
+        {
+          "word": "impénitent",
+          "syllables": 4
+        },
+        {
+          "word": "adjacent",
+          "syllables": 3
+        },
+        {
+          "word": "incident",
+          "syllables": 3
+        },
+        {
+          "word": "content",
+          "syllables": 2
+        },
+        {
+          "word": "incontinent",
+          "syllables": 4
+        },
+        {
+          "word": "éloquent",
+          "syllables": 3
+        },
+        {
+          "word": "convent",
+          "syllables": 2
+        },
+        {
+          "word": "dissident",
+          "syllables": 3
+        },
+        {
+          "word": "innocent",
+          "syllables": 3
+        },
+        {
+          "word": "ventripotent",
+          "syllables": 4
+        },
+        {
+          "word": "convalescent",
+          "syllables": 4
+        },
+        {
+          "word": "accident",
+          "syllables": 3
+        },
+        {
+          "word": "récent",
+          "syllables": 2
+        },
+        {
+          "word": "absent",
+          "syllables": 2
+        },
+        {
+          "word": "décadent",
+          "syllables": 3
+        },
+        {
+          "word": "réticent",
+          "syllables": 3
+        },
+        {
+          "word": "évent",
+          "syllables": 2
+        },
+        {
+          "word": "souvent",
+          "syllables": 2
+        },
+        {
+          "word": "intelligent",
+          "syllables": 3
+        },
+        {
+          "word": "inhérent",
+          "syllables": 3
+        },
+        {
+          "word": "adolescent",
+          "syllables": 4
+        },
+        {
+          "word": "couvent",
+          "syllables": 2
+        },
+        {
+          "word": "cent",
+          "syllables": 1
+        },
+        {
+          "word": "urgent",
+          "syllables": 2
+        },
+        {
+          "word": "précédent",
+          "syllables": 3
+        },
+        {
+          "word": "imprudent",
+          "syllables": 3
+        },
+        {
+          "word": "torrent",
+          "syllables": 2
+        },
+        {
+          "word": "abstinent",
+          "syllables": 3
+        },
+        {
+          "word": "indifférent",
+          "syllables": 4
+        },
+        {
+          "word": "excédent",
+          "syllables": 3
+        },
+        {
+          "word": "déférent",
+          "syllables": 3
+        },
+        {
+          "word": "incandescent",
+          "syllables": 4
+        },
+        {
+          "word": "intermittent",
+          "syllables": 4
+        },
+        {
+          "word": "présent",
+          "syllables": 3
+        },
+        {
+          "word": "astringent",
+          "syllables": 3
+        },
+        {
+          "word": "trident",
+          "syllables": 2
+        },
+        {
+          "word": "impertinent",
+          "syllables": 4
+        },
+        {
+          "word": "détergent",
+          "syllables": 3
+        },
+        {
+          "word": "évident",
+          "syllables": 3
+        },
+        {
+          "word": "influent",
+          "syllables": 3
+        },
+        {
+          "word": "pertinent",
+          "syllables": 3
+        },
+        {
+          "word": "subséquent",
+          "syllables": 3
+        },
+        {
+          "word": "féculent",
+          "syllables": 3
+        },
+        {
+          "word": "déférent",
+          "syllables": 3
+        },
+        {
+          "word": "ambivalent",
+          "syllables": 4
+        },
+        {
+          "word": "omnipotent",
+          "syllables": 4
+        },
+        {
+          "word": "décent",
+          "syllables": 2
+        },
+        {
+          "word": "compétent",
+          "syllables": 3
+        },
+        {
+          "word": "adhérent",
+          "syllables": 3
+        },
+        {
+          "word": "afférent",
+          "syllables": 3
+        },
+        {
+          "word": "luminescent",
+          "syllables": 4
+        },
+        {
+          "word": "lent",
+          "syllables": 1
+        },
+        {
+          "word": "apparent",
+          "syllables": 3
+        },
+        {
+          "word": "effervescent",
+          "syllables": 4
+        },
+        {
+          "word": "parent",
+          "syllables": 2
+        },
+        {
+          "word": "pénitent",
+          "syllables": 3
+        },
+        {
+          "word": "fluorescent",
+          "syllables": 3
+        },
+        {
+          "word": "impudent",
+          "syllables": 3
+        },
+        {
+          "word": "diligent",
+          "syllables": 3
+        },
+        {
+          "word": "entregent",
+          "syllables": 3
+        },
+        {
+          "word": "flatulent",
+          "syllables": 3
+        },
+        {
+          "word": "serpent",
+          "syllables": 2
+        },
+        {
+          "word": "violent",
+          "syllables": 2
+        },
+        {
+          "word": "somnolent",
+          "syllables": 3
+        },
+        {
+          "word": "déliquescent",
+          "syllables": 4
+        },
+        {
+          "word": "proéminent",
+          "syllables": 4
+        },
+        {
+          "word": "résident",
+          "syllables": 3
+        },
+        {
+          "word": "putrescent",
+          "syllables": 3
+        },
+        {
+          "word": "talent",
+          "syllables": 2
+        },
+        {
+          "word": "spumescent",
+          "syllables": 3
+        },
+        {
+          "word": "tangent",
+          "syllables": 2
+        },
+        {
+          "word": "chiendent",
+          "syllables": 2
+        },
+        {
+          "word": "négligent",
+          "syllables": 3
+        },
+        {
+          "word": "antécédent",
+          "syllables": 4
+        },
+        {
+          "word": "régent",
+          "syllables": 2
+        },
+        {
+          "word": "polyvalent",
+          "syllables": 4
+        },
+        {
+          "word": "latent",
+          "syllables": 2
+        },
+        {
+          "word": "opulent",
+          "syllables": 3
+        },
+        {
+          "word": "arpent",
+          "syllables": 2
+        },
+        {
+          "word": "adent",
+          "syllables": 2
+        },
+        {
+          "word": "concupiscent",
+          "syllables": 4
+        },
+        {
+          "word": "sanguinolent",
+          "syllables": 4
+        },
+        {
+          "word": "opalescent",
+          "syllables": 4
+        },
+        {
+          "word": "prudent",
+          "syllables": 2
+        },
+        {
+          "word": "conséquent",
+          "syllables": 3
+        },
+        {
+          "word": "pourcent",
+          "syllables": 2
+        },
+        {
+          "word": "transparent",
+          "syllables": 3
+        },
+        {
+          "word": "sergent",
+          "syllables": 2
+        },
+        {
+          "word": "diligent",
+          "syllables": 3
+        },
+        {
+          "word": "inconséquent",
+          "syllables": 4
+        },
+        {
+          "word": "turbulent",
+          "syllables": 3
+        },
+        {
+          "word": "fervent",
+          "syllables": 2
+        },
+        {
+          "word": "truculent",
+          "syllables": 3
+        },
+        {
+          "word": "interférent",
+          "syllables": 4
+        },
+        {
+          "word": "confluent",
+          "syllables": 3
+        },
+        {
+          "word": "succulent",
+          "syllables": 3
+        },
+        {
+          "word": "purulent",
+          "syllables": 3
+        },
+        {
+          "word": "patent",
+          "syllables": 2
+        },
+        {
+          "word": "indulgent",
+          "syllables": 3
+        },
+        {
+          "word": "engoulevent",
+          "syllables": 4
+        },
+        {
+          "word": "auvent",
+          "syllables": 2
+        },
+        {
+          "word": "président",
+          "syllables": 3
+        },
+        {
+          "word": "confident",
+          "syllables": 3
+        },
+        {
+          "word": "incompétent",
+          "syllables": 4
+        },
+        {
+          "word": "accent",
+          "syllables": 2
+        },
+        {
+          "word": "arborescent",
+          "syllables": 4
+        },
+        {
+          "word": "contrevent",
+          "syllables": 3
+        },
+        {
+          "word": "cohérent",
+          "syllables": 3
+        },
+        {
+          "word": "relent",
+          "syllables": 2
+        },
+        {
+          "word": "insolent",
+          "syllables": 3
+        },
+        {
+          "word": "virulent",
+          "syllables": 3
+        },
+        {
+          "word": "rémanent",
+          "syllables": 3
+        },
+        {
+          "word": "vent",
+          "syllables": 1
+        },
+        {
+          "word": "turgescent",
+          "syllables": 3
+        },
+        {
+          "word": "incohérent",
+          "syllables": 4
+        },
+        {
+          "word": "malcontent",
+          "syllables": 3
+        },
+        {
+          "word": "lactescent",
+          "syllables": 3
+        },
+        {
+          "word": "inintelligent",
+          "syllables": 5
+        },
+        {
+          "word": "omniprésent",
+          "syllables": 4
+        },
+        {
+          "word": "récurrent",
+          "syllables": 3
+        },
+        {
+          "word": "covalent",
+          "syllables": 3
+        },
+        {
+          "word": "éminent",
+          "syllables": 3
+        },
+        {
+          "word": "onguent",
+          "syllables": 2
+        },
+        {
+          "word": "indolent",
+          "syllables": 3
+        },
+        {
+          "word": "event",
+          "syllables": 2
+        },
+        {
+          "word": "corpulent",
+          "syllables": 3
+        },
+        {
+          "word": "divergent",
+          "syllables": 3
+        },
+        {
+          "word": "excellent",
+          "syllables": 3
+        },
+        {
+          "word": "phosphorescent",
+          "syllables": 4
+        },
+        {
+          "word": "évanescent",
+          "syllables": 4
+        },
+        {
+          "word": "paravent",
+          "syllables": 3
+        },
+        {
+          "word": "avent",
+          "syllables": 2
+        },
+        {
+          "word": "iridescent",
+          "syllables": 4
+        },
+        {
+          "word": "prénomment",
+          "syllables": 2
+        },
+        {
+          "word": "consument",
+          "syllables": 2
+        },
+        {
+          "word": "dégomment",
+          "syllables": 2
+        },
+        {
+          "word": "enveniment",
+          "syllables": 3
+        },
+        {
+          "word": "proclament",
+          "syllables": 2
+        },
+        {
+          "word": "chôment",
+          "syllables": 1
+        },
+        {
+          "word": "infirment",
+          "syllables": 2
+        },
+        {
+          "word": "briment",
+          "syllables": 1
+        },
+        {
+          "word": "fument",
+          "syllables": 1
+        },
+        {
+          "word": "acclament",
+          "syllables": 2
+        },
+        {
+          "word": "referment",
+          "syllables": 2
+        },
+        {
+          "word": "impriment",
+          "syllables": 2
+        },
+        {
+          "word": "paument",
+          "syllables": 1
+        },
+        {
+          "word": "déciment",
+          "syllables": 2
+        },
+        {
+          "word": "accoutument",
+          "syllables": 3
+        },
+        {
+          "word": "essaiment",
+          "syllables": 2
+        },
+        {
+          "word": "ferment",
+          "syllables": 1
+        },
+        {
+          "word": "dépriment",
+          "syllables": 2
+        },
+        {
+          "word": "raniment",
+          "syllables": 2
+        },
+        {
+          "word": "programment",
+          "syllables": 2
+        },
+        {
+          "word": "fantasment",
+          "syllables": 2
+        },
+        {
+          "word": "animent",
+          "syllables": 2
+        },
+        {
+          "word": "affirment",
+          "syllables": 2
+        },
+        {
+          "word": "filment",
+          "syllables": 1
+        },
+        {
+          "word": "dament",
+          "syllables": 1
+        },
+        {
+          "word": "parsèment",
+          "syllables": 3
+        },
+        {
+          "word": "priment",
+          "syllables": 1
+        },
+        {
+          "word": "assomment",
+          "syllables": 2
+        },
+        {
+          "word": "rament",
+          "syllables": 1
+        },
+        {
+          "word": "pâment",
+          "syllables": 1
+        },
+        {
+          "word": "conforment",
+          "syllables": 2
+        },
+        {
+          "word": "embaument",
+          "syllables": 2
+        },
+        {
+          "word": "calment",
+          "syllables": 1
+        },
+        {
+          "word": "blasphèment",
+          "syllables": 2
+        },
+        {
+          "word": "désarment",
+          "syllables": 2
+        },
+        {
+          "word": "consomment",
+          "syllables": 2
+        },
+        {
+          "word": "griment",
+          "syllables": 1
+        },
+        {
+          "word": "abîment",
+          "syllables": 2
+        },
+        {
+          "word": "blâment",
+          "syllables": 1
+        },
+        {
+          "word": "endorment",
+          "syllables": 2
+        },
+        {
+          "word": "allument",
+          "syllables": 2
+        },
+        {
+          "word": "blâment",
+          "syllables": 1
+        },
+        {
+          "word": "confirment",
+          "syllables": 2
+        },
+        {
+          "word": "escriment",
+          "syllables": 2
+        },
+        {
+          "word": "trament",
+          "syllables": 1
+        },
+        {
+          "word": "hument",
+          "syllables": 1
+        },
+        {
+          "word": "surnomment",
+          "syllables": 2
+        },
+        {
+          "word": "écument",
+          "syllables": 2
+        },
+        {
+          "word": "triment",
+          "syllables": 1
+        },
+        {
+          "word": "estiment",
+          "syllables": 2
+        },
+        {
+          "word": "rallument",
+          "syllables": 2
+        },
+        {
+          "word": "enflamment",
+          "syllables": 2
+        },
+        {
+          "word": "riment",
+          "syllables": 1
+        },
+        {
+          "word": "plument",
+          "syllables": 1
+        },
+        {
+          "word": "suppriment",
+          "syllables": 2
+        },
+        {
+          "word": "gomment",
+          "syllables": 1
+        },
+        {
+          "word": "affament",
+          "syllables": 2
+        },
+        {
+          "word": "friment",
+          "syllables": 1
+        },
+        {
+          "word": "clament",
+          "syllables": 1
+        },
+        {
+          "word": "dorment",
+          "syllables": 1
+        },
+        {
+          "word": "dénomment",
+          "syllables": 2
+        },
+        {
+          "word": "entament",
+          "syllables": 2
+        },
+        {
+          "word": "arriment",
+          "syllables": 2
+        },
+        {
+          "word": "résument",
+          "syllables": 2
+        },
+        {
+          "word": "enrhument",
+          "syllables": 2
+        },
+        {
+          "word": "rendorment",
+          "syllables": 2
+        },
+        {
+          "word": "compriment",
+          "syllables": 2
+        },
+        {
+          "word": "aiment",
+          "syllables": 1
+        },
+        {
+          "word": "rythment",
+          "syllables": 1
+        },
+        {
+          "word": "périment",
+          "syllables": 2
+        },
+        {
+          "word": "réclament",
+          "syllables": 2
+        },
+        {
+          "word": "subliment",
+          "syllables": 2
+        },
+        {
+          "word": "brument",
+          "syllables": 1
+        },
+        {
+          "word": "embrument",
+          "syllables": 2
+        },
+        {
+          "word": "germent",
+          "syllables": 1
+        },
+        {
+          "word": "renferment",
+          "syllables": 2
+        },
+        {
+          "word": "sèment",
+          "syllables": 1
+        },
+        {
+          "word": "reforment",
+          "syllables": 2
+        },
+        {
+          "word": "liment",
+          "syllables": 1
+        },
+        {
+          "word": "cament",
+          "syllables": 1
+        },
+        {
+          "word": "parfument",
+          "syllables": 2
+        },
+        {
+          "word": "arment",
+          "syllables": 1
+        },
+        {
+          "word": "brament",
+          "syllables": 1
+        },
+        {
+          "word": "déforment",
+          "syllables": 2
+        },
+        {
+          "word": "assument",
+          "syllables": 2
+        },
+        {
+          "word": "crament",
+          "syllables": 1
+        },
+        {
+          "word": "exclament",
+          "syllables": 2
+        },
+        {
+          "word": "forment",
+          "syllables": 1
+        },
+        {
+          "word": "diffament",
+          "syllables": 2
+        },
+        {
+          "word": "somment",
+          "syllables": 1
+        },
+        {
+          "word": "oppriment",
+          "syllables": 2
+        },
+        {
+          "word": "miment",
+          "syllables": 1
+        },
+        {
+          "word": "enferment",
+          "syllables": 2
+        },
+        {
+          "word": "nomment",
+          "syllables": 1
+        },
+        {
+          "word": "reprogramment",
+          "syllables": 3
+        },
+        {
+          "word": "transforment",
+          "syllables": 2
+        },
+        {
+          "word": "expriment",
+          "syllables": 2
+        },
+        {
+          "word": "informent",
+          "syllables": 2
+        },
+        {
+          "word": "légitiment",
+          "syllables": 3
+        },
+        {
+          "word": "de",
+          "syllables": 1
+        },
+        {
+          "word": "le",
+          "syllables": 1
+        },
+        {
+          "word": "je",
+          "syllables": 1
+        },
+        {
+          "word": "te",
+          "syllables": 1
+        },
+        {
+          "word": "ce",
+          "syllables": 1
+        },
+        {
+          "word": "ne",
+          "syllables": 1
+        },
+        {
+          "word": "re",
+          "syllables": 1
+        },
+        {
+          "word": "me",
+          "syllables": 1
+        },
+        {
+          "word": "se",
+          "syllables": 1
+        },
+        {
+          "word": "ses",
+          "syllables": 1
+        },
+        {
+          "word": "mes",
+          "syllables": 1
+        },
+        {
+          "word": "mes",
+          "syllables": 1
+        },
+        {
+          "word": "ces",
+          "syllables": 1
+        },
+        {
+          "word": "des",
+          "syllables": 1
+        },
+        {
+          "word": "tes",
+          "syllables": 1
+        },
+        {
+          "word": "les",
+          "syllables": 1
+        },
+        {
+          "word": "oye",
+          "syllables": 1
+        },
+        {
+          "word": "es",
+          "syllables": 1
+        },
+        {
+          "word": "remerciâmes",
+          "syllables": 4
+        },
+        {
+          "word": "herniaires",
+          "syllables": 3
+        },
+        {
+          "word": "autopsiais",
+          "syllables": 4
+        },
+        {
+          "word": "août",
+          "syllables": 1
+        }
+      ],
+      "fragments": {
+        "global": [
+          {
+            "word": "business",
+            "syllables": 2
+          },
+          {
+            "word": "skate",
+            "syllables": 1
+          },
+          {
+            "word": "board",
+            "syllables": 1
+          },
+          {
+            "word": "coach",
+            "syllables": 1
+          },
+          {
+            "word": "roadster",
+            "syllables": 2
+          },
+          {
+            "word": "soap",
+            "syllables": 1
+          },
+          {
+            "word": "goal",
+            "syllables": 1
+          },
+          {
+            "word": "coaltar",
+            "syllables": 2
+          },
+          {
+            "word": "loader",
+            "syllables": 2
+          },
+          {
+            "word": "coat",
+            "syllables": 1
+          },
+          {
+            "word": "baseball",
+            "syllables": 2
+          },
+          {
+            "word": "foëne",
+            "syllables": 1
+          },
+          {
+            "word": "cacaoyer",
+            "syllables": 4
+          },
+          {
+            "word": "scoop",
+            "syllables": 1
+          },
+          {
+            "word": "zoom",
+            "syllables": 1
+          },
+          {
+            "word": "bazooka",
+            "syllables": 3
+          },
+          {
+            "word": "tatoueu",
+            "syllables": 3
+          },
+          {
+            "word": "cloueu",
+            "syllables": 2
+          },
+          {
+            "word": "déchouer",
+            "syllables": 2
+          },
+          {
+            "word": "écrouelles",
+            "syllables": 3
+          },
+          {
+            "word": "maestria",
+            "syllables": 3
+          },
+          {
+            "word": "maestro",
+            "syllables": 3
+          },
+          {
+            "word": "vitae",
+            "syllables": 3
+          },
+          {
+            "word": "paella",
+            "syllables": 3
+          },
+          {
+            "word": "vae",
+            "syllables": 2
+          },
+          {
+            "word": "thaï",
+            "syllables": 1
+          },
+          {
+            "word": "skaï",
+            "syllables": 1
+          },
+          {
+            "word": "masaï",
+            "syllables": 2
+          },
+          {
+            "word": "samouraï",
+            "syllables": 3
+          },
+          {
+            "word": "bonsaï",
+            "syllables": 2
+          },
+          {
+            "word": "bonzaï",
+            "syllables": 2
+          },
+          {
+            "word": "aïkido",
+            "syllables": 3
+          },
+          {
+            "word": "daïquiri",
+            "syllables": 3
+          },
+          {
+            "word": "pagaïe",
+            "syllables": 2
+          },
+          {
+            "word": "chiite",
+            "syllables": 2
+          },
+          {
+            "word": "pays",
+            "syllables": 2
+          },
+          {
+            "word": "antiaérien",
+            "syllables": 5
+          },
+          {
+            "word": "bleui",
+            "syllables": 2
+          },
+          {
+            "word": "remerciai",
+            "syllables": 4
+          },
+          {
+            "word": "monstrueu",
+            "syllables": 3
+          },
+          {
+            "word": "niakoué",
+            "syllables": 3
+          },
+          {
+            "word": "minoen",
+            "syllables": 3
+          },
+          {
+            "word": "groenlandais",
+            "syllables": 4
+          },
+          {
+            "word": "remerciant",
+            "syllables": 4
+          },
+          {
+            "word": "skiant",
+            "syllables": 2
+          },
+          {
+            "word": "ruade",
+            "syllables": 2
+          },
+          {
+            "word": "weltanschauung",
+            "syllables": 4
+          }
+        ],
+        "atBeginning": [
+          {
+            "word": "roast",
+            "syllables": 1
+          },
+          {
+            "word": "taï",
+            "syllables": 1
+          }
+        ],
+        "atEnd": [
+          {
+            "word": "écrouer",
+            "syllables": 3
+          },
+          {
+            "word": "clouer",
+            "syllables": 2
+          }
+        ]
+      }
+    }
+  }
+}
+},{}],97:[function(require,module,exports){
 module.exports={
 	"vowels": "aeiouyàèéìîïòù",
 	"deviations": {
@@ -13435,7 +15982,7 @@ module.exports={
 	}
 }
 
-},{}],94:[function(require,module,exports){
+},{}],98:[function(require,module,exports){
 module.exports={
 	"vowels": "aáäâeéëêiíïîoóöôuúüûy",
 	"deviations": {
@@ -13780,7 +16327,28 @@ module.exports={
 	}
 }
 
-},{}],95:[function(require,module,exports){
+},{}],99:[function(require,module,exports){
+module.exports={
+  "vowels": "аоиеёэыуюя",
+  "deviations": {
+    "vowels": [
+      {
+        "fragments": [ "[аоиеёэыуюя][аоиеёэыуюя]" ],
+        "countModifier": 1
+      },
+      {
+        "fragments": [ "[аоиеёэыуюя][аоиеёэыуюя][аоиеёэыуюя]" ],
+        "countModifier": 1
+      }
+    ],
+    "words": {
+      "full": [],
+      "fragments": []
+    }
+  }
+}
+
+},{}],100:[function(require,module,exports){
 "use strict";
 
 var getLanguage = require("../helpers/getLanguage.js");
@@ -14199,7 +16767,7 @@ module.exports = function (locale) {
 };
 
 
-},{"../helpers/getLanguage.js":106,"lodash/isUndefined":521}],96:[function(require,module,exports){
+},{"../helpers/getLanguage.js":113,"lodash/isUndefined":547}],101:[function(require,module,exports){
 "use strict";
 
 module.exports = function () {
@@ -14211,11 +16779,11 @@ module.exports = function () {
 };
 
 
-},{}],97:[function(require,module,exports){
+},{}],102:[function(require,module,exports){
 "use strict";
 
 var Assessor = require("./assessor.js");
-var fleschReadingEase = require("./assessments/readability/fleschReadingEaseAssessment.js");
+var FleschReadingEase = require("./assessments/readability/fleschReadingEaseAssessment.js");
 var paragraphTooLong = require("./assessments/readability/paragraphTooLongAssessment.js");
 var SentenceLengthInText = require("./assessments/readability/sentenceLengthInTextAssessment.js");
 var SubheadingDistributionTooLong = require("./assessments/readability/subheadingDistributionTooLongAssessment.js");
@@ -14248,7 +16816,7 @@ var ContentAssessor = function ContentAssessor(i18n) {
 
     Assessor.call(this, i18n, options);
     var locale = options.hasOwnProperty("locale") ? options.locale : "en_US";
-    this._assessments = [fleschReadingEase, new SubheadingDistributionTooLong(), paragraphTooLong, new SentenceLengthInText(contentConfiguration(locale).sentenceLength), transitionWords, passiveVoice, textPresence, sentenceBeginnings];
+    this._assessments = [new FleschReadingEase(contentConfiguration(locale).fleschReading), new SubheadingDistributionTooLong(), paragraphTooLong, new SentenceLengthInText(contentConfiguration(locale).sentenceLength), transitionWords, passiveVoice, textPresence, sentenceBeginnings];
 };
 require("util").inherits(ContentAssessor, Assessor);
 /**
@@ -14365,12 +16933,12 @@ ContentAssessor.prototype.calculateOverallScore = function () {
 module.exports = ContentAssessor;
 
 
-},{"./assessments/readability/fleschReadingEaseAssessment.js":55,"./assessments/readability/paragraphTooLongAssessment.js":56,"./assessments/readability/passiveVoiceAssessment.js":57,"./assessments/readability/sentenceBeginningsAssessment.js":58,"./assessments/readability/sentenceLengthInTextAssessment.js":59,"./assessments/readability/subheadingDistributionTooLongAssessment.js":60,"./assessments/readability/textPresenceAssessment.js":61,"./assessments/readability/transitionWordsAssessment.js":62,"./assessor.js":80,"./config/content/combinedConfig.js":83,"./interpreters/scoreToRating":115,"lodash/map":524,"lodash/sum":539,"util":50}],98:[function(require,module,exports){
+},{"./assessments/readability/fleschReadingEaseAssessment.js":55,"./assessments/readability/paragraphTooLongAssessment.js":56,"./assessments/readability/passiveVoiceAssessment.js":57,"./assessments/readability/sentenceBeginningsAssessment.js":58,"./assessments/readability/sentenceLengthInTextAssessment.js":59,"./assessments/readability/subheadingDistributionTooLongAssessment.js":60,"./assessments/readability/textPresenceAssessment.js":61,"./assessments/readability/transitionWordsAssessment.js":62,"./assessor.js":81,"./config/content/combinedConfig.js":84,"./interpreters/scoreToRating":122,"lodash/map":550,"lodash/sum":565,"util":50}],103:[function(require,module,exports){
 "use strict";
 
 var Assessor = require("../assessor.js");
 var ContentAssessor = require("../contentAssessor");
-var fleschReadingEase = require("../assessments/readability/fleschReadingEaseAssessment.js");
+var FleschReadingEase = require("../assessments/readability/fleschReadingEaseAssessment.js");
 var paragraphTooLong = require("../assessments/readability/paragraphTooLongAssessment.js");
 var SentenceLengthInText = require("../assessments/readability/sentenceLengthInTextAssessment.js");
 var SubheadingDistributionTooLong = require("../assessments/readability/subheadingDistributionTooLongAssessment.js");
@@ -14400,7 +16968,7 @@ var CornerStoneContentAssessor = function CornerStoneContentAssessor(i18n) {
 
     Assessor.call(this, i18n, options);
     var locale = options.hasOwnProperty("locale") ? options.locale : "en_US";
-    this._assessments = [fleschReadingEase, new SubheadingDistributionTooLong({
+    this._assessments = [new FleschReadingEase(contentConfiguration(locale).fleschReading), new SubheadingDistributionTooLong({
         slightlyTooMany: 250,
         farTooMany: 300,
         recommendedMaximumWordCount: 250
@@ -14414,28 +16982,30 @@ require("util").inherits(CornerStoneContentAssessor, ContentAssessor);
 module.exports = CornerStoneContentAssessor;
 
 
-},{"../assessments/readability/fleschReadingEaseAssessment.js":55,"../assessments/readability/paragraphTooLongAssessment.js":56,"../assessments/readability/passiveVoiceAssessment.js":57,"../assessments/readability/sentenceBeginningsAssessment.js":58,"../assessments/readability/sentenceLengthInTextAssessment.js":59,"../assessments/readability/subheadingDistributionTooLongAssessment.js":60,"../assessments/readability/textPresenceAssessment.js":61,"../assessments/readability/transitionWordsAssessment.js":62,"../assessor.js":80,"../contentAssessor":97,"./../config/content/combinedConfig.js":83,"util":50}],99:[function(require,module,exports){
+},{"../assessments/readability/fleschReadingEaseAssessment.js":55,"../assessments/readability/paragraphTooLongAssessment.js":56,"../assessments/readability/passiveVoiceAssessment.js":57,"../assessments/readability/sentenceBeginningsAssessment.js":58,"../assessments/readability/sentenceLengthInTextAssessment.js":59,"../assessments/readability/subheadingDistributionTooLongAssessment.js":60,"../assessments/readability/textPresenceAssessment.js":61,"../assessments/readability/transitionWordsAssessment.js":62,"../assessor.js":81,"../contentAssessor":102,"./../config/content/combinedConfig.js":84,"util":50}],104:[function(require,module,exports){
 "use strict";
 
-var Assessor = require("../assessor.js");
+Object.defineProperty(exports, "__esModule", { value: true });
+var util_1 = require("util");
+var Assessor = require("../assessor");
 var SEOAssessor = require("../seoAssessor");
-var introductionKeyword = require("../assessments/seo/introductionKeywordAssessment.js");
-var keyphraseLength = require("../assessments/seo/keyphraseLengthAssessment.js");
-var keywordDensity = require("../assessments/seo/keywordDensityAssessment.js");
-var keywordStopWords = require("../assessments/seo/keywordStopWordsAssessment.js");
-var metaDescriptionKeyword = require("../assessments/seo/metaDescriptionKeywordAssessment.js");
-var MetaDescriptionLength = require("../assessments/seo/metaDescriptionLengthAssessment.js");
-var SubheadingsKeyword = require("../assessments/seo/subheadingsKeywordAssessment.js");
-var textCompetingLinks = require("../assessments/seo/textCompetingLinksAssessment.js");
-var TextImages = require("../assessments/seo/textImagesAssessment.js");
-var TextLength = require("../assessments/seo/textLengthAssessment.js");
-var OutboundLinks = require("../assessments/seo/outboundLinksAssessment.js");
-var internalLinks = require("../assessments/seo/internalLinksAssessment");
-var titleKeyword = require("../assessments/seo/titleKeywordAssessment.js");
-var TitleWidth = require("../assessments/seo/pageTitleWidthAssessment.js");
-var UrlKeyword = require("../assessments/seo/urlKeywordAssessment.js");
-var UrlLength = require("../assessments/seo/urlLengthAssessment.js");
-var urlStopWords = require("../assessments/seo/urlStopWordsAssessment.js");
+var introductionKeyword = require("../assessments/seo/introductionKeywordAssessment");
+var KeyphraseLengthAssessment_1 = require("../assessments/seo/KeyphraseLengthAssessment");
+var KeywordDensityAssessment_1 = require("../assessments/seo/KeywordDensityAssessment");
+var keywordStopWords = require("../assessments/seo/keywordStopWordsAssessment");
+var metaDescriptionKeyword = require("../assessments/seo/metaDescriptionKeywordAssessment");
+var MetaDescriptionLength = require("../assessments/seo/metaDescriptionLengthAssessment");
+var SubheadingsKeyword = require("../assessments/seo/subheadingsKeywordAssessment");
+var textCompetingLinks = require("../assessments/seo/textCompetingLinksAssessment");
+var TextImages = require("../assessments/seo/textImagesAssessment");
+var TextLength = require("../assessments/seo/textLengthAssessment");
+var OutboundLinks = require("../assessments/seo/outboundLinksAssessment");
+var InternalLinksAssessment_1 = require("../assessments/seo/InternalLinksAssessment");
+var titleKeyword = require("../assessments/seo/titleKeywordAssessment");
+var TitleWidth = require("../assessments/seo/pageTitleWidthAssessment");
+var UrlKeywordAssessment_1 = require("../assessments/seo/UrlKeywordAssessment");
+var UrlLength = require("../assessments/seo/urlLengthAssessment");
+var urlStopWords = require("../assessments/seo/urlStopWordsAssessment");
 /**
  * Creates the Assessor
  *
@@ -14447,7 +17017,7 @@ var urlStopWords = require("../assessments/seo/urlStopWordsAssessment.js");
  */
 var CornerstoneSEOAssessor = function CornerstoneSEOAssessor(i18n, options) {
     Assessor.call(this, i18n, options);
-    this._assessments = [introductionKeyword, keyphraseLength, keywordDensity, keywordStopWords, metaDescriptionKeyword, new MetaDescriptionLength({
+    this._assessments = [introductionKeyword, new KeyphraseLengthAssessment_1.default(), new KeywordDensityAssessment_1.default(), keywordStopWords, metaDescriptionKeyword, new MetaDescriptionLength({
         scores: {
             tooLong: 3,
             tooShort: 3
@@ -14478,12 +17048,12 @@ var CornerstoneSEOAssessor = function CornerstoneSEOAssessor(i18n, options) {
         scores: {
             noLinks: 3
         }
-    }), internalLinks, titleKeyword, new TitleWidth({
+    }), new InternalLinksAssessment_1.default(), titleKeyword, new TitleWidth({
         scores: {
             widthTooShort: 3,
             widthTooLong: 3
         }
-    }), new UrlKeyword({
+    }), new UrlKeywordAssessment_1.default({
         scores: {
             noKeywordInUrl: 3
         }
@@ -14493,11 +17063,11 @@ var CornerstoneSEOAssessor = function CornerstoneSEOAssessor(i18n, options) {
         }
     }), urlStopWords];
 };
-require("util").inherits(CornerstoneSEOAssessor, SEOAssessor);
+util_1.inherits(CornerstoneSEOAssessor, SEOAssessor);
 module.exports = CornerstoneSEOAssessor;
 
 
-},{"../assessments/seo/internalLinksAssessment":63,"../assessments/seo/introductionKeywordAssessment.js":64,"../assessments/seo/keyphraseLengthAssessment.js":65,"../assessments/seo/keywordDensityAssessment.js":66,"../assessments/seo/keywordStopWordsAssessment.js":67,"../assessments/seo/metaDescriptionKeywordAssessment.js":68,"../assessments/seo/metaDescriptionLengthAssessment.js":69,"../assessments/seo/outboundLinksAssessment.js":70,"../assessments/seo/pageTitleWidthAssessment.js":71,"../assessments/seo/subheadingsKeywordAssessment.js":72,"../assessments/seo/textCompetingLinksAssessment.js":73,"../assessments/seo/textImagesAssessment.js":74,"../assessments/seo/textLengthAssessment.js":75,"../assessments/seo/titleKeywordAssessment.js":76,"../assessments/seo/urlKeywordAssessment.js":77,"../assessments/seo/urlLengthAssessment.js":78,"../assessments/seo/urlStopWordsAssessment.js":79,"../assessor.js":80,"../seoAssessor":215,"util":50}],100:[function(require,module,exports){
+},{"../assessments/seo/InternalLinksAssessment":63,"../assessments/seo/KeyphraseLengthAssessment":64,"../assessments/seo/KeywordDensityAssessment":65,"../assessments/seo/UrlKeywordAssessment":67,"../assessments/seo/introductionKeywordAssessment":68,"../assessments/seo/keywordStopWordsAssessment":69,"../assessments/seo/metaDescriptionKeywordAssessment":70,"../assessments/seo/metaDescriptionLengthAssessment":71,"../assessments/seo/outboundLinksAssessment":72,"../assessments/seo/pageTitleWidthAssessment":73,"../assessments/seo/subheadingsKeywordAssessment":74,"../assessments/seo/textCompetingLinksAssessment":75,"../assessments/seo/textImagesAssessment":76,"../assessments/seo/textLengthAssessment":77,"../assessments/seo/titleKeywordAssessment":78,"../assessments/seo/urlLengthAssessment":79,"../assessments/seo/urlStopWordsAssessment":80,"../assessor":81,"../seoAssessor":237,"util":50}],105:[function(require,module,exports){
 "use strict";
 /**
  * Throws an invalid type error
@@ -14513,7 +17083,7 @@ module.exports = function InvalidTypeError(message) {
 require("util").inherits(module.exports, Error);
 
 
-},{"util":50}],101:[function(require,module,exports){
+},{"util":50}],106:[function(require,module,exports){
 "use strict";
 
 module.exports = function MissingArgumentError(message) {
@@ -14524,7 +17094,48 @@ module.exports = function MissingArgumentError(message) {
 require("util").inherits(module.exports, Error);
 
 
-},{"util":50}],102:[function(require,module,exports){
+},{"util":50}],107:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var elementId = "yoast-measurement-element";
+/**
+ * Creates an hidden element with the purpose to calculate the sizes of elements and adds these elements to the body.
+ *
+ * @returns {HTMLElement} The created hidden element.
+ */
+var createMeasurementElement = function createMeasurementElement() {
+    var hiddenElement = document.createElement("div");
+    hiddenElement.id = elementId;
+    // Styles to prevent unintended scrolling in Gutenberg.
+    hiddenElement.style.position = "absolute";
+    hiddenElement.style.left = "-9999em";
+    hiddenElement.style.top = 0;
+    hiddenElement.style.height = 0;
+    hiddenElement.style.overflow = "hidden";
+    hiddenElement.style.fontFamily = "Arial";
+    hiddenElement.style.fontSize = "16px";
+    hiddenElement.style.fontWeight = "400";
+    document.body.appendChild(hiddenElement);
+    return hiddenElement;
+};
+/**
+ * Measures the width of the text using a hidden element.
+ *
+ * @param {string} text The text to measure the width for.
+ * @returns {number} The width in pixels.
+ */
+exports.measureTextWidth = function (text) {
+    var element = document.getElementById(elementId);
+    if (!element) {
+        element = createMeasurementElement();
+    }
+    element.innerHTML = text;
+    return element.offsetWidth;
+};
+
+
+},{}],108:[function(require,module,exports){
 "use strict";
 
 var forEach = require("lodash/forEach");
@@ -14585,7 +17196,7 @@ module.exports = {
 };
 
 
-},{"lodash/forEach":493}],103:[function(require,module,exports){
+},{"lodash/forEach":521}],109:[function(require,module,exports){
 "use strict";
 
 var isUndefined = require("lodash/isUndefined");
@@ -14608,7 +17219,7 @@ module.exports = {
 };
 
 
-},{"lodash/isUndefined":521}],104:[function(require,module,exports){
+},{"lodash/isUndefined":547}],110:[function(require,module,exports){
 "use strict";
 /**
  * Returns rounded number to fix floating point bug http://floating-point-gui.de
@@ -14624,7 +17235,7 @@ module.exports = function (number) {
 };
 
 
-},{}],105:[function(require,module,exports){
+},{}],111:[function(require,module,exports){
 "use strict";
 
 var firstWordExceptionsEnglish = require("../researches/english/firstWordExceptions.js");
@@ -14633,6 +17244,7 @@ var firstWordExceptionsSpanish = require("../researches/spanish/firstWordExcepti
 var firstWordExceptionsFrench = require("../researches/french/firstWordExceptions.js");
 var firstWordExceptionsDutch = require("../researches/dutch/firstWordExceptions.js");
 var firstWordExceptionsItalian = require("../researches/italian/firstWordExceptions.js");
+var firstWordExceptionsRussian = require("../researches/russian/firstWordExceptions.js");
 var getLanguage = require("./getLanguage.js");
 module.exports = function (locale) {
     switch (getLanguage(locale)) {
@@ -14646,6 +17258,8 @@ module.exports = function (locale) {
             return firstWordExceptionsDutch;
         case "it":
             return firstWordExceptionsItalian;
+        case "ru":
+            return firstWordExceptionsRussian;
         default:
         case "en":
             return firstWordExceptionsEnglish;
@@ -14653,7 +17267,36 @@ module.exports = function (locale) {
 };
 
 
-},{"../researches/dutch/firstWordExceptions.js":125,"../researches/english/firstWordExceptions.js":129,"../researches/french/firstWordExceptions.js":142,"../researches/german/firstWordExceptions.js":152,"../researches/italian/firstWordExceptions.js":175,"../researches/spanish/firstWordExceptions.js":201,"./getLanguage.js":106}],106:[function(require,module,exports){
+},{"../researches/dutch/firstWordExceptions.js":135,"../researches/english/firstWordExceptions.js":139,"../researches/french/firstWordExceptions.js":152,"../researches/german/firstWordExceptions.js":162,"../researches/italian/firstWordExceptions.js":186,"../researches/russian/firstWordExceptions.js":216,"../researches/spanish/firstWordExceptions.js":222,"./getLanguage.js":113}],112:[function(require,module,exports){
+"use strict";
+/*
+ * The script collects all the lists of function words per language and returns this collection to a Researcher or a
+ * stringProcessing script
+ */
+
+var germanFunctionWords = require("../researches/german/functionWords.js")();
+var englishFunctionWords = require("../researches/english/functionWords.js")();
+var dutchFunctionWords = require("../researches/dutch/functionWords.js")();
+var spanishFunctionWords = require("../researches/spanish/functionWords.js")();
+var italianFunctionWords = require("../researches/italian/functionWords.js")();
+var frenchFunctionWords = require("../researches/french/functionWords.js")();
+var portugueseFunctionWords = require("../researches/portuguese/functionWords.js")();
+var russianFunctionWords = require("../researches/russian/functionWords.js")();
+module.exports = function () {
+    return {
+        en: englishFunctionWords,
+        de: germanFunctionWords,
+        nl: dutchFunctionWords,
+        fr: frenchFunctionWords,
+        es: spanishFunctionWords,
+        it: italianFunctionWords,
+        pt: portugueseFunctionWords,
+        ru: russianFunctionWords
+    };
+};
+
+
+},{"../researches/dutch/functionWords.js":136,"../researches/english/functionWords.js":140,"../researches/french/functionWords.js":153,"../researches/german/functionWords.js":163,"../researches/italian/functionWords.js":187,"../researches/portuguese/functionWords.js":211,"../researches/russian/functionWords.js":217,"../researches/spanish/functionWords.js":223}],113:[function(require,module,exports){
 "use strict";
 /**
  * The function getting the language part of the locale.
@@ -14667,7 +17310,7 @@ module.exports = function (locale) {
 };
 
 
-},{}],107:[function(require,module,exports){
+},{}],114:[function(require,module,exports){
 "use strict";
 
 var indexOf = require("lodash/indexOf");
@@ -14685,7 +17328,7 @@ module.exports = function (locale, languages) {
 };
 
 
-},{"./getLanguage.js":106,"lodash/indexOf":500}],108:[function(require,module,exports){
+},{"./getLanguage.js":113,"lodash/indexOf":528}],115:[function(require,module,exports){
 "use strict";
 
 var transitionWordsEnglish = require("../researches/english/transitionWords.js")().allWords;
@@ -14702,6 +17345,10 @@ var transitionWordsItalian = require("../researches/italian/transitionWords.js")
 var twoPartTransitionWordsItalian = require("../researches/italian/twoPartTransitionWords.js");
 var transitionWordsPortuguese = require("../researches/portuguese/transitionWords.js")().allWords;
 var twoPartTransitionWordsPortuguese = require("../researches/portuguese/twoPartTransitionWords.js");
+var transitionWordsRussian = require("../researches/russian/transitionWords.js")().allWords;
+var twoPartTransitionWordsRussian = require("../researches/russian/twoPartTransitionWords.js");
+var transitionWordsCatalan = require("../researches/catalan/transitionWords.js")().allWords;
+var twoPartTransitionWordsCatalan = require("../researches/catalan/twoPartTransitionWords.js");
 var getLanguage = require("./getLanguage.js");
 module.exports = function (locale) {
     switch (getLanguage(locale)) {
@@ -14735,6 +17382,16 @@ module.exports = function (locale) {
                 transitionWords: transitionWordsPortuguese,
                 twoPartTransitionWords: twoPartTransitionWordsPortuguese
             };
+        case "ru":
+            return {
+                transitionWords: transitionWordsRussian,
+                twoPartTransitionWords: twoPartTransitionWordsRussian
+            };
+        case "ca":
+            return {
+                transitionWords: transitionWordsCatalan,
+                twoPartTransitionWords: twoPartTransitionWordsCatalan
+            };
         default:
         case "en":
             return {
@@ -14745,7 +17402,7 @@ module.exports = function (locale) {
 };
 
 
-},{"../researches/dutch/transitionWords.js":127,"../researches/dutch/twoPartTransitionWords.js":128,"../researches/english/transitionWords.js":137,"../researches/english/twoPartTransitionWords.js":138,"../researches/french/transitionWords.js":150,"../researches/french/twoPartTransitionWords.js":151,"../researches/german/transitionWords.js":163,"../researches/german/twoPartTransitionWords.js":164,"../researches/italian/transitionWords.js":177,"../researches/italian/twoPartTransitionWords.js":178,"../researches/portuguese/transitionWords.js":195,"../researches/portuguese/twoPartTransitionWords.js":196,"../researches/spanish/transitionWords.js":208,"../researches/spanish/twoPartTransitionWords.js":209,"./getLanguage.js":106}],109:[function(require,module,exports){
+},{"../researches/catalan/transitionWords.js":130,"../researches/catalan/twoPartTransitionWords.js":131,"../researches/dutch/transitionWords.js":137,"../researches/dutch/twoPartTransitionWords.js":138,"../researches/english/transitionWords.js":147,"../researches/english/twoPartTransitionWords.js":148,"../researches/french/transitionWords.js":160,"../researches/french/twoPartTransitionWords.js":161,"../researches/german/transitionWords.js":173,"../researches/german/twoPartTransitionWords.js":174,"../researches/italian/transitionWords.js":193,"../researches/italian/twoPartTransitionWords.js":194,"../researches/portuguese/transitionWords.js":212,"../researches/portuguese/twoPartTransitionWords.js":213,"../researches/russian/transitionWords.js":219,"../researches/russian/twoPartTransitionWords.js":220,"../researches/spanish/transitionWords.js":229,"../researches/spanish/twoPartTransitionWords.js":230,"./getLanguage.js":113}],116:[function(require,module,exports){
 "use strict";
 
 var blockElements = ["address", "article", "aside", "blockquote", "canvas", "dd", "div", "dl", "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6", "header", "hgroup", "hr", "li", "main", "nav", "noscript", "ol", "output", "p", "pre", "section", "table", "tfoot", "ul", "video"];
@@ -14756,7 +17413,7 @@ var blockElementStartRegex = new RegExp("^<(" + blockElements.join("|") + ")[^>]
 var blockElementEndRegex = new RegExp("^</(" + blockElements.join("|") + ")[^>]*?>$", "i");
 var inlineElementStartRegex = new RegExp("^<(" + inlineElements.join("|") + ")[^>]*>$", "i");
 var inlineElementEndRegex = new RegExp("^</(" + inlineElements.join("|") + ")[^>]*>$", "i");
-var otherElementStartRegex = /^<([^>\s\/]+)[^>]*>$/;
+var otherElementStartRegex = /^<([^>\s/]+)[^>]*>$/;
 var otherElementEndRegex = /^<\/([^>\s]+)[^>]*>$/;
 var contentRegex = /^[^<]+$/;
 var greaterThanContentRegex = /^<[^><]*$/;
@@ -14885,7 +17542,7 @@ module.exports = {
 };
 
 
-},{"lodash/forEach":493,"lodash/memoize":525,"tokenizer2/core":549}],110:[function(require,module,exports){
+},{"lodash/forEach":521,"lodash/memoize":551,"tokenizer2/core":576}],117:[function(require,module,exports){
 "use strict";
 /**
  * Checks if `n` is between `start` and `end` but not including `start`.
@@ -14929,7 +17586,7 @@ module.exports = {
 };
 
 
-},{}],111:[function(require,module,exports){
+},{}],118:[function(require,module,exports){
 "use strict";
 /**
  * Returns true or false, based on the length of the value text and the recommended value.
@@ -14944,7 +17601,7 @@ module.exports = function (recommendedValue, valueLength) {
 };
 
 
-},{}],112:[function(require,module,exports){
+},{}],119:[function(require,module,exports){
 "use strict";
 
 var SyllableCountStep = require("./syllableCountStep.js");
@@ -14997,7 +17654,7 @@ SyllableCountIterator.prototype.countSyllables = function (word) {
 module.exports = SyllableCountIterator;
 
 
-},{"./syllableCountStep.js":113,"lodash/forEach":493,"lodash/isUndefined":521}],113:[function(require,module,exports){
+},{"./syllableCountStep.js":120,"lodash/forEach":521,"lodash/isUndefined":547}],120:[function(require,module,exports){
 "use strict";
 
 var isUndefined = require("lodash/isUndefined");
@@ -15060,7 +17717,7 @@ SyllableCountStep.prototype.countSyllables = function (word) {
 module.exports = SyllableCountStep;
 
 
-},{"../stringProcessing/createRegexFromArray.js":222,"lodash/isUndefined":521}],114:[function(require,module,exports){
+},{"../stringProcessing/createRegexFromArray.js":244,"lodash/isUndefined":547}],121:[function(require,module,exports){
 "use strict";
 /**
  * Gets the parsed type name of subjects.
@@ -15094,7 +17751,7 @@ module.exports = {
 };
 
 
-},{}],115:[function(require,module,exports){
+},{}],122:[function(require,module,exports){
 "use strict";
 /**
  * Interpreters a score and gives it a particular rating.
@@ -15124,7 +17781,7 @@ var ScoreToRating = function ScoreToRating(score) {
 module.exports = ScoreToRating;
 
 
-},{}],116:[function(require,module,exports){
+},{}],123:[function(require,module,exports){
 "use strict";
 /**
  * Marks a text with HTML tags
@@ -15138,7 +17795,43 @@ module.exports = function (text) {
 };
 
 
-},{}],117:[function(require,module,exports){
+},{}],124:[function(require,module,exports){
+"use strict";
+
+var _require = require("../stringProcessing/stripWordBoundaries"),
+    stripWordBoundariesStart = _require.stripWordBoundariesStart,
+    stripWordBoundariesEnd = _require.stripWordBoundariesEnd;
+/**
+ * Marks a text with HTML tags, deals with word boundaries that were matched by regexes, but which should not be marked.
+ *
+ * @param {string} text The unmarked text.
+ *
+ * @returns {string} The marked text.
+ */
+
+
+module.exports = function (text) {
+    // Strip the word boundaries at the start of the text.
+    var strippedTextStart = stripWordBoundariesStart(text);
+    var wordBoundaryStart = "";
+    var wordBoundaryEnd = "";
+    // Get the actual word boundaries from the start of the text.
+    if (strippedTextStart !== text) {
+        var wordBoundaryStartIndex = text.search(strippedTextStart);
+        wordBoundaryStart = text.substr(0, wordBoundaryStartIndex);
+    }
+    // Strip word boundaries at the end of the text.
+    var strippedTextEnd = stripWordBoundariesEnd(strippedTextStart);
+    // Get the actual word boundaries from the end of the text.
+    if (strippedTextEnd !== strippedTextStart) {
+        var wordBoundaryEndIndex = strippedTextStart.search(strippedTextEnd) + strippedTextEnd.length;
+        wordBoundaryEnd = strippedTextStart.substr(wordBoundaryEndIndex);
+    }
+    return wordBoundaryStart + "<yoastmark class='yoast-text-mark'>" + strippedTextEnd + "</yoastmark>" + wordBoundaryEnd;
+};
+
+
+},{"../stringProcessing/stripWordBoundaries":281}],125:[function(require,module,exports){
 "use strict";
 
 var uniqBy = require("lodash/uniqBy");
@@ -15156,7 +17849,7 @@ function removeDuplicateMarks(marks) {
 module.exports = removeDuplicateMarks;
 
 
-},{"lodash/uniqBy":547}],118:[function(require,module,exports){
+},{"lodash/uniqBy":574}],126:[function(require,module,exports){
 "use strict";
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -15495,7 +18188,7 @@ Pluggable.prototype._validateUniqueness = function (pluginName) {
 module.exports = Pluggable;
 
 
-},{"./errors/invalidType":100,"lodash/forEach":493,"lodash/isObject":514,"lodash/isString":518,"lodash/isUndefined":521,"lodash/reduce":534}],119:[function(require,module,exports){
+},{"./errors/invalidType":105,"lodash/forEach":521,"lodash/isObject":541,"lodash/isString":544,"lodash/isUndefined":547,"lodash/reduce":560}],127:[function(require,module,exports){
 "use strict";
 
 var forEach = require("lodash/forEach");
@@ -15827,7 +18520,7 @@ AssessorPresenter.prototype.renderOverallRating = function () {
 module.exports = AssessorPresenter;
 
 
-},{"../config/presenter.js":87,"../interpreters/scoreToRating.js":115,"../templates.js":263,"lodash/difference":484,"lodash/forEach":493,"lodash/isNumber":513,"lodash/isObject":514,"lodash/isUndefined":521}],120:[function(require,module,exports){
+},{"../config/presenter.js":89,"../interpreters/scoreToRating.js":122,"../templates.js":288,"lodash/difference":512,"lodash/forEach":521,"lodash/isNumber":540,"lodash/isObject":541,"lodash/isUndefined":547}],128:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -15868,6 +18561,9 @@ var passiveVoice = require("./researches/getPassiveVoice.js");
 var getSentenceBeginnings = require("./researches/getSentenceBeginnings.js");
 var relevantWords = require("./researches/relevantWords");
 var readingTime = require("./researches/readingTime");
+var getTopicDensity = require("./researches/getTopicDensity");
+var topicCount = require("./researches/topicCount");
+var largestKeywordDistance = require("./researches/largestKeywordDistance");
 /**
  * This contains all possible, default researches.
  * @param {Paper} paper The Paper object that is needed within the researches.
@@ -15907,7 +18603,10 @@ var Researcher = function Researcher(paper) {
         getSentenceBeginnings: getSentenceBeginnings,
         relevantWords: relevantWords,
         readingTime: readingTime,
-        sentences: sentences_1.default
+        getTopicDensity: getTopicDensity,
+        topicCount: topicCount,
+        sentences: sentences_1.default,
+        largestKeywordDistance: largestKeywordDistance
     };
     this.customResearches = {};
 };
@@ -15972,7 +18671,7 @@ Researcher.prototype.getResearch = function (name) {
 module.exports = Researcher;
 
 
-},{"./errors/invalidType":100,"./errors/missingArgument":101,"./researches/calculateFleschReading.js":121,"./researches/countLinks.js":122,"./researches/countSentencesFromDescription.js":123,"./researches/countSentencesFromText.js":124,"./researches/findKeywordInFirstParagraph.js":139,"./researches/findKeywordInPageTitle.js":140,"./researches/findTransitionWords.js":141,"./researches/getKeywordDensity.js":165,"./researches/getLinkStatistics.js":166,"./researches/getLinks.js":167,"./researches/getParagraphLength.js":168,"./researches/getPassiveVoice.js":169,"./researches/getSentenceBeginnings.js":170,"./researches/getSubheadingTextLengths.js":171,"./researches/getWordComplexity.js":172,"./researches/imageAltTags.js":173,"./researches/imageCountInText.js":174,"./researches/keyphraseLength":179,"./researches/keywordCount":180,"./researches/keywordCountInUrl":181,"./researches/matchKeywordInSubheadings.js":182,"./researches/metaDescriptionKeyword.js":183,"./researches/metaDescriptionLength.js":184,"./researches/pageTitleWidth.js":185,"./researches/readingTime":197,"./researches/relevantWords":198,"./researches/sentences":200,"./researches/stopWordsInKeyword":210,"./researches/stopWordsInUrl":212,"./researches/urlIsTooLong.js":213,"./researches/wordCountInText.js":214,"lodash/isEmpty":508,"lodash/isUndefined":521,"lodash/merge":526}],121:[function(require,module,exports){
+},{"./errors/invalidType":105,"./errors/missingArgument":106,"./researches/calculateFleschReading.js":129,"./researches/countLinks.js":132,"./researches/countSentencesFromDescription.js":133,"./researches/countSentencesFromText.js":134,"./researches/findKeywordInFirstParagraph.js":149,"./researches/findKeywordInPageTitle.js":150,"./researches/findTransitionWords.js":151,"./researches/getKeywordDensity.js":175,"./researches/getLinkStatistics.js":176,"./researches/getLinks.js":177,"./researches/getParagraphLength.js":178,"./researches/getPassiveVoice.js":179,"./researches/getSentenceBeginnings.js":180,"./researches/getSubheadingTextLengths.js":181,"./researches/getTopicDensity":182,"./researches/getWordComplexity.js":183,"./researches/imageAltTags.js":184,"./researches/imageCountInText.js":185,"./researches/keyphraseLength":195,"./researches/keywordCount":196,"./researches/keywordCountInUrl":197,"./researches/largestKeywordDistance":198,"./researches/matchKeywordInSubheadings.js":199,"./researches/metaDescriptionKeyword.js":200,"./researches/metaDescriptionLength.js":201,"./researches/pageTitleWidth.js":202,"./researches/readingTime":214,"./researches/relevantWords":215,"./researches/sentences":221,"./researches/stopWordsInKeyword":231,"./researches/stopWordsInUrl":233,"./researches/topicCount":234,"./researches/urlIsTooLong.js":235,"./researches/wordCountInText.js":236,"lodash/isEmpty":536,"lodash/isUndefined":547,"lodash/merge":552}],129:[function(require,module,exports){
 "use strict";
 /** @module analyses/calculateFleschReading */
 
@@ -16026,6 +18725,15 @@ module.exports = function (paper) {
         case "it":
             score = 217 - 1.3 * averageWordsPerSentence - 0.6 * syllablesPer100Words;
             break;
+        case "ru":
+            score = 206.835 - 1.3 * numberOfWords / numberOfSentences - 60.1 * numberOfSyllables / numberOfWords;
+            break;
+        case "es":
+            score = 206.84 - 1.02 * numberOfWords / numberOfSentences - 0.6 * syllablesPer100Words;
+            break;
+        case "fr":
+            score = 207 - 1.015 * numberOfWords / numberOfSentences - 73.6 * numberOfSyllables / numberOfWords;
+            break;
         case "en":
         default:
             score = 206.835 - 1.015 * averageWordsPerSentence - 84.6 * (numberOfSyllables / numberOfWords);
@@ -16035,7 +18743,39 @@ module.exports = function (paper) {
 };
 
 
-},{"../helpers/formatNumber.js":104,"../helpers/getLanguage.js":106,"../stringProcessing/countSentences.js":220,"../stringProcessing/countWords.js":221,"../stringProcessing/stripNumbers.js":255,"../stringProcessing/syllables/count.js":259}],122:[function(require,module,exports){
+},{"../helpers/formatNumber.js":110,"../helpers/getLanguage.js":113,"../stringProcessing/countSentences.js":242,"../stringProcessing/countWords.js":243,"../stringProcessing/stripNumbers.js":279,"../stringProcessing/syllables/count.js":284}],130:[function(require,module,exports){
+"use strict";
+/** @module config/transitionWords */
+
+var singleWords = ["abans", "així", "altrament", "anteriorment", "breument", "contràriament", "després", "doncs", "efectivament", "endemés", "finalment", "generalment", "igualment", "malgrat", "mentre", "parallelament", "però", "perquè", "primerament", "resumidament", "resumint", "sinó", "sobretot", "també", "tanmateix"];
+var multipleWords = ["a banda d'això", "a continuació", "a fi de", "a fi que", "a força de", "a manera de resum", "a més", "a tall d'exemple", "a tall de recapitulació", "a tall de resum", "al capdavall", "al contrari", "al mateix temps", "amb relació a", "amb tot plegat", "ara bé", "atès que", "com a conseqüència", "com a exemple", "com a resultat", "com a resum", "com que", "comptat i debatut", "considerant que", "convé destacar", "convé recalcar", "convé ressaltar que", "d'altra banda", "d’una banda", "d’una forma breu", "de la mateixa manera", "de manera parallela", "de manera que", "degut a", "deixant de banda", "dit d'una altra manera", "donat que", "en a resum", "en altres paraules", "en canvi", "en conclusió", "en conjunt", "en conseqüència", "encara que", "en darrer lloc", "en darrer terme", "en definitiva", "en efect", "en general", "en particular", "en pocs mots", "en poques paraules", "en primer lloc", "en relació amb", "en resum", "en segon lloc", "en síntesi", "en suma", "en tercer lloc", "en últim terme", "és a dir", "és més", "és per això que", "fins i tot", "gràcies a", "gràcies de", "igual com", "igual que", "ja que", "llevat que", "més aviat", "més tard", "no obstant", "o sia", "o sigui", "pel fet que", "pel general", "pel que", "per acabar", "per això", "per altra banda", "per aquest motiu", "per causa de", "per causa que", "per cert", "per començar", "per concloure", "per concretar", "per contra", "per exemple", "per illustrar", "per l'altra part", "per l'altre cantó", "per la qual cosa", "per posar un exemple", "per raó de", "per raó que", "per tal de", "per tal que", "per tant", "per últim", "per un cantó", "per un costat", "per una altra banda", "per una part", "quant a", "recapitulant", "respecte de", "s'ha de tenir en compte que", "sempre que", "tal com s’ha dit", "tan bon punt", "tenint en compte que", "tot i", "tot seguit", "val la pena dir que", "vist que"];
+/**
+ * Returns lists with transition words to be used by the assessments.
+ * @returns {Object} The object with transition word lists.
+ */
+module.exports = function () {
+    return {
+        singleWords: singleWords,
+        multipleWords: multipleWords,
+        allWords: singleWords.concat(multipleWords)
+    };
+};
+
+
+},{}],131:[function(require,module,exports){
+"use strict";
+/** @module config/twoPartTransitionWords */
+/**
+ * Returns an array with two-part transition words to be used by the assessments.
+ * @returns {Array} The array filled with two-part transition words.
+ */
+
+module.exports = function () {
+  return [["ara", "ara"], ["ni", "ni"]];
+};
+
+
+},{}],132:[function(require,module,exports){
 "use strict";
 /** @module analyses/getLinkStatistics */
 
@@ -16052,7 +18792,7 @@ module.exports = function (paper) {
 };
 
 
-},{"./getLinks":167}],123:[function(require,module,exports){
+},{"./getLinks":177}],133:[function(require,module,exports){
 "use strict";
 
 var getSentences = require("../stringProcessing/getSentences");
@@ -16068,7 +18808,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/getSentences":231,"./../stringProcessing/sentencesLength.js":252}],124:[function(require,module,exports){
+},{"../stringProcessing/getSentences":253,"./../stringProcessing/sentencesLength.js":276}],134:[function(require,module,exports){
 "use strict";
 
 var getSentences = require("../stringProcessing/getSentences");
@@ -16084,7 +18824,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/getSentences":231,"./../stringProcessing/sentencesLength.js":252}],125:[function(require,module,exports){
+},{"../stringProcessing/getSentences":253,"./../stringProcessing/sentencesLength.js":276}],135:[function(require,module,exports){
 "use strict";
 /**
  * Returns an array with exceptions for the sentence beginning researcher.
@@ -16104,7 +18844,7 @@ module.exports = function () {
 };
 
 
-},{}],126:[function(require,module,exports){
+},{}],136:[function(require,module,exports){
 "use strict";
 
 var transitionWords = require("./transitionWords.js")().singleWords;
@@ -16185,7 +18925,7 @@ module.exports = function () {
 };
 
 
-},{"./transitionWords.js":127}],127:[function(require,module,exports){
+},{"./transitionWords.js":137}],137:[function(require,module,exports){
 "use strict";
 
 var singleWords = ["aangezien", "al", "aldus", "allereerst", "als", "alsook", "anderzijds", "bijgevolg", "bijvoorbeeld", "bovendien", "concluderend", "daardoor", "daarentegen", "daarmee", "daarna", "daarnaast", "daarom", "daartoe", "daarvoor", "dadelijk", "dan", "desondanks", "dienovereenkomstig", "dientegevolge", "doch", "doordat", "dus", "echter", "eerst", "evenals", "eveneens", "evenzeer", "hierom", "hoewel", "immers", "indien", "integendeel", "intussen", "kortom", "later", "maar", "mits", "nadat", "namelijk", "net als", "niettemin", "noch", "ofschoon", "omdat", "ondanks", "ondertussen", "ook", "opdat", "resumerend", "samengevat", "samenvattend", "tegenwoordig", "teneinde", "tenzij", "terwijl", "tevens", "toch", "toen", "uiteindelijk", "vanwege", "vervolgens", "voorafgaand", "vooralsnog", "voordat", "voorts", "vroeger", "waardoor", "waarmee", "waaronder", "wanneer", "want", "zoals", "zodat", "zodoende", "zodra"];
@@ -16203,7 +18943,7 @@ module.exports = function () {
 };
 
 
-},{}],128:[function(require,module,exports){
+},{}],138:[function(require,module,exports){
 "use strict";
 /**
  * Returns an array with two-part transition words to be used by the assessments.
@@ -16215,7 +18955,7 @@ module.exports = function () {
 };
 
 
-},{}],129:[function(require,module,exports){
+},{}],139:[function(require,module,exports){
 "use strict";
 /**
  * Returns an array with exceptions for the sentence beginning researcher.
@@ -16235,7 +18975,7 @@ module.exports = function () {
 };
 
 
-},{}],130:[function(require,module,exports){
+},{}],140:[function(require,module,exports){
 "use strict";
 
 var filteredPassiveAuxiliaries = require("./passiveVoice/auxiliaries.js")().filteredAuxiliaries;
@@ -16319,7 +19059,7 @@ module.exports = function () {
 };
 
 
-},{"./passiveVoice/auxiliaries.js":133,"./transitionWords.js":137}],131:[function(require,module,exports){
+},{"./passiveVoice/auxiliaries.js":143,"./transitionWords.js":147}],141:[function(require,module,exports){
 "use strict";
 
 var Participle = require("../../../values/Participle.js");
@@ -16389,7 +19129,7 @@ EnglishParticiple.prototype.precedenceException = precedenceException;
 module.exports = EnglishParticiple;
 
 
-},{"../../../stringProcessing/directPrecedenceException":225,"../../../stringProcessing/precedenceException":244,"../../../values/Participle.js":267,"../../passiveVoice/periphrastic/checkException.js":187,"./non-verb-ending-ed.js":135,"lodash/includes":499,"lodash/intersection":501,"lodash/isEmpty":508,"util":50}],132:[function(require,module,exports){
+},{"../../../stringProcessing/directPrecedenceException":247,"../../../stringProcessing/precedenceException":268,"../../../values/Participle.js":292,"../../passiveVoice/periphrastic/checkException.js":204,"./non-verb-ending-ed.js":145,"lodash/includes":527,"lodash/intersection":529,"lodash/isEmpty":536,"util":50}],142:[function(require,module,exports){
 "use strict";
 
 var SentencePart = require("../../../values/SentencePart.js");
@@ -16416,7 +19156,7 @@ EnglishSentencePart.prototype.getParticiples = function () {
 module.exports = EnglishSentencePart;
 
 
-},{"../../../values/SentencePart.js":269,"../../passiveVoice/periphrastic/getParticiples.js":191,"util":50}],133:[function(require,module,exports){
+},{"../../../values/SentencePart.js":294,"../../passiveVoice/periphrastic/getParticiples.js":208,"util":50}],143:[function(require,module,exports){
 "use strict";
 // These auxiliaries are filtered from the beginning of word combinations in the prominent words.
 
@@ -16432,7 +19172,7 @@ module.exports = function () {
 };
 
 
-},{}],134:[function(require,module,exports){
+},{}],144:[function(require,module,exports){
 "use strict";
 
 module.exports = function () {
@@ -16442,7 +19182,7 @@ module.exports = function () {
 };
 
 
-},{}],135:[function(require,module,exports){
+},{}],145:[function(require,module,exports){
 "use strict";
 
 module.exports = function () {
@@ -16450,7 +19190,7 @@ module.exports = function () {
 };
 
 
-},{}],136:[function(require,module,exports){
+},{}],146:[function(require,module,exports){
 "use strict";
 /**
  * Returns a list with stopwords for the English passive voice assessment.
@@ -16462,7 +19202,7 @@ module.exports = function () {
 };
 
 
-},{}],137:[function(require,module,exports){
+},{}],147:[function(require,module,exports){
 "use strict";
 /** @module config/transitionWords */
 
@@ -16481,7 +19221,7 @@ module.exports = function () {
 };
 
 
-},{}],138:[function(require,module,exports){
+},{}],148:[function(require,module,exports){
 "use strict";
 /** @module config/twoPartTransitionWords */
 /**
@@ -16494,7 +19234,7 @@ module.exports = function () {
 };
 
 
-},{}],139:[function(require,module,exports){
+},{}],149:[function(require,module,exports){
 "use strict";
 /** @module analyses/findKeywordInFirstParagraph */
 
@@ -16515,15 +19255,16 @@ module.exports = function (paper) {
   var paragraphs = matchParagraphs(paper.getText());
   var keyword = escapeRegExp(paper.getKeyword().toLocaleLowerCase());
   var paragraph = reject(paragraphs, isEmpty)[0] || "";
-  return wordMatch(paragraph, keyword, paper.getLocale());
+  return wordMatch(paragraph, keyword, paper.getLocale()).count;
 };
 
 
-},{"../stringProcessing/matchParagraphs.js":239,"../stringProcessing/matchTextWithWord.js":242,"lodash/escapeRegExp":487,"lodash/isEmpty":508,"lodash/reject":535}],140:[function(require,module,exports){
+},{"../stringProcessing/matchParagraphs.js":261,"../stringProcessing/matchTextWithWord.js":265,"lodash/escapeRegExp":515,"lodash/isEmpty":536,"lodash/reject":561}],150:[function(require,module,exports){
 "use strict";
 /** @module analyses/findKeywordInPageTitle */
 
 var wordMatch = require("../stringProcessing/matchTextWithWord.js");
+var normalizeQuotes = require("../stringProcessing/quotes.js").normalize;
 var escapeRegExp = require("lodash/escapeRegExp");
 /**
  * Counts the occurrences of the keyword in the pagetitle. Returns the number of matches
@@ -16533,17 +19274,21 @@ var escapeRegExp = require("lodash/escapeRegExp");
  * @returns {object} result with the matches and position.
  */
 module.exports = function (paper) {
-    var title = paper.getTitle();
-    var keyword = escapeRegExp(paper.getKeyword());
-    var locale = paper.getLocale();
-    var result = { matches: 0, position: -1 };
-    result.matches = wordMatch(title, keyword, locale);
-    result.position = title.toLocaleLowerCase().indexOf(keyword);
-    return result;
+  /*
+   * NormalizeQuotes also is used in wordMatch, but in order to find the index of the keyword, it's
+   * necessary to repeat it here.
+   */
+  var title = normalizeQuotes(paper.getTitle());
+  var keyword = escapeRegExp(normalizeQuotes(paper.getKeyword()).toLocaleLowerCase());
+  var locale = paper.getLocale();
+  var result = { matches: 0, position: -1 };
+  result.matches = wordMatch(title, keyword, locale).count;
+  result.position = title.toLocaleLowerCase().indexOf(keyword);
+  return result;
 };
 
 
-},{"../stringProcessing/matchTextWithWord.js":242,"lodash/escapeRegExp":487}],141:[function(require,module,exports){
+},{"../stringProcessing/matchTextWithWord.js":265,"../stringProcessing/quotes.js":270,"lodash/escapeRegExp":515}],151:[function(require,module,exports){
 "use strict";
 
 var createRegexFromDoubleArray = require("../stringProcessing/createRegexFromDoubleArray.js");
@@ -16631,7 +19376,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../helpers/getTransitionWords.js":108,"../stringProcessing/createRegexFromDoubleArray.js":223,"../stringProcessing/getSentences.js":231,"../stringProcessing/matchWordInSentence.js":243,"../stringProcessing/quotes.js":246,"lodash/filter":488,"lodash/forEach":493,"lodash/memoize":525}],142:[function(require,module,exports){
+},{"../helpers/getTransitionWords.js":115,"../stringProcessing/createRegexFromDoubleArray.js":245,"../stringProcessing/getSentences.js":253,"../stringProcessing/matchWordInSentence.js":266,"../stringProcessing/quotes.js":270,"lodash/filter":516,"lodash/forEach":521,"lodash/memoize":551}],152:[function(require,module,exports){
 "use strict";
 /**
  * Returns an array with exceptions for the sentence beginning researcher.
@@ -16651,7 +19396,7 @@ module.exports = function () {
 };
 
 
-},{}],143:[function(require,module,exports){
+},{}],153:[function(require,module,exports){
 "use strict";
 
 var transitionWords = require("./transitionWords.js")().singleWords;
@@ -16663,7 +19408,7 @@ var articles = ["le", "la", "les", "un", "une", "des", "aux", "du", "au", "d'un"
 var cardinalNumerals = ["deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf", "dix", "onze", "douze", "treize", "quatorze", "quinze", "seize", "dix-sept", "dix-huit", "dix-neuf", "vingt", "trente", "quarante", "cinquante", "soixante", "soixante-dix", "quatre-vingt", "quatre-vingt-dix", "septante", "huitante", "octante", "nonante", "cent", "mille", "million", "milliard"];
 // 'premier' and 'première' are not included because of their secondary meanings ('prime minister', '[movie] premiere')
 var ordinalNumerals = ["second", "secondes", "deuxième", "deuxièmes", "troisième", "troisièmes", "quatrième", "quatrièmes", "cinquième", "cinquièmes", "sixième", "sixièmes", "septième", "septièmes", "huitième", "huitièmes", "neuvième", "neuvièmes", "dixième", "dixièmes", "onzième", "onzièmes", "douzième", "douzièmes", "treizième", "treizièmes", "quatorzième", "quatorzièmes", "quinzième", "quinzièmes", "seizième", "seizièmes", "dix-septième", "dix-septièmes", "dix-huitième", "dix-huitièmes", "dix-neuvième", "dix-neuvièmes", "vingtième", "vingtièmes"];
-var personalPronounsNominative = ["je", "tu", "il", "elle", "on", "nous", "vous", "ils", "elles", "qu'il", "qu'elle", "qu'ils", "qu'elles", "qu'on", "d'il", "d'elle", "d'ils", "d'elles"];
+var personalPronounsNominative = ["je", "tu", "il", "elle", "on", "nous", "vous", "ils", "elles", "qu'il", "qu'elle", "qu'ils", "qu'elles", "qu'on", "d'elle", "d'elles"];
 var personalPronounsStressed = ["moi", "toi", "lui", "soi", "eux", "d'eux", "qu'eux"];
 // Le, la, les are already included in the articles list.
 var personalPronounsAccusative = ["me", "te"];
@@ -16672,14 +19417,14 @@ var possessivePronouns = ["mon", "ton", "son", "ma", "ta", "sa", "mes", "tes", "
 var quantifiers = ["beaucoup", "peu", "quelque", "quelques", "tous", "tout", "toute", "toutes", "plusieurs", "plein", "chaque", "suffisant", "suffisante", "suffisantes", "suffisants", "faible", "moins", "tant", "plus", "divers", "diverse", "diverses"];
 // The remaining reflexive personal pronouns are already included in other pronoun lists.
 var reflexivePronouns = ["se"];
-var indefinitePronouns = ["aucun", "aucune", "autre", "autres", "d'autres", "certain", "certaine", "certaines", "certains", "chacun", "chacune", "même", "mêmes", "quelqu'un", "quelqu'une", "quelques'uns", "quelques'unes", "autrui", "nul", "personne", "quiconque", "rien", "d'aucunes", "d'aucuns", "nuls", "nules", "l'autre", "l'autres", "tel", "telle", "tels", "telles"];
+var indefinitePronouns = ["aucun", "aucune", "autre", "autres", "d'autres", "certain", "certaine", "certaines", "certains", "chacun", "chacune", "même", "mêmes", "quelqu'un", "quelqu'une", "quelques'uns", "quelques'unes", "autrui", "nul", "personne", "quiconque", "rien", "d'aucunes", "d'aucuns", "nuls", "nules", "l'autre", "tel", "telle", "tels", "telles"];
 var relativePronouns = ["qui", "que", "lequel", "laquelle", "auquel", "auxquels", "auxquelles", "duquel", "desquels", "desquelles", "dont", "où", "quoi"];
 var interrogativeProAdverbs = ["combien", "comment", "pourquoi", "d'où"];
 var interrogativeAdjectives = ["quel", "quels", "quelle"];
 var pronominalAdverbs = ["y", "n'y"];
 var locativeAdverbs = ["là", "ici", "d'ici", "voici"];
 // 'Vins' is not included because it also means 'wines'.
-var otherAuxiliaries = ["a", "a-t-elle", "a-t-il", "a-t-on", "ai", "ai-je", "aie", "as", "as-tu", "aura", "aurai", "auraient", "aurais", "aurait", "auras", "aurez", "auriez", "aurons", "auront", "avaient", "avais", "avait", "avez", "avez-vous", "aviez", "avions", "avons", "avons-nous", "ayez", "ayons", "eu", "eûmes", "eurent", "eus", "eut", "eûtes", "j'ai", "j'aurai", "j'avais", "j'eus", "ont", "ont-elles", "ont-ils", "vais", "vas", "va", "allons", "allez", "vont", "vais-je", "vas-tu", "va-t-il", "va-t-elle", "va-t-on", "allons-nous", "allez-vous", "vont-elles", "vont-ils", "allé", "allés", "j'allai", "allai", "allas", "alla", "allâmes", "allâtes", "allèrent", "j'allais", "allais", "allait", "allions", "alliez", "allaient", "j'irai", "iras", "ira", "irons", "irez", "iront", "j'aille", "aille", "ailles", "aillent", "j'allasse", "allasse", "allasses", "allât", "allassions", "allassiez", "allassent", "j'irais", "irais", "irait", "irions", "iriez", "iraient", "allant", "viens", "vient", "venons", "venez", "viennent", "viens-je", "viens-de", "vient-il", "vient-elle", "vient-on", "venons-nous", "venez-vous", "viennent-elles", "viennent-ils", "vins", "vint", "vînmes", "vîntes", "vinrent", "venu", "venus", "venais", "venait", "venions", "veniez", "venaient", "viendrai", "viendras", "viendra", "viendrons", "viendrez", "viendront", "vienne", "viennes", "vinsse", "vinsses", "vînt", "vinssions", "vinssiez", "vinssent", "viendrais", "viendrait", "viendrions", "viendriez", "viendraient", "venant", "dois", "doit", "devons", "devez", "doivent", "dois-je", "dois-tu", "doit-il", "doit-elle", "doit-on", "devons-nous", "devez-vous", "doivent-elles", "doivent-ils", "dus", "dut", "dûmes", "dûtes", "durent", "dû", "devais", "devait", "devions", "deviez", "devaient", "devrai", "devras", "devra", "devrons", "devrez", "devront", "doive", "doives", "dusse", "dusses", "dût", "dussions", "dussiez", "dussent", "devrais", "devrait", "devrions", "devriez", "devraient", "peux", "peut", "pouvons", "pouvez", "peuvent", "peux-je", "peux-tu", "peut-il", "peut-elle", "peut-on", "pouvons-nous", "pouvez-vous", "peuvent-ils", "peuvent-elles", "pus", "put", "pûmes", "pûtes", "purent", "pu", "pouvais", "pouvait", "pouvions", "pouviez", "pouvaient", "pourrai", "pourras", "pourra", "pourrons", "pourrez", "pourront", "puisse", "puisses", "puissions", "puissiez", "puissent", "pusse", "pusses", "pût", "pussions", "pussiez", "pussent", "pourrais", "pourrait", "pourrions", "pourriez", "pourraient", "pouvant", "semble", "sembles", "semblons", "semblez", "semblent", "semble-je", "sembles-il", "sembles-elle", "sembles-on", "semblons-nous", "semblez-vous", "semblent-ils", "semblent-elles", "semblai", "semblas", "sembla", "semblâmes", "semblâtes", "semblèrent", "semblais", "semblait", "semblions", "sembliez", "semblaient", "semblerai", "sembleras", "semblera", "semblerons", "semblerez", "sembleront", "semblé", "semblasse", "semblasses", "semblât", "semblassions", "semblassiez", "semblassent", "semblerais", "semblerait", "semblerions", "sembleriez", "sembleraient", "parais", "paraît", "ait", "paraissons", "paraissez", "paraissent", "parais-je", "parais-tu", "paraît-il", "paraît-elle", "paraît-on", "ait-il", "ait-elle", "ait-on", "paraissons-nous", "paraissez-vous", "paraissent-ils", "paraissent-elles", "parus", "parut", "parûmes", "parûtes", "parurent", "paraissais", "paraissait", "paraissions", "paraissiez", "paraissaient", "paraîtrai", "paraîtras", "paraîtra", "paraîtrons", "paraîtrez", "paraîtront", "aitrai", "aitras", "aitra", "aitrons", "aitrez", "aitront", "paru", "paraisse", "paraisses", "parusse", "parusses", "parût", "parussions", "parussiez", "parussent", "paraîtrais", "paraîtrait", "paraîtrions", "paraîtriez", "paraîtraient", "paraitrais", "paraitrait", "paraitrions", "paraitriez", "paraitraient", "paraissant", "mets", "met", "mettons", "mettez", "mettent", "mets-je", "mets-tu", "met-il", "met-elle", "met-on", "mettons-nous", "mettez-vous", "mettent-ils", "mettent-elles", "mis", "mit", "mîmes", "mîtes", "mirent", "mettais", "mettait", "mettions", "mettiez", "mettaient", "mettrai", "mettras", "mettra", "mettrons", "mettrez", "mettront", "mette", "mettes", "misse", "misses", "mît", "missions", "missiez", "missent", "mettrais", "mettrait", "mettrions", "mettriez", "mettraient", "mettant", "finis", "finit", "finissons", "finissez", "finissent", "finis-je", "finis-tu", "finit-il", "finit-elle", "finit-on", "finissons-nous", "finissez-vous", "finissent-ils", "finissent-elles", "finîmes", "finîtes", "finirent", "finissais", "finissait", "finissions", "finissiez", "finissaient", "finirai", "finiras", "finira", "finirons", "finirez", "finiront", "fini", "finisse", "finisses", "finît", "finirais", "finirait", "finirions", "finiriez", "finiraient", "finissant", "n'a", "n'ai", "n'aie", "n'as", "n'aura", "n'aurai", "n'auraient", "n'aurais", "n'aurait", "n'auras", "n'aurez", "n'auriez", "n'aurons", "n'auront", "n'avaient", "n'avais", "n'avait", "n'avez", "n'avez-vous", "n'aviez", "n'avions", "n'avons", "n'avons-nous", "n'ayez", "n'ayons", "n'ont", "n'ont-elles", "n'ont-ils", "n'allons", "n'allez", "n'allais", "n'allait", "n'allions", "n'alliez", "n'allaient", "n'iras", "n'ira", "n'irons", "n'irez", "n'iront", "qu'a"];
+var otherAuxiliaries = ["a", "a-t-elle", "a-t-il", "a-t-on", "ai", "ai-je", "aie", "as", "as-tu", "aura", "aurai", "auraient", "aurais", "aurait", "auras", "aurez", "auriez", "aurons", "auront", "avaient", "avais", "avait", "avez", "avez-vous", "aviez", "avions", "avons", "avons-nous", "ayez", "ayons", "eu", "eûmes", "eurent", "eus", "eut", "eûtes", "j'ai", "j'aurai", "j'avais", "j'eus", "ont", "ont-elles", "ont-ils", "vais", "vas", "va", "allons", "allez", "vont", "vais-je", "vas-tu", "va-t-il", "va-t-elle", "va-t-on", "allons-nous", "allez-vous", "vont-elles", "vont-ils", "allé", "allés", "j'allai", "allai", "allas", "alla", "allâmes", "allâtes", "allèrent", "j'allais", "allais", "allait", "allions", "alliez", "allaient", "j'irai", "iras", "ira", "irons", "irez", "iront", "j'aille", "aille", "ailles", "aillent", "j'allasse", "allasse", "allasses", "allât", "allassions", "allassiez", "allassent", "j'irais", "irais", "irait", "irions", "iriez", "iraient", "allant", "viens", "vient", "venons", "venez", "viennent", "viens-je", "viens-de", "vient-il", "vient-elle", "vient-on", "venons-nous", "venez-vous", "viennent-elles", "viennent-ils", "vins", "vint", "vînmes", "vîntes", "vinrent", "venu", "venus", "venais", "venait", "venions", "veniez", "venaient", "viendrai", "viendras", "viendra", "viendrons", "viendrez", "viendront", "vienne", "viennes", "vinsse", "vinsses", "vînt", "vinssions", "vinssiez", "vinssent", "viendrais", "viendrait", "viendrions", "viendriez", "viendraient", "venant", "dois", "doit", "devons", "devez", "doivent", "dois-je", "dois-tu", "doit-il", "doit-elle", "doit-on", "devons-nous", "devez-vous", "doivent-elles", "doivent-ils", "dus", "dut", "dûmes", "dûtes", "durent", "dû", "devais", "devait", "devions", "deviez", "devaient", "devrai", "devras", "devra", "devrons", "devrez", "devront", "doive", "doives", "dusse", "dusses", "dût", "dussions", "dussiez", "dussent", "devrais", "devrait", "devrions", "devriez", "devraient", "peux", "peut", "pouvons", "pouvez", "peuvent", "peux-je", "peux-tu", "peut-il", "peut-elle", "peut-on", "pouvons-nous", "pouvez-vous", "peuvent-ils", "peuvent-elles", "pus", "put", "pûmes", "pûtes", "purent", "pu", "pouvais", "pouvait", "pouvions", "pouviez", "pouvaient", "pourrai", "pourras", "pourra", "pourrons", "pourrez", "pourront", "puisse", "puisses", "puissions", "puissiez", "puissent", "pusse", "pusses", "pût", "pussions", "pussiez", "pussent", "pourrais", "pourrait", "pourrions", "pourriez", "pourraient", "pouvant", "semble", "sembles", "semblons", "semblez", "semblent", "semble-je", "sembles-il", "sembles-elle", "sembles-on", "semblons-nous", "semblez-vous", "semblent-ils", "semblent-elles", "semblai", "semblas", "sembla", "semblâmes", "semblâtes", "semblèrent", "semblais", "semblait", "semblions", "sembliez", "semblaient", "semblerai", "sembleras", "semblera", "semblerons", "semblerez", "sembleront", "semblé", "semblasse", "semblasses", "semblât", "semblassions", "semblassiez", "semblassent", "semblerais", "semblerait", "semblerions", "sembleriez", "sembleraient", "parais", "paraît", "ait", "paraissons", "paraissez", "paraissent", "parais-je", "parais-tu", "paraît-il", "paraît-elle", "paraît-on", "ait-il", "ait-elle", "ait-on", "paraissons-nous", "paraissez-vous", "paraissent-ils", "paraissent-elles", "parus", "parut", "parûmes", "parûtes", "parurent", "paraissais", "paraissait", "paraissions", "paraissiez", "paraissaient", "paraîtrai", "paraîtras", "paraîtra", "paraîtrons", "paraîtrez", "paraîtront", "paru", "paraisse", "paraisses", "parusse", "parusses", "parût", "parussions", "parussiez", "parussent", "paraîtrais", "paraîtrait", "paraîtrions", "paraîtriez", "paraîtraient", "paraitrais", "paraitrait", "paraitrions", "paraitriez", "paraitraient", "paraissant", "mets", "met", "mettons", "mettez", "mettent", "mets-je", "mets-tu", "met-il", "met-elle", "met-on", "mettons-nous", "mettez-vous", "mettent-ils", "mettent-elles", "mis", "mit", "mîmes", "mîtes", "mirent", "mettais", "mettait", "mettions", "mettiez", "mettaient", "mettrai", "mettras", "mettra", "mettrons", "mettrez", "mettront", "mette", "mettes", "misse", "misses", "mît", "missions", "missiez", "missent", "mettrais", "mettrait", "mettrions", "mettriez", "mettraient", "mettant", "finis", "finit", "finissons", "finissez", "finissent", "finis-je", "finis-tu", "finit-il", "finit-elle", "finit-on", "finissons-nous", "finissez-vous", "finissent-ils", "finissent-elles", "finîmes", "finîtes", "finirent", "finissais", "finissait", "finissions", "finissiez", "finissaient", "finirai", "finiras", "finira", "finirons", "finirez", "finiront", "fini", "finisse", "finisses", "finît", "finirais", "finirait", "finirions", "finiriez", "finiraient", "finissant", "n'a", "n'ai", "n'aie", "n'as", "n'aura", "n'aurai", "n'auraient", "n'aurais", "n'aurait", "n'auras", "n'aurez", "n'auriez", "n'aurons", "n'auront", "n'avaient", "n'avais", "n'avait", "n'avez", "n'avez-vous", "n'aviez", "n'avions", "n'avons", "n'avons-nous", "n'ayez", "n'ayons", "n'ont", "n'ont-elles", "n'ont-ils", "n'allons", "n'allez", "n'allais", "n'allait", "n'allions", "n'alliez", "n'allaient", "n'iras", "n'ira", "n'irons", "n'irez", "n'iront", "qu'a"];
 var otherAuxiliariesInfinitive = ["avoir", "aller", "venir", "devoir", "pouvoir", "sembler", "paraître", "paraitre", "mettre", "finir", "d'avoir", "d'aller", "n'avoir"];
 var copula = ["suis", "es", "est", "est-ce", "n'est", "sommes", "êtes", "sont", "suis-je", "es-tu", "est-il", "est-elle", "est-on", "sommes-nous", "êtes-vous", "sont-ils", "sont-elles", "étais", "était", "étions", "étiez", "étaient", "serai", "seras", "sera", "serons", "serez", "seront", "serais", "serait", "serions", "seriez", "seraient", "sois", "soit", "soyons", "soyez", "soient", "été", "n'es", "n'est-ce", "n'êtes", "n'était", "n'étais", "n'étions", "n'étiez", "n'étaient", "qu'est"];
 var copulaInfinitive = ["être", "d'être"];
@@ -16756,7 +19501,7 @@ module.exports = function () {
 };
 
 
-},{"./transitionWords.js":150}],144:[function(require,module,exports){
+},{"./transitionWords.js":160}],154:[function(require,module,exports){
 "use strict";
 
 var Participle = require("../../../values/Participle.js");
@@ -16897,7 +19642,7 @@ FrenchParticiple.prototype.precedenceException = precedenceException;
 module.exports = FrenchParticiple;
 
 
-},{"../../../stringProcessing/directPrecedenceException":225,"../../../stringProcessing/precedenceException":244,"../../../values/Participle.js":267,"../../passiveVoice/periphrastic/checkException.js":187,"./exceptionsParticiples.js":147,"lodash/forEach":493,"lodash/includes":499,"lodash/memoize":525,"util":50}],145:[function(require,module,exports){
+},{"../../../stringProcessing/directPrecedenceException":247,"../../../stringProcessing/precedenceException":268,"../../../values/Participle.js":292,"../../passiveVoice/periphrastic/checkException.js":204,"./exceptionsParticiples.js":157,"lodash/forEach":521,"lodash/includes":527,"lodash/memoize":551,"util":50}],155:[function(require,module,exports){
 "use strict";
 
 var SentencePart = require("../../../values/SentencePart.js");
@@ -16924,7 +19669,7 @@ FrenchSentencePart.prototype.getParticiples = function () {
 module.exports = FrenchSentencePart;
 
 
-},{"../../../values/SentencePart.js":269,"../../passiveVoice/periphrastic/getParticiples.js":191,"util":50}],146:[function(require,module,exports){
+},{"../../../values/SentencePart.js":294,"../../passiveVoice/periphrastic/getParticiples.js":208,"util":50}],156:[function(require,module,exports){
 "use strict";
 /**
  * Returns a list with auxiliaries for the French passive voice assessment.
@@ -16936,7 +19681,7 @@ module.exports = function () {
 };
 
 
-},{}],147:[function(require,module,exports){
+},{}],157:[function(require,module,exports){
 "use strict";
 // These word need to be checked with s/e/es suffixes.
 
@@ -16967,7 +19712,7 @@ module.exports = function () {
 };
 
 
-},{}],148:[function(require,module,exports){
+},{}],158:[function(require,module,exports){
 "use strict";
 /*
 This is a list of irregular participles used in French.
@@ -16997,7 +19742,7 @@ module.exports = function () {
 };
 
 
-},{}],149:[function(require,module,exports){
+},{}],159:[function(require,module,exports){
 "use strict";
 /**
  * Returns a list with stopwords for the French passive voice assessment.
@@ -17005,16 +19750,16 @@ module.exports = function () {
  */
 
 module.exports = function () {
-    return ["et", "ou", "car", "or", "puisque", "puisqu'il", "puisqu'ils", "puisqu'elle", "puisqu'elles", "puisqu'un", "puisqu'une", "puisqu'on", "quand", "lorsque", "lorsqu'il", "lorsqu'elle", "lorsqu'ils", "lorsqu'elles", "lorsqu'on", "lorsqu'un", "lorsqu'une", "quoique", "quoiqu'il", "quoiqu'ils", "quoiqu'elle", "quoiqu'elles", "quoiqu'on", "quoiqu'un", "quoiqu'une", "qu'elle", "qu'il", "qu'ils", "qu'elles", "qu'on", "qu'un", "qu'une", "si", "s'ils", "s'elles", "s'elle", "s'il", "s'on", "s'un", "s'une", "quand bien même", "pourquoi", "après", "avant", "afin de", "compte tenu de", "pour ne pas dire", "sinon", "une fois", "sitôt", "dont", "lequel", "laquelle", "lesquels", "lesquelles", "auquel", "auxquels", "auxquelles", "duquel", "desquels", "desquelles", "qui", "où", "d'où", ":", "allé", "entré", "resté", "retombé", "apparu", "réapparu", "devenu", "redevenu", "intervenu", "provenu", "resurvenu", "survenu", "allés", "entrés", "restés", "retombés", "apparus", "réapparus", "devenus", "redevenus", "intervenus", "provenus", "resurvenus", "survenus", "allée", "entrée", "restée", "retombée", "apparue", "réapparue", "devenue", "redevenue", "intervenue", "provenue", "resurvenue", "survenue", "allées", "entrées", "restées", "retombées", "apparues", "réapparues", "devenues", "redevenues", "intervenues", "provenues", "resurvenues", "survenues"];
+    return ["et", "ou", "car", "or", "puisque", "puisqu'il", "puisqu'ils", "puisqu'elle", "puisqu'elles", "puisqu'un", "puisqu'une", "puisqu'on", "quand", "lorsque", "lorsqu'il", "lorsqu'elle", "lorsqu'ils", "lorsqu'elles", "lorsqu'on", "lorsqu'un", "lorsqu'une", "quoique", "quoiqu'il", "quoiqu'ils", "quoiqu'elle", "quoiqu'elles", "quoiqu'on", "quoiqu'un", "quoiqu'une", "qu'elle", "qu'il", "qu'ils", "qu'elles", "qu'on", "qu'un", "qu'une", "si", "s'ils", "s'il", "quand bien même", "pourquoi", "après", "avant", "afin de", "compte tenu de", "pour ne pas dire", "sinon", "une fois", "sitôt", "dont", "lequel", "laquelle", "lesquels", "lesquelles", "auquel", "auxquels", "auxquelles", "duquel", "desquels", "desquelles", "qui", "où", "d'où", ":", "allé", "entré", "resté", "retombé", "apparu", "réapparu", "devenu", "redevenu", "intervenu", "provenu", "resurvenu", "survenu", "allés", "entrés", "restés", "retombés", "apparus", "réapparus", "devenus", "redevenus", "intervenus", "provenus", "resurvenus", "survenus", "allée", "entrée", "restée", "retombée", "apparue", "réapparue", "devenue", "redevenue", "intervenue", "provenue", "resurvenue", "survenue", "allées", "entrées", "restées", "retombées", "apparues", "réapparues", "devenues", "redevenues", "intervenues", "provenues", "resurvenues", "survenues"];
 };
 
 
-},{}],150:[function(require,module,exports){
+},{}],160:[function(require,module,exports){
 "use strict";
 /** @module config/transitionWords */
 
 var singleWords = ["ainsi", "alors", "aussi", "car", "cependant", "certainement", "certes", "conséquemment", "d'abord", "d'ailleurs", "d'après", "davantage", "désormais", "deuxièmement", "donc", "dorénavant", "effectivement", "également", "enfin", "ensuite", "entre-temps", "essentiellement", "excepté", "finalement", "globalement", "jusqu'ici", "là-dessus", "lorsque", "mais", "malgré", "néanmoins", "notamment", "partant", "plutôt", "pourtant", "précédemment", "premièrement", "probablement", "puis", "puisque", "quoique", "sauf", "selon", "semblablement", "sinon", "suivant", "toutefois", "troisièmement"];
-var multipleWords = ["à cause de", "à ce jour", "à ce propos", "à ce sujet", "à cet égard", "à cette fin", "à compter de", "à condition que", "à défaut de", "à force de", "à juste titre", "à la lumière de", "à la suite de", "à l'aide de", "à l'appui de", "à l'encontre de", "à l'époque actuelle", "à l'exception de", "à l'exclusion de", "à l'heure actuelle", "à l'image de", "à l'instar de", "à l'inverse", "à l'inverse de", "à l'opposé", "à la condition que", "à mesure que", "à moins que", "à nouveau", "à partir de", "à première vue", "à savoir", "à seule fin que", "à supposer que", "à tel point que", "à tout prendre", "à vrai dire", "afin de", "afin d'attirer l'attention sur", "afin que", "ainsi donc", "ainsi que", "alors que", "antérieurement", "apès réflexion", "après cela", "après quoi", "après que", "après réflexion", "après tout", "attendu que", "au cas où", "au contraire", "au fond", "au fur et à mesure", "au lieu de", "au même temps", "au moment où", "au moyen de", "au point que", "au risque de", "au surplus", "au total", "aussi bien que", "aussitôt que", "autant que", "autrement dit", "avant que", "avant tout", "ayant fini", "bien que", "c'est à dire que", "c'est ainsi que", "c'est dans ce but que", "c'est dire", "c'est le cas de", "c'est pour cela que", "c'est la raison pour laquelle", "c'est pourquoi", "c'est qu'en effet", "c'est-à-dire", "ça confirme que", "ça montre que", "ça prouve que", "cela étant", "cela dit", "cependant que", "compte tenu", "comme l'illustre", "comme le souligne", "comme on pouvait s'y attendre", "comme quoi", "comme si", "commençons par examiner", "comparativement à", "conformément à", "contrairement à", "considérons par exemple", "d'autant plus", "d'autant que", "d'autre part", "d'ici là", "d'où", "d'un autre côté", "d'un côté", "d'une façon générale", "dans ce cas", "dans ces conditions", "dans cet esprit", "dans l'ensemble", "dans l'état actuel des choses", "dans l'éventualité où", "dans l'hypothèse où", "dans la mesure où", "dans le but de", "dans le cadre de", "dans le cas où", "dans les circonstances actuelles", "dans les grandes lignes", "dans un autre ordre d'idée", "dans un délai de", "de ce fait", "de cette façon", "de crainte que", "de façon à", "de façon à ce que", "de façon que", "de fait", "de l'autre côté", "de la même manière", "de la même façon que", "de manière que", "de même", "de même qu'à", "de même que", "de nos jours", "de peur que", "de prime abord", "de sorte que", "de surcroît", "de telle manière que", "de telle sorte que", "de toute évidence", "de toute façon", "de toute manière", "depuis que", "dès lors que", "dès maintenant", "dès qua", "dès que", "du fait que", "du moins", "du moment que", "du point de vue de", "du reste", "d'ici là", "d'ores et déjà", "en admettant que", "en attendant que", "en bref", "en cas de", "en cas que", "en ce cas", "en ce domaine", "en ce moment", "en ce qui a trait à", "en ce qui concerne", "en ce sens", "en cela", "en concequence", "en comparaison de", "en concequence", "en conclusion", "en conformité avec", "en conséquence", "en d'autres termes", "en définitive", "en dépit de", "en dernier lieu", "en deuxième lieu", "en effet", "en face de", "en fait", "en fin de compte", "en général", "en guise de conclusion", "en matière de", "en même temps que", "en outre", "en particulier", "en plus", "en premier lieu", "en principe", "en raison de", "en réalité", "en règle générale", "en résumé", "en revanche", "en second lieu", "en somme", "en sorte que", "en supposant que", "en tant que", "en terminant", "en théorie", "en tout cas", "en tout premier lieu", "en troisième lieu", "en un mot", "en vérité", "en vue que", "encore que", "encore une fois", "entre autres", "et même", "et puis", "étant donné qu'a", "étant donné qua", "étant donné que", "face à", "grâce à", "il est à noter que", "il est indéniable que", "il est question de", "il est vrai que", "il faut dire aussi que", "il faut reconnaître que", "il faut souligner que", "il ne faut pas oublier que", "il s'ensuit que", "il suffit de prendre pour exemple", "jusqu'ici", "il y a aussi", "jusqu'à ce que", "jusqu'à ce jour", "jusqu'à maintenant", "jusqu'à présent", "jusqu'au moment où", "jusqu'ici", "l'aspect le plus important de", "l'exemple le plus significatif", "jusqu'au moment où", "la preuve c'est que", "loin que", "mais en réalité", "malgré cela", "malgré tout", "même si", "mentionnons que", "mis à part le fait que", "notons que", "nul doute que", "ou bien", "outre cela", "où que", "par ailleurs", "par conséquent", "par contre", "par exception", "par exemple", "par la suite", "par l'entremise de", "par l'intermédiaire de", "par rapport à", "par suite", "par suite de", "par surcroît", "parce que", "pareillement", "partant de ce fait", "pas du tout", "pendant que", "plus précisément", "plus tard", "pour ainsi dire", "pour autant que", "pour ce qui est de", "pour ces motifs", "pour ces raisons", "pour cette raison", "pour commencer", "pour conclure", "pour le moment", "pour marquer la causalité", "pour l'instant", "pour peu que", "pour prendre un autre exemple", "pour que", "pour résumé", "pour terminer", "pour tout dire", "pour toutes ces raisons", "pourvu que", "prenons le cas de", "quand bien même que", "quand même", "quant à", "quel que soit", "qui plus est", "qui que", "quitte à", "quoi qu'il en soit", "quoi que", "quoiqu'il en soit", "sans délai", "sans doute", "sans parler de", "sans préjuger", "sans tarder", "sauf si", "selon que", "si bien que", "si ce n'est que", "si l'on songe que", "sitôt que", "somme toute", "sous cette réserve", "sous prétexte que", "sous réserve de", "sous réserve que", "suivant que", "supposé que", "sur le plan de", "tandis que", "tant et si bien que", "tant que", "tel que", "tellement que", "touchant à", "tout à fait", "tout bien pesé", "tout compte fait", "tout d'abord", "tout d'abord examinons", "tout d'abord il faut dire que", "tout de même", "tout en reconnaissant que", "une fois de plus", "vu que"];
+var multipleWords = ["à cause de", "à ce jour", "à ce propos", "à ce sujet", "à cet égard", "à cette fin", "à compter de", "à condition que", "à défaut de", "à force de", "à juste titre", "à la lumière de", "à la suite de", "à l'aide de", "à l'appui de", "à l'encontre de", "à l'époque actuelle", "à l'exception de", "à l'exclusion de", "à l'heure actuelle", "à l'image de", "à l'instar de", "à l'inverse", "à l'inverse de", "à l'opposé", "à la condition que", "à mesure que", "à moins que", "à nouveau", "à partir de", "à première vue", "à savoir", "à seule fin que", "à supposer que", "à tel point que", "à tout prendre", "à vrai dire", "afin de", "afin d'attirer l'attention sur", "afin que", "ainsi donc", "ainsi que", "alors que", "antérieurement", "après cela", "après quoi", "après que", "après réflexion", "après tout", "attendu que", "au cas où", "au contraire", "au fond", "au fur et à mesure", "au lieu de", "au même temps", "au moment où", "au moyen de", "au point que", "au risque de", "au surplus", "au total", "aussi bien que", "aussitôt que", "autant que", "autrement dit", "avant que", "avant tout", "ayant fini", "bien que", "c'est à dire que", "c'est ainsi que", "c'est dans ce but que", "c'est dire", "c'est le cas de", "c'est pour cela que", "c'est la raison pour laquelle", "c'est pourquoi", "c'est qu'en effet", "c'est-à-dire", "ça confirme que", "ça montre que", "ça prouve que", "cela étant", "cela dit", "cependant que", "compte tenu", "comme l'illustre", "comme le souligne", "comme on pouvait s'y attendre", "comme quoi", "comme si", "commençons par examiner", "comparativement à", "conformément à", "contrairement à", "considérons par exemple", "d'autant plus", "d'autant que", "d'autre part", "d'ici là", "d'où", "d'un autre côté", "d'un côté", "d'une façon générale", "dans ce cas", "dans ces conditions", "dans cet esprit", "dans l'ensemble", "dans l'état actuel des choses", "dans l'éventualité où", "dans l'hypothèse où", "dans la mesure où", "dans le but de", "dans le cadre de", "dans le cas où", "dans les circonstances actuelles", "dans les grandes lignes", "dans un autre ordre d'idée", "dans un délai de", "de ce fait", "de cette façon", "de crainte que", "de façon à", "de façon à ce que", "de façon que", "de fait", "de l'autre côté", "de la même manière", "de la même façon que", "de manière que", "de même", "de même qu'à", "de même que", "de nos jours", "de peur que", "de prime abord", "de sorte que", "de surcroît", "de telle manière que", "de telle sorte que", "de toute évidence", "de toute façon", "de toute manière", "depuis que", "dès lors que", "dès maintenant", "dès qua", "dès que", "du fait que", "du moins", "du moment que", "du point de vue de", "du reste", "d'ici là", "d'ores et déjà", "en admettant que", "en attendant que", "en bref", "en cas de", "en cas que", "en ce cas", "en ce domaine", "en ce moment", "en ce qui a trait à", "en ce qui concerne", "en ce sens", "en cela", "en comparaison de", "en conclusion", "en conformité avec", "en conséquence", "en d'autres termes", "en définitive", "en dépit de", "en dernier lieu", "en deuxième lieu", "en effet", "en face de", "en fait", "en fin de compte", "en général", "en guise de conclusion", "en matière de", "en même temps que", "en outre", "en particulier", "en plus", "en premier lieu", "en principe", "en raison de", "en réalité", "en règle générale", "en résumé", "en revanche", "en second lieu", "en somme", "en sorte que", "en supposant que", "en tant que", "en terminant", "en théorie", "en tout cas", "en tout premier lieu", "en troisième lieu", "en un mot", "en vérité", "en vue que", "encore que", "encore une fois", "entre autres", "et même", "et puis", "étant donné qu'à", "étant donné que", "face à", "grâce à", "il est à noter que", "il est indéniable que", "il est question de", "il est vrai que", "il faut dire aussi que", "il faut reconnaître que", "il faut souligner que", "il ne faut pas oublier que", "il s'ensuit que", "il suffit de prendre pour exemple", "jusqu'ici", "il y a aussi", "jusqu'à ce que", "jusqu'à ce jour", "jusqu'à maintenant", "jusqu'à présent", "jusqu'au moment où", "jusqu'ici", "l'aspect le plus important de", "l'exemple le plus significatif", "jusqu'au moment où", "la preuve c'est que", "loin que", "mais en réalité", "malgré cela", "malgré tout", "même si", "mentionnons que", "mis à part le fait que", "notons que", "nul doute que", "ou bien", "outre cela", "où que", "par ailleurs", "par conséquent", "par contre", "par exception", "par exemple", "par la suite", "par l'entremise de", "par l'intermédiaire de", "par rapport à", "par suite", "par suite de", "par surcroît", "parce que", "pareillement", "partant de ce fait", "pas du tout", "pendant que", "plus précisément", "plus tard", "pour ainsi dire", "pour autant que", "pour ce qui est de", "pour ces motifs", "pour ces raisons", "pour cette raison", "pour commencer", "pour conclure", "pour le moment", "pour marquer la causalité", "pour l'instant", "pour peu que", "pour prendre un autre exemple", "pour que", "pour résumé", "pour terminer", "pour tout dire", "pour toutes ces raisons", "pourvu que", "prenons le cas de", "quand bien même que", "quand même", "quant à", "quel que soit", "qui plus est", "qui que", "quitte à", "quoi qu'il en soit", "quoi que", "quoiqu'il en soit", "sans délai", "sans doute", "sans parler de", "sans préjuger", "sans tarder", "sauf si", "selon que", "si bien que", "si ce n'est que", "si l'on songe que", "sitôt que", "somme toute", "sous cette réserve", "sous prétexte que", "sous réserve de", "sous réserve que", "suivant que", "supposé que", "sur le plan de", "tandis que", "tant et si bien que", "tant que", "tel que", "tellement que", "touchant à", "tout à fait", "tout bien pesé", "tout compte fait", "tout d'abord", "tout d'abord examinons", "tout d'abord il faut dire que", "tout de même", "tout en reconnaissant que", "une fois de plus", "vu que"];
 /**
  * Returns an list with transition words to be used by the assessments.
  * @returns {Object} The list filled with transition word lists.
@@ -17028,7 +19773,7 @@ module.exports = function () {
 };
 
 
-},{}],151:[function(require,module,exports){
+},{}],161:[function(require,module,exports){
 "use strict";
 /** @module config/twoPartTransitionWords */
 /**
@@ -17041,7 +19786,7 @@ module.exports = function () {
 };
 
 
-},{}],152:[function(require,module,exports){
+},{}],162:[function(require,module,exports){
 "use strict";
 /**
  * Returns an array with exceptions for the sentence beginning researcher.
@@ -17061,7 +19806,7 @@ module.exports = function () {
 };
 
 
-},{}],153:[function(require,module,exports){
+},{}],163:[function(require,module,exports){
 "use strict";
 
 var filteredPassiveAuxiliaries = require("./passiveVoice/auxiliaries.js")().filteredAuxiliaries;
@@ -17139,7 +19884,7 @@ module.exports = function () {
 };
 
 
-},{"./passiveVoice/auxiliaries.js":156,"./transitionWords.js":163}],154:[function(require,module,exports){
+},{"./passiveVoice/auxiliaries.js":166,"./transitionWords.js":173}],164:[function(require,module,exports){
 "use strict";
 
 var Participle = require("../../../values/Participle.js");
@@ -17147,7 +19892,7 @@ var getIndices = require("../../../stringProcessing/indices.js").getIndicesByWor
 var getIndicesOfList = require("../../../stringProcessing/indices.js").getIndicesByWordList;
 var exceptionsParticiplesActive = require("./exceptionsParticiplesActive.js")();
 var auxiliaries = require("./auxiliaries.js")().participleLike;
-var exceptionsRegex = /\S+(apparat|arbeit|dienst|haft|halt|keit|kraft|not|pflicht|schaft|schrift|tät|wert|zeit)($|[ \n\r\t\.,'\(\)\"\+\-;!?:\/»«‹›<>])/ig;
+var exceptionsRegex = /\S+(apparat|arbeit|dienst|haft|halt|keit|kraft|not|pflicht|schaft|schrift|tät|wert|zeit)($|[ \n\r\t.,'()"+-;!?:/»«‹›<>])/ig;
 var includes = require("lodash/includes");
 var map = require("lodash/map");
 /**
@@ -17218,7 +19963,7 @@ GermanParticiple.prototype.isAuxiliary = function () {
 module.exports = GermanParticiple;
 
 
-},{"../../../stringProcessing/indices.js":238,"../../../values/Participle.js":267,"./auxiliaries.js":156,"./exceptionsParticiplesActive.js":157,"lodash/includes":499,"lodash/map":524,"util":50}],155:[function(require,module,exports){
+},{"../../../stringProcessing/indices.js":260,"../../../values/Participle.js":292,"./auxiliaries.js":166,"./exceptionsParticiplesActive.js":167,"lodash/includes":527,"lodash/map":550,"util":50}],165:[function(require,module,exports){
 "use strict";
 
 var SentencePart = require("../../../values/SentencePart.js");
@@ -17245,7 +19990,7 @@ GermanSentencePart.prototype.getParticiples = function () {
 module.exports = GermanSentencePart;
 
 
-},{"../../../values/SentencePart.js":269,"./getParticiples.js":158,"util":50}],156:[function(require,module,exports){
+},{"../../../values/SentencePart.js":294,"./getParticiples.js":168,"util":50}],166:[function(require,module,exports){
 "use strict";
 // These passive auxiliaries start with be-, ge- or er- en and with -t, and therefore look like a participle.
 
@@ -17271,7 +20016,7 @@ module.exports = function () {
 };
 
 
-},{}],157:[function(require,module,exports){
+},{}],167:[function(require,module,exports){
 "use strict";
 // This is a list of words that look like a participle, but aren't participles.
 
@@ -17280,7 +20025,7 @@ module.exports = function () {
 };
 
 
-},{}],158:[function(require,module,exports){
+},{}],168:[function(require,module,exports){
 "use strict";
 
 var getWords = require("../../../stringProcessing/getWords.js");
@@ -17334,7 +20079,7 @@ module.exports = function (sentencePartText, auxiliaries, language) {
 };
 
 
-},{"../../../stringProcessing/getWords.js":234,"./GermanParticiple.js":154,"./irregulars.js":160,"./regex.js":161,"lodash/forEach":493,"lodash/includes":499}],159:[function(require,module,exports){
+},{"../../../stringProcessing/getWords.js":256,"./GermanParticiple.js":164,"./irregulars.js":170,"./regex.js":171,"lodash/forEach":521,"lodash/includes":527}],169:[function(require,module,exports){
 "use strict";
 
 var stopwords = require("./stopwords.js")();
@@ -17417,7 +20162,7 @@ module.exports = function (sentence) {
 };
 
 
-},{"../../../stringProcessing/createRegexFromArray.js":222,"../../../stringProcessing/stripSpaces.js":256,"./SentencePart.js":155,"./auxiliaries.js":156,"./stopwords.js":162,"lodash/forEach":493,"lodash/isEmpty":508,"lodash/map":524}],160:[function(require,module,exports){
+},{"../../../stringProcessing/createRegexFromArray.js":244,"../../../stringProcessing/stripSpaces.js":280,"./SentencePart.js":165,"./auxiliaries.js":166,"./stopwords.js":172,"lodash/forEach":521,"lodash/isEmpty":536,"lodash/map":550}],170:[function(require,module,exports){
 "use strict";
 // This is a list of irregular participles used in German.
 
@@ -17428,15 +20173,15 @@ module.exports = function () {
 };
 
 
-},{}],161:[function(require,module,exports){
+},{}],171:[function(require,module,exports){
 "use strict";
 
-var verbsBeginningWithGeRegex = /^((ge)\S+t($|[ \n\r\t\.,'\(\)\"\+\-;!?:\/»«‹›<>]))/ig;
-var verbsBeginningWithErVerEntBeZerHerUberRegex = /^(((be|ent|er|her|ver|zer|über|ueber)\S+([^s]t|sst))($|[ \n\r\t\.,'\(\)\"\+\-;!?:\/»«‹›<>]))/ig;
-var verbsWithGeInMiddleRegex = /(ab|an|auf|aus|vor|wieder|zurück)(ge)\S+t($|[ \n\r\t\.,'\(\)\"\+\-;!?:\/»«‹›<>])/ig;
-var verbsWithErVerEntBeZerHerUberInMiddleRegex = /((ab|an|auf|aus|vor|wieder|zurück)(be|ent|er|her|ver|zer|über|ueber)\S+([^s]t|sst))($|[ \n\r\t\.,'\(\)\"\+\-;!?:\/»«‹›<>])/ig;
-var verbsEndingWithIertRegex = /\S+iert($|[ \n\r\t\.,'\(\)\"\+\-;!?:\/»«‹›<>])/ig;
-var exceptionsRegex = /\S+(apparat|arbeit|dienst|haft|halt|kraft|not|pflicht|schaft|schrift|tät|wert|zeit)($|[ \n\r\t\.,'\(\)\"\+\-;!?:\/»«‹›<>])/ig;
+var verbsBeginningWithGeRegex = /^((ge)\S+t($|[ \n\r\t.,'()"+\-;!?:/»«‹›<>]))/ig;
+var verbsBeginningWithErVerEntBeZerHerUberRegex = /^(((be|ent|er|her|ver|zer|über|ueber)\S+([^s]t|sst))($|[ \n\r\t.,'()"+\-;!?:/»«‹›<>]))/ig;
+var verbsWithGeInMiddleRegex = /(ab|an|auf|aus|vor|wieder|zurück)(ge)\S+t($|[ \n\r\t.,'()"+\-;!?:/»«‹›<>])/ig;
+var verbsWithErVerEntBeZerHerUberInMiddleRegex = /((ab|an|auf|aus|vor|wieder|zurück)(be|ent|er|her|ver|zer|über|ueber)\S+([^s]t|sst))($|[ \n\r\t.,'()"+\-;!?:/»«‹›<>])/ig;
+var verbsEndingWithIertRegex = /\S+iert($|[ \n\r\t.,'()"+\-;!?:/»«‹›<>])/ig;
+var exceptionsRegex = /\S+(apparat|arbeit|dienst|haft|halt|kraft|not|pflicht|schaft|schrift|tät|wert|zeit)($|[ \n\r\t.,'()"+\-;!?:/»«‹›<>])/ig;
 /**
  * Checks if the word starts with 'ge'.
  *
@@ -17504,7 +20249,7 @@ module.exports = function () {
 };
 
 
-},{}],162:[function(require,module,exports){
+},{}],172:[function(require,module,exports){
 "use strict";
 /**
  * Returns a list with stopwords for the German passive voice assessment.
@@ -17516,7 +20261,7 @@ module.exports = function () {
 };
 
 
-},{}],163:[function(require,module,exports){
+},{}],173:[function(require,module,exports){
 "use strict";
 /** @module config/transitionWords */
 
@@ -17535,7 +20280,7 @@ module.exports = function () {
 };
 
 
-},{}],164:[function(require,module,exports){
+},{}],174:[function(require,module,exports){
 "use strict";
 /** @module config/twoPartTransitionWords */
 /**
@@ -17548,7 +20293,7 @@ module.exports = function () {
 };
 
 
-},{}],165:[function(require,module,exports){
+},{}],175:[function(require,module,exports){
 "use strict";
 /** @module analyses/getKeywordDensity */
 
@@ -17566,11 +20311,11 @@ module.exports = function (paper, researcher) {
         return 0;
     }
     var keywordCount = researcher.getResearch("keywordCount");
-    return keywordCount / wordCount * 100;
+    return keywordCount.count / wordCount * 100;
 };
 
 
-},{"../stringProcessing/countWords.js":221}],166:[function(require,module,exports){
+},{"../stringProcessing/countWords.js":243}],176:[function(require,module,exports){
 "use strict";
 /** @module analyses/getLinkStatistics */
 
@@ -17661,7 +20406,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/checkNofollow.js":219,"../stringProcessing/findKeywordInUrl.js":226,"../stringProcessing/getAnchorsFromText.js":229,"../stringProcessing/getLinkType.js":230,"../stringProcessing/url.js":262,"lodash/escapeRegExp":487}],167:[function(require,module,exports){
+},{"../stringProcessing/checkNofollow.js":241,"../stringProcessing/findKeywordInUrl.js":248,"../stringProcessing/getAnchorsFromText.js":251,"../stringProcessing/getLinkType.js":252,"../stringProcessing/url.js":287,"lodash/escapeRegExp":515}],177:[function(require,module,exports){
 "use strict";
 /** @module analyses/getLinkStatistics */
 
@@ -17680,7 +20425,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/getAnchorsFromText.js":229,"../stringProcessing/url.js":262,"lodash/map":524}],168:[function(require,module,exports){
+},{"../stringProcessing/getAnchorsFromText.js":251,"../stringProcessing/url.js":287,"lodash/map":550}],178:[function(require,module,exports){
 "use strict";
 
 var countWords = require("../stringProcessing/countWords.js");
@@ -17708,7 +20453,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/countWords.js":221,"../stringProcessing/matchParagraphs.js":239,"lodash/filter":488}],169:[function(require,module,exports){
+},{"../stringProcessing/countWords.js":243,"../stringProcessing/matchParagraphs.js":261,"lodash/filter":516}],179:[function(require,module,exports){
 "use strict";
 
 var getSentences = require("../stringProcessing/getSentences.js");
@@ -17805,7 +20550,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../helpers/getLanguage.js":106,"../stringProcessing/getSentences.js":231,"../stringProcessing/stripHTMLTags.js":253,"../values/Sentence.js":268,"./german/passiveVoice/getSentenceParts.js":159,"./passiveVoice/morphological/determinePassiveSentence.js":186,"./passiveVoice/periphrastic/determinePassiveSentencePart.js":188,"./passiveVoice/periphrastic/getSentenceParts.js":192,"lodash/forEach":493}],170:[function(require,module,exports){
+},{"../helpers/getLanguage.js":113,"../stringProcessing/getSentences.js":253,"../stringProcessing/stripHTMLTags.js":277,"../values/Sentence.js":293,"./german/passiveVoice/getSentenceParts.js":169,"./passiveVoice/morphological/determinePassiveSentence.js":203,"./passiveVoice/periphrastic/determinePassiveSentencePart.js":205,"./passiveVoice/periphrastic/getSentenceParts.js":209,"lodash/forEach":521}],180:[function(require,module,exports){
 "use strict";
 
 var getWords = require("../stringProcessing/getWords.js");
@@ -17861,7 +20606,7 @@ var compareFirstWords = function compareFirstWords(sentenceBeginnings, sentences
  */
 function sanitizeSentence(sentence) {
     sentence = stripTags(sentence);
-    sentence = sentence.replace(/^[^A-Za-z0-9]/, "");
+    sentence = sentence.replace(/^[^A-Za-zА-Яа-я0-9]/, "");
     return sentence;
 }
 /**
@@ -17904,11 +20649,11 @@ module.exports = function (paper, researcher) {
 };
 
 
-},{"../helpers/getFirstWordExceptions.js":105,"../stringProcessing/getWords.js":234,"../stringProcessing/stripHTMLTags.js":253,"../stringProcessing/stripSpaces.js":256,"lodash/filter":488,"lodash/forEach":493,"lodash/isEmpty":508}],171:[function(require,module,exports){
+},{"../helpers/getFirstWordExceptions.js":111,"../stringProcessing/getWords.js":256,"../stringProcessing/stripHTMLTags.js":277,"../stringProcessing/stripSpaces.js":280,"lodash/filter":516,"lodash/forEach":521,"lodash/isEmpty":536}],181:[function(require,module,exports){
 "use strict";
 
-var getSubheadingTexts = require("../stringProcessing/getSubheadingTexts.js");
-var countWords = require("../stringProcessing/countWords.js");
+var getSubheadingTexts = require("../stringProcessing/getSubheadingTexts");
+var countWords = require("../stringProcessing/countWords");
 var forEach = require("lodash/forEach");
 /**
  * Gets the subheadings from the text and returns the length of these subheading in an array.
@@ -17929,7 +20674,29 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/countWords.js":221,"../stringProcessing/getSubheadingTexts.js":232,"lodash/forEach":493}],172:[function(require,module,exports){
+},{"../stringProcessing/countWords":243,"../stringProcessing/getSubheadingTexts":254,"lodash/forEach":521}],182:[function(require,module,exports){
+"use strict";
+/** @module analyses/getTopicDensity */
+
+var countWords = require("../stringProcessing/countWords.js");
+var topicCount = require("./topicCount.js");
+/**
+ * Calculates the topic density .
+ *
+ * @param {Object} paper The paper containing keyword, (synonyms) and text.
+ * @returns {number} The topic density.
+ */
+module.exports = function (paper) {
+    var wordCount = countWords(paper.getText());
+    if (wordCount === 0) {
+        return 0;
+    }
+    var topicCountResult = topicCount(paper).count;
+    return topicCountResult / wordCount * 100;
+};
+
+
+},{"../stringProcessing/countWords.js":243,"./topicCount.js":234}],183:[function(require,module,exports){
 "use strict";
 
 var getWords = require("../stringProcessing/getWords.js");
@@ -17970,7 +20737,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/getSentences.js":231,"../stringProcessing/getWords.js":234,"../stringProcessing/syllables/count.js":259,"lodash/forEach":493,"lodash/map":524}],173:[function(require,module,exports){
+},{"../stringProcessing/getSentences.js":253,"../stringProcessing/getWords.js":256,"../stringProcessing/syllables/count.js":284,"lodash/forEach":521,"lodash/map":550}],184:[function(require,module,exports){
 "use strict";
 /** @module researches/imageAltTags */
 
@@ -18006,12 +20773,12 @@ var matchAltProperties = function matchAltProperties(imageMatches, keyword, loca
             altProperties.withAlt++;
             continue;
         }
-        if (wordMatch(alttag, keyword, locale) === 0 && alttag !== "") {
+        if (wordMatch(alttag, keyword, locale).count === 0 && alttag !== "") {
             // Match for keywords?
             altProperties.withAltNonKeyword++;
             continue;
         }
-        if (wordMatch(alttag, keyword, locale) > 0) {
+        if (wordMatch(alttag, keyword, locale).count > 0) {
             altProperties.withAltKeyword++;
             continue;
         }
@@ -18030,7 +20797,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/getAlttagContent":228,"../stringProcessing/imageInText":236,"../stringProcessing/matchTextWithWord":242,"lodash/escapeRegExp":487}],174:[function(require,module,exports){
+},{"../stringProcessing/getAlttagContent":250,"../stringProcessing/imageInText":258,"../stringProcessing/matchTextWithWord":265,"lodash/escapeRegExp":515}],185:[function(require,module,exports){
 "use strict";
 /** @module researches/imageInText */
 
@@ -18046,7 +20813,7 @@ module.exports = function (paper) {
 };
 
 
-},{"./../stringProcessing/imageInText":236}],175:[function(require,module,exports){
+},{"./../stringProcessing/imageInText":258}],186:[function(require,module,exports){
 "use strict";
 /**
  * Returns an array with exceptions for the sentence beginning researcher.
@@ -18066,7 +20833,7 @@ module.exports = function () {
 };
 
 
-},{}],176:[function(require,module,exports){
+},{}],187:[function(require,module,exports){
 "use strict";
 
 var transitionWords = require("./transitionWords.js")().singleWords;
@@ -18097,8 +20864,8 @@ var locativeAdverbs = ["accanto", "altrove", "attorno", "dappertutto", "giù", "
 // 'Essere' is already part of the otherAuxiliaries list.
 var filteredPassiveAuxiliaries = ["vengano", "vengo", "vengono", "veniamo", "veniate", "venimmo", "venisse", "venissero", "venissi", "venissimo", "veniste", "venisti", "venite", "veniva", "venivamo", "venivano", "venivate", "venivi", "venivo", "venne", "vennero", "venni", "verrà", "verrai", "verranno", "verrebbe", "verrebbero", "verrei", "verremmo", "verremo", "verreste", "verresti", "verrete", "verrò", "viene", "vieni"];
 var passiveAuxiliariesInfinitive = ["venire", "venir"];
-var otherAuxiliaries = ["abbi", "abbia", "abbiamo", "abbiano", "abbiate", "abbiente", "avemmo", "avendo", "avente", "avesse", "avessero", "avessi", "avessimo", "aveste", "avesti", "avete", "aveva", "avevamo", "avevano", "avevate", "avevi", "avevo", "avrà", "avrai", "avranno", "avrebbe", "avrebbero", "avrei", "avremmo", "avremo", "avreste", "avresti", "avrete", "avrò", "avuto", "ebbe", "ebbero", "ebbi", "ha", "hai", "hanno", "ho", "possa", "possano", "possiamo", "possiate", "posso", "possono", "poté", "potei", "potemmo", "potendo", "potente", "poterono", "potesse", "potessero", "potessi", "potessimo", "poteste", "potesti", "potete", "potette", "potettero", "potetti", "poteva", "potevamo", "potevano", "potevate", "potevi", "potevo", "potrà", "potrai", "potranno", "potrebbe", "potrebbero", "potrei", "potremmo", "potremo", "potreste", "potresti", "potrete", "potrò", "potuto", "può", "puoi", "voglia", "vogliamo", "vogliano", "vogliate", "voglio", "vogliono", "volemmo", "volendo", "volente", "volesse", "volessero", "volessi", "volessimo", "voleste", "volesti", "volete", "voleva", "volevamo", "volevano", "volevate", "volevi", "volevo", "volle", "vollero", "volli", "voluto", "vorrà", "vorrai", "vorranno", "vorrebbe", "vorrebbero", "vorrei", "vorremmo", "vorremo", "vorreste", "vorresti", "vorrete", "vorrò", "vuoi", "vuole", "debba", "debbano", "debbono", "deva", "deve", "devi", "devo", "devono", "dobbiamo", "dobbiate", "dové", "dovei", "dovemmo", "dovendo", "doverono", "dovesse", "dovessero", "dovessi", "dovessimo", "doveste", "dovesti", "dovete", "dovette", "dovettero", "dovetti", "doveva", "dovevamo", "dovevano", "dovevate", "dovevi", "dovevo", "dovrà", "dovrai", "dovranno", "dovrebbe", "dovrebbero", "dovrei", "dovremmo", "dovremo", "dovreste", "dovresti", "dovrete", "dovrò", "dovuto", "sa", "sai", "sanno", "sapemmo", "sapendo", "sapesse", "sapessero", "sapessi", "sapessimo", "sapeste", "sapesti", "sapete", "sapeva", "sapevamo", "sapevano", "sapevate", "sapevi", "sapevo", "sappi", "sappia", "sappiamo", "sappiano", "sappiate", "saprà", "saprai", "sapranno", "saprebbe", "saprebbero", "saprei", "sapremmo", "sapremo", "sapreste", "sapresti", "saprete", "saprò", "saputo", "seppe", "seppero", "seppi", "so", "soglia", "sogliamo", "sogliano", "sogliate", "soglio", "sogliono", "solesse", "solessero", "solessi", "solessimo", "soleste", "solete", "soleva", "solevamo", "solevano", "solevate", "solevi", "solevo", "suoli", "sta", "stai", "stando", "stanno", "stante", "starà", "starai", "staranno", "staremo", "starete", "starò", "stava", "stavamo", "stavano", "stavate", "stavi", "stavo", "stemmo", "stessero", "stessimo", "steste", "stesti", "stette", "stettero", "stetti", "stia", "stiamo", "stiano", "stiate", "sto"];
-var otherAuxiliariesInfinitive = ["avere", "aver", "potere", "poter", "volere", "voler", "dovere", "dover", "sapere", "saper", "solere", "stare", "star"];
+var otherAuxiliaries = ["abbi", "abbia", "abbiamo", "abbiano", "abbiate", "abbiente", "avemmo", "avendo", "avente", "avesse", "avessero", "avessi", "avessimo", "aveste", "avesti", "avete", "aveva", "avevamo", "avevano", "avevate", "avevi", "avevo", "avrà", "avrai", "avranno", "avrebbe", "avrebbero", "avrei", "avremmo", "avremo", "avreste", "avresti", "avrete", "avrò", "avuto", "ebbe", "ebbero", "ebbi", "ha", "hai", "hanno", "ho", "l'abbi", "l'abbia", "l'abbiamo", "l'abbiano", "l'abbiate", "l'abbiente", "l'avemmo", "l'avendo", "l'avente", "l'avesse", "l'avessero", "l'avessi", "l'avessimo", "l'aveste", "l'avesti", "l'avete", "l'aveva", "l'avevamo", "l'avevano", "l'avevate", "l'avevi", "l'avevo", "l'avrà", "l'avrai", "l'avranno", "l'avrebbe", "l'avrebbero", "l'avrei", "l'avremmo", "l'avremo", "l'avreste", "l'avresti", "l'avrete", "l'avrò", "l'avuto", "l'ebbe", "l'ebbero", "l'ebbi", "l'ha", "l'hai", "l'hanno", "l'ho", "possa", "possano", "possiamo", "possiate", "posso", "possono", "poté", "potei", "potemmo", "potendo", "potente", "poterono", "potesse", "potessero", "potessi", "potessimo", "poteste", "potesti", "potete", "potette", "potettero", "potetti", "poteva", "potevamo", "potevano", "potevate", "potevi", "potevo", "potrà", "potrai", "potranno", "potrebbe", "potrebbero", "potrei", "potremmo", "potremo", "potreste", "potresti", "potrete", "potrò", "potuto", "può", "puoi", "voglia", "vogliamo", "vogliano", "vogliate", "voglio", "vogliono", "volemmo", "volendo", "volente", "volesse", "volessero", "volessi", "volessimo", "voleste", "volesti", "volete", "voleva", "volevamo", "volevano", "volevate", "volevi", "volevo", "volle", "vollero", "volli", "voluto", "vorrà", "vorrai", "vorranno", "vorrebbe", "vorrebbero", "vorrei", "vorremmo", "vorremo", "vorreste", "vorresti", "vorrete", "vorrò", "vuoi", "vuole", "debba", "debbano", "debbono", "deva", "deve", "devi", "devo", "devono", "dobbiamo", "dobbiate", "dové", "dovei", "dovemmo", "dovendo", "doverono", "dovesse", "dovessero", "dovessi", "dovessimo", "doveste", "dovesti", "dovete", "dovette", "dovettero", "dovetti", "doveva", "dovevamo", "dovevano", "dovevate", "dovevi", "dovevo", "dovrà", "dovrai", "dovranno", "dovrebbe", "dovrebbero", "dovrei", "dovremmo", "dovremo", "dovreste", "dovresti", "dovrete", "dovrò", "dovuto", "sa", "sai", "sanno", "sapemmo", "sapendo", "sapesse", "sapessero", "sapessi", "sapessimo", "sapeste", "sapesti", "sapete", "sapeva", "sapevamo", "sapevano", "sapevate", "sapevi", "sapevo", "sappi", "sappia", "sappiamo", "sappiano", "sappiate", "saprà", "saprai", "sapranno", "saprebbe", "saprebbero", "saprei", "sapremmo", "sapremo", "sapreste", "sapresti", "saprete", "saprò", "saputo", "seppe", "seppero", "seppi", "so", "soglia", "sogliamo", "sogliano", "sogliate", "soglio", "sogliono", "solesse", "solessero", "solessi", "solessimo", "soleste", "solete", "soleva", "solevamo", "solevano", "solevate", "solevi", "solevo", "suoli", "sta", "stai", "stando", "stanno", "stante", "starà", "starai", "staranno", "staremo", "starete", "starò", "stava", "stavamo", "stavano", "stavate", "stavi", "stavo", "stemmo", "stessero", "stessimo", "steste", "stesti", "stette", "stettero", "stetti", "stia", "stiamo", "stiano", "stiate", "sto"];
+var otherAuxiliariesInfinitive = ["avere", "l'avere", "aver", "l'aver", "potere", "poter", "volere", "voler", "dovere", "dover", "sapere", "saper", "solere", "stare", "star"];
 var copula = ["è", "e'", "era", "erano", "eravamo", "eravate", "eri", "ero", "essendo", "essente", "fosse", "fossero", "fossi", "fossimo", "foste", "fosti", "fu", "fui", "fummo", "furono", "sarà", "sarai", "saranno", "sarebbe", "sarebbero", "sarei", "saremmo", "saremo", "sareste", "saresti", "sarete", "sarò", "sei", "sia", "siamo", "siano", "siate", "siete", "sii", "sono", "stata", "state", "stati", "stato"];
 var copulaInfinitive = ["essere", "esser"];
 /*
@@ -18169,13 +20936,113 @@ module.exports = function () {
         filteredAtBeginningAndEnding: [].concat(articles, prepositions, coordinatingConjunctions, demonstrativePronouns, intensifiers, quantifiers, possessivePronouns),
         // These word categories are filtered everywhere within word combinations.
         filteredAnywhere: [].concat(transitionWords, personalPronounsNominative, personalPronounsAccusative, personalPronounsPrepositional, interjections, cardinalNumerals, filteredPassiveAuxiliaries, otherAuxiliaries, copula, interviewVerbs, delexicalizedVerbs, indefinitePronouns, correlativeConjunctions, subordinatingConjunctions, interrogativeDeterminers, interrogativePronouns, interrogativeAdverbs, locativeAdverbs, miscellaneous, pronominalAdverbs, recipeWords, timeWords, vagueNouns),
+        // These word categories cannot directly precede a passive participle.
+        cannotDirectlyPrecedePassiveParticiple: [].concat(articles, prepositions, personalPronounsAccusative, possessivePronouns, indefinitePronouns, cardinalNumerals, ordinalNumerals, delexicalizedVerbs, delexicalizedVerbsInfinitive, interviewVerbs, interrogativeDeterminers, interrogativePronouns, personalPronounsPrepositional, interrogativeAdverbs),
+        // These word categories cannot intervene between an auxiliary and a corresponding passive participle.
+        cannotBeBetweenPassiveAuxiliaryAndParticiple: [].concat(otherAuxiliaries, otherAuxiliariesInfinitive),
         // This export contains all of the above words.
         all: [].concat(articles, cardinalNumerals, ordinalNumerals, demonstrativePronouns, possessivePronouns, personalPronounsNominative, personalPronounsAccusative, personalPronounsPrepositional, quantifiers, indefinitePronouns, interrogativePronouns, interrogativeAdverbs, interrogativeDeterminers, pronominalAdverbs, locativeAdverbs, filteredPassiveAuxiliaries, passiveAuxiliariesInfinitive, otherAuxiliaries, otherAuxiliariesInfinitive, copula, copulaInfinitive, prepositions, coordinatingConjunctions, correlativeConjunctions, subordinatingConjunctions, interviewVerbs, interviewVerbsInfinitive, transitionWords, additionalTransitionWords, intensifiers, delexicalizedVerbs, delexicalizedVerbsInfinitive, interjections, generalAdjectivesAdverbs, generalAdjectivesAdverbsPreceding, recipeWords, vagueNouns, miscellaneous, timeWords, titlesPreceding)
     };
 };
 
 
-},{"./transitionWords.js":177}],177:[function(require,module,exports){
+},{"./transitionWords.js":193}],188:[function(require,module,exports){
+"use strict";
+
+var Participle = require("../../../values/Participle.js");
+var checkException = require("../../passiveVoice/periphrastic/checkException.js");
+var directPrecedenceException = require("../../../stringProcessing/directPrecedenceException");
+var precedenceException = require("../../../stringProcessing/precedenceException");
+/**
+ * Creates an Participle object for the Italian language.
+ *
+ * @param {string} participle The participle.
+ * @param {string} sentencePart The sentence part that contains the participle.
+ * @param {Object} attributes The attributes object.
+ *
+ * @constructor
+ */
+var ItalianParticiple = function ItalianParticiple(participle, sentencePart, attributes) {
+  Participle.call(this, participle, sentencePart, attributes);
+  checkException.call(this);
+};
+require("util").inherits(ItalianParticiple, Participle);
+/**
+ * Checks if any exceptions are applicable to this participle that would result in the sentence part not being passive.
+ * If no exceptions are found, the sentence part is passive.
+ *
+ * @returns {boolean} Returns true if no exception is found.
+ */
+ItalianParticiple.prototype.isPassive = function () {
+  var sentencePart = this.getSentencePart();
+  var participleIndex = sentencePart.indexOf(this.getParticiple());
+  var language = this.getLanguage();
+  return !this.directPrecedenceException(sentencePart, participleIndex, language) && !this.precedenceException(sentencePart, participleIndex, language);
+};
+ItalianParticiple.prototype.directPrecedenceException = directPrecedenceException;
+ItalianParticiple.prototype.precedenceException = precedenceException;
+module.exports = ItalianParticiple;
+
+
+},{"../../../stringProcessing/directPrecedenceException":247,"../../../stringProcessing/precedenceException":268,"../../../values/Participle.js":292,"../../passiveVoice/periphrastic/checkException.js":204,"util":50}],189:[function(require,module,exports){
+"use strict";
+
+var SentencePart = require("../../../values/SentencePart.js");
+var getParticiples = require("../../passiveVoice/periphrastic/getParticiples.js");
+/**
+ * Creates an Italian-specific sentence part.
+ *
+ * @param {string} sentencePartText The text from the sentence part.
+ * @param {Array} auxiliaries The list with auxiliaries.
+ * @constructor
+ */
+var ItalianSentencePart = function ItalianSentencePart(sentencePartText, auxiliaries) {
+  SentencePart.call(this, sentencePartText, auxiliaries, "it_IT");
+};
+require("util").inherits(ItalianSentencePart, SentencePart);
+/**
+ * Returns the participles found in the sentence part.
+ *
+ * @returns {Array} The array of Participle Objects.
+ */
+ItalianSentencePart.prototype.getParticiples = function () {
+  return getParticiples(this.getSentencePartText(), this.getAuxiliaries(), "it");
+};
+module.exports = ItalianSentencePart;
+
+
+},{"../../../values/SentencePart.js":294,"../../passiveVoice/periphrastic/getParticiples.js":208,"util":50}],190:[function(require,module,exports){
+"use strict";
+/**
+ * Returns a list with auxiliaries for the Italian passive voice assessment.
+ * @returns {Array} The list with auxiliaries.
+ */
+
+module.exports = function () {
+    return ["fui", "fu", "fosti", "fummo", "foste", "furono", "stato", "stati", "stata", "state", "venire", "vengo", "vieni", "viene", "veniamo", "venite", "vengono", "venivo", "venivi", "veniva", "venivamo", "venivate", "venivano", "verrò", "verrai", "verrà", "verremo", "verrete", "verranno", "venni", "venisti", "venne", "venimmo", "veniste", "vennero", "verrei", "verresti", "verrebbe", "verremmo", "verreste", "verrebbero", "venga", "veniamo", "venite", "vengano", "veniate", "venissi", "venisse", "venissimo", "veniste", "venissero", "andare", "vado", "vai", "va", "andiamo", "andate", "vanno", "andavo", "andavi", "andava", "andavamo", "andavate", "andavano", "vada", "andiate", "andante", "andato", "andassi", "andasse", "andassimo", "andaste", "andassero", "andai", "andasti", "andò", "andammo", "andarono", "andrò", "andrai", "andrà", "andremo", "andrete", "andranno", "andrei", "andresti", "andrebbe", "andremmo", "andreste", "andrebbero", "vadano", "andando"];
+};
+
+
+},{}],191:[function(require,module,exports){
+"use strict";/**
+ * Returns a list of all participles used for the Italian passive voice assessment.
+ * For each participle, versions for all four possible suffixes (-o, -a, -e, -i) are included.
+ * @returns {Array} The list with participles.
+ */module.exports=function(){return["abalienato","abbacchiato","abbacinato","abbadato","abbagliato","abbaiato","abballato","abbambinato","abbancato","abbandonato","abbarbagliato","abbarbato","abbarcato","abbaruffato","abbassato","abbatacchiato","abbattuto","abbatuffolato","abbelito","abbellato","abbellito","abbendato","abbeverato","abbiadato","abbicato","abbigliato","abbinato","abbindolato","abbioccato","abbiosciato","abbisciato","abbittato","abboccato","abboffato","abbominato","abbonacciato","abbonato","abbonito","abbordato","abborracciato","abborrato","abborrito","abbottinato","abbottonato","abbozzacchiato","abbozzato","abbozzolato","abbracciato","abbraciato","abbrancato","abbreviato","abbriccato","abbrigliato","abbrivato","abbriviato","abbrividito","abbronzato","abbrostolato","abbrostolito","abbruciacchiato","abbruciato","abbrunato","abbrunito","abbruscato","abbrusciato","abbrustiato","abbrustolato","abbrustolito","abbrutito","abbruttito","abbuffato","abbuiato","abbuonato","abburattato","abbuzzito","abdicato","abdotto","abiettato","abilitato","abissato","abitato","abituato","abiurato","abolito","abominato","abondato","aborrito","abraso","abrogato","abusato","accaffato","accagionato","accagliato","accalappiato","accalcato","accaldato","accallato","accalorato","accalorito","accambiato","accampato","accampionato","accanalato","accanato","accaneggiato","accanito","accantonato","accaparrato","accapezzato","accapigliato","accapottato","accappiato","accappiettato","accapponato","accappucciato","accaprettato","accareggiato","accarezzato","accarnato","accarpionato","accartocciato","accasato","accasciato","accasellato","accasermato","accastellato","accastellinato","accatarrato","accatastato","accattato","accattivato","accavalcato","accavalciato","accavallato","accavezzato","accecato","acceffato","accelerato","accellerato","accennato","accensato","accentato","accentrato","accentuato","acceppato","accerchiato","accercinato","accertato","acceso","accessoriato","accettato","acchetato","acchiappato","acchiocciolato","acchitato","acchiuduto","acciabattato","acciaiato","acciambellato","acciarpato","acciecato","accigliato","acciglionato","accignuto","accincignato","accinto","acciocchito","acciottolato","accipigliato","accismato","acciso","acciucchito","acciuffato","accivettato","acclamato","acclarato","acclimatato","accluso","accoccato","accoccolato","accoccovato","accodato","accollato","accoltellato","accolto","accomandato","accomiatato","accommiatato","accomodato","accompagnato","accomunato","acconciato","acconigliato","accontato","accontentato","accoppato","accoppiato","accorato","accorciato","accorcito","accordato","accordellato","accorpato","accorto","accosciato","accostato","accostumato","accotonato","accottimato","accovacciato","accovato","accovonato","accozzato","accreditato","accresciuto","accrespato","accucciato","accucciolato","accudito","acculato","acculturato","accumulato","accumunato","accusato","acetificato","acetilato","acetito","acidato","acidificato","acidulato","acquadernato","acquarellato","acquartierato","acquato","acquattato","acquerellato","acquetato","acquietato","acquisito","acquistato","acromatizzato","acuito","acuminato","acutizzato","adacquato","adagiato","adattato","addaziato","addebbiato","addebitato","addecimato","addensato","addentato","addentellato","addentrato","addestrato","addetto","addiacciato","addimandato","addimesticato","addimorato","addimostrato","addipanato","addirizzato","additato","additivato","addizionato","addobbato","addocilito","addogliato","addolcato","addolciato","addolcito","addolorato","addomandato","addomesticato","addoppiato","addormentato","addossato","addotto","addottorato","addottrinato","addrizzato","adduato","addugliato","adeguato","adempito","adempiuto","adequato","aderizzato","adescato","adibito","adirato","adito","adiuvato","adizzato","adocchiato","adombrato","adonato","adonestato","adontato","adoperato","adoprato","adorato","adornato","adottato","adsorbito","aduggiato","adugnato","adulato","adulterato","adunato","adunghiato","adusato","aerato","aereato","aerotrainato","aerotrasportato","affabulato","affaccendato","affacchinato","affacciato","affagottato","affaldato","affamato","affamigliato","affannato","affardellato","affascinato","affastellato","affaticato","affattucchiato","affatturato","affermato","afferrato","affettato","affezionato","affiancato","affiatato","affibbiato","affidato","affienato","affievolito","affigliato","affigurato","affilato","affilettato","affiliato","affinato","affiochito","affiorato","affisato","affissato","affisso","affittato","affittito","afflitto","afflosciato","affocato","affogato","affogliato","affollato","affoltato","affondato","afforcato","afforestato","afforzato","affossato","affralito","affrancato","affranto","affratellato","affrenato","affrenellato","affrescato","affrettato","affrittellato","affrontato","affumato","affumicato","affumigato","affuocato","affusolato","africanizzato","ageminato","agevolato","aggallato","agganciato","aggangherato","aggarbato","aggattonato","aggavignato","aggelato","aggettivato","agghiacciato","agghiadato","agghiaiato","agghindato","aggiaccato","aggiogato","aggiornato","aggirato","aggiucchito","aggiudicato","aggiuntato","aggiunto","aggiustato","agglomerato","agglutinato","aggomitolato","aggottato","aggradito","aggraffato","aggranchiato","aggranchito","aggrandito","aggrappato","aggraticciato","aggravato","aggredito","aggregato","aggrevato","aggricciato","aggrinzato","aggrinzito","aggrommato","aggrondato","aggroppato","aggrottato","aggrovigliato","aggrumato","aggruppato","aggruzzolato","agguagliato","agguantato","agguardato","agguatato","aggueffato","agitato","agognato","agrarizzato","aguatato","agucchiato","agunato","agurato","aguzzato","aitato","aiutato","aizzato","alato","alberato","albergato","alcalinizzato","alchilato","alchimiato","alchimizzato","alcolizzato","alcoolizzato","alenato","alesato","alettato","alfabetato","alfabetizzato","alidito","alienato","alimentato","allacciato","allagato","allappato","allargato","allascato","allattato","alleato","allegato","alleggerito","alleggiato","allegorizzato","alleluiato","allenato","allenito","allentato","allertato","allessato","allestito","allettato","allevato","alleviato","allibato","allibito","allibrato","allicciato","allietato","allindato","allineato","alliso","allocato","allogato","alloggiato","allontanato","allottato","allucchettato","allucciolato","allucinato","allumato","alluminato","alluminiato","allungato","allupato","alluso","alluzzato","alogenato","alonato","alpeggiato","alterato","alternato","alzato","amalgamato","amareggiato","amaricato","amato","ambientato","ambiguato","ambito","americanizzato","amicato","ammaccato","ammaestrato","ammainato","ammalato","ammaliato","ammalinconito","ammaltato","ammanettato","ammanicato","ammanierato","ammanigliato","ammannato","ammannellato","ammannito","ammansato","ammansito","ammantato","ammantellato","ammarato","ammarezzato","ammassato","ammassellato","ammassicciato","ammatassato","ammattonato","ammazzato","ammelmato","ammencito","ammendato","ammennicolato","ammesso","ammetato","ammezzito","amministrato","amminutato","ammirato","ammiserito","ammobiliato","ammodernato","ammodernizzato","ammogliato","ammoinato","ammollato","ammollito","ammonito","ammonticchiato","ammonticellato","ammorbato","ammorbidato","ammorbidito","ammorsato","ammortato","ammortito","ammortizzato","ammorzato","ammosciato","ammoscito","ammostato","ammotinato","ammucchiato","ammulinato","ammusato","ammutato","ammutinato","amnistiato","amoracciato","ampiato","ampliato","amplificato","amputato","anagrammato","analizzato","anamorfizzato","anastomizzato","anatematizzato","anatomizzato","anchilosato","anciso","ancorato","andatoseno","andicappato","anellato","anemizzato","anestetizzato","angariato","anglicizzato","angolato","angosciato","angustiato","animato","annacquato","annaffiato","annasato","annaspato","annaspicato","annebbiato","annegato","annerato","annerito","annesso","annestato","annichilato","annichilito","annidato","annientato","annitrito","annobilito","annodato","annodicchiato","annoiato","annotato","annottato","annottolato","annoverato","annullato","annunciato","annunziato","annusato","annuvolato","anodizzato","anonimizzato","anteceduto","anteposto","antergato","anticheggiato","antichizzato","anticipato","anticonosciuto","antidatato","antiveduto","antivisto","antologizzato","antropizzato","antropomorfizzato","aocchiato","aombrato","aonestato","aontato","aperto","apocopato","apologizzato","apostrofato","appaciato","appacificato","appagato","appaiato","appalesato","appallottolato","appaltato","appanettato","appannato","apparato","apparecchiato","apparentato","apparigliato","apparito","appartato","appassionato","appastato","appastellato","appellato","appennellato","appercepito","appertizzato","appesantito","appesito","appeso","appestato","appetito","appezzato","appiacevolito","appianato","appiastrato","appiatato","appiattato","appiattito","appiccato","appiccicato","appiccolito","appiedato","appigionato","appigliato","appinzato","appiombato","appioppato","appisolato","applaudito","applicato","appoderato","appoggiato","appollaiato","appoppato","apportato","appostato","apposto","appratito","appresentato","appreso","appressato","apprestato","apprettato","apprezzato","approcciato","approfittato","approfondato","approfondito","approntato","appropinquato","appropriato","approssimato","approvato","approvisionato","approvvigionato","appruato","appulcrato","appuntato","appuntellato","appuntito","appurato","appuzzato","arabescato","arabizzato","arato","arbitrato","arborato","arcaizzato","arcato","architettato","archiviato","arcuato","ardito","areato","argentato","arginato","argomentato","arguito","arianizzato","arieggiato","armato","armonizzato","aromatizzato","arpeggiato","arpionato","arponato","arrabattato","arraffato","arraffiato","arrandellato","arrangiato","arrapato","arrapinato","arrappato","arrazzato","arrecato","arredato","arreggimentato","arrembato","arrenato","arresiso","arreso","arrestato","arretrato","arricchito","arricciato","arricciolato","arriffato","arringato","arrischiato","arrisicato","arriso","arrocato","arroccato","arrochito","arrogato","arrolato","arroncato","arronzato","arrosato","arrossato","arrostato","arrostito","arrotato","arrotolato","arrotondato","arrovellato","arroventato","arroventito","arrovesciato","arrubinato","arruffato","arruffianato","arrugginito","arruncigliato","arruolato","arruvidito","arsicciato","arso","artefatto","articolato","artigliato","asceso","asciato","asciolvuto","asciugato","ascoltato","ascoso","ascosto","ascritto","asfaltato","asfissiato","asperso","aspettato","aspirato","asportato","aspreggiato","assaettato","assaggiato","assalito","assaltato","assaporato","assaporito","assassinato","assecondato","assecurato","assediato","asseggiato","assegnato","assembiato","assemblato","assembrato","assemprato","assentato","asserito","asserragliato","asservito","assestato","assetato","assettato","asseverato","assibilato","assicurato","assiderato","assiemato","assiepato","assillato","assimigliato","assimilato","assiomatizzato","assiso","assistito","associato","assodato","assoggettato","assolcato","assoldato","assolto","assolutizzato","assomato","assommato","assonato","assonnato","assopito","assorbito","assordato","assordito","assortito","assottigliato","assuefatto","assunto","asteggiato","astenuto","asterso","astratto","astretto","atomizzato","atrofizzato","atrovato","attaccato","attagliato","attanagliato","attardato","attediato","atteggiato","attempato","attendato","attentato","attenuato","attenuto","attergato","atterrato","atterrito","atterzato","atteso","attestato","atticizzato","attillato","attinto","attirato","attivato","attivizzato","attizzato","attorcigliato","attorniato","attorto","attoscato","attossicato","attraccato","attrappito","attratto","attraversato","attrezzato","attribuito","attristato","attristito","attruppato","attualizzato","attuato","attuffato","attutato","attutito","auggiato","augumentato","augurato","aulito","aumentato","aunghiato","ausato","auscultato","auspicato","autenticato","autentificato","autoaccusato","autoaffondato","autoalimentato","autoassolto","autocandidato","autocensurato","autocitato","autocommiserato","autoconsumato","autoconvinto","autodefinito","autodenunciato","autodistrutto","autofinanziato","autogestito","autogovernato","autografato","autoincensato","autointersecato","autoinvitato","autolesionato","autolimitato","automaticizzato","automatizzato","automotivato","autonominato","autoproclamato","autoprodotto","autoprotetto","autopubblicato","autopubblicizzato","autoregolamentato","autoregolato","autoridotto","autoriparato","autorizzato","autosomministrato","autosostenuto","autosuggestionato","autotassato","autotrapiantato","autotrasportato","autovalutato","avallato","avampato","avanzato","avariato","avinto","aviolanciato","aviotrasportato","avocato","avolterato","avulso","avutacelo","avuto","avvalorato","avvalso","avvantaggiato","avvelato","avvelenato","avventato","avventurato","avverato","avversato","avvertito","avvezzato","avviato","avvicendato","avvicinato","avvignato","avvilito","avviluppato","avvinato","avvinchiato","avvinghiato","avvinto","avvisato","avvistato","avvitato","avviticchiato","avvitito","avvivato","avvolto","avvoltolato","aziendalizzato","azionato","azotato","azzannato","azzardato","azzeccato","azzerato","azzimato","azzittato","azzittito","azzoppato","azzoppito","azzuffato","azzurrato","bacato","baccagliato","bacchettato","bacchiato","baciato","badato","bagnato","baipassato","balbettato","balcanizzato","ballato","baloccato","balzato","banalizzato","bancato","bandito","bannato","baraccato","barattato","barbarizzato","barcamenato","bardato","barellato","barrato","barricato","basato","basciato","basculato","bassato","bastato","bastionato","bastito","bastonato","battezzato","battuto","bazzicato","beatificato","beato","beccato","beccheggiato","becchettato","beffato","beffeggiato","bendato","benedetto","beneficato","benvoluto","berlusconizzato","bersagliato","bestemmiato","bevuto","biadato","bianchettato","bianchito","biascicato","biasimato","biasmato","bidonato","biennalizzato","biforcato","bigiato","bilanciato","binato","bindolato","biodegradato","biografato","bipartito","bisbigliato","biscottato","bisecato","bisellato","bisognato","bissato","bistrato","bistrattato","bitumato","bituminato","blandito","bleffato","blindato","bloccato","bobinato","boccheggiato","bocciato","boicottato","bollato","bollito","bombardato","bombato","bonderizzato","bonificato","bootato","borbottato","bordato","boriato","borrato","borseggiato","braccato","bracciato","bramato","bramito","brancicato","brandeggiato","brandito","brasato","bravato","brevettato","breviato","brillantato","brillato","brinato","broccato","brocciato","broccolato","brontolato","bronzato","brucato","bruciacchiato","bruciato","brunito","bruscato","bruschinato","brutalizzato","bruttato","bucato","bucherellato","bufato","buffato","bufferizzato","buggerato","bugnato","bulicato","bulinato","bullettato","bullonato","burattato","burlato","burocratizzato","burrificato","buscato","buttato","butterato","bypassato","cablato","cabrato","cacato","cacciato","cadenzato","cadmiato","caducato","cagato","caggiato","cagionato","cagliato","calafatato","calamitato","calandrato","calato","calcato","calciato","calcificato","calcolato","caldeggiato","calettato","calibrato","calmato","calmierato","calpestato","calumato","calunniato","calzato","cambiato","camerato","campionato","campito","camuffato","canalizzato","cancellato","cancerizzato","candeggiato","candidato","candito","canforato","cangiato","cannato","canneggiato","cannibalizzato","cannoneggiato","canonizzato","cantato","canterellato","canticchiato","cantilenato","canzonato","caolinizzato","capacitato","capeggiato","capillarizzato","capitalizzato","capitanato","capitaneggiato","capito","capitozzato","capivolto","caponato","capotato","capottato","capovolto","capponato","captato","caramellato","caramellizzato","caratato","caratterizzato","carbonizzato","carbossilato","carburato","carcato","carcerato","cardato","carenato","carezzato","cariato","caricato","caricaturato","caricaturizzato","carotato","carpionato","carpito","carreggiato","carrozzato","cartavetrato","carteggiato","cartellinato","cartografato","cartolarizzato","cartonato","cascolato","cassato","casso","castigato","castrato","casualizzato","catabolizzato","catalizzato","catalogato","catapultato","catechizzato","categorizzato","cateterizzato","catramato","cattolicizzato","catturato","causato","cautelato","cauterizzato","cauzionato","cavalcato","cavataselo","cavato","cazzato","cazziato","cazzottato","cedrato","ceduto","celato","celebrato","cellofanato","cementato","cementificato","cennato","censito","censurato","centellato","centellinato","centimetrato","centinato","centralizzato","centrato","centrifugato","centuplicato","cerato","cercato","cerchiato","cernuto","certificato","cesellato","cessato","cestinato","cheratinizzato","chetato","chiamato","chiappato","chiarificato","chiarito","chiaroscurato","chiavato","chiazzato","chiesto","chilificato","chilometrato","chimificato","chinato","chinizzato","chiodato","chiosato","chiuso","choccato","ciancicato","cianfrinato","cianfrugliato","ciangottato","ciattato","cibato","cicatrizzato","ciccato","cicchettato","ciclizzato","ciclostilato","cifrato","cilindrato","cimato","cimentato","cincischiato","cinematografato","cintato","cinto","cioncato","ciondolato","circolato","circoncinto","circonciso","circondato","circondotto","circonflesso","circonfluito","circonfuso","circonscritto","circonvenuto","circoscritto","circostanziato","circuito","circumcinto","circumnavigato","citato","ciucciato","ciurmato","civettato","civilizzato","clamato","classato","classicizzato","classificato","cliccato","climatizzato","clivato","clonato","cloroformizzato","clorurato","clusterizzato","co-diretto","coacervato","coadiuvato","coagulato","coalizzato","coartato","coccolato","codificato","coeditato","coesistito","cofinanziato","cofirmato","cofondato","cogestito","cogitato","coglionato","cognosciuto","coibentato","coinciso","cointeressato","cointestato","coinvolto","cokificato","colato","colettato","collassato","collaudato","collazionato","collegato","collettivizzato","collezionato","collimato","colliquato","colliso","collocato","colluttato","colmato","colonizzato","colorato","colorito","colorizzato","colpevolizzato","colpito","coltellato","coltivato","colto","coltrato","comandato","combattuto","combinato","comburuto","comicizzato","cominciato","commemorato","commendato","commensurato","commentato","commercializzato","commesso","comminato","commiserato","commissariato","commissionato","commisurato","commosso","commutato","comodato","compaginato","comparito","compartimentalizzato","compartito","compassionato","compatibilizzato","compatito","compattato","compendiato","compenetrato","compensato","comperato","compiaciuto","compianto","compilato","compitato","compiuto","complessato","complessificato","complesso","completato","complicato","complimentato","comportato","compostato","composto","comprato","compravenduto","compreso","compresso","compromesso","comprovato","compulsato","compunto","computato","computerizzato","comunicato","comunistizzato","concatenato","conceduto","concelebrato","concentrato","concepito","concertato","concesso","concettato","concettualizzato","conchiuso","conciato","conciliato","concimato","concitato","conclamato","concluso","concordato","concotto","concretato","concretizzato","conculcato","concupito","condannato","condensato","condito","condiviso","condizionato","condoluto","condonato","condotto","confatto","confederato","conferito","confermato","confessato","confettato","confezionato","conficcato","confidato","configurato","confinato","confinto","confiscato","confitto","conformato","confortato","confricato","confrontato","confuso","confutato","congedato","congegnato","congelato","congestionato","congetturato","congiunto","conglobato","conglomerato","conglutinato","congratulato","congregato","conguagliato","coniato","coniugato","connaturato","connesso","connotato","connumerato","conosciuto","conquistato","consacrato","consapevolizzato","consegnato","conseguito","consentito","conservato","considerato","consigliato","consistito","consociato","consolato","consolidato","consorziato","consparso","consperso","constatato","constretto","construito","consultato","consumato","consunto","contabilizzato","contagiato","containerizzato","contaminato","contato","contattato","conteggiato","contemperato","contemplato","contentato","contenuto","conteso","contestato","contestualizzato","contingentato","continuato","contornato","contorto","contrabbandato","contraccambiato","contraddetto","contraddistinto","contradetto","contraffatto","contrappesato","contrapposto","contrappuntato","contrariato","contrassegnato","contrastato","contrato","contrattaccato","contrattato","contratto","contravvalso","contristato","controbattuto","controbilanciato","controdatato","controfirmato","controindicato","controllato","controminato","contronotato","controproposto","controprovato","controquerelato","controsoffittato","controstampato","controventato","conturbato","contuso","convalidato","convenuto","convenzionato","convertito","convinto","convitato","convocato","convogliato","convolto","coobato","cooptato","coordinato","coperchiato","coperto","copiaincollato","copiato","copolimerizzato","coppellato","coprodotto","corazzato","corbellato","corcato","cordonato","coreografato","coricato","cornificato","coronato","corredato","correlato","corresponsabilizzato","corretto","corricchiato","corrisposto","corroborato","corroso","corrotto","corrucciato","corrugato","corso","corteato","corteggiato","cortocircuitato","coruscato","cosato","coscritto","cosparso","cosperso","costatato","costeggiato","costellato","costernato","costicchiato","costipato","costituito","costituzionalizzato","costretto","costruito","costudito","cotonato","cotto","covato","coventrizzato","coverchiato","craccato","creato","creduto","cremato","crepato","cresciuto","cresimato","crespato","criminalizzato","crioconcentrato","criptato","cristallizzato","cristianizzato","criticato","crittato","crittografato","crivellato","crocchiato","crocefisso","crocefitto","crocifisso","crocifitto","crogiolato","cromato","cronicizzato","cronometrato","crostato","crucciato","crucifisso","crucifitto","cuccato","cucinato","cucito","cullato","cumulato","cuntato","curato","curvato","curvato","custodito","customizzato","damascato","damaschinato","damato","dannato","danneggiato","danzato","dardeggiato","datato","dato","dattilografato","dattiloscritto","daziato","deacidificato","deattivato","debbiato","debellato","debilitato","decaffeinato","decaffeinizzato","decalcato","decalcificato","decantato","decapato","decapitato","decappottato","decarbossilato","decarburato","decatizzato","decelerato","decentralizzato","decentrato","decerebrato","decernuto","decespugliato","deciferato","decifrato","decimalizzato","decimato","deciso","declamato","declassato","declassificato","declinato","declorato","decodificato","decolonizzato","decolorato","decompartimentato","decompilato","decomposto","decompresso","deconcentrato","decondizionato","decongelato","decongestionato","decontaminato","decontestualizzato","decontratto","decorato","decorticato","decostruito","decrementato","decretato","decriminalizzato","decriptato","decrittato","decuplicato","decurtato","dedicato","dedotto","defacciato","defalcato","defascistizzato","defecato","defenestrato","deferito","defilato","definito","defiscalizzato","defitto","deflazionato","deflemmato","deflorato","defogliato","defoliato","deforestato","deformato","defosforato","defosforilato","deframmentato","defraudato","degassato","degassificato","deglutito","degnato","degradato","degustato","deidratato","deidrogenato","deificato","deindicizzato","deindustrializzato","deionizzato","delegato","delegificato","delegittimato","delibato","deliberato","delimitato","delineato","delirato","deliziato","delocalizzato","delucidato","deluso","demagnetizzato","demandato","demanializzato","demarcato","demeritato","demerso","demetallizzato","demilitarizzato","demineralizzato","demistificato","demitizzato","democratizzato","demodulato","demolito","demoltiplicato","demonetato","demonetizzato","demonizzato","demoralizzato","demorso","demotivato","denaturalizzato","denaturato","denazificato","denazionalizzato","denicotinizzato","denigrato","denitrificato","denocciolato","denominato","denotato","dentellato","denuclearizzato","denudato","denunciato","denunziato","deodorato","deossidato","deossigenato","deostruito","depauperato","depenalizzato","depennato","depilato","depinto","depistato","deplorato","depolarizzato","depolimerizzato","depoliticizzato","depolverizzato","deportato","depositato","deposto","depotenziato","depravato","deprecato","depredato","depresso","depressurizzato","deprezzato","deprivato","deprotonato","depulso","depurato","dequalificato","deratizzato","derattizzato","dereferenziato","deregolamentato","deregolato","derequisito","deresponsabilizzato","deriso","derubato","derubricato","desacralizzato","desalato","desalinizzato","descolarizzato","descritto","desecretato","desegretato","deselezionato","desensibilizzato","desessualizzato","desiato","desiderato","designato","desinato","desirato","desolato","desolforato","desonorizzato","desorbito","desossidato","desquamato","destabilizzato","destagionalizzato","destalinizzato","destatalizzato","destatizzato","destato","destinato","destituito","destoricizzato","destreggiato","destrutto","destrutturato","desunto","detassato","detenuto","deteriorato","determinato","deterso","detestato","detonato","detorto","detossificato","detratto","detronizzato","dettagliato","dettato","detto","deturpato","deumidificato","devastato","deventato","deviato","deviscerato","devitalizzato","devitaminizzato","devoluto","dezippato","diaframmato","diagnosticato","diagonalizzato","diagrammato","dializzato","dialogato","dialogizzato","diazotato","dibattuto","diboscato","dichiarato","diesato","diesizzato","difeso","diffamato","differito","diffidato","diffranto","diffratto","diffuso","digerito","digitalizzato","digitato","digiunto","digrassato","digrignato","digrossato","dilacerato","dilaniato","dilapidato","dilatato","dilavato","dilazionato","dileggiato","dileguato","dilettato","diletto","diliscato","dilucidato","diluito","dilungato","dimagrato","dimandato","dimenato","dimensionato","dimenticato","dimerizzato","dimesso","dimezzato","diminuito","dimissionato","dimostrato","dimunto","dinamizzato","dinoccato","dipanato","dipelato","dipinto","diplomato","diposto","diradato","diramato","diretto","direzionato","dirimuto","diroccato","dirottato","dirotto","dirozzato","disabilitato","disabituato","disaccentato","disaccoppiato","disaccordato","disacerbato","disacidato","disacidificato","disacidito","disaerato","disaffezionato","disaggregato","disalberato","disallineato","disamato","disambiguato","disaminato","disamorato","disancorato","disanimato","disappannato","disapplicato","disappreso","disapprovato","disarcionato","disarmato","disarticolato","disascosto","disassemblato","disassuefatto","disatomizzato","disatteso","disattivato","disattrezzato","disavvezzato","disboscato","disbrigato","discacciato","discalzato","discantato","discaricato","discernuto","disceso","disceverato","dischiesto","dischiuso","discinto","disciolto","disciplinato","discolorato","discolpato","discommesso","discompagnato","discomposto","disconcluso","disconfitto","discongiunto","disconnesso","disconosciuto","discoperto","discordato","discosceso","discostato","discreditato","discresciuto","discriminato","discritto","discucito","discuoiato","discusso","disdegnato","disdettato","disdetto","diseccato","diseccitato","diseducato","disegnato","diserbato","diseredato","disertato","diserto","disfatto","disgelato","disgiunto","disgraziato","disgregato","disgustato","disidentificato","disiderato","disidratato","disilluso","disimballato","disimparato","disimpegnato","disimpresso","disincagliato","disincantato","disincentivato","disincrostato","disindustrializzato","disinfestato","disinfettato","disinflazionato","disinformato","disingannato","disingranato","disinibito","disinnamorato","disinnescato","disinnestato","disinquinato","disinserito","disinstallato","disintasato","disintegrato","disinteressato","disinteso","disintossicato","disinvestito","disinvolto","disistimato","dislocato","dismesso","disobbedito","disobbligato","disonorato","disordinato","disorganizzato","disorientato","disormeggiato","disossato","disossidato","disostruito","disotterrato","disparito","dispensato","dispento","disperduto","disperso","dispeso","dispiegato","dispinto","dispogliato","disposto","dispregiato","disprezzato","dispromesso","disproporzionato","disputato","disqualificato","disrotto","dissacrato","dissalato","dissaldato","dissanguato","dissecato","disseccato","disselciato","dissellato","disseminato","dissepolto","disseppellito","dissequestrato","disserrato","dissestato","dissetato","dissezionato","dissigillato","dissimulato","dissipato","dissociato","dissodato","dissolto","dissomigliato","dissotterrato","dissuaso","dissuggellato","distaccato","distanziato","disteso","distillato","distinto","distolto","distorto","distratto","distretto","distribuito","districato","distrigato","distrutto","disturbato","disubbidito","disumanato","disumanizzato","disunito","disusato","disveduto","disvelato","disvestito","disviato","disvisto","disvolto","disvoluto","dittongato","divallato","divaricato","divelto","diversificato","divertito","divezzato","divinato","divincolato","divinizzato","diviso","divolto","divorato","divorziato","divulgato","documentato","dogato","dogmatizzato","dolcificato","dollarizzato","dolorato","doluto","domandato","domato","domesticato","domiciliato","dominato","donato","dondolato","dopato","doppiato","dorato","dormitoco","dosato","dotato","dovuto","dragato","drammatizzato","drappeggiato","drenato","dribblato","drizzato","drogato","dugliato","duplicato","duramificato","ebraizzato","ecceduto","eccepito","eccettuato","eccitato","echeggiato","eclissato","economizzato","edificato","editato","edotto","educato","edulcorato","effettuato","efficientato","effigiato","effinto","effluito","effuso","egemonizzato","eguagliato","eiettato","elaborato","elargito","elasticizzato","elementarizzato","elemosinato","elencato","eletto","elettrificato","elettrizzato","elettrocoagulato","elettrolizzato","elevato","eliminato","eliso","elitrasportato","ellenizzato","elogiato","elucidato","elucubrato","eluito","eluso","emanato","emancipato","emarginato","embricato","emendato","emesso","emozionato","empito","empiuto","emulato","emulsionato","emunto","encomiato","endocitato","energizzato","enfatizzato","enfiato","entusiasmato","enucleato","enumerato","enunciato","epicureggiato","epurato","equalizzato","equilibrato","equipaggiato","equiparato","eradicato","eraso","ereditato","eretto","erogato","eroicizzato","eroso","erotizzato","erpicato","erso","erudito","eruttato","esacerbato","esagerato","esagitato","esalato","esaltato","esaminato","esasperato","esaudito","esaurito","esautorato","esborsato","escluso","escogitato","escomiato","escoriato","escosso","escusso","esecrato","esecutato","eseguito","esemplificato","esentato","esercitato","esfoliato","esibito","esilarato","esiliato","esimuto","esitato","esonerato","esorbitato","esorcizzato","esortato","espanso","esparso","esperimentato","esperito","espettorato","espiantato","espiato","espirato","espletato","esplicato","esplicitato","esplorato","esploso","esportato","esposto","espresso","espropriato","espugnato","espulso","espunto","espurgato","essiccato","essuto","estasiato","estenuato","esterificato","esteriorizzato","esterminato","esternalizzato","esternato","esteso","estimato","estinto","estirpato","estivato","estorto","estradato","estraniato","estrapolato","estratto","estremizzato","estrinsecato","estromesso","estruso","estubato","esulcerato","esultato","esumato","eterificato","eterizzato","eternato","eternizzato","etichettato","etossilato","euforizzato","europeizzato","evacuato","evangelizzato","evaso","eveto","evidenziato","evinto","evirato","eviscerato","evitato","evocato","evolto","evoluto","evulso","fabbricato","faccettato","facilitato","fagocitato","falciato","falcidiato","fallito","falsato","falsificato","familiarizzato","fanatizzato","fantasticato","farcito","farfugliato","fasciato","fascicolato","fascistizzato","fattacelo","fatto","fattorizzato","fatturato","favellato","favoreggiato","favorito","faxato","fecondato","fedecommesso","federalizzato","federato","felicitato","felpato","feltrato","femminilizzato","fenduto","ferito","fermato","fermentato","ferrato","fertilizzato","fesso","fessurato","festeggiato","festonato","feudalizzato","fiaccato","fiammeggiato","fiancheggiato","ficcato","fidanzato","fidato","fidecommesso","fidelizzato","figliato","figurato","filato","filettato","filmato","filosofato","filtrato","finalizzato","finanziato","finitalo","finito","finlandizzato","fintato","finto","fiocinato","fiondato","fiorettato","firmato","fiscalizzato","fischiato","fischiettato","fissato","fissionato","fitto","fiutato","flagellato","flaggato","flambato","flangiato","flemmatizzato","flesso","flippato","flottato","fluidificato","fluidizzato","fluorizzato","fluorurato","focalizzato","focheggiato","foderato","foggiato","fognato","folgorato","follato","fomentato","fonato","fondato","foracchiato","foraggiato","forato","forestato","forfettizzato","forgiato","formalizzato","formato","formattato","formilato","formulato","fornito","fortificato","forviato","forwardato","forzato","fosfatato","fosforato","fosforilato","fossilizzato","fotocomposto","fotocopiato","fotografato","fottuto","fracassato","frainteso","framesso","frammentato","frammesso","frammezzato","frammischiato","franceseggiato","francesizzato","frangiato","franto","frantumato","frappato","frapposto","fraseggiato","frastagliato","frastornato","fratturato","frazionato","freddato","fregato","fregiato","frenato","frequentato","fresato","frettato","friendzonato","fritto","frizionato","frodato","frollato","fronteggiato","frugato","fruito","frullato","frusciato","frustato","frustrato","fruttato","fucilato","fucinato","fugato","fuggito","fulminato","fumato","fumigato","funestato","funto","funzionato","fuoriuscito","fuorviato","fuso","fustellato","fustigato","gabbato","gabellato","gallato","gallicizzato","gallonato","galvanizzato","gambizzato","garantito","garnettato","garrotato","garzato","gasato","gassato","gassificato","gazato","gelatinizzato","gelato","gelificato","gemellato","gemicato","geminato","generalizzato","generato","gentrificato","genuflesso","geometrizzato","georeferenziato","gerarchizzato","germanizzato","gestito","gettato","gettonato","ghermito","ghettizzato","ghigliottinato","ghindato","gibollato","gingillato","ginnato","giocato","gioito","gionglato","giovaneggiato","girandolato","girato","giudicato","giulebbato","giuntato","giunto","giuracchiato","giurato","giustapposto","giustificato","giustiziato","glamourizzato","glassato","glissato","globalizzato","gloriato","glorificato","glossato","godronato","goduto","goffrato","gommato","gonfiato","googlato","gottato","governato","gradinato","gradito","gradualizzato","graduato","graffato","graffiato","graffito","graficato","grafitato","gramolato","granagliato","grandinato","granellato","granito","granulato","graticciato","graticolato","gratificato","gratinato","grattato","grattugiato","gravato","graziato","grecheggiato","grecizzato","gremito","gridato","griffato","grigliato","grippato","groccato","grondato","grugato","grugnito","guadagnato","gualcito","guardato","guarito","guarnito","guastato","guatato","guerreggiato","gufato","guidato","gustato","hackerato","handicappato","ibridato","idealizzato","ideato","identificato","ideologizzato","idolatrato","idoleggiato","idratato","idrogenato","idrolizzato","iettato","igienizzato","ignifugato","ignorato","illanguidito","illeggiadrito","illividito","illuminato","illuso","illustrato","imbacuccato","imbaldanzito","imballato","imbalsamato","imbambolato","imbandierato","imbandito","imbarbarito","imbarcato","imbarilato","imbastardito","imbastito","imbattuto","imbavagliato","imbeccato","imbellettato","imbellito","imbestialito","imbestiato","imbevuto","imbiaccato","imbiancato","imbianchito","imbibito","imbiettato","imbiondito","imbizzarrito","imboccato","imbonito","imborghesito","imboscato","imboschito","imbottato","imbottigliato","imbottito","imbozzimato","imbracato","imbracciato","imbragato","imbrancato","imbrattato","imbrecciato","imbrigliato","imbrillantinato","imbroccato","imbrodato","imbrogliato","imbronciato","imbruttito","imbucato","imbudellato","imbullettato","imbullonato","imburrato","imbussolato","imbustato","imbutito","imitato","immagazzinato","immaginato","immalinconito","immatricolato","immedesimato","immerso","immesso","immischiato","immiserito","immobilizzato","immolato","immortalato","immunizzato","immusonito","impaccato","impacchettato","impacciato","impadronito","impaginato","impagliato","impalato","impalcato","impallato","impallinato","impalmato","impaludato","impanato","impaniato","impannato","impantanato","impaperato","impapocchiato","impappinato","imparentato","imparruccato","impartito","impastato","impasticcato","impasticciato","impastocchiato","impastoiato","impataccato","impattato","impaurito","impavesato","impeciato","impedicato","impedito","impegnato","impegolato","impelagato","impellicciato","impennacchiato","impennato","impensierito","impepato","imperlato","impermalito","impermeabilizzato","imperniato","impersonato","impersonificato","impestato","impetrato","impiallacciato","impiantato","impiastrato","impiastricciato","impiccato","impicciato","impicciolito","impiccolito","impidocchiato","impiegato","impietosito","impietrito","impigliato","impigrito","impilato","impillaccherato","impinguato","impinto","impinzato","impiombato","impipato","impiumato","implementato","implicato","implorato","impollinato","impolpato","impoltronito","impolverato","impomatato","imporcato","imporporato","importato","importunato","impossessato","impossibilitato","impostato","imposto","impratichito","impregnato","impreso","impressionato","impresso","imprestato","impreziosito","imprigionato","impromesso","improntato","improsciuttito","impugnato","impuntito","impunturato","impupato","imputato","impuzzolentito","inabilitato","inabissato","inacerbito","inacetito","inacidito","inacutito","inaffiato","inalato","inalberato","inalveato","inalzato","inamidato","inanellato","inarcato","inargentato","inaridito","inasprito","inastato","inattivato","inaugurato","incacchiato","incalcinato","incalorito","incalzato","incamerato","incamiciato","incamminato","incanaglito","incanalato","incannato","incannucciato","incaponito","incappottato","incappucciato","incaprettato","incapricciato","incapsulato","incarcerato","incardinato","incaricato","incarnato","incarrozzato","incartato","incartocciato","incartonato","incasellato","incasinato","incassato","incastellato","incastonato","incastrato","incatenato","incatramato","incattivito","incavato","incavigliato","incavolato","incazzato","incellofanato","incendiato","incenerito","incensato","incentivato","incentrato","inceppato","incerato","incernierato","incerottato","inceso","incettato","inchiappettato","inchiavardato","inchiesto","inchinato","inchiodato","inchiostrato","incipriato","inciso","incistato","incitato","inciuccato","incivilito","inclinato","incluso","incoccato","incocciato","incoiato","incollato","incolonnato","incolpato","incominciato","incomodato","incontrato","incoraggiato","incordato","incornato","incorniciato","incoronato","incorporato","incotto","incravattato","incrementato","increspato","incretinito","incriminato","incrinato","incrociato","incrostato","incrudelito","incrudito","incruscato","incubato","inculato","inculcato","incuneato","incuoiato","incuorato","incupito","incuriosito","incurvato","incusso","indagato","indebitato","indebolito","indemaniato","indennizzato","indetto","indicato","indicizzato","indignato","indiretto","indirizzato","indispettito","indisposto","individualizzato","individuato","indolenzito","indorato","indossato","indotto","indottomo","indottrinato","indovinato","indugiato","indulto","indurato","indurito","industrializzato","industriato","inebetito","inebriato","inerito","inerpicato","infagottato","infamato","infangato","infarcito","infarinato","infastidito","infatuato","infeltrito","inferito","inferocito","inferto","infervorato","infestato","infettato","infeudato","infiacchito","infialato","infialettato","infiammato","infiascato","infibulato","inficiato","infilato","infiltrato","infilzato","infingardito","infinocchiato","infinto","infioccato","infiocchettato","infiochito","infiorato","infirmato","infischiato","infisso","infittito","inflazionato","inflesso","inflitto","influenzato","infocato","infoderato","infognato","infoibato","infoltito","inforcato","informatizzato","informato","informicolato","informicolito","infornaciato","infornato","infortunato","infoscato","infossato","infradiciato","inframesso","inframezzato","inframmesso","inframmezzato","infrancesato","infrapposto","infrascato","infrattato","infreddato","infronzolato","infuocato","infurbito","infuriato","ingabbiato","ingaggiato","ingagliardito","ingannato","ingarbugliato","ingavonato","ingegnato","ingegnerizzato","ingelosito","ingemmato","ingenerato","ingentilito","ingerito","ingessato","inghiaiato","inghiottito","inghirlandato","ingiallito","ingigantito","inginocchiato","ingioiellato","ingiunto","ingiuriato","inglesizzato","inglobato","ingoffito","ingoiato","ingolfato","ingollato","ingolosito","ingombrato","ingommato","ingorgato","ingozzato","ingranato","ingrandito","ingrassato","ingraticciato","ingraticolato","ingravidato","ingraziato","ingraziosito","ingrigito","ingrommato","ingrossato","ingrullito","inguaiato","inguainato","ingualdrappato","inguantato","ingurgitato","inibito","iniettato","inimicato","inizializzato","iniziato","inmillato","innacquato","innaffiato","innalzato","innamorato","innastato","innervato","innervosito","innescato","innestato","innevato","innocentato","innocuizzato","innovato","inoculato","inoltrato","inondato","inorgoglito","inorpellato","inorridito","inquadrato","inquietato","inquisito","insabbiato","insacchettato","insalato","insaldato","insalivato","insanguinato","insaponato","insaporito","inscatolato","inscenato","inscritto","insecchito","insediato","insegnato","inseguito","insellato","inselvatichito","inserito","insidiato","insignito","insilato","insinuato","insolentito","insonnolito","insonorizzato","insordito","insospettito","insozzato","inspessito","inspirato","installato","instaurato","insterilito","instillato","instituito","instradato","insudiciato","insufflato","insultato","insuperbito","intabaccato","intabarrato","intaccato","intagliato","intarsiato","intasato","intascato","intavolato","integrato","intelaiato","intelato","intellettualizzato","intenebrato","intenerito","intensificato","intentato","intepidito","intercalato","intercambiato","intercettato","interciso","intercluso","intercollegato","interconnesso","interconvertito","interdetto","interessato","interfacciato","interfogliato","interfoliato","interiorizzato","interlacciato","interlineato","intermesso","intermezzato","internalizzato","internato","internazionalizzato","interpellato","interpenetrato","interpolato","interposto","interpretato","interpunto","interrato","interrogato","interrotto","intersecato","intervallato","intervistato","inteso","intessuto","intestardito","intestato","intiepidito","intimato","intimidito","intimorito","intinto","intirizzito","intitolato","intonacato","intonato","intontito","intorbidato","intorbidito","intorpidito","intortato","intossicato","intralciato","intramesso","intramezzato","intrappolato","intrapreso","intrattenuto","intraveduto","intravisto","intravveduto","intravvisto","intrecciato","intricato","intrigato","intrinsecato","intrippato","intriso","introdotto","introflesso","introiettato","introitato","intromesso","intronato","intronizzato","intruduto","intrufolato","intrugliato","intruppato","intruso","intubato","intubettato","intuito","inumato","inumidito","inurbato","inutilizzato","invaghito","invaginato","invalidato","invasato","invaso","invelenito","inventariato","inventato","invenuto","inverdito","invergato","inverniciato","investigato","investito","invetriato","inviato","invidiato","invigorito","inviluppato","invischiato","invitato","invocato","invogliato","involato","involgarito","involtato","involto","inzaccherato","inzeppato","inzigato","inzolfato","inzuccato","inzuccherato","inzuppato","iodurato","ionizzato","ipertrofizzato","ipnotizzato","ipostatizzato","ipotecato","ipotizzato","iridato","irradiato","irraggiato","irreggimentato","irretito","irrigato","irrigidito","irriso","irritato","irrobustito","irrogato","irrorato","irrugginito","irruvidito","ischeletrito","iscritto","islamizzato","isolato","isomerizzato","ispanizzato","ispessito","ispezionato","ispirato","issato","istallato","istanziato","istaurato","isterilito","istigato","istillato","istituito","istituzionalizzato","istoriato","istradato","istruito","istupidito","italianeggiato","italianizzato","iterato","iudicato","killerato","labbreggiato","labializzato","laccato","lacerato","laconizzato","lacrimato","ladroneggiato","lagnato","lagrimato","laicizzato","lambiccato","lambito","lamentato","laminato","lanciato","lapidato","lappato","lardato","lardellato","largito","larvato","lascato","lasciato","lastricato","latinizzato","laudato","laureato","lavato","lavorato","leccato","legalizzato","legato","leggicchiato","leggiucchiato","legittimato","legittimizzato","legnato","lemmatizzato","lenito","lesinato","lesionato","leso","lessato","letto","levato","levigato","liberalizzato","liberato","licenziato","lievitato","liftato","lignificato","limato","limitato","linciato","linearizzato","lineato","linkato","liofilizzato","liquefatto","liquidato","lisato","lisciato","lisciviato","listato","litografato","livellato","lizzato","lobotomizzato","localizzato","locato","lodato","logorato","lordato","lottato","lottizzato","lubrificato","lucchettato","lucidato","lucrato","lumeggiato","luppolizzato","lusingato","lussato","lustrato","macadamizzato","macchiato","macchinato","macellato","macerato","maciullato","maggesato","maggiorato","magnato","magnetizzato","magnificato","maiolicato","maledetto","malfatto","malignato","malmenato","malmesso","maltato","maltrattato","malveduto","malversato","malvisto","malvoluto","mandato","mandrinato","manducato","maneggiato","manganato","manganellato","mangiato","mangiucchiato","manifatturato","manifestato","manimesso","manipolato","manlevato","manomesso","manoscritto","manovrato","mansuefatto","mantecato","mantenutaso","mantenuto","manualizzato","manutenuto","mappato","marcato","marchiato","marcito","marezzato","marginalizzato","marginato","margottato","marimesso","marinato","maritato","marmorizzato","marnato","marocchinato","martellato","martellinato","martirizzato","martoriato","mascherato","maschiato","maschiettato","mascolinizzato","massacrato","massaggiato","massellato","massicciato","massificato","massimato","massimizzato","mastectomizzato","masterizzato","masticato","masturbato","matematizzato","materializzato","matricolato","mattonato","maturato","mazziato","mazzolato","meccanizzato","medagliato","mediato","medicalizzato","medicato","meditato","membrato","memorizzato","menato","mendicato","menomato","mentovato","menzionato","meravigliato","mercanteggiato","mercerizzato","mercificato","meriato","meridionalizzato","meritato","merlato","merlettato","merso","mesciato","mesciuto","mescolato","mescuto","mesmerizzato","messaggiato","messo","messoco","mestato","mesticato","mestruato","metabolizzato","metaforeggiato","metaforizzato","metallizzato","metamorfizzato","metamorfosato","metanizzato","metilato","metodizzato","microfilmato","microfonato","microminiaturizzato","micronizzato","mietuto","migliorato","militarizzato","millantato","millimetrato","mimato","mimeografato","mimetizzato","minacciato","minato","minchionato","mineralizzato","miniato","miniaturizzato","minimizzato","minuito","minuzzato","miracolato","miscelato","mischiato","misconosciuto","missato","mistificato","misturato","misurato","miticizzato","mitigato","mitizzato","mitragliato","mitrato","mixato","mobiliato","mobilitato","mobilizzato","modanato","modellato","modellizzato","moderato","modernizzato","modificato","modulato","molato","molestato","mollato","molleggiato","moltiplicato","monacato","mondato","mondializzato","monetarizzato","monetato","monetizzato","monitorato","monitorizzato","monocromatizzato","monopolizzato","monottongato","montato","monumentalizzato","mordenzato","mordicchiato","mormorato","morphato","morsicato","morsicchiato","morso","mortasato","mortificato","mosso","mostrato","motivato","motorizzato","motteggiato","movimentato","mozzato","mugolato","mulcito","multato","multiplexato","mummificato","municipalizzato","munito","munto","murato","musato","musicato","mussato","mutato","mutilato","mutizzato","mutuato","nappato","narcotizzato","narrativizzato","narrato","nasalizzato","nascoso","nascosto","nastrato","naturaleggiato","naturalizzato","nauseato","naverato","navicato","navigato","nazificato","nazionalizzato","nebulizzato","necessitato","necrosato","necrotizzato","negativizzato","negato","negletto","negoziato","negreggiato","neologizzato","nerbato","nericato","nettato","neutralizzato","nevato","nevicato","nevischiato","nevrotizzato","nichelato","niellato","ninfeggiato","ninnato","ninnolato","nitratato","nitrificato","nobilitato","noiato","noleggiato","nomato","nominalizzato","nominato","normalizzato","normato","notato","notificato","notiziato","notricato","noverato","nuclearizzato","nudricato","nullificato","numerato","numerizzato","nuotato","nutrito","obbiettato","obbliato","obbligato","oberato","obiettato","obiettivato","obiettivizzato","obiurgato","obliato","obliterato","obnubilato","occasionato","occhieggiato","occidentalizzato","occiso","occluso","occultato","occupato","ocheggiato","odiato","odorato","odorizzato","offerito","offerto","offeso","officiato","offiziato","offuscato","ofiziato","oggettivato","oggettivizzato","oggettualizzato","oliato","olito","olografato","oltraggiato","oltrapassato","oltrepassato","omaggiato","ombrato","ombreggiato","omesso","omogeneizzato","omogenizzato","omologato","ondato","ondulato","onestato","onnubilato","onorato","opacato","opacizzato","operato","opinato","oppiato","oppignorato","oppilato","opposto","oppresso","oppugnato","oprato","opsonizzato","optato","opzionato","orbitato","orchestrato","ordinato","ordito","orecchiato","organato","organicato","organizzato","orgasmato","orientalizzato","orientato","originato","origliato","orizzontato","orlato","orlettato","ormato","ormeggiato","ornato","orpellato","orrato","orripilato","ortogonalizzato","osannato","osato","osculato","oscurato","ospedalizzato","ospitato","osseduto","ossequiato","osservato","ossessionato","ossidato","ossificato","ossitonizzato","ostacolato","osteggiato","ostentato","ostinato","ostracizzato","ostruito","ottemperato","ottenebrato","ottenuto","ottimalizzato","ottimato","ottimizzato","ottonato","ottriato","ottuplicato","otturato","ottuso","ottusso","ovalizzato","ovariectomizzato","ovattato","overcloccato","ovrato","ovviato","ozieggiato","ozonizzato","pacato","pacciamato","pacificato","padroneggiato","paganizzato","pagato","paginato","palafittato","palatalizzato","palato","palesato","palettato","palettizzato","palificato","palleggiato","pallettizzato","palpato","palpeggiato","panato","panneggiato","panoramicato","pappato","paracadutato","parafato","paraffinato","parafrasato","paragonato","paragrafato","paralizzato","parallelizzato","parametrato","parametrizzato","parassitato","parato","parcato","parcellizzato","parcheggiato","pareggiato","parificato","parkerizzato","parlato","parlucchiato","parodiato","partecipato","particolareggiato","particolarizzato","partizionato","partorito","parzializzato","pasciuto","pascolato","passato","passeggiato","passionato","passivato","pasticciato","pastorizzato","pasturato","patinato","patito","patrocinato","patteggiato","pattugliato","pattuito","paventato","pavesato","pavimentato","pavoneggiato","pazziato","pedinato","pedonalizzato","peggiorato","pelato","pellettizzato","penalizzato","penetrato","pennellato","pensato","pensionato","pentito","pepato","peptonizzato","peragrato","percentualizzato","percepito","percolato","percorso","percosso","perdonato","perdotto","perduto","perequato","perfatto","perfezionato","perforato","performato","perito","periziato","perlustrato","permeato","permesso","perorato","perpetrato","perpetuato","perplimuto","perquisito","perscrutato","perseguitato","perseguito","perso","personalizzato","personificato","persuaso","perturbato","pervaso","pervertito","pesato","pescato","pestato","petrarcheggiato","pettegolato","pettinato","piagato","piaggiato","piallato","pianeggiato","pianificato","piantato","piantatalo","piantato","pianto","piantonato","piantumato","piastrellato","piatito","piazzato","picchettato","picchiato","picchierellato","picchiettato","picconato","piegato","pieghettato","pietrificato","pigiato","pigliato","pigmentato","pignorato","pigolato","pilotato","pimentato","pinto","pinzato","piombato","piovigginato","piovuto","pipato","pippato","piratato","pirogenato","pisciato","pitoccato","pittato","pitturato","pizzicato","pizzicottato","placato","placcato","plagiato","plasmato","plasticato","plastificato","platinato","plissettato","pluralizzato","poetato","poeticizzato","poggiato","polarizzato","poligrafato","polimerizzato","politicizzato","polverizzato","pomiciato","pompato","ponderato","ponzato","popolarizzato","popolato","poppato","porcellanato","porfirizzato","portato","porteso","porto","porzionato","posato","posdatato","positivizzato","posizionato","posposto","posseduto","postato","postdatato","posteggiato","posticipato","postillato","posto","postsincronizzato","postulato","potabilizzato","potato","potenziato","potuto","pralinato","praticato","preaccennato","preannunciato","preannunziato","preavvertito","preavvisato","precaricato","preceduto","precettato","precinto","precisato","precluso","precompilato","precompresso","preconfezionato","preconizzato","preconosciuto","precorso","precostituito","predato","predefinito","predestinato","predeterminato","predetto","predicato","predigerito","prediletto","predisposto","preeletto","preesistuto","prefabbricato","prefato","prefatto","prefazionato","preferito","prefigurato","prefinanziato","prefissato","prefisso","preformato","pregato","pregiato","pregiudicato","pregustato","preimpregnato","prelevato","premeditato","premescolato","premesso","premiato","premonito","premunito","premurato","premuto","prenotato","preoccupato","preordinato","preparato","prepensionato","prepigmentato","preposto","preprogrammato","preraffreddato","prerefrigerato","preregistrato","preregolato","preriscaldato","preso","presagito","presaputo","presaselo","prescelto","prescritto","preseduto","presegnalato","preselezionato","presentato","presentito","preservato","presidiato","presieduto","preso","pressato","presso","pressurizzato","prestabilito","prestampato","prestato","prestigiato","presunto","presupposto","pretermesso","preteso","pretrattato","prevaricato","preveduto","prevenduto","preventivato","prevenuto","previsto","prezzato","prezzolato","principiato","privatizzato","privato","privilegiato","problematizzato","procacciato","processato","proclamato","procrastinato","procreato","procurato","prodigato","prodotto","profanato","proferito","professato","professionalizzato","profetato","profetizzato","profferito","profilato","profondato","profumato","profuso","progettato","prognosticato","programmato","proibito","proiettato","proletarizzato","prolungato","promanato","promesso","promosso","promozionato","promulgato","pronosticato","pronunciato","pronunziato","propagandato","propagato","propagginato","propalato","propinato","propiziato","proporzionato","proposto","propugnato","propulso","prorogato","prosciolto","prosciugato","proscritto","proseguito","prospettato","prosternato","prosteso","prostituito","prostrato","prosunto","proteso","protestato","protetto","protocollato","protonato","protratto","protruso","provato","proveduto","provincializzato","provisto","provocato","provveduto","provvisto","psicanalizzato","psichiatrizzato","psicoanalizzato","psicologizzato","pubblicato","pubblicizzato","puddellato","pugnalato","pulito","pungolato","punito","puntato","punteggiato","puntellato","punto","puntualizzato","punzecchiato","punzonato","purgato","purificato","putito","putrefatto","putrito","quadrato","quadrettato","quadriennalizzato","quadruplicato","qualificato","quantificato","quantizzato","querelato","questuato","quetato","quietanzato","quietato","quintessenziato","quintuplicato","quotato","quotizzato","rabberciato","rabboccato","rabbonito","rabbuffato","rabuffato","raccapezzato","raccapricciato","raccattato","raccerchiato","racceso","racchetato","racchiuso","raccolto","raccolto","raccomandato","raccomodato","raccontato","raccorciato","raccorcito","raccordato","raccostato","raccozzato","racemizzato","racimolato","radazzato","raddensato","raddobbato","raddolcito","raddoppiato","raddotto","raddrizzato","radiato","radicalizzato","radioassistito","radioattivato","radiocomandato","radiodiffuso","radiografato","radioguidato","radiolocalizzato","radiomarcato","radiotelegrafato","radiotrasmesso","radunato","raffazzonato","raffermato","raffigurato","raffilato","raffinato","rafforzato","raffreddato","raffrenato","raffrescato","raffrontato","raggelato","raggentilito","ragghiato","raggirato","raggiunto","raggiustato","raggomitolato","raggranchiato","raggranchito","raggranellato","raggrinzato","raggrinzito","raggrumato","raggruppato","raggruzzolato","ragguagliato","ralingato","rallegrato","rallentato","ramato","ramazzato","rammagliato","rammaricato","rammemorato","rammendato","rammentato","rammodernato","rammollito","rammorbidito","rampognato","randellato","randomizzato","rannicchiato","rannuvolato","ranzato","rapato","rapinato","rapito","rappacificato","rappato","rappattumato","rappezzato","rapportato","rappresantato","rappresentato","rappreso","rarefatto","rasato","raschiato","raschiettato","rasentato","raso","raspato","rassegnato","rasserenato","rassettato","rassicurato","rassodato","rassomigliato","rassottigliato","rassunto","rastrellato","rastremato","rateato","rateizzato","ratificato","ratinato","rattizzato","rattoppato","rattorto","rattrappito","rattristato","rattristito","raunato","ravvalorato","ravveduto","ravviato","ravvicinato","ravviluppato","ravvisato","ravvisto","ravvivato","ravvolto","ravvoltolato","razionalizzato","razionato","razziato","razzolato","realizzato","reassunto","recapitato","recato","receduto","recensito","recepito","recidivato","recintato","recinto","reciprocato","reciso","recitato","reclamato","reclamizzato","reclinato","recluso","reclutato","recuperato","redarguito","redatto","redazzato","redduto","redento","redistribuito","redotto","referenziato","refertato","refilato","reflesso","reflettuto","refranto","refrigerato","regalato","regimato","regimentato","regionalizzato","registrato","regolamentato","regolarizzato","regolato","reidratato","reificato","reimbarcato","reimmerso","reimmesso","reimparato","reimpastato","reimpiantato","reimpiegato","reimportato","reimpostato","reincarcerato","reincaricato","reincarnato","reinciso","reincontrato","reindirizzato","reindustrializzato","reinfettato","reingaggiato","reinizializzato","reinnestato","reinoltrato","reinscritto","reinsediato","reinserito","reinstallato","reinstaurato","reintegrato","reinterpretato","reintitolato","reintrodotto","reinventato","reinvestito","reiterato","relativizzato","relazionato","relegato","remixato","remunerato","renderizzato","reperito","repertato","replicato","represso","repulso","reputato","requisito","rescisso","resecato","resettato","residuato","resinificato","reso","resolato","resolto","respinto","respirato","responsabilizzato","resposto","restaurato","restituito","resunto","resuscitato","reticolato","retinato","retribuito","retroceduto","retrocesso","retrodatato","rettificato","retto","reumatizzato","revisionato","revocato","riabbassato","riabbellito","riabbonato","riabbottonato","riabbracciato","riabilitato","riabitato","riabituato","riaccaduto","riaccasato","riacceso","riaccettato","riacchiappato","riacciuffato","riaccolto","riaccomodato","riaccompagnato","riaccordato","riaccostato","riaccreditato","riacquisito","riacquistato","riacutizzato","riadattato","riaddestrato","riaddormentato","riadoperato","riaffacciato","riaffermato","riafferrato","riaffiorato","riaffittato","riaffrontato","riagganciato","riaggiornato","riaggiustato","riaggravato","riaggregato","riagguantato","rialimentato","riallacciato","riallargato","riallineato","riallocato","riallungato","rialzato","riamato","riambientato","riammalato","riammesso","riammodernato","riammogliato","rianimato","riannesso","riannodato","riannunciato","riaperto","riappacificato","riappaltato","riapparecchiato","riapparito","riappeso","riappiccicato","riapplicato","riappreso","riapprodato","riappropriato","riapprovato","riarmato","riarrangiato","riarredato","riascoltato","riasfaltato","riassalito","riassaporato","riassegnato","riassemblato","riassestato","riassettato","riassicurato","riassociato","riassopito","riassorbito","riassunto","riattaccato","riattato","riatteso","riattinto","riattivato","riattizzato","riattraversato","riaumentato","riavuto","riavventato","riavvertito","riavviato","riavvicinato","riavvinto","riavvisato","riavvistato","riavvolto","riazzuffato","ribaciato","ribadito","ribaltato","ribassato","ribattezzato","ribattuto","ribellato","ribenedetto","ribevuto","ributtato","ricacciato","ricalato","ricalcato","ricalcificato","ricalcitrato","ricalcolato","ricalibrato","ricamato","ricambiato","ricanalizzato","ricandidato","ricantato","ricapitalizzato","ricapitolato","ricaricato","ricategorizzato","ricattato","ricavato","ricelebrato","ricercato","ricetrasmesso","ricettato","ricevuto","richiamato","richiesto","richiuso","riciclato","ricinto","ricircolato","riclassificato","ricodificato","ricollegato","ricollocato","ricolmato","ricolonizzato","ricolorato","ricolorito","ricoltivato","ricombinato","ricominciato","ricommesso","ricomparito","ricompattato","ricompensato","ricomperato","ricompilato","ricompiuto","ricomposto","ricomprato","ricompresso","ricomunicato","riconceduto","riconcesso","riconciliato","ricondizionato","ricondotto","riconfermato","riconfezionato","riconfigurato","riconfortato","riconfuso","ricongelato","ricongiunto","riconnesso","riconosciuto","riconquistato","riconsacrato","riconsegnato","riconsiderato","riconsigliato","riconsolato","ricontato","ricontattato","ricontrattato","ricontratto","ricontrollato","riconvalidato","riconvenuto","riconvertito","riconvinto","riconvocato","riconvogliato","ricoperto","ricopiato","ricordato","ricoricato","ricorretto","ricosparso","ricostituito","ricostretto","ricostruito","ricotto","ricoverato","ricreato","ricristallizzato","ricrocifisso","ricucito","ricuperato","ricusato","ridato","ridecorato","ridefinito","ridenominato","ridestato","rideterminato","ridetto","ridicolizzato","ridigitato","ridimensionato","ridipinto","ridisceso","ridisciolto","ridisciplinato","ridiscusso","ridisegnato","ridisfatto","ridisposto","ridisteso","ridistinto","ridistribuito","ridiviso","ridomandato","ridonato","ridondato","ridorato","ridotato","ridotto","ridovuto","riecheggiato","riedificato","rieducato","rielaborato","rieletto","riemesso","riempito","riempiuto","rientrato","riepilogato","riequilibrato","riequipaggiato","riesaminato","rieseguito","riesercitato","riesploso","riesportato","riesposto","riespresso","riespulso","riesteso","riesumato","rietichettato","rievaporato","rievocato","rifabbricato","rifasciato","rifatto","rifenduto","riferito","rifermato","rifermentato","rifesso","rificcato","rifilato","rifiltrato","rifinanziato","rifinito","rifirmato","rifischiato","rifisso","rifiutato","riflesso","riflettuto","rifocillato","rifoderato","rifondato","riforestato","riforgiato","riformato","riformattato","riformulato","rifornito","rifranto","rifritto","rifrugato","rifuggito","rifugiato","rifuso","rigassificato","rigato","rigelato","rigenerato","rigettato","righettato","rigiocato","rigirato","rigiudicato","rigiunto","rigoduto","rigonfiato","rigovernato","riguadagnato","riguardato","rigurgitato","rilanciato","rilasciato","rilassato","rilavato","rilavorato","rilegato","riletto","rilevato","rilocalizzato","rimagliato","rimandato","rimaneggiato","rimangiato","rimappato","rimarcato","rimarchiato","rimarginato","rimaritato","rimasticato","rimato","rimbacuccato","rimbaldanzito","rimbarcato","rimbeccato","rimbecillito","rimbellito","rimbiancato","rimbiondito","rimboccato","rimbombato","rimborsato","rimboscato","rimboschito","rimbrottato","rimediato","rimembrato","rimemorato","rimenato","rimeritato","rimescolato","rimesso","rimestato","rimilitarizzato","rimirato","rimischiato","rimisurato","rimodellato","rimodernato","rimodulato","rimondato","rimontato","rimorchiato","rimorso","rimosso","rimostrato","rimotivato","rimpacchettato","rimpadronito","rimpaginato","rimpagliato","rimpannucciato","rimpastato","rimpatriato","rimpiallacciato","rimpianto","rimpiattato","rimpiazzato","rimpicciolito","rimpiccolito","rimpiegato","rimpinguato","rimpinzato","rimpolpato","rimpossessato","rimpresso","rimproverato","rimuginato","rimunerato","rimunto","rimusicato","rimutato","rinarrato","rinascosto","rincalcato","rincalzato","rincamminato","rincantucciato","rincarato","rincarcerato","rincarnato","rincentrato","rinchiesto","rinchiodato","rinchiuso","rincitrullito","rincivilito","rincoglionito","rincollato","rincominciato","rincontrato","rincoraggiato","rincorato","rincorporato","rincorso","rincretinito","rincrudito","rinculcato","rincuorato","rindossato","rindurito","rinegoziato","rinfacciato","rinfagottato","rinfiammato","rinfiancato","rinfilato","rinfittito","rinfocolato","rinfoderato","rinforzato","rinfrancato","rinfranto","rinfrescato","rinfuso","ringagliardito","ringalluzzito","ringiovanito","ringiovenito","ringoiato","ringorgato","ringraziato","ringuainato","rinnamorato","rinnegato","rinnestato","rinnovato","rinnovellato","rinociuto","rinomato","rinominato","rinormalizzato","rinquadrato","rinsaccato","rinsaldato","rinsanguato","rinselvatichito","rinselvato","rinserrato","rintanato","rintasato","rintascato","rintavolato","rintenerito","rinterrato","rinterrogato","rinteso","rintiepidito","rintoccato","rintonacato","rintontito","rintorpidito","rintracciato","rintrodotto","rintronato","rintuzzato","rinunciato","rinunziato","rinutrito","rinvangato","rinvasato","rinvenuto","rinverdito","rinvestito","rinviato","rinvigorito","rinvilito","rinvitato","rinvoltato","rinvolto","rinvoltolato","rinzaffato","rinzeppato","riobbligato","rioccupato","riofferto","rioffeso","rioperato","riordinato","riorganizzato","riorientato","riosservato","riottenuto","riottimizzato","riotturato","ripagato","riparametrizzato","riparato","ripartito","ripassato","ripercorso","ripercosso","riperduto","riperso","ripesato","ripescato","ripestato","ripetuto","ripianato","ripianificato","ripiantato","ripianto","ripicchiato","ripiegato","ripigliato","ripinto","ripiovuto","ripitturato","riplasmato","ripolarizzato","ripopolato","riportato","riporto","riposato","riposizionato","riposseduto","riposto","ripotuto","ripresentato","ripreso","riprestato","ripreteso","riprincipiato","ripristinato","riprivatizzato","riprodotto","riprogettato","riprogrammato","ripromesso","riproposto","riprotetto","riprovato","riprovveduto","riprovvisto","ripubblicato","ripudiato","ripugnato","ripulito","ripuntato","ripunto","ripurgato","riputato","riquadrato","riqualificato","rireso","rirotto","risaldato","risalito","risaltato","risalutato","risanato","risaputo","risarcito","riscalato","riscaldato","riscattato","riscelto","risceso","rischiarato","rischiato","risciacquato","risciolto","riscommesso","riscontato","riscontrato","risconvolto","riscoperto","riscoppiato","riscorso","riscosso","riscritto","risecato","riseduto","risegato","risegnato","riselciato","riselezionato","riseminato","risentito","riseppellito","riserbato","riservato","risicato","risigillato","risistemato","riso","risoffiato","risoggiunto","risolato","risolidificato","risollevato","risolto","risommato","risommerso","risonato","risorpassato","risospeso","risospinto","risottomesso","risparmiato","risparso","rispecchiato","rispedito","rispento","risperso","rispettato","rispiegato","rispinto","rispolverato","risposato","risposto","rissato","ristabilito","ristagnato","ristampato","ristaurato","risteso","ristilizzato","ristorato","ristretto","ristrutto","ristrutturato","ristuccato","ristudiato","risucchiato","risultato","risuolato","risuonato","risuscitato","risvegliato","risvolto","ritagliato","ritarato","ritardato","ritemprato","ritentato","ritenuto","riterso","riteso","ritinto","ritirato","ritoccato","ritolto","ritorto","ritracciato","ritradotto","ritrascorso","ritrascritto","ritrasferito","ritrasformato","ritrasmesso","ritrasposto","ritrattato","ritratto","ritrovato","ritualizzato","rituffato","riudito","riunificato","riunito","riusato","riutilizzato","rivaccinato","rivaleggiato","rivalorizzato","rivalso","rivalutato","rivangato","riveduto","rivelato","rivendicato","rivenduto","riverberato","riverito","riverniciato","riversato","rivestito","rivettato","rivinto","rivisitato","rivissuto","rivisto","rivitalizzato","rivivificato","rivoltato","rivolto","rivoltolato","rivoluto","rivoluzionato","rizappato","rizzato","robotizzato","rodato","rogato","rollato","romanizzato","romanticizzato","romanzato","roncolato","rosicato","rosicchiato","roso","rosolato","rotacizzato","rotato","roteato","rotolato","rottamato","rotto","rovesciato","rovinato","rovistato","rubacchiato","rubato","rullato","ruminato","ruotato","russificato","ruzzolato","sabbiato","sabotato","saccarificato","saccheggiato","sacralizzato","sacramentato","sacrificato","saettato","saggiato","sagginato","sagomato","salamoiato","salariato","salassato","salato","saldato","salificato","salinizzato","salito","salmeggiato","salmistrato","salpato","saltato","salutato","salvaguardato","salvato","sanato","sancito","sanforizzato","sanificato","sanitizzato","santificato","sanzionato","saponificato","saputo","sarchiato","sarchiellato","sartiato","satellizzato","satinato","satireggiato","satisfatto","satollato","saturato","saziato","sbaccellato","sbaciucchiato","sbafato","sbaffato","sbalestrato","sballato","sballottato","sballottolato","sbalordito","sbalzato","sbancato","sbandato","sbandierato","sbandito","sbaraccato","sbaragliato","sbarazzato","sbarbato","sbarcato","sbardato","sbarrato","sbassato","sbastito","sbatacchiato","sbattezzato","sbattuto","sbeccato","sbeffeggiato","sbellicato","sbendato","sbertucciato","sbiadito","sbiancato","sbianchito","sbiellato","sbiettato","sbigottito","sbilanciato","sbirbato","sbirciato","sbizzarrito","sbloccato","sbobinato","sboccato","sbocconcellato","sbollentato","sbolognato","sborniato","sborsato","sboscato","sbottonato","sbozzato","sbozzimato","sbozzolato","sbracato","sbracciato","sbraciato","sbraitato","sbranato","sbrancato","sbrattato","sbreccato","sbriciolato","sbrigato","sbrigliato","sbrinato","sbrindellato","sbrodolato","sbrogliato","sbronzato","sbruffato","sbucciato","sbudellato","sbuffato","sbugiardato","sbullettato","sbullonato","sburrato","scacazzato","scacchiato","scacciato","scaccolato","scadenzato","scafato","scaffalato","scagionato","scagliato","scaglionato","scalato","scalcato","scalcinato","scaldato","scalettato","scalfato","scalfito","scalmanato","scaloppato","scalpato","scalpellato","scalpellinato","scaltrito","scalzato","scambiato","scamiciato","scamosciato","scamozzato","scampato","scampatalo","scampato","scamuffato","scanalato","scancellato","scandagliato","scandalizzato","scandito","scannato","scannellato","scannerato","scannerizato","scannerizzato","scansato","scansionato","scapecchiato","scapezzato","scapicollato","scapigliato","scapitozzato","scapocchiato","scappato","scappellato","scappottato","scapricciato","scapsulato","scarabocchiato","scaracchiato","scaraventato","scarcerato","scardassato","scardato","scardinato","scaricato","scarificato","scarmigliato","scarnato","scarnificato","scarnito","scarrellato","scarrocciato","scarrozzato","scarruffato","scartabellato","scartato","scartavetrato","scartinato","scartocciato","scassato","scassinato","scatenato","scattato","scavalcato","scavallato","scavato","scavezzato","scazzottato","scekerato","scelto","scempiato","sceneggiato","scernuto","scervellato","sceso","sceverato","schedato","schedulato","scheggiato","scheletrito","schematizzato","schermato","schermito","schermografato","schernito","schiacciato","schiaffato","schiaffeggiato","schiantato","schiarito","schiavardato","schiavizzato","schiccherato","schierato","schifato","schinciato","schioccato","schiodato","schiumato","schiuso","schivato","schizzato","schizzettato","sciabolato","sciabordato","sciacquato","scialacquato","sciamanizzato","sciamannato","sciancato","sciancrato","scimmieggiato","scimmiottato","scinto","scioccato","sciolinato","sciolto","sciorinato","scippato","sciroppato","scisso","sciupacchiato","sciupato","sclamato","sclerosato","sclerotizzato","scoccato","scocciato","scodato","scodellato","scoiato","scolarizzato","scolato","scollacciato","scollato","scollegato","scolorato","scolorito","scolpato","scolpito","scombaciato","scombinato","scombussolato","scommesso","scomodato","scompaginato","scompagnato","scompartito","scompattato","scompensato","scompiacuto","scompigliato","scomposto","scomputato","scomunicato","sconcertato","sconciato","sconcluso","sconfessato","sconficcato","sconﬁtto","sconfortato","sconfuso","scongelato","scongiurato","sconnesso","sconosciuto","sconquassato","sconsacrato","sconsigliato","sconsolato","scontato","scontentato","scontornato","scontorto","scontrato","sconvolto","scopato","scoperchiato","scoperto","scopiazzato","scoraggiato","scoraggito","scorato","scorazzato","scorciato","scorcito","scordato","scoreggiato","scorificato","scornato","scorniciato","scoronato","scorporato","scorrazzato","scorreggiato","scorretto","scorso","scortato","scortecciato","scorticato","scorto","scorzato","scosceso","scosciato","scosso","scostato","scostolato","scotennato","scoticato","scotolato","scotomizzato","scottato","scotto","scovato","scoverto","scozzato","scozzonato","screditato","scremato","screpolato","screziato","scribacchiato","scriminato","scristianizzato","scritto","scritturato","scroccato","scrocchiato","scrollato","scrostato","scrutato","scrutinato","scucito","scudisciato","scuffiato","sculacciato","sculettato","scuoiato","scuriosato","scurito","scusato","sdaziato","sdebitato","sdegnato","sdemanializzato","sdentato","sdilinquito","sdoganato","sdoluto","sdoppiato","sdraiato","sdrammatizzato","sdrucito","secato","seccato","secernuto","secolarizzato","secondato","secretato","secreto","sedato","sedentarizzato","sedotto","segato","seghettato","segmentato","segnalato","segnato","segnoreggiato","segregato","segretato","seguitato","seguito","selciato","selezionato","sellato","sembrato","sementato","semicinto","seminato","semplificato","senilizzato","sensibilizzato","sensorizzato","sentenziato","sentito","sentitaselo","sentito","sentito","separato","sepolto","seppellito","sequenziato","sequestrato","serbato","serrato","servito","servoassistito","sessualizzato","sestuplicato","setacciato","setificato","settato","settorializzato","settuplicato","seviziato","sezionato","sfaccettato","sfagliato","sfaldato","sfalsato","sfamato","sfanalato","sfangato","sfarinato","sfasato","sfasciato","sfatato","sfatto","sfavillato","sfavorito","sfegatato","sfeltrato","sfenduto","sferragliato","sferrato","sferzato","sfesso","sfiancato","sfiatato","sfiato","sfibbiato","sfibrato","sfidato","sfiduciato","sfigurato","sfilato","sfilettato","sfinito","sfioccato","sfiorato","sfittato","sfocato","sfociato","sfoderato","sfogato","sfoggiato","sfogliato","sfollato","sfoltito","sfondato","sforacchiato","sforato","sforbiciato","sformato","sfornaciato","sfornato","sfornito","sforzato","sfottuto","sfracellato","sfrangiato","sfrascato","sfratato","sfrattato","sfrecciato","sfregato","sfregiato","sfrenato","sfrisato","sfrondato","sfrucugliato","sfruculiato","sfruttato","sfumato","sfuocato","sgamato","sganasciato","sganciato","sgarbugliato","sgattaiolato","sgelato","sghiacciato","sgocciolato","sgolato","sgomberato","sgombrato","sgomentato","sgominato","sgomitato","sgomitolato","sgonfiato","sgorbiato","sgottato","sgovernato","sgozzato","sgraffiato","sgraffignato","sgranato","sgranchito","sgranellato","sgrassato","sgravato","sgretolato","sgridato","sgrommato","sgrondato","sgroppato","sgrossato","sgrovigliato","sgrugnato","sguainato","sgualcito","sguanciato","sguarnito","sguinzagliato","sgusciato","shakerato","shoccato","shuntato","sigillato","siglato","significato","signoreggiato","silenziato","silicizzato","sillabato","sillogizzato","silurato","simboleggiato","simbolizzato","simmetrizzato","simpatizzato","simulato","sincerato","sincopato","sincretizzato","sincronizzato","sindacalizzato","sindacato","singolarizzato","sinistrato","sinizzato","sinterizzato","sintetizzato","sintonizzato","siringato","sistematizzato","sistemato","situato","slabbrato","slacciato","slamato","slanciato","slappolato","slargato","slavizzato","slegato","slentato","slinguato","slogato","sloggato","sloggiato","slombato","slungato","smaccato","smacchiato","smagliato","smagnetizzato","smagrito","smaliziato","smallato","smaltato","smaltito","smammato","smanacciato","smangiato","smantellato","smarcato","smarginato","smarrito","smascellato","smascherato","smaterializzato","smattonato","smembrato","smentito","smerciato","smerdato","smerigliato","smerlato","smerlettato","smessalo","smesso","smezzato","smidollato","smielato","smilitarizzato","sminato","sminuito","sminuzzato","smistato","smitizzato","smobiliato","smobilitato","smobilizzato","smoccolato","smollicato","smonacato","smontato","smorbato","smorzato","smosso","smozzicato","smunto","smurato","smussato","smutandato","snaturato","snazionalizzato","snebbiato","snellito","snervato","snidato","sniffato","snobbato","snocciolato","snodato","snudato","sobbarcato","sobbollito","sobillato","socchiuso","soccorso","soddisfatto","sodisfatto","sodomizzato","sofferito","soffermato","sofferto","soffiato","soffocato","soffregato","soffritto","soffuso","sofisticato","soggettivato","soggettivizzato","sogghignato","soggiogato","soggiunto","sogguardato","sognato","solarizzato","solcato","soleggiato","solennizzato","solfeggiato","solfitato","solfonato","solforato","solidificato","solito","sollazzato","sollecitato","solleticato","sollevato","solto","solubilizzato","soluto","soluzionato","solvatato","somatizzato","someggiato","somigliato","sommato","sommerso","sommesso","somministrato","sommosso","sonato","sondato","sonorizzato","sopito","soppalcato","soppesato","soppiantato","sopportato","sopposto","soppresso","sopraddotato","sopraeccitato","sopraedificato","sopraelevato","sopraffato","sopraffatto","sopraggiunto","soprainteso","soprammesso","soprannominato","sopraposto","soprappreso","soprascritto","sopraspeso","soprassaturato","soprasseduto","sopravanzato","sopravvalutato","sopravveduto","sopravvinto","sopravvisto","sopreccitato","sopredificato","soprelevato","soprinteso","sorbettato","sorbito","sorgiunto","sormontato","sorpassato","sorpreso","sorraso","sorretto","sorseggiato","sorteggiato","sortito","sorvegliato","sorvolato","soscritto","sospeso","sospettato","sospinto","sospirato","sostantivato","sostanziato","sostentato","sostenuto","sostituito","sottaciuto","sotterrato","sotteso","sottinteso","sottoalimentato","sottocapitalizzato","sottodiviso","sottoesposto","sottofirmato","sottolineato","sottomesso","sottomurato","sottopagato","sottopassato","sottoposto","sottorappresentato","sottoriso","sottoscritto","sottostimato","sottosviluppato","sottotitolato","sottovalutato","sottratto","soverchiato","sovesciato","sovietizzato","sovracapitalizzato","sovraccaricato","sovradimensionato","sovraeccitato","sovraesposto","sovraffaticato","sovraffollato","sovraggiunto","sovraimposto","sovrainteso","sovralimentato","sovramodulato","sovrappopolato","sovrapposto","sovrariscaldato","sovrasaturato","sovrascritto","sovrastampato","sovrastato","sovrastimato","sovrautilizzato","sovreccitato","sovresposto","sovrimposto","sovrinteso","sovvenuto","sovvenzionato","sovvertito","spaccato","spacchettato","spacciato","spaginato","spaiato","spalancato","spalato","spalcato","spalleggiato","spalmato","spammato","spampanato","spampinato","spanato","spanciato","spanduto","spannato","spannocchiato","spanso","spantanato","spanto","spaparacchiato","spaparanzato","spappolato","sparato","sparecchiato","sparigliato","sparito","sparlato","sparpagliato","spartito","spassato","spassatoselo","spastoiato","spaurato","spaurito","spaventato","spazializzato","spaziato","spazieggiato","spazientito","spazzato","spazzolato","specchiato","specializzato","specificato","specillato","specolato","spedito","spegnato","spelacchiato","spelato","spellato","spennacchiato","spennato","spennellato","spento","spenzolato","sperato","sperimentato","spernacchiato","speronato","sperperato","spersonalizzato","sperticato","spesato","speso","spessito","spettacolarizzato","spettinato","spezzato","spezzettato","spezziato","spezzonato","spiaccicato","spianato","spiantato","spiato","spiattellato","spiazzato","spiccato","spicciato","spiccicato","spicciolato","spicconato","spidocchiato","spiegato","spiegazzato","spietrato","spifferato","spigionato","spignorato","spigolato","spigrito","spillato","spilluzzicato","spiluccato","spinto","spintonato","spiombato","spiralizzato","spirantizzato","spirato","spiritualizzato","spiumato","spizzicato","spodestato","spoetizzato","spogliato","spolettato","spoliato","spoliticizzato","spollonato","spolmonato","spolpato","spoltronito","spolverato","spolverizzato","spompato","spompinato","sponsorizzato","spopolato","spoppato","sporcato","sportato","sporto","sposato","sposseduto","spossessato","spostato","sposto","sprangato","sprecato","spregiato","spremuto","spretato","sprezzato","sprigionato","sprimacciato","spromesso","spronato","sprotetto","sprovincializzato","sprovveduto","sprovvisto","spruzzato","spugnato","spulato","spulciato","spuntato","spuntellato","spupazzato","spurgato","sputacchiato","sputato","sputtanato","squadernato","squadrato","squagliato","squagliataselo","squagliato","squalificato","squamato","squarciato","squartato","squassato","squattrinato","squilibrato","squinternato","sradicato","srotolato","srugginito","stabbiato","stabilito","stabilizzato","stabulato","staccato","stacciato","staffato","staffilato","staggiato","staggito","stagionato","stagliato","stagnato","stamburato","stampato","stampigliato","stanato","stancato","standardizzato","stangato","stanziato","stappato","starato","starnazzato","stasato","statalizzato","statizzato","statoco","statoseno","statuito","stazzato","stazzonato","steccacciato","steccato","stecchito","stecconato","stemperato","stempiato","stenografato","stereotipato","sterilito","sterilizzato","sterpato","sterrato","sterzato","steso","stigliato","stigmatizzato","stilato","stilettato","stilizzato","stillato","stimato","stimolato","stinto","stipato","stipendiato","stipulato","stiracchiato","stirato","stivato","stizzito","stoccato","stolto","stomacato","stonato","stondato","stoppato","stordito","storicizzato","stornato","storpiato","stortato","storto","stozzato","strabenedetto","strabuzzato","stracannato","straccato","stracciato","stracotto","strafogato","stragoduto","stralciato","stralodato","stralunato","stramaledetto","stramortito","strangolato","straniato","stranito","straorzato","strapagato","strapazzato","straperduto","straperso","strappato","strasaputo","strascicato","strascinato","strasformato","stratificato","strattonato","stravaccato","stravinto","stravolto","stravoluto","straziato","stregato","stremato","stressato","striato","stridulato","strigato","strigliato","strillato","striminzito","strimpellato","strinato","stringato","strisciato","stritolato","strizzato","strofinato","strombato","strombazzato","stroncato","stronzato","stropicciato","stroppato","stroppiato","strozzato","struccato","strumentalizzato","strumentato","strusciato","strutto","strutturalizzato","strutturato","stuccato","studiacchiato","studiato","stuellato","stufato","stupefatto","stupito","stuprato","sturato","stutato","stuzzicato","suaso","subaffittato","subappaltato","subbiato","subdelegato","subissato","subito","sublicenziato","sublimato","sublocato","subodorato","subordinato","subornato","suburbanizzato","sucato","succhiato","succhiellato","succiato","succinto","succiso","suddistinto","suddiviso","suffissato","suffisso","suffragato","suffumicato","suffuso","suggellato","suggerito","suggestionato","suicidato","sunteggiato","sunto","suolato","suonato","superato","superpagato","superraffreddato","supervalutato","supervisionato","supplicato","supplito","supportato","supposto","suppurato","surclassato","surfato","surgelato","surraffreddato","surriscaldato","surrogato","survoltato","suscitato","susseguito","sussidiato","sussunto","sussurrato","suturato","svaccato","svagato","svaligiato","svalutato","svapato","svariato","svasato","svecchiato","svegliato","svelato","svelenito","sveltito","svelto","svenato","svenduto","sventagliato","sventato","sventolato","sventrato","sverginato","svergognato","svergolato","sverminato","sverniciato","svestito","svettato","svezzato","sviato","svignatoselo","svigorito","svilito","svillaneggiato","sviluppato","svinato","svincolato","sviolinato","svirgolato","svirilizzato","svisato","sviscerato","svitato","sviticchiato","svolato","svolazzato","svolto","svoluto","svuotato","tabuizzato","tabulato","taccato","taccheggiato","tacciato","tacitato","taciuto","tagliato","taglieggiato","tagliuzzato","talebanizzato","tallonato","tampinato","tamponato","tanguto","tannato","tappato","tappezzato","tarato","tardato","targato","tariffato","tarlato","tarmato","taroccato","tarpato","tartagliato","tartassato","tartufato","tassato","tassellato","tastato","tasteggiato","tatuato","tecnicizzato","tecnologizzato","tedeschizzato","tediato","teflonato","telecomandato","telecontrollato","telediffuso","telefonato","telegrafato","teleguidato","telematizzato","telemetrato","teleradiotrasmesso","teletrasmesso","teletrasportato","tematizzato","temperato","tempestato","tempificato","templatizzato","temporizzato","temprato","temuto","tentato","tenuto","teologizzato","teorizzato","tepefatto","terebrato","terminato","termostatato","terrazzato","terrificato","terrorizzato","terso","terzarolato","terziarizzato","terziato","tesato","tesaurizzato","teso","tesserato","testato","testificato","testimoniato","timbrato","tindalizzato","tinteggiato","tinto","tipicizzato","tipizzato","tippato","tiranneggiato","tirato","titillato","titolato","toccato","toelettato","tollerato","tolto","tonalizzato","tonificato","tonneggiato","tonsurato","torchiato","tormentato","tornatoseno","tornito","torrefatto","torto","tortoreggiato","torturato","tosato","toscaneggiato","toscanizzato","tostato","totalizzato","traboccato","trabuccato","tracannato","tracciato","tradito","tradotto","trafficato","trafilato","trafitto","traforato","trafugato","traghettato","traguardato","trainato","tralasciato","tralignato","tramandato","tramato","trambasciato","tramesso","tramestato","tramezzato","tramortito","tramutato","tranciato","trangugiato","tranquillato","tranquillizzato","transatto","transceso","transcodificato","transcorso","transcritto","transennato","transfluito","transfuso","transistorizzato","translitterato","transposto","transricevuto","transustanziato","transveduto","transvisto","trapanato","trapassato","trapiantato","traportato","traposto","trapposto","trapuntato","trapunto","trarotto","trasandato","trasbordato","trascelto","trasceso","trascinato","trascorso","trascritto","trascurato","trasdotto","trasferito","trasfigurato","trasformato","trasfuso","trasgredito","traslato","traslitterato","traslocato","trasmesso","trasmutato","trasparito","traspirato","trasportato","trasposto","trastullato","trasudato","trasvolato","trasvolto","trattato","tratteggiato","trattenuto","tratto","traumatizzato","travagliato","travalicato","travasato","traveduto","traversato","travestito","traviato","travisato","travisto","travolto","trebbiato","triangolato","tribbiato","tribolato","tributato","triennalizzato","trimestralizzato","trincato","trincerato","trinciato","tripartito","triplicato","trisecato","trisezionato","tritato","triturato","trivellato","trollato","trombato","troncato","tropicalizzato","trovato","truccato","trucidato","truffato","tuffato","tumefatto","tumulato","turato","turbato","turlupinato","tutelato","ubbligato","ubicato","ubidito","ubiquitinato","ubriacato","uccellato","uccellinato","ucciso","udito","ufficializzato","uggito","ugnato","uguagliato","ulcerato","ulito","ulolato","ultimato","ultracentrifugato","ululato","umanato","umanizzato","umettato","umidificato","umidito","umiliato","uncinato","unguentato","unificato","uniformato","unito","univerbato","universaleggiato","universalizzato","untato","unto","uperizzato","urbanizzato","urgenzato","urlato","urtacchiato","urtato","urticchiato","usato","usciolato","usolato","ustionato","usucapito","usurato","usurpato","utilitato","utilizzato","vaccinato","vagabondeggiato","vagellato","vagheggiato","vagillato","vagliato","valcato","valicato","validato","valorizzato","valso","valutato","vanagloriato","vanato","vandalizzato","vangato","vangelizzato","vanificato","vanito","vantaggiato","vantato","vaporato","vaporizzato","varato","varcato","variato","vasectomizzato","vaticinato","vedovato","veduto","vegetato","veggiato","vegliato","veicolato","velarizzato","velato","velettato","velinato","vellicato","vellutato","velocizzato","vendemmiato","vendicato","vendicchiato","venducchiato","venduto","venerato","vengiato","ventagliato","ventilato","ventolato","verbalizzato","vergato","vergheggiato","vergognato","vergolato","verificato","verminato","vernalizzato","verniciato","verrinato","versato","verseggiato","versificato","verticalizzato","vessato","vestito","vestito","vetrificato","vetrinato","vetrioleggiato","vettovagliato","vezzeggiato","viaggiato","vicinato","vicitato","videochattato","videochiamato","videocomunicato","videoregistrato","videotrasmesso","vidimato","vigilato","vigliato","vigoreggiato","vigorito","vilificato","vilipeso","villaneggiato","vincolato","vinto","violato","violentato","violinato","virgolato","virgoleggiato","virgolettato","virilizzato","virtualizzato","visionato","visitato","vissuto","vistato","visto","visualizzato","vitaliziato","vitalizzato","vitaminizzato","vittimizzato","vituperato","vivacizzato","vivandato","vivificato","vivisezionato","viziato","vocabolarizzato","vocalizzato","vocato","vociferato","volantinato","volatilizzato","volgarizzato","volicchiato","volpeggiato","voltato","volto","voltolato","volturato","voluminizzato","voluto","volutoco","vomitato","vorato","votato","vulcanizzato","vuotato","wappato","wikificato","xerocopiato","zaffato","zampato","zampettato","zampillato","zannato","zappato","zappettato","zapponato","zavorrato","zeppato","zigrinato","zigzagato","zimbellato","zincato","zinnato","zipolato","zippato","zirlato","zittito","zizzagato","zoccolato","zollato","zombato","zonato","zonizzato","zoppato","zoppeggiato","zoppicato","zucconato","zufolato","zumato","zuppato","abalienata","abbacchiata","abbacinata","abbadata","abbagliata","abbaiata","abballata","abbambinata","abbancata","abbandonata","abbarbagliata","abbarbata","abbarcata","abbaruffata","abbassata","abbatacchiata","abbattuta","abbatuffolata","abbelita","abbellata","abbellita","abbendata","abbeverata","abbiadata","abbicata","abbigliata","abbinata","abbindolata","abbioccata","abbiosciata","abbisciata","abbittata","abboccata","abboffata","abbominata","abbonacciata","abbonata","abbonita","abbordata","abborracciata","abborrata","abborrita","abbottinata","abbottonata","abbozzacchiata","abbozzata","abbozzolata","abbracciata","abbraciata","abbrancata","abbreviata","abbriccata","abbrigliata","abbrivata","abbriviata","abbrividita","abbronzata","abbrostolata","abbrostolita","abbruciacchiata","abbruciata","abbrunata","abbrunita","abbruscata","abbrusciata","abbrustiata","abbrustolata","abbrustolita","abbrutita","abbruttita","abbuffata","abbuiata","abbuonata","abburattata","abbuzzita","abdicata","abdotta","abiettata","abilitata","abissata","abitata","abituata","abiurata","abolita","abominata","abondata","aborrita","abrasa","abrogata","abusata","accaffata","accagionata","accagliata","accalappiata","accalcata","accaldata","accallata","accalorata","accalorita","accambiata","accampata","accampionata","accanalata","accanata","accaneggiata","accanita","accantonata","accaparrata","accapezzata","accapigliata","accapottata","accappiata","accappiettata","accapponata","accappucciata","accaprettata","accareggiata","accarezzata","accarnata","accarpionata","accartocciata","accasata","accasciata","accasellata","accasermata","accastellata","accastellinata","accatarrata","accatastata","accattata","accattivata","accavalcata","accavalciata","accavallata","accavezzata","accecata","acceffata","accelerata","accellerata","accennata","accensata","accentata","accentrata","accentuata","acceppata","accerchiata","accercinata","accertata","accesa","accessoriata","accettata","acchetata","acchiappata","acchiocciolata","acchitata","acchiuduta","acciabattata","acciaiata","acciambellata","acciarpata","acciecata","accigliata","acciglionata","accignuta","accincignata","accinta","acciocchita","acciottolata","accipigliata","accismata","accisa","acciucchita","acciuffata","accivettata","acclamata","acclarata","acclimatata","acclusa","accoccata","accoccolata","accoccovata","accodata","accollata","accoltellata","accolta","accomandata","accomiatata","accommiatata","accomodata","accompagnata","accomunata","acconciata","acconigliata","accontata","accontentata","accoppata","accoppiata","accorata","accorciata","accorcita","accordata","accordellata","accorpata","accorta","accosciata","accostata","accostumata","accotonata","accottimata","accovacciata","accovata","accovonata","accozzata","accreditata","accresciuta","accrespata","accucciata","accucciolata","accudita","acculata","acculturata","accumulata","accumunata","accusata","acetificata","acetilata","acetita","acidata","acidificata","acidulata","acquadernata","acquarellata","acquartierata","acquata","acquattata","acquerellata","acquetata","acquietata","acquisita","acquistata","acromatizzata","acuita","acuminata","acutizzata","adacquata","adagiata","adattata","addaziata","addebbiata","addebitata","addecimata","addensata","addentata","addentellata","addentrata","addestrata","addetta","addiacciata","addimandata","addimesticata","addimorata","addimostrata","addipanata","addirizzata","additata","additivata","addizionata","addobbata","addocilita","addogliata","addolcata","addolciata","addolcita","addolorata","addomandata","addomesticata","addoppiata","addormentata","addossata","addotta","addottorata","addottrinata","addrizzata","adduata","addugliata","adeguata","adempita","adempiuta","adequata","aderizzata","adescata","adibita","adirata","adita","adiuvata","adizzata","adocchiata","adombrata","adonata","adonestata","adontata","adoperata","adoprata","adorata","adornata","adottata","adsorbita","aduggiata","adugnata","adulata","adulterata","adunata","adunghiata","adusata","aerata","aereata","aerotrainata","aerotrasportata","affabulata","affaccendata","affacchinata","affacciata","affagottata","affaldata","affamata","affamigliata","affannata","affardellata","affascinata","affastellata","affaticata","affattucchiata","affatturata","affermata","afferrata","affettata","affezionata","affiancata","affiatata","affibbiata","affidata","affienata","affievolita","affigliata","affigurata","affilata","affilettata","affiliata","affinata","affiochita","affiorata","affisata","affissata","affissa","affittata","affittita","afflitta","afflosciata","affocata","affogata","affogliata","affollata","affoltata","affondata","afforcata","afforestata","afforzata","affossata","affralita","affrancata","affranta","affratellata","affrenata","affrenellata","affrescata","affrettata","affrittellata","affrontata","affumata","affumicata","affumigata","affuocata","affusolata","africanizzata","ageminata","agevolata","aggallata","agganciata","aggangherata","aggarbata","aggattonata","aggavignata","aggelata","aggettivata","agghiacciata","agghiadata","agghiaiata","agghindata","aggiaccata","aggiogata","aggiornata","aggirata","aggiucchita","aggiudicata","aggiuntata","aggiunta","aggiustata","agglomerata","agglutinata","aggomitolata","aggottata","aggradita","aggraffata","aggranchiata","aggranchita","aggrandita","aggrappata","aggraticciata","aggravata","aggredita","aggregata","aggrevata","aggricciata","aggrinzata","aggrinzita","aggrommata","aggrondata","aggroppata","aggrottata","aggrovigliata","aggrumata","aggruppata","aggruzzolata","agguagliata","agguantata","agguardata","agguatata","aggueffata","agitata","agognata","agrarizzata","aguatata","agucchiata","agunata","agurata","aguzzata","aitata","aiutata","aizzata","alata","alberata","albergata","alcalinizzata","alchilata","alchimiata","alchimizzata","alcolizzata","alcoolizzata","alenata","alesata","alettata","alfabetata","alfabetizzata","alidita","alienata","alimentata","allacciata","allagata","allappata","allargata","allascata","allattata","alleata","allegata","alleggerita","alleggiata","allegorizzata","alleluiata","allenata","allenita","allentata","allertata","allessata","allestita","allettata","allevata","alleviata","allibata","allibita","allibrata","allicciata","allietata","allindata","allineata","allisa","allocata","allogata","alloggiata","allontanata","allottata","allucchettata","allucciolata","allucinata","allumata","alluminata","alluminiata","allungata","allupata","allusa","alluzzata","alogenata","alonata","alpeggiata","alterata","alternata","alzata","amalgamata","amareggiata","amaricata","amata","ambientata","ambiguata","ambita","americanizzata","amicata","ammaccata","ammaestrata","ammainata","ammalata","ammaliata","ammalinconita","ammaltata","ammanettata","ammanicata","ammanierata","ammanigliata","ammannata","ammannellata","ammannita","ammansata","ammansita","ammantata","ammantellata","ammarata","ammarezzata","ammassata","ammassellata","ammassicciata","ammatassata","ammattonata","ammazzata","ammelmata","ammencita","ammendata","ammennicolata","ammessa","ammetata","ammezzita","amministrata","amminutata","ammirata","ammiserita","ammobiliata","ammodernata","ammodernizzata","ammogliata","ammoinata","ammollata","ammollita","ammonita","ammonticchiata","ammonticellata","ammorbata","ammorbidata","ammorbidita","ammorsata","ammortata","ammortita","ammortizzata","ammorzata","ammosciata","ammoscita","ammostata","ammotinata","ammucchiata","ammulinata","ammusata","ammutata","ammutinata","amnistiata","amoracciata","ampiata","ampliata","amplificata","amputata","anagrammata","analizzata","anamorfizzata","anastomizzata","anatematizzata","anatomizzata","anchilosata","ancisa","ancorata","andatosena","andicappata","anellata","anemizzata","anestetizzata","angariata","anglicizzata","angolata","angosciata","angustiata","animata","annacquata","annaffiata","annasata","annaspata","annaspicata","annebbiata","annegata","annerata","annerita","annessa","annestata","annichilata","annichilita","annidata","annientata","annitrita","annobilita","annodata","annodicchiata","annoiata","annotata","annottata","annottolata","annoverata","annullata","annunciata","annunziata","annusata","annuvolata","anodizzata","anonimizzata","anteceduta","anteposta","antergata","anticheggiata","antichizzata","anticipata","anticonosciuta","antidatata","antiveduta","antivista","antologizzata","antropizzata","antropomorfizzata","aocchiata","aombrata","aonestata","aontata","aperta","apocopata","apologizzata","apostrofata","appaciata","appacificata","appagata","appaiata","appalesata","appallottolata","appaltata","appanettata","appannata","apparata","apparecchiata","apparentata","apparigliata","apparita","appartata","appassionata","appastata","appastellata","appellata","appennellata","appercepita","appertizzata","appesantita","appesita","appesa","appestata","appetita","appezzata","appiacevolita","appianata","appiastrata","appiatata","appiattata","appiattita","appiccata","appiccicata","appiccolita","appiedata","appigionata","appigliata","appinzata","appiombata","appioppata","appisolata","applaudita","applicata","appoderata","appoggiata","appollaiata","appoppata","apportata","appostata","apposta","appratita","appresentata","appresa","appressata","apprestata","apprettata","apprezzata","approcciata","approfittata","approfondata","approfondita","approntata","appropinquata","appropriata","approssimata","approvata","approvisionata","approvvigionata","appruata","appulcrata","appuntata","appuntellata","appuntita","appurata","appuzzata","arabescata","arabizzata","arata","arbitrata","arborata","arcaizzata","arcata","architettata","archiviata","arcuata","ardita","areata","argentata","arginata","argomentata","arguita","arianizzata","arieggiata","armata","armonizzata","aromatizzata","arpeggiata","arpionata","arponata","arrabattata","arraffata","arraffiata","arrandellata","arrangiata","arrapata","arrapinata","arrappata","arrazzata","arrecata","arredata","arreggimentata","arrembata","arrenata","arresisa","arresa","arrestata","arretrata","arricchita","arricciata","arricciolata","arriffata","arringata","arrischiata","arrisicata","arrisa","arrocata","arroccata","arrochita","arrogata","arrolata","arroncata","arronzata","arrosata","arrossata","arrostata","arrostita","arrotata","arrotolata","arrotondata","arrovellata","arroventata","arroventita","arrovesciata","arrubinata","arruffata","arruffianata","arrugginita","arruncigliata","arruolata","arruvidita","arsicciata","arsa","artefatta","articolata","artigliata","ascesa","asciata","asciolvuta","asciugata","ascoltata","ascosa","ascosta","ascritta","asfaltata","asfissiata","aspersa","aspettata","aspirata","asportata","aspreggiata","assaettata","assaggiata","assalita","assaltata","assaporata","assaporita","assassinata","assecondata","assecurata","assediata","asseggiata","assegnata","assembiata","assemblata","assembrata","assemprata","assentata","asserita","asserragliata","asservita","assestata","assetata","assettata","asseverata","assibilata","assicurata","assiderata","assiemata","assiepata","assillata","assimigliata","assimilata","assiomatizzata","assisa","assistita","associata","assodata","assoggettata","assolcata","assoldata","assolta","assolutizzata","assomata","assommata","assonata","assonnata","assopita","assorbita","assordata","assordita","assortita","assottigliata","assuefatta","assunta","asteggiata","astenuta","astersa","astratta","astretta","atomizzata","atrofizzata","atrovata","attaccata","attagliata","attanagliata","attardata","attediata","atteggiata","attempata","attendata","attentata","attenuata","attenuta","attergata","atterrata","atterrita","atterzata","attesa","attestata","atticizzata","attillata","attinta","attirata","attivata","attivizzata","attizzata","attorcigliata","attorniata","attorta","attoscata","attossicata","attraccata","attrappita","attratta","attraversata","attrezzata","attribuita","attristata","attristita","attruppata","attualizzata","attuata","attuffata","attutata","attutita","auggiata","augumentata","augurata","aulita","aumentata","aunghiata","ausata","auscultata","auspicata","autenticata","autentificata","autoaccusata","autoaffondata","autoalimentata","autoassolta","autocandidata","autocensurata","autocitata","autocommiserata","autoconsumata","autoconvinta","autodefinita","autodenunciata","autodistrutta","autofinanziata","autogestita","autogovernata","autografata","autoincensata","autointersecata","autoinvitata","autolesionata","autolimitata","automaticizzata","automatizzata","automotivata","autonominata","autoproclamata","autoprodotta","autoprotetta","autopubblicata","autopubblicizzata","autoregolamentata","autoregolata","autoridotta","autoriparata","autorizzata","autosomministrata","autosostenuta","autosuggestionata","autotassata","autotrapiantata","autotrasportata","autovalutata","avallata","avampata","avanzata","avariata","avinta","aviolanciata","aviotrasportata","avocata","avolterata","avulsa","avutacela","avuta","avvalorata","avvalsa","avvantaggiata","avvelata","avvelenata","avventata","avventurata","avverata","avversata","avvertita","avvezzata","avviata","avvicendata","avvicinata","avvignata","avvilita","avviluppata","avvinata","avvinchiata","avvinghiata","avvinta","avvisata","avvistata","avvitata","avviticchiata","avvitita","avvivata","avvolta","avvoltolata","aziendalizzata","azionata","azotata","azzannata","azzardata","azzeccata","azzerata","azzimata","azzittata","azzittita","azzoppata","azzoppita","azzuffata","azzurrata","bacata","baccagliata","bacchettata","bacchiata","baciata","badata","bagnata","baipassata","balbettata","balcanizzata","ballata","baloccata","balzata","banalizzata","bancata","bandita","bannata","baraccata","barattata","barbarizzata","barcamenata","bardata","barellata","barrata","barricata","basata","basciata","basculata","bassata","bastata","bastionata","bastita","bastonata","battezzata","battuta","bazzicata","beatificata","beata","beccata","beccheggiata","becchettata","beffata","beffeggiata","bendata","benedetta","beneficata","benvoluta","berlusconizzata","bersagliata","bestemmiata","bevuta","biadata","bianchettata","bianchita","biascicata","biasimata","biasmata","bidonata","biennalizzata","biforcata","bigiata","bilanciata","binata","bindolata","biodegradata","biografata","bipartita","bisbigliata","biscottata","bisecata","bisellata","bisognata","bissata","bistrata","bistrattata","bitumata","bituminata","blandita","bleffata","blindata","bloccata","bobinata","boccheggiata","bocciata","boicottata","bollata","bollita","bombardata","bombata","bonderizzata","bonificata","bootata","borbottata","bordata","boriata","borrata","borseggiata","braccata","bracciata","bramata","bramita","brancicata","brandeggiata","brandita","brasata","bravata","brevettata","breviata","brillantata","brillata","brinata","broccata","brocciata","broccolata","brontolata","bronzata","brucata","bruciacchiata","bruciata","brunita","bruscata","bruschinata","brutalizzata","bruttata","bucata","bucherellata","bufata","buffata","bufferizzata","buggerata","bugnata","bulicata","bulinata","bullettata","bullonata","burattata","burlata","burocratizzata","burrificata","buscata","buttata","butterata","bypassata","cablata","cabrata","cacata","cacciata","cadenzata","cadmiata","caducata","cagata","caggiata","cagionata","cagliata","calafatata","calamitata","calandrata","calata","calcata","calciata","calcificata","calcolata","caldeggiata","calettata","calibrata","calmata","calmierata","calpestata","calumata","calunniata","calzata","cambiata","camerata","campionata","campita","camuffata","canalizzata","cancellata","cancerizzata","candeggiata","candidata","candita","canforata","cangiata","cannata","canneggiata","cannibalizzata","cannoneggiata","canonizzata","cantata","canterellata","canticchiata","cantilenata","canzonata","caolinizzata","capacitata","capeggiata","capillarizzata","capitalizzata","capitanata","capitaneggiata","capita","capitozzata","capivolta","caponata","capotata","capottata","capovolta","capponata","captata","caramellata","caramellizzata","caratata","caratterizzata","carbonizzata","carbossilata","carburata","carcata","carcerata","cardata","carenata","carezzata","cariata","caricata","caricaturata","caricaturizzata","carotata","carpionata","carpita","carreggiata","carrozzata","cartavetrata","carteggiata","cartellinata","cartografata","cartolarizzata","cartonata","cascolata","cassata","cassa","castigata","castrata","casualizzata","catabolizzata","catalizzata","catalogata","catapultata","catechizzata","categorizzata","cateterizzata","catramata","cattolicizzata","catturata","causata","cautelata","cauterizzata","cauzionata","cavalcata","cavatasela","cavata","cazzata","cazziata","cazzottata","cedrata","ceduta","celata","celebrata","cellofanata","cementata","cementificata","cennata","censita","censurata","centellata","centellinata","centimetrata","centinata","centralizzata","centrata","centrifugata","centuplicata","cerata","cercata","cerchiata","cernuta","certificata","cesellata","cessata","cestinata","cheratinizzata","chetata","chiamata","chiappata","chiarificata","chiarita","chiaroscurata","chiavata","chiazzata","chiesta","chilificata","chilometrata","chimificata","chinata","chinizzata","chiodata","chiosata","chiusa","choccata","ciancicata","cianfrinata","cianfrugliata","ciangottata","ciattata","cibata","cicatrizzata","ciccata","cicchettata","ciclizzata","ciclostilata","cifrata","cilindrata","cimata","cimentata","cincischiata","cinematografata","cintata","cinta","cioncata","ciondolata","circolata","circoncinta","circoncisa","circondata","circondotta","circonflessa","circonfluita","circonfusa","circonscritta","circonvenuta","circoscritta","circostanziata","circuita","circumcinta","circumnavigata","citata","ciucciata","ciurmata","civettata","civilizzata","clamata","classata","classicizzata","classificata","cliccata","climatizzata","clivata","clonata","cloroformizzata","clorurata","clusterizzata","co-diretta","coacervata","coadiuvata","coagulata","coalizzata","coartata","coccolata","codificata","coeditata","coesistita","cofinanziata","cofirmata","cofondata","cogestita","cogitata","coglionata","cognosciuta","coibentata","coincisa","cointeressata","cointestata","coinvolta","cokificata","colata","colettata","collassata","collaudata","collazionata","collegata","collettivizzata","collezionata","collimata","colliquata","collisa","collocata","colluttata","colmata","colonizzata","colorata","colorita","colorizzata","colpevolizzata","colpita","coltellata","coltivata","colta","coltrata","comandata","combattuta","combinata","comburuta","comicizzata","cominciata","commemorata","commendata","commensurata","commentata","commercializzata","commessa","comminata","commiserata","commissariata","commissionata","commisurata","commossa","commutata","comodata","compaginata","comparita","compartimentalizzata","compartita","compassionata","compatibilizzata","compatita","compattata","compendiata","compenetrata","compensata","comperata","compiaciuta","compianta","compilata","compitata","compiuta","complessata","complessificata","complessa","completata","complicata","complimentata","comportata","compostata","composta","comprata","compravenduta","compresa","compressa","compromessa","comprovata","compulsata","compunta","computata","computerizzata","comunicata","comunistizzata","concatenata","conceduta","concelebrata","concentrata","concepita","concertata","concessa","concettata","concettualizzata","conchiusa","conciata","conciliata","concimata","concitata","conclamata","conclusa","concordata","concotta","concretata","concretizzata","conculcata","concupita","condannata","condensata","condita","condivisa","condizionata","condoluta","condonata","condotta","confatta","confederata","conferita","confermata","confessata","confettata","confezionata","conficcata","confidata","configurata","confinata","confinta","confiscata","confitta","conformata","confortata","confricata","confrontata","confusa","confutata","congedata","congegnata","congelata","congestionata","congetturata","congiunta","conglobata","conglomerata","conglutinata","congratulata","congregata","conguagliata","coniata","coniugata","connaturata","connessa","connotata","connumerata","conosciuta","conquistata","consacrata","consapevolizzata","consegnata","conseguita","consentita","conservata","considerata","consigliata","consistita","consociata","consolata","consolidata","consorziata","consparsa","conspersa","constatata","constretta","construita","consultata","consumata","consunta","contabilizzata","contagiata","containerizzata","contaminata","contata","contattata","conteggiata","contemperata","contemplata","contentata","contenuta","contesa","contestata","contestualizzata","contingentata","continuata","contornata","contorta","contrabbandata","contraccambiata","contraddetta","contraddistinta","contradetta","contraffatta","contrappesata","contrapposta","contrappuntata","contrariata","contrassegnata","contrastata","contrata","contrattaccata","contrattata","contratta","contravvalsa","contristata","controbattuta","controbilanciata","controdatata","controfirmata","controindicata","controllata","controminata","contronotata","controproposta","controprovata","controquerelata","controsoffittata","controstampata","controventata","conturbata","contusa","convalidata","convenuta","convenzionata","convertita","convinta","convitata","convocata","convogliata","convolta","coobata","cooptata","coordinata","coperchiata","coperta","copiaincollata","copiata","copolimerizzata","coppellata","coprodotta","corazzata","corbellata","corcata","cordonata","coreografata","coricata","cornificata","coronata","corredata","correlata","corresponsabilizzata","corretta","corricchiata","corrisposta","corroborata","corrosa","corrotta","corrucciata","corrugata","corsa","corteata","corteggiata","cortocircuitata","coruscata","cosata","coscritta","cosparsa","cospersa","costatata","costeggiata","costellata","costernata","costicchiata","costipata","costituita","costituzionalizzata","costretta","costruita","costudita","cotonata","cotta","covata","coventrizzata","coverchiata","craccata","creata","creduta","cremata","crepata","cresciuta","cresimata","crespata","criminalizzata","crioconcentrata","criptata","cristallizzata","cristianizzata","criticata","crittata","crittografata","crivellata","crocchiata","crocefissa","crocefitta","crocifissa","crocifitta","crogiolata","cromata","cronicizzata","cronometrata","crostata","crucciata","crucifissa","crucifitta","cuccata","cucinata","cucita","cullata","cumulata","cuntata","curata","curvata","curvata","custodita","customizzata","damascata","damaschinata","damata","dannata","danneggiata","danzata","dardeggiata","datata","data","dattilografata","dattiloscritta","daziata","deacidificata","deattivata","debbiata","debellata","debilitata","decaffeinata","decaffeinizzata","decalcata","decalcificata","decantata","decapata","decapitata","decappottata","decarbossilata","decarburata","decatizzata","decelerata","decentralizzata","decentrata","decerebrata","decernuta","decespugliata","deciferata","decifrata","decimalizzata","decimata","decisa","declamata","declassata","declassificata","declinata","declorata","decodificata","decolonizzata","decolorata","decompartimentata","decompilata","decomposta","decompressa","deconcentrata","decondizionata","decongelata","decongestionata","decontaminata","decontestualizzata","decontratta","decorata","decorticata","decostruita","decrementata","decretata","decriminalizzata","decriptata","decrittata","decuplicata","decurtata","dedicata","dedotta","defacciata","defalcata","defascistizzata","defecata","defenestrata","deferita","defilata","definita","defiscalizzata","defitta","deflazionata","deflemmata","deflorata","defogliata","defoliata","deforestata","deformata","defosforata","defosforilata","deframmentata","defraudata","degassata","degassificata","deglutita","degnata","degradata","degustata","deidratata","deidrogenata","deificata","deindicizzata","deindustrializzata","deionizzata","delegata","delegificata","delegittimata","delibata","deliberata","delimitata","delineata","delirata","deliziata","delocalizzata","delucidata","delusa","demagnetizzata","demandata","demanializzata","demarcata","demeritata","demersa","demetallizzata","demilitarizzata","demineralizzata","demistificata","demitizzata","democratizzata","demodulata","demolita","demoltiplicata","demonetata","demonetizzata","demonizzata","demoralizzata","demorsa","demotivata","denaturalizzata","denaturata","denazificata","denazionalizzata","denicotinizzata","denigrata","denitrificata","denocciolata","denominata","denotata","dentellata","denuclearizzata","denudata","denunciata","denunziata","deodorata","deossidata","deossigenata","deostruita","depauperata","depenalizzata","depennata","depilata","depinta","depistata","deplorata","depolarizzata","depolimerizzata","depoliticizzata","depolverizzata","deportata","depositata","deposta","depotenziata","depravata","deprecata","depredata","depressa","depressurizzata","deprezzata","deprivata","deprotonata","depulsa","depurata","dequalificata","deratizzata","derattizzata","dereferenziata","deregolamentata","deregolata","derequisita","deresponsabilizzata","derisa","derubata","derubricata","desacralizzata","desalata","desalinizzata","descolarizzata","descritta","desecretata","desegretata","deselezionata","desensibilizzata","desessualizzata","desiata","desiderata","designata","desinata","desirata","desolata","desolforata","desonorizzata","desorbita","desossidata","desquamata","destabilizzata","destagionalizzata","destalinizzata","destatalizzata","destatizzata","destata","destinata","destituita","destoricizzata","destreggiata","destrutta","destrutturata","desunta","detassata","detenuta","deteriorata","determinata","detersa","detestata","detonata","detorta","detossificata","detratta","detronizzata","dettagliata","dettata","detta","deturpata","deumidificata","devastata","deventata","deviata","deviscerata","devitalizzata","devitaminizzata","devoluta","dezippata","diaframmata","diagnosticata","diagonalizzata","diagrammata","dializzata","dialogata","dialogizzata","diazotata","dibattuta","diboscata","dichiarata","diesata","diesizzata","difesa","diffamata","differita","diffidata","diffranta","diffratta","diffusa","digerita","digitalizzata","digitata","digiunta","digrassata","digrignata","digrossata","dilacerata","dilaniata","dilapidata","dilatata","dilavata","dilazionata","dileggiata","dileguata","dilettata","diletta","diliscata","dilucidata","diluita","dilungata","dimagrata","dimandata","dimenata","dimensionata","dimenticata","dimerizzata","dimessa","dimezzata","diminuita","dimissionata","dimostrata","dimunta","dinamizzata","dinoccata","dipanata","dipelata","dipinta","diplomata","diposta","diradata","diramata","diretta","direzionata","dirimuta","diroccata","dirottata","dirotta","dirozzata","disabilitata","disabituata","disaccentata","disaccoppiata","disaccordata","disacerbata","disacidata","disacidificata","disacidita","disaerata","disaffezionata","disaggregata","disalberata","disallineata","disamata","disambiguata","disaminata","disamorata","disancorata","disanimata","disappannata","disapplicata","disappresa","disapprovata","disarcionata","disarmata","disarticolata","disascosta","disassemblata","disassuefatta","disatomizzata","disattesa","disattivata","disattrezzata","disavvezzata","disboscata","disbrigata","discacciata","discalzata","discantata","discaricata","discernuta","discesa","disceverata","dischiesta","dischiusa","discinta","disciolta","disciplinata","discolorata","discolpata","discommessa","discompagnata","discomposta","disconclusa","disconfitta","discongiunta","disconnessa","disconosciuta","discoperta","discordata","discoscesa","discostata","discreditata","discresciuta","discriminata","discritta","discucita","discuoiata","discussa","disdegnata","disdettata","disdetta","diseccata","diseccitata","diseducata","disegnata","diserbata","diseredata","disertata","diserta","disfatta","disgelata","disgiunta","disgraziata","disgregata","disgustata","disidentificata","disiderata","disidratata","disillusa","disimballata","disimparata","disimpegnata","disimpressa","disincagliata","disincantata","disincentivata","disincrostata","disindustrializzata","disinfestata","disinfettata","disinflazionata","disinformata","disingannata","disingranata","disinibita","disinnamorata","disinnescata","disinnestata","disinquinata","disinserita","disinstallata","disintasata","disintegrata","disinteressata","disintesa","disintossicata","disinvestita","disinvolta","disistimata","dislocata","dismessa","disobbedita","disobbligata","disonorata","disordinata","disorganizzata","disorientata","disormeggiata","disossata","disossidata","disostruita","disotterrata","disparita","dispensata","dispenta","disperduta","dispersa","dispesa","dispiegata","dispinta","dispogliata","disposta","dispregiata","disprezzata","dispromessa","disproporzionata","disputata","disqualificata","disrotta","dissacrata","dissalata","dissaldata","dissanguata","dissecata","disseccata","disselciata","dissellata","disseminata","dissepolta","disseppellita","dissequestrata","disserrata","dissestata","dissetata","dissezionata","dissigillata","dissimulata","dissipata","dissociata","dissodata","dissolta","dissomigliata","dissotterrata","dissuasa","dissuggellata","distaccata","distanziata","distesa","distillata","distinta","distolta","distorta","distratta","distretta","distribuita","districata","distrigata","distrutta","disturbata","disubbidita","disumanata","disumanizzata","disunita","disusata","disveduta","disvelata","disvestita","disviata","disvista","disvolta","disvoluta","dittongata","divallata","divaricata","divelta","diversificata","divertita","divezzata","divinata","divincolata","divinizzata","divisa","divolta","divorata","divorziata","divulgata","documentata","dogata","dogmatizzata","dolcificata","dollarizzata","dolorata","doluta","domandata","domata","domesticata","domiciliata","dominata","donata","dondolata","dopata","doppiata","dorata","dormitoca","dosata","dotata","dovuta","dragata","drammatizzata","drappeggiata","drenata","dribblata","drizzata","drogata","dugliata","duplicata","duramificata","ebraizzata","ecceduta","eccepita","eccettuata","eccitata","echeggiata","eclissata","economizzata","edificata","editata","edotta","educata","edulcorata","effettuata","efficientata","effigiata","effinta","effluita","effusa","egemonizzata","eguagliata","eiettata","elaborata","elargita","elasticizzata","elementarizzata","elemosinata","elencata","eletta","elettrificata","elettrizzata","elettrocoagulata","elettrolizzata","elevata","eliminata","elisa","elitrasportata","ellenizzata","elogiata","elucidata","elucubrata","eluita","elusa","emanata","emancipata","emarginata","embricata","emendata","emessa","emozionata","empita","empiuta","emulata","emulsionata","emunta","encomiata","endocitata","energizzata","enfatizzata","enfiata","entusiasmata","enucleata","enumerata","enunciata","epicureggiata","epurata","equalizzata","equilibrata","equipaggiata","equiparata","eradicata","erasa","ereditata","eretta","erogata","eroicizzata","erosa","erotizzata","erpicata","ersa","erudita","eruttata","esacerbata","esagerata","esagitata","esalata","esaltata","esaminata","esasperata","esaudita","esaurita","esautorata","esborsata","esclusa","escogitata","escomiata","escoriata","escossa","escussa","esecrata","esecutata","eseguita","esemplificata","esentata","esercitata","esfoliata","esibita","esilarata","esiliata","esimuta","esitata","esonerata","esorbitata","esorcizzata","esortata","espansa","esparsa","esperimentata","esperita","espettorata","espiantata","espiata","espirata","espletata","esplicata","esplicitata","esplorata","esplosa","esportata","esposta","espressa","espropriata","espugnata","espulsa","espunta","espurgata","essiccata","essuta","estasiata","estenuata","esterificata","esteriorizzata","esterminata","esternalizzata","esternata","estesa","estimata","estinta","estirpata","estivata","estorta","estradata","estraniata","estrapolata","estratta","estremizzata","estrinsecata","estromessa","estrusa","estubata","esulcerata","esultata","esumata","eterificata","eterizzata","eternata","eternizzata","etichettata","etossilata","euforizzata","europeizzata","evacuata","evangelizzata","evasa","eveta","evidenziata","evinta","evirata","eviscerata","evitata","evocata","evolta","evoluta","evulsa","fabbricata","faccettata","facilitata","fagocitata","falciata","falcidiata","fallita","falsata","falsificata","familiarizzata","fanatizzata","fantasticata","farcita","farfugliata","fasciata","fascicolata","fascistizzata","fattacela","fatta","fattorizzata","fatturata","favellata","favoreggiata","favorita","faxata","fecondata","fedecommessa","federalizzata","federata","felicitata","felpata","feltrata","femminilizzata","fenduta","ferita","fermata","fermentata","ferrata","fertilizzata","fessa","fessurata","festeggiata","festonata","feudalizzata","fiaccata","fiammeggiata","fiancheggiata","ficcata","fidanzata","fidata","fidecommessa","fidelizzata","figliata","figurata","filata","filettata","filmata","filosofata","filtrata","finalizzata","finanziata","finitala","finita","finlandizzata","fintata","finta","fiocinata","fiondata","fiorettata","firmata","fiscalizzata","fischiata","fischiettata","fissata","fissionata","fitta","fiutata","flagellata","flaggata","flambata","flangiata","flemmatizzata","flessa","flippata","flottata","fluidificata","fluidizzata","fluorizzata","fluorurata","focalizzata","focheggiata","foderata","foggiata","fognata","folgorata","follata","fomentata","fonata","fondata","foracchiata","foraggiata","forata","forestata","forfettizzata","forgiata","formalizzata","formata","formattata","formilata","formulata","fornita","fortificata","forviata","forwardata","forzata","fosfatata","fosforata","fosforilata","fossilizzata","fotocomposta","fotocopiata","fotografata","fottuta","fracassata","fraintesa","framessa","frammentata","frammessa","frammezzata","frammischiata","franceseggiata","francesizzata","frangiata","franta","frantumata","frappata","frapposta","fraseggiata","frastagliata","frastornata","fratturata","frazionata","freddata","fregata","fregiata","frenata","frequentata","fresata","frettata","friendzonata","fritta","frizionata","frodata","frollata","fronteggiata","frugata","fruita","frullata","frusciata","frustata","frustrata","fruttata","fucilata","fucinata","fugata","fuggita","fulminata","fumata","fumigata","funestata","funta","funzionata","fuoriuscita","fuorviata","fusa","fustellata","fustigata","gabbata","gabellata","gallata","gallicizzata","gallonata","galvanizzata","gambizzata","garantita","garnettata","garrotata","garzata","gasata","gassata","gassificata","gazata","gelatinizzata","gelata","gelificata","gemellata","gemicata","geminata","generalizzata","generata","gentrificata","genuflessa","geometrizzata","georeferenziata","gerarchizzata","germanizzata","gestita","gettata","gettonata","ghermita","ghettizzata","ghigliottinata","ghindata","gibollata","gingillata","ginnata","giocata","gioita","gionglata","giovaneggiata","girandolata","girata","giudicata","giulebbata","giuntata","giunta","giuracchiata","giurata","giustapposta","giustificata","giustiziata","glamourizzata","glassata","glissata","globalizzata","gloriata","glorificata","glossata","godronata","goduta","goffrata","gommata","gonfiata","googlata","gottata","governata","gradinata","gradita","gradualizzata","graduata","graffata","graffiata","graffita","graficata","grafitata","gramolata","granagliata","grandinata","granellata","granita","granulata","graticciata","graticolata","gratificata","gratinata","grattata","grattugiata","gravata","graziata","grecheggiata","grecizzata","gremita","gridata","griffata","grigliata","grippata","groccata","grondata","grugata","grugnita","guadagnata","gualcita","guardata","guarita","guarnita","guastata","guatata","guerreggiata","gufata","guidata","gustata","hackerata","handicappata","ibridata","idealizzata","ideata","identificata","ideologizzata","idolatrata","idoleggiata","idratata","idrogenata","idrolizzata","iettata","igienizzata","ignifugata","ignorata","illanguidita","illeggiadrita","illividita","illuminata","illusa","illustrata","imbacuccata","imbaldanzita","imballata","imbalsamata","imbambolata","imbandierata","imbandita","imbarbarita","imbarcata","imbarilata","imbastardita","imbastita","imbattuta","imbavagliata","imbeccata","imbellettata","imbellita","imbestialita","imbestiata","imbevuta","imbiaccata","imbiancata","imbianchita","imbibita","imbiettata","imbiondita","imbizzarrita","imboccata","imbonita","imborghesita","imboscata","imboschita","imbottata","imbottigliata","imbottita","imbozzimata","imbracata","imbracciata","imbragata","imbrancata","imbrattata","imbrecciata","imbrigliata","imbrillantinata","imbroccata","imbrodata","imbrogliata","imbronciata","imbruttita","imbucata","imbudellata","imbullettata","imbullonata","imburrata","imbussolata","imbustata","imbutita","imitata","immagazzinata","immaginata","immalinconita","immatricolata","immedesimata","immersa","immessa","immischiata","immiserita","immobilizzata","immolata","immortalata","immunizzata","immusonita","impaccata","impacchettata","impacciata","impadronita","impaginata","impagliata","impalata","impalcata","impallata","impallinata","impalmata","impaludata","impanata","impaniata","impannata","impantanata","impaperata","impapocchiata","impappinata","imparentata","imparruccata","impartita","impastata","impasticcata","impasticciata","impastocchiata","impastoiata","impataccata","impattata","impaurita","impavesata","impeciata","impedicata","impedita","impegnata","impegolata","impelagata","impellicciata","impennacchiata","impennata","impensierita","impepata","imperlata","impermalita","impermeabilizzata","imperniata","impersonata","impersonificata","impestata","impetrata","impiallacciata","impiantata","impiastrata","impiastricciata","impiccata","impicciata","impicciolita","impiccolita","impidocchiata","impiegata","impietosita","impietrita","impigliata","impigrita","impilata","impillaccherata","impinguata","impinta","impinzata","impiombata","impipata","impiumata","implementata","implicata","implorata","impollinata","impolpata","impoltronita","impolverata","impomatata","imporcata","imporporata","importata","importunata","impossessata","impossibilitata","impostata","imposta","impratichita","impregnata","impresa","impressionata","impressa","imprestata","impreziosita","imprigionata","impromessa","improntata","improsciuttita","impugnata","impuntita","impunturata","impupata","imputata","impuzzolentita","inabilitata","inabissata","inacerbita","inacetita","inacidita","inacutita","inaffiata","inalata","inalberata","inalveata","inalzata","inamidata","inanellata","inarcata","inargentata","inaridita","inasprita","inastata","inattivata","inaugurata","incacchiata","incalcinata","incalorita","incalzata","incamerata","incamiciata","incamminata","incanaglita","incanalata","incannata","incannucciata","incaponita","incappottata","incappucciata","incaprettata","incapricciata","incapsulata","incarcerata","incardinata","incaricata","incarnata","incarrozzata","incartata","incartocciata","incartonata","incasellata","incasinata","incassata","incastellata","incastonata","incastrata","incatenata","incatramata","incattivita","incavata","incavigliata","incavolata","incazzata","incellofanata","incendiata","incenerita","incensata","incentivata","incentrata","inceppata","incerata","incernierata","incerottata","incesa","incettata","inchiappettata","inchiavardata","inchiesta","inchinata","inchiodata","inchiostrata","incipriata","incisa","incistata","incitata","inciuccata","incivilita","inclinata","inclusa","incoccata","incocciata","incoiata","incollata","incolonnata","incolpata","incominciata","incomodata","incontrata","incoraggiata","incordata","incornata","incorniciata","incoronata","incorporata","incotta","incravattata","incrementata","increspata","incretinita","incriminata","incrinata","incrociata","incrostata","incrudelita","incrudita","incruscata","incubata","inculata","inculcata","incuneata","incuoiata","incuorata","incupita","incuriosita","incurvata","incussa","indagata","indebitata","indebolita","indemaniata","indennizzata","indetta","indicata","indicizzata","indignata","indiretta","indirizzata","indispettita","indisposta","individualizzata","individuata","indolenzita","indorata","indossata","indotta","indottoma","indottrinata","indovinata","indugiata","indulta","indurata","indurita","industrializzata","industriata","inebetita","inebriata","inerita","inerpicata","infagottata","infamata","infangata","infarcita","infarinata","infastidita","infatuata","infeltrita","inferita","inferocita","inferta","infervorata","infestata","infettata","infeudata","infiacchita","infialata","infialettata","infiammata","infiascata","infibulata","inficiata","infilata","infiltrata","infilzata","infingardita","infinocchiata","infinta","infioccata","infiocchettata","infiochita","infiorata","infirmata","infischiata","infissa","infittita","inflazionata","inflessa","inflitta","influenzata","infocata","infoderata","infognata","infoibata","infoltita","inforcata","informatizzata","informata","informicolata","informicolita","infornaciata","infornata","infortunata","infoscata","infossata","infradiciata","inframessa","inframezzata","inframmessa","inframmezzata","infrancesata","infrapposta","infrascata","infrattata","infreddata","infronzolata","infuocata","infurbita","infuriata","ingabbiata","ingaggiata","ingagliardita","ingannata","ingarbugliata","ingavonata","ingegnata","ingegnerizzata","ingelosita","ingemmata","ingenerata","ingentilita","ingerita","ingessata","inghiaiata","inghiottita","inghirlandata","ingiallita","ingigantita","inginocchiata","ingioiellata","ingiunta","ingiuriata","inglesizzata","inglobata","ingoffita","ingoiata","ingolfata","ingollata","ingolosita","ingombrata","ingommata","ingorgata","ingozzata","ingranata","ingrandita","ingrassata","ingraticciata","ingraticolata","ingravidata","ingraziata","ingraziosita","ingrigita","ingrommata","ingrossata","ingrullita","inguaiata","inguainata","ingualdrappata","inguantata","ingurgitata","inibita","iniettata","inimicata","inizializzata","iniziata","inmillata","innacquata","innaffiata","innalzata","innamorata","innastata","innervata","innervosita","innescata","innestata","innevata","innocentata","innocuizzata","innovata","inoculata","inoltrata","inondata","inorgoglita","inorpellata","inorridita","inquadrata","inquietata","inquisita","insabbiata","insacchettata","insalata","insaldata","insalivata","insanguinata","insaponata","insaporita","inscatolata","inscenata","inscritta","insecchita","insediata","insegnata","inseguita","insellata","inselvatichita","inserita","insidiata","insignita","insilata","insinuata","insolentita","insonnolita","insonorizzata","insordita","insospettita","insozzata","inspessita","inspirata","installata","instaurata","insterilita","instillata","instituita","instradata","insudiciata","insufflata","insultata","insuperbita","intabaccata","intabarrata","intaccata","intagliata","intarsiata","intasata","intascata","intavolata","integrata","intelaiata","intelata","intellettualizzata","intenebrata","intenerita","intensificata","intentata","intepidita","intercalata","intercambiata","intercettata","intercisa","interclusa","intercollegata","interconnessa","interconvertita","interdetta","interessata","interfacciata","interfogliata","interfoliata","interiorizzata","interlacciata","interlineata","intermessa","intermezzata","internalizzata","internata","internazionalizzata","interpellata","interpenetrata","interpolata","interposta","interpretata","interpunta","interrata","interrogata","interrotta","intersecata","intervallata","intervistata","intesa","intessuta","intestardita","intestata","intiepidita","intimata","intimidita","intimorita","intinta","intirizzita","intitolata","intonacata","intonata","intontita","intorbidata","intorbidita","intorpidita","intortata","intossicata","intralciata","intramessa","intramezzata","intrappolata","intrapresa","intrattenuta","intraveduta","intravista","intravveduta","intravvista","intrecciata","intricata","intrigata","intrinsecata","intrippata","intrisa","introdotta","introflessa","introiettata","introitata","intromessa","intronata","intronizzata","intruduta","intrufolata","intrugliata","intruppata","intrusa","intubata","intubettata","intuita","inumata","inumidita","inurbata","inutilizzata","invaghita","invaginata","invalidata","invasata","invasa","invelenita","inventariata","inventata","invenuta","inverdita","invergata","inverniciata","investigata","investita","invetriata","inviata","invidiata","invigorita","inviluppata","invischiata","invitata","invocata","invogliata","involata","involgarita","involtata","involta","inzaccherata","inzeppata","inzigata","inzolfata","inzuccata","inzuccherata","inzuppata","iodurata","ionizzata","ipertrofizzata","ipnotizzata","ipostatizzata","ipotecata","ipotizzata","iridata","irradiata","irraggiata","irreggimentata","irretita","irrigata","irrigidita","irrisa","irritata","irrobustita","irrogata","irrorata","irrugginita","irruvidita","ischeletrita","iscritta","islamizzata","isolata","isomerizzata","ispanizzata","ispessita","ispezionata","ispirata","issata","istallata","istanziata","istaurata","isterilita","istigata","istillata","istituita","istituzionalizzata","istoriata","istradata","istruita","istupidita","italianeggiata","italianizzata","iterata","iudicata","killerata","labbreggiata","labializzata","laccata","lacerata","laconizzata","lacrimata","ladroneggiata","lagnata","lagrimata","laicizzata","lambiccata","lambita","lamentata","laminata","lanciata","lapidata","lappata","lardata","lardellata","largita","larvata","lascata","lasciata","lastricata","latinizzata","laudata","laureata","lavata","lavorata","leccata","legalizzata","legata","leggicchiata","leggiucchiata","legittimata","legittimizzata","legnata","lemmatizzata","lenita","lesinata","lesionata","lesa","lessata","letta","levata","levigata","liberalizzata","liberata","licenziata","lievitata","liftata","lignificata","limata","limitata","linciata","linearizzata","lineata","linkata","liofilizzata","liquefatta","liquidata","lisata","lisciata","lisciviata","listata","litografata","livellata","lizzata","lobotomizzata","localizzata","locata","lodata","logorata","lordata","lottata","lottizzata","lubrificata","lucchettata","lucidata","lucrata","lumeggiata","luppolizzata","lusingata","lussata","lustrata","macadamizzata","macchiata","macchinata","macellata","macerata","maciullata","maggesata","maggiorata","magnata","magnetizzata","magnificata","maiolicata","maledetta","malfatta","malignata","malmenata","malmessa","maltata","maltrattata","malveduta","malversata","malvista","malvoluta","mandata","mandrinata","manducata","maneggiata","manganata","manganellata","mangiata","mangiucchiata","manifatturata","manifestata","manimessa","manipolata","manlevata","manomessa","manoscritta","manovrata","mansuefatta","mantecata","mantenutasa","mantenuta","manualizzata","manutenuta","mappata","marcata","marchiata","marcita","marezzata","marginalizzata","marginata","margottata","marimessa","marinata","maritata","marmorizzata","marnata","marocchinata","martellata","martellinata","martirizzata","martoriata","mascherata","maschiata","maschiettata","mascolinizzata","massacrata","massaggiata","massellata","massicciata","massificata","massimata","massimizzata","mastectomizzata","masterizzata","masticata","masturbata","matematizzata","materializzata","matricolata","mattonata","maturata","mazziata","mazzolata","meccanizzata","medagliata","mediata","medicalizzata","medicata","meditata","membrata","memorizzata","menata","mendicata","menomata","mentovata","menzionata","meravigliata","mercanteggiata","mercerizzata","mercificata","meriata","meridionalizzata","meritata","merlata","merlettata","mersa","mesciata","mesciuta","mescolata","mescuta","mesmerizzata","messaggiata","messa","messoca","mestata","mesticata","mestruata","metabolizzata","metaforeggiata","metaforizzata","metallizzata","metamorfizzata","metamorfosata","metanizzata","metilata","metodizzata","microfilmata","microfonata","microminiaturizzata","micronizzata","mietuta","migliorata","militarizzata","millantata","millimetrata","mimata","mimeografata","mimetizzata","minacciata","minata","minchionata","mineralizzata","miniata","miniaturizzata","minimizzata","minuita","minuzzata","miracolata","miscelata","mischiata","misconosciuta","missata","mistificata","misturata","misurata","miticizzata","mitigata","mitizzata","mitragliata","mitrata","mixata","mobiliata","mobilitata","mobilizzata","modanata","modellata","modellizzata","moderata","modernizzata","modificata","modulata","molata","molestata","mollata","molleggiata","moltiplicata","monacata","mondata","mondializzata","monetarizzata","monetata","monetizzata","monitorata","monitorizzata","monocromatizzata","monopolizzata","monottongata","montata","monumentalizzata","mordenzata","mordicchiata","mormorata","morphata","morsicata","morsicchiata","morsa","mortasata","mortificata","mossa","mostrata","motivata","motorizzata","motteggiata","movimentata","mozzata","mugolata","mulcita","multata","multiplexata","mummificata","municipalizzata","munita","munta","murata","musata","musicata","mussata","mutata","mutilata","mutizzata","mutuata","nappata","narcotizzata","narrativizzata","narrata","nasalizzata","nascosa","nascosta","nastrata","naturaleggiata","naturalizzata","nauseata","naverata","navicata","navigata","nazificata","nazionalizzata","nebulizzata","necessitata","necrosata","necrotizzata","negativizzata","negata","negletta","negoziata","negreggiata","neologizzata","nerbata","nericata","nettata","neutralizzata","nevata","nevicata","nevischiata","nevrotizzata","nichelata","niellata","ninfeggiata","ninnata","ninnolata","nitratata","nitrificata","nobilitata","noiata","noleggiata","nomata","nominalizzata","nominata","normalizzata","normata","notata","notificata","notiziata","notricata","noverata","nuclearizzata","nudricata","nullificata","numerata","numerizzata","nuotata","nutrita","obbiettata","obbliata","obbligata","oberata","obiettata","obiettivata","obiettivizzata","obiurgata","obliata","obliterata","obnubilata","occasionata","occhieggiata","occidentalizzata","occisa","occlusa","occultata","occupata","ocheggiata","odiata","odorata","odorizzata","offerita","offerta","offesa","officiata","offiziata","offuscata","ofiziata","oggettivata","oggettivizzata","oggettualizzata","oliata","olita","olografata","oltraggiata","oltrapassata","oltrepassata","omaggiata","ombrata","ombreggiata","omessa","omogeneizzata","omogenizzata","omologata","ondata","ondulata","onestata","onnubilata","onorata","opacata","opacizzata","operata","opinata","oppiata","oppignorata","oppilata","opposta","oppressa","oppugnata","oprata","opsonizzata","optata","opzionata","orbitata","orchestrata","ordinata","ordita","orecchiata","organata","organicata","organizzata","orgasmata","orientalizzata","orientata","originata","origliata","orizzontata","orlata","orlettata","ormata","ormeggiata","ornata","orpellata","orrata","orripilata","ortogonalizzata","osannata","osata","osculata","oscurata","ospedalizzata","ospitata","osseduta","ossequiata","osservata","ossessionata","ossidata","ossificata","ossitonizzata","ostacolata","osteggiata","ostentata","ostinata","ostracizzata","ostruita","ottemperata","ottenebrata","ottenuta","ottimalizzata","ottimata","ottimizzata","ottonata","ottriata","ottuplicata","otturata","ottusa","ottussa","ovalizzata","ovariectomizzata","ovattata","overcloccata","ovrata","ovviata","ozieggiata","ozonizzata","pacata","pacciamata","pacificata","padroneggiata","paganizzata","pagata","paginata","palafittata","palatalizzata","palata","palesata","palettata","palettizzata","palificata","palleggiata","pallettizzata","palpata","palpeggiata","panata","panneggiata","panoramicata","pappata","paracadutata","parafata","paraffinata","parafrasata","paragonata","paragrafata","paralizzata","parallelizzata","parametrata","parametrizzata","parassitata","parata","parcata","parcellizzata","parcheggiata","pareggiata","parificata","parkerizzata","parlata","parlucchiata","parodiata","partecipata","particolareggiata","particolarizzata","partizionata","partorita","parzializzata","pasciuta","pascolata","passata","passeggiata","passionata","passivata","pasticciata","pastorizzata","pasturata","patinata","patita","patrocinata","patteggiata","pattugliata","pattuita","paventata","pavesata","pavimentata","pavoneggiata","pazziata","pedinata","pedonalizzata","peggiorata","pelata","pellettizzata","penalizzata","penetrata","pennellata","pensata","pensionata","pentita","pepata","peptonizzata","peragrata","percentualizzata","percepita","percolata","percorsa","percossa","perdonata","perdotta","perduta","perequata","perfatta","perfezionata","perforata","performata","perita","periziata","perlustrata","permeata","permessa","perorata","perpetrata","perpetuata","perplimuta","perquisita","perscrutata","perseguitata","perseguita","persa","personalizzata","personificata","persuasa","perturbata","pervasa","pervertita","pesata","pescata","pestata","petrarcheggiata","pettegolata","pettinata","piagata","piaggiata","piallata","pianeggiata","pianificata","piantata","piantatala","piantata","pianta","piantonata","piantumata","piastrellata","piatita","piazzata","picchettata","picchiata","picchierellata","picchiettata","picconata","piegata","pieghettata","pietrificata","pigiata","pigliata","pigmentata","pignorata","pigolata","pilotata","pimentata","pinta","pinzata","piombata","piovigginata","piovuta","pipata","pippata","piratata","pirogenata","pisciata","pitoccata","pittata","pitturata","pizzicata","pizzicottata","placata","placcata","plagiata","plasmata","plasticata","plastificata","platinata","plissettata","pluralizzata","poetata","poeticizzata","poggiata","polarizzata","poligrafata","polimerizzata","politicizzata","polverizzata","pomiciata","pompata","ponderata","ponzata","popolarizzata","popolata","poppata","porcellanata","porfirizzata","portata","portesa","porta","porzionata","posata","posdatata","positivizzata","posizionata","posposta","posseduta","postata","postdatata","posteggiata","posticipata","postillata","posta","postsincronizzata","postulata","potabilizzata","potata","potenziata","potuta","pralinata","praticata","preaccennata","preannunciata","preannunziata","preavvertita","preavvisata","precaricata","preceduta","precettata","precinta","precisata","preclusa","precompilata","precompressa","preconfezionata","preconizzata","preconosciuta","precorsa","precostituita","predata","predefinita","predestinata","predeterminata","predetta","predicata","predigerita","prediletta","predisposta","preeletta","preesistuta","prefabbricata","prefata","prefatta","prefazionata","preferita","prefigurata","prefinanziata","prefissata","prefissa","preformata","pregata","pregiata","pregiudicata","pregustata","preimpregnata","prelevata","premeditata","premescolata","premessa","premiata","premonita","premunita","premurata","premuta","prenotata","preoccupata","preordinata","preparata","prepensionata","prepigmentata","preposta","preprogrammata","preraffreddata","prerefrigerata","preregistrata","preregolata","preriscaldata","presa","presagita","presaputa","presasela","prescelta","prescritta","preseduta","presegnalata","preselezionata","presentata","presentita","preservata","presidiata","presieduta","presa","pressata","pressa","pressurizzata","prestabilita","prestampata","prestata","prestigiata","presunta","presupposta","pretermessa","pretesa","pretrattata","prevaricata","preveduta","prevenduta","preventivata","prevenuta","prevista","prezzata","prezzolata","principiata","privatizzata","privata","privilegiata","problematizzata","procacciata","processata","proclamata","procrastinata","procreata","procurata","prodigata","prodotta","profanata","proferita","professata","professionalizzata","profetata","profetizzata","profferita","profilata","profondata","profumata","profusa","progettata","prognosticata","programmata","proibita","proiettata","proletarizzata","prolungata","promanata","promessa","promossa","promozionata","promulgata","pronosticata","pronunciata","pronunziata","propagandata","propagata","propagginata","propalata","propinata","propiziata","proporzionata","proposta","propugnata","propulsa","prorogata","prosciolta","prosciugata","proscritta","proseguita","prospettata","prosternata","prostesa","prostituita","prostrata","prosunta","protesa","protestata","protetta","protocollata","protonata","protratta","protrusa","provata","proveduta","provincializzata","provista","provocata","provveduta","provvista","psicanalizzata","psichiatrizzata","psicoanalizzata","psicologizzata","pubblicata","pubblicizzata","puddellata","pugnalata","pulita","pungolata","punita","puntata","punteggiata","puntellata","punta","puntualizzata","punzecchiata","punzonata","purgata","purificata","putita","putrefatta","putrita","quadrata","quadrettata","quadriennalizzata","quadruplicata","qualificata","quantificata","quantizzata","querelata","questuata","quetata","quietanzata","quietata","quintessenziata","quintuplicata","quotata","quotizzata","rabberciata","rabboccata","rabbonita","rabbuffata","rabuffata","raccapezzata","raccapricciata","raccattata","raccerchiata","raccesa","racchetata","racchiusa","raccolta","raccolta","raccomandata","raccomodata","raccontata","raccorciata","raccorcita","raccordata","raccostata","raccozzata","racemizzata","racimolata","radazzata","raddensata","raddobbata","raddolcita","raddoppiata","raddotta","raddrizzata","radiata","radicalizzata","radioassistita","radioattivata","radiocomandata","radiodiffusa","radiografata","radioguidata","radiolocalizzata","radiomarcata","radiotelegrafata","radiotrasmessa","radunata","raffazzonata","raffermata","raffigurata","raffilata","raffinata","rafforzata","raffreddata","raffrenata","raffrescata","raffrontata","raggelata","raggentilita","ragghiata","raggirata","raggiunta","raggiustata","raggomitolata","raggranchiata","raggranchita","raggranellata","raggrinzata","raggrinzita","raggrumata","raggruppata","raggruzzolata","ragguagliata","ralingata","rallegrata","rallentata","ramata","ramazzata","rammagliata","rammaricata","rammemorata","rammendata","rammentata","rammodernata","rammollita","rammorbidita","rampognata","randellata","randomizzata","rannicchiata","rannuvolata","ranzata","rapata","rapinata","rapita","rappacificata","rappata","rappattumata","rappezzata","rapportata","rappresantata","rappresentata","rappresa","rarefatta","rasata","raschiata","raschiettata","rasentata","rasa","raspata","rassegnata","rasserenata","rassettata","rassicurata","rassodata","rassomigliata","rassottigliata","rassunta","rastrellata","rastremata","rateata","rateizzata","ratificata","ratinata","rattizzata","rattoppata","rattorta","rattrappita","rattristata","rattristita","raunata","ravvalorata","ravveduta","ravviata","ravvicinata","ravviluppata","ravvisata","ravvista","ravvivata","ravvolta","ravvoltolata","razionalizzata","razionata","razziata","razzolata","realizzata","reassunta","recapitata","recata","receduta","recensita","recepita","recidivata","recintata","recinta","reciprocata","recisa","recitata","reclamata","reclamizzata","reclinata","reclusa","reclutata","recuperata","redarguita","redatta","redazzata","redduta","redenta","redistribuita","redotta","referenziata","refertata","refilata","reflessa","reflettuta","refranta","refrigerata","regalata","regimata","regimentata","regionalizzata","registrata","regolamentata","regolarizzata","regolata","reidratata","reificata","reimbarcata","reimmersa","reimmessa","reimparata","reimpastata","reimpiantata","reimpiegata","reimportata","reimpostata","reincarcerata","reincaricata","reincarnata","reincisa","reincontrata","reindirizzata","reindustrializzata","reinfettata","reingaggiata","reinizializzata","reinnestata","reinoltrata","reinscritta","reinsediata","reinserita","reinstallata","reinstaurata","reintegrata","reinterpretata","reintitolata","reintrodotta","reinventata","reinvestita","reiterata","relativizzata","relazionata","relegata","remixata","remunerata","renderizzata","reperita","repertata","replicata","repressa","repulsa","reputata","requisita","rescissa","resecata","resettata","residuata","resinificata","resa","resolata","resolta","respinta","respirata","responsabilizzata","resposta","restaurata","restituita","resunta","resuscitata","reticolata","retinata","retribuita","retroceduta","retrocessa","retrodatata","rettificata","retta","reumatizzata","revisionata","revocata","riabbassata","riabbellita","riabbonata","riabbottonata","riabbracciata","riabilitata","riabitata","riabituata","riaccaduta","riaccasata","riaccesa","riaccettata","riacchiappata","riacciuffata","riaccolta","riaccomodata","riaccompagnata","riaccordata","riaccostata","riaccreditata","riacquisita","riacquistata","riacutizzata","riadattata","riaddestrata","riaddormentata","riadoperata","riaffacciata","riaffermata","riafferrata","riaffiorata","riaffittata","riaffrontata","riagganciata","riaggiornata","riaggiustata","riaggravata","riaggregata","riagguantata","rialimentata","riallacciata","riallargata","riallineata","riallocata","riallungata","rialzata","riamata","riambientata","riammalata","riammessa","riammodernata","riammogliata","rianimata","riannessa","riannodata","riannunciata","riaperta","riappacificata","riappaltata","riapparecchiata","riapparita","riappesa","riappiccicata","riapplicata","riappresa","riapprodata","riappropriata","riapprovata","riarmata","riarrangiata","riarredata","riascoltata","riasfaltata","riassalita","riassaporata","riassegnata","riassemblata","riassestata","riassettata","riassicurata","riassociata","riassopita","riassorbita","riassunta","riattaccata","riattata","riattesa","riattinta","riattivata","riattizzata","riattraversata","riaumentata","riavuta","riavventata","riavvertita","riavviata","riavvicinata","riavvinta","riavvisata","riavvistata","riavvolta","riazzuffata","ribaciata","ribadita","ribaltata","ribassata","ribattezzata","ribattuta","ribellata","ribenedetta","ribevuta","ributtata","ricacciata","ricalata","ricalcata","ricalcificata","ricalcitrata","ricalcolata","ricalibrata","ricamata","ricambiata","ricanalizzata","ricandidata","ricantata","ricapitalizzata","ricapitolata","ricaricata","ricategorizzata","ricattata","ricavata","ricelebrata","ricercata","ricetrasmessa","ricettata","ricevuta","richiamata","richiesta","richiusa","riciclata","ricinta","ricircolata","riclassificata","ricodificata","ricollegata","ricollocata","ricolmata","ricolonizzata","ricolorata","ricolorita","ricoltivata","ricombinata","ricominciata","ricommessa","ricomparita","ricompattata","ricompensata","ricomperata","ricompilata","ricompiuta","ricomposta","ricomprata","ricompressa","ricomunicata","riconceduta","riconcessa","riconciliata","ricondizionata","ricondotta","riconfermata","riconfezionata","riconfigurata","riconfortata","riconfusa","ricongelata","ricongiunta","riconnessa","riconosciuta","riconquistata","riconsacrata","riconsegnata","riconsiderata","riconsigliata","riconsolata","ricontata","ricontattata","ricontrattata","ricontratta","ricontrollata","riconvalidata","riconvenuta","riconvertita","riconvinta","riconvocata","riconvogliata","ricoperta","ricopiata","ricordata","ricoricata","ricorretta","ricosparsa","ricostituita","ricostretta","ricostruita","ricotta","ricoverata","ricreata","ricristallizzata","ricrocifissa","ricucita","ricuperata","ricusata","ridata","ridecorata","ridefinita","ridenominata","ridestata","rideterminata","ridetta","ridicolizzata","ridigitata","ridimensionata","ridipinta","ridiscesa","ridisciolta","ridisciplinata","ridiscussa","ridisegnata","ridisfatta","ridisposta","ridistesa","ridistinta","ridistribuita","ridivisa","ridomandata","ridonata","ridondata","ridorata","ridotata","ridotta","ridovuta","riecheggiata","riedificata","rieducata","rielaborata","rieletta","riemessa","riempita","riempiuta","rientrata","riepilogata","riequilibrata","riequipaggiata","riesaminata","rieseguita","riesercitata","riesplosa","riesportata","riesposta","riespressa","riespulsa","riestesa","riesumata","rietichettata","rievaporata","rievocata","rifabbricata","rifasciata","rifatta","rifenduta","riferita","rifermata","rifermentata","rifessa","rificcata","rifilata","rifiltrata","rifinanziata","rifinita","rifirmata","rifischiata","rifissa","rifiutata","riflessa","riflettuta","rifocillata","rifoderata","rifondata","riforestata","riforgiata","riformata","riformattata","riformulata","rifornita","rifranta","rifritta","rifrugata","rifuggita","rifugiata","rifusa","rigassificata","rigata","rigelata","rigenerata","rigettata","righettata","rigiocata","rigirata","rigiudicata","rigiunta","rigoduta","rigonfiata","rigovernata","riguadagnata","riguardata","rigurgitata","rilanciata","rilasciata","rilassata","rilavata","rilavorata","rilegata","riletta","rilevata","rilocalizzata","rimagliata","rimandata","rimaneggiata","rimangiata","rimappata","rimarcata","rimarchiata","rimarginata","rimaritata","rimasticata","rimata","rimbacuccata","rimbaldanzita","rimbarcata","rimbeccata","rimbecillita","rimbellita","rimbiancata","rimbiondita","rimboccata","rimbombata","rimborsata","rimboscata","rimboschita","rimbrottata","rimediata","rimembrata","rimemorata","rimenata","rimeritata","rimescolata","rimessa","rimestata","rimilitarizzata","rimirata","rimischiata","rimisurata","rimodellata","rimodernata","rimodulata","rimondata","rimontata","rimorchiata","rimorsa","rimossa","rimostrata","rimotivata","rimpacchettata","rimpadronita","rimpaginata","rimpagliata","rimpannucciata","rimpastata","rimpatriata","rimpiallacciata","rimpianta","rimpiattata","rimpiazzata","rimpicciolita","rimpiccolita","rimpiegata","rimpinguata","rimpinzata","rimpolpata","rimpossessata","rimpressa","rimproverata","rimuginata","rimunerata","rimunta","rimusicata","rimutata","rinarrata","rinascosta","rincalcata","rincalzata","rincamminata","rincantucciata","rincarata","rincarcerata","rincarnata","rincentrata","rinchiesta","rinchiodata","rinchiusa","rincitrullita","rincivilita","rincoglionita","rincollata","rincominciata","rincontrata","rincoraggiata","rincorata","rincorporata","rincorsa","rincretinita","rincrudita","rinculcata","rincuorata","rindossata","rindurita","rinegoziata","rinfacciata","rinfagottata","rinfiammata","rinfiancata","rinfilata","rinfittita","rinfocolata","rinfoderata","rinforzata","rinfrancata","rinfranta","rinfrescata","rinfusa","ringagliardita","ringalluzzita","ringiovanita","ringiovenita","ringoiata","ringorgata","ringraziata","ringuainata","rinnamorata","rinnegata","rinnestata","rinnovata","rinnovellata","rinociuta","rinomata","rinominata","rinormalizzata","rinquadrata","rinsaccata","rinsaldata","rinsanguata","rinselvatichita","rinselvata","rinserrata","rintanata","rintasata","rintascata","rintavolata","rintenerita","rinterrata","rinterrogata","rintesa","rintiepidita","rintoccata","rintonacata","rintontita","rintorpidita","rintracciata","rintrodotta","rintronata","rintuzzata","rinunciata","rinunziata","rinutrita","rinvangata","rinvasata","rinvenuta","rinverdita","rinvestita","rinviata","rinvigorita","rinvilita","rinvitata","rinvoltata","rinvolta","rinvoltolata","rinzaffata","rinzeppata","riobbligata","rioccupata","riofferta","rioffesa","rioperata","riordinata","riorganizzata","riorientata","riosservata","riottenuta","riottimizzata","riotturata","ripagata","riparametrizzata","riparata","ripartita","ripassata","ripercorsa","ripercossa","riperduta","ripersa","ripesata","ripescata","ripestata","ripetuta","ripianata","ripianificata","ripiantata","ripianta","ripicchiata","ripiegata","ripigliata","ripinta","ripiovuta","ripitturata","riplasmata","ripolarizzata","ripopolata","riportata","riporta","riposata","riposizionata","riposseduta","riposta","ripotuta","ripresentata","ripresa","riprestata","ripretesa","riprincipiata","ripristinata","riprivatizzata","riprodotta","riprogettata","riprogrammata","ripromessa","riproposta","riprotetta","riprovata","riprovveduta","riprovvista","ripubblicata","ripudiata","ripugnata","ripulita","ripuntata","ripunta","ripurgata","riputata","riquadrata","riqualificata","riresa","rirotta","risaldata","risalita","risaltata","risalutata","risanata","risaputa","risarcita","riscalata","riscaldata","riscattata","riscelta","riscesa","rischiarata","rischiata","risciacquata","risciolta","riscommessa","riscontata","riscontrata","risconvolta","riscoperta","riscoppiata","riscorsa","riscossa","riscritta","risecata","riseduta","risegata","risegnata","riselciata","riselezionata","riseminata","risentita","riseppellita","riserbata","riservata","risicata","risigillata","risistemata","risa","risoffiata","risoggiunta","risolata","risolidificata","risollevata","risolta","risommata","risommersa","risonata","risorpassata","risospesa","risospinta","risottomessa","risparmiata","risparsa","rispecchiata","rispedita","rispenta","rispersa","rispettata","rispiegata","rispinta","rispolverata","risposata","risposta","rissata","ristabilita","ristagnata","ristampata","ristaurata","ristesa","ristilizzata","ristorata","ristretta","ristrutta","ristrutturata","ristuccata","ristudiata","risucchiata","risultata","risuolata","risuonata","risuscitata","risvegliata","risvolta","ritagliata","ritarata","ritardata","ritemprata","ritentata","ritenuta","ritersa","ritesa","ritinta","ritirata","ritoccata","ritolta","ritorta","ritracciata","ritradotta","ritrascorsa","ritrascritta","ritrasferita","ritrasformata","ritrasmessa","ritrasposta","ritrattata","ritratta","ritrovata","ritualizzata","rituffata","riudita","riunificata","riunita","riusata","riutilizzata","rivaccinata","rivaleggiata","rivalorizzata","rivalsa","rivalutata","rivangata","riveduta","rivelata","rivendicata","rivenduta","riverberata","riverita","riverniciata","riversata","rivestita","rivettata","rivinta","rivisitata","rivissuta","rivista","rivitalizzata","rivivificata","rivoltata","rivolta","rivoltolata","rivoluta","rivoluzionata","rizappata","rizzata","robotizzata","rodata","rogata","rollata","romanizzata","romanticizzata","romanzata","roncolata","rosicata","rosicchiata","rosa","rosolata","rotacizzata","rotata","roteata","rotolata","rottamata","rotta","rovesciata","rovinata","rovistata","rubacchiata","rubata","rullata","ruminata","ruotata","russificata","ruzzolata","sabbiata","sabotata","saccarificata","saccheggiata","sacralizzata","sacramentata","sacrificata","saettata","saggiata","sagginata","sagomata","salamoiata","salariata","salassata","salata","saldata","salificata","salinizzata","salita","salmeggiata","salmistrata","salpata","saltata","salutata","salvaguardata","salvata","sanata","sancita","sanforizzata","sanificata","sanitizzata","santificata","sanzionata","saponificata","saputa","sarchiata","sarchiellata","sartiata","satellizzata","satinata","satireggiata","satisfatta","satollata","saturata","saziata","sbaccellata","sbaciucchiata","sbafata","sbaffata","sbalestrata","sballata","sballottata","sballottolata","sbalordita","sbalzata","sbancata","sbandata","sbandierata","sbandita","sbaraccata","sbaragliata","sbarazzata","sbarbata","sbarcata","sbardata","sbarrata","sbassata","sbastita","sbatacchiata","sbattezzata","sbattuta","sbeccata","sbeffeggiata","sbellicata","sbendata","sbertucciata","sbiadita","sbiancata","sbianchita","sbiellata","sbiettata","sbigottita","sbilanciata","sbirbata","sbirciata","sbizzarrita","sbloccata","sbobinata","sboccata","sbocconcellata","sbollentata","sbolognata","sborniata","sborsata","sboscata","sbottonata","sbozzata","sbozzimata","sbozzolata","sbracata","sbracciata","sbraciata","sbraitata","sbranata","sbrancata","sbrattata","sbreccata","sbriciolata","sbrigata","sbrigliata","sbrinata","sbrindellata","sbrodolata","sbrogliata","sbronzata","sbruffata","sbucciata","sbudellata","sbuffata","sbugiardata","sbullettata","sbullonata","sburrata","scacazzata","scacchiata","scacciata","scaccolata","scadenzata","scafata","scaffalata","scagionata","scagliata","scaglionata","scalata","scalcata","scalcinata","scaldata","scalettata","scalfata","scalfita","scalmanata","scaloppata","scalpata","scalpellata","scalpellinata","scaltrita","scalzata","scambiata","scamiciata","scamosciata","scamozzata","scampata","scampatala","scampata","scamuffata","scanalata","scancellata","scandagliata","scandalizzata","scandita","scannata","scannellata","scannerata","scannerizata","scannerizzata","scansata","scansionata","scapecchiata","scapezzata","scapicollata","scapigliata","scapitozzata","scapocchiata","scappata","scappellata","scappottata","scapricciata","scapsulata","scarabocchiata","scaracchiata","scaraventata","scarcerata","scardassata","scardata","scardinata","scaricata","scarificata","scarmigliata","scarnata","scarnificata","scarnita","scarrellata","scarrocciata","scarrozzata","scarruffata","scartabellata","scartata","scartavetrata","scartinata","scartocciata","scassata","scassinata","scatenata","scattata","scavalcata","scavallata","scavata","scavezzata","scazzottata","scekerata","scelta","scempiata","sceneggiata","scernuta","scervellata","scesa","sceverata","schedata","schedulata","scheggiata","scheletrita","schematizzata","schermata","schermita","schermografata","schernita","schiacciata","schiaffata","schiaffeggiata","schiantata","schiarita","schiavardata","schiavizzata","schiccherata","schierata","schifata","schinciata","schioccata","schiodata","schiumata","schiusa","schivata","schizzata","schizzettata","sciabolata","sciabordata","sciacquata","scialacquata","sciamanizzata","sciamannata","sciancata","sciancrata","scimmieggiata","scimmiottata","scinta","scioccata","sciolinata","sciolta","sciorinata","scippata","sciroppata","scissa","sciupacchiata","sciupata","sclamata","sclerosata","sclerotizzata","scoccata","scocciata","scodata","scodellata","scoiata","scolarizzata","scolata","scollacciata","scollata","scollegata","scolorata","scolorita","scolpata","scolpita","scombaciata","scombinata","scombussolata","scommessa","scomodata","scompaginata","scompagnata","scompartita","scompattata","scompensata","scompiacuta","scompigliata","scomposta","scomputata","scomunicata","sconcertata","sconciata","sconclusa","sconfessata","sconficcata","sconﬁtta","sconfortata","sconfusa","scongelata","scongiurata","sconnessa","sconosciuta","sconquassata","sconsacrata","sconsigliata","sconsolata","scontata","scontentata","scontornata","scontorta","scontrata","sconvolta","scopata","scoperchiata","scoperta","scopiazzata","scoraggiata","scoraggita","scorata","scorazzata","scorciata","scorcita","scordata","scoreggiata","scorificata","scornata","scorniciata","scoronata","scorporata","scorrazzata","scorreggiata","scorretta","scorsa","scortata","scortecciata","scorticata","scorta","scorzata","scoscesa","scosciata","scossa","scostata","scostolata","scotennata","scoticata","scotolata","scotomizzata","scottata","scotta","scovata","scoverta","scozzata","scozzonata","screditata","scremata","screpolata","screziata","scribacchiata","scriminata","scristianizzata","scritta","scritturata","scroccata","scrocchiata","scrollata","scrostata","scrutata","scrutinata","scucita","scudisciata","scuffiata","sculacciata","sculettata","scuoiata","scuriosata","scurita","scusata","sdaziata","sdebitata","sdegnata","sdemanializzata","sdentata","sdilinquita","sdoganata","sdoluta","sdoppiata","sdraiata","sdrammatizzata","sdrucita","secata","seccata","secernuta","secolarizzata","secondata","secretata","secreta","sedata","sedentarizzata","sedotta","segata","seghettata","segmentata","segnalata","segnata","segnoreggiata","segregata","segretata","seguitata","seguita","selciata","selezionata","sellata","sembrata","sementata","semicinta","seminata","semplificata","senilizzata","sensibilizzata","sensorizzata","sentenziata","sentita","sentitasela","sentita","sentita","separata","sepolta","seppellita","sequenziata","sequestrata","serbata","serrata","servita","servoassistita","sessualizzata","sestuplicata","setacciata","setificata","settata","settorializzata","settuplicata","seviziata","sezionata","sfaccettata","sfagliata","sfaldata","sfalsata","sfamata","sfanalata","sfangata","sfarinata","sfasata","sfasciata","sfatata","sfatta","sfavillata","sfavorita","sfegatata","sfeltrata","sfenduta","sferragliata","sferrata","sferzata","sfessa","sfiancata","sfiatata","sfiata","sfibbiata","sfibrata","sfidata","sfiduciata","sfigurata","sfilata","sfilettata","sfinita","sfioccata","sfiorata","sfittata","sfocata","sfociata","sfoderata","sfogata","sfoggiata","sfogliata","sfollata","sfoltita","sfondata","sforacchiata","sforata","sforbiciata","sformata","sfornaciata","sfornata","sfornita","sforzata","sfottuta","sfracellata","sfrangiata","sfrascata","sfratata","sfrattata","sfrecciata","sfregata","sfregiata","sfrenata","sfrisata","sfrondata","sfrucugliata","sfruculiata","sfruttata","sfumata","sfuocata","sgamata","sganasciata","sganciata","sgarbugliata","sgattaiolata","sgelata","sghiacciata","sgocciolata","sgolata","sgomberata","sgombrata","sgomentata","sgominata","sgomitata","sgomitolata","sgonfiata","sgorbiata","sgottata","sgovernata","sgozzata","sgraffiata","sgraffignata","sgranata","sgranchita","sgranellata","sgrassata","sgravata","sgretolata","sgridata","sgrommata","sgrondata","sgroppata","sgrossata","sgrovigliata","sgrugnata","sguainata","sgualcita","sguanciata","sguarnita","sguinzagliata","sgusciata","shakerata","shoccata","shuntata","sigillata","siglata","significata","signoreggiata","silenziata","silicizzata","sillabata","sillogizzata","silurata","simboleggiata","simbolizzata","simmetrizzata","simpatizzata","simulata","sincerata","sincopata","sincretizzata","sincronizzata","sindacalizzata","sindacata","singolarizzata","sinistrata","sinizzata","sinterizzata","sintetizzata","sintonizzata","siringata","sistematizzata","sistemata","situata","slabbrata","slacciata","slamata","slanciata","slappolata","slargata","slavizzata","slegata","slentata","slinguata","slogata","sloggata","sloggiata","slombata","slungata","smaccata","smacchiata","smagliata","smagnetizzata","smagrita","smaliziata","smallata","smaltata","smaltita","smammata","smanacciata","smangiata","smantellata","smarcata","smarginata","smarrita","smascellata","smascherata","smaterializzata","smattonata","smembrata","smentita","smerciata","smerdata","smerigliata","smerlata","smerlettata","smessala","smessa","smezzata","smidollata","smielata","smilitarizzata","sminata","sminuita","sminuzzata","smistata","smitizzata","smobiliata","smobilitata","smobilizzata","smoccolata","smollicata","smonacata","smontata","smorbata","smorzata","smossa","smozzicata","smunta","smurata","smussata","smutandata","snaturata","snazionalizzata","snebbiata","snellita","snervata","snidata","sniffata","snobbata","snocciolata","snodata","snudata","sobbarcata","sobbollita","sobillata","socchiusa","soccorsa","soddisfatta","sodisfatta","sodomizzata","sofferita","soffermata","sofferta","soffiata","soffocata","soffregata","soffritta","soffusa","sofisticata","soggettivata","soggettivizzata","sogghignata","soggiogata","soggiunta","sogguardata","sognata","solarizzata","solcata","soleggiata","solennizzata","solfeggiata","solfitata","solfonata","solforata","solidificata","solita","sollazzata","sollecitata","solleticata","sollevata","solta","solubilizzata","soluta","soluzionata","solvatata","somatizzata","someggiata","somigliata","sommata","sommersa","sommessa","somministrata","sommossa","sonata","sondata","sonorizzata","sopita","soppalcata","soppesata","soppiantata","sopportata","sopposta","soppressa","sopraddotata","sopraeccitata","sopraedificata","sopraelevata","sopraffata","sopraffatta","sopraggiunta","sopraintesa","soprammessa","soprannominata","sopraposta","soprappresa","soprascritta","sopraspesa","soprassaturata","soprasseduta","sopravanzata","sopravvalutata","sopravveduta","sopravvinta","sopravvista","sopreccitata","sopredificata","soprelevata","soprintesa","sorbettata","sorbita","sorgiunta","sormontata","sorpassata","sorpresa","sorrasa","sorretta","sorseggiata","sorteggiata","sortita","sorvegliata","sorvolata","soscritta","sospesa","sospettata","sospinta","sospirata","sostantivata","sostanziata","sostentata","sostenuta","sostituita","sottaciuta","sotterrata","sottesa","sottintesa","sottoalimentata","sottocapitalizzata","sottodivisa","sottoesposta","sottofirmata","sottolineata","sottomessa","sottomurata","sottopagata","sottopassata","sottoposta","sottorappresentata","sottorisa","sottoscritta","sottostimata","sottosviluppata","sottotitolata","sottovalutata","sottratta","soverchiata","sovesciata","sovietizzata","sovracapitalizzata","sovraccaricata","sovradimensionata","sovraeccitata","sovraesposta","sovraffaticata","sovraffollata","sovraggiunta","sovraimposta","sovraintesa","sovralimentata","sovramodulata","sovrappopolata","sovrapposta","sovrariscaldata","sovrasaturata","sovrascritta","sovrastampata","sovrastata","sovrastimata","sovrautilizzata","sovreccitata","sovresposta","sovrimposta","sovrintesa","sovvenuta","sovvenzionata","sovvertita","spaccata","spacchettata","spacciata","spaginata","spaiata","spalancata","spalata","spalcata","spalleggiata","spalmata","spammata","spampanata","spampinata","spanata","spanciata","spanduta","spannata","spannocchiata","spansa","spantanata","spanta","spaparacchiata","spaparanzata","spappolata","sparata","sparecchiata","sparigliata","sparita","sparlata","sparpagliata","spartita","spassata","spassatosela","spastoiata","spaurata","spaurita","spaventata","spazializzata","spaziata","spazieggiata","spazientita","spazzata","spazzolata","specchiata","specializzata","specificata","specillata","specolata","spedita","spegnata","spelacchiata","spelata","spellata","spennacchiata","spennata","spennellata","spenta","spenzolata","sperata","sperimentata","spernacchiata","speronata","sperperata","spersonalizzata","sperticata","spesata","spesa","spessita","spettacolarizzata","spettinata","spezzata","spezzettata","spezziata","spezzonata","spiaccicata","spianata","spiantata","spiata","spiattellata","spiazzata","spiccata","spicciata","spiccicata","spicciolata","spicconata","spidocchiata","spiegata","spiegazzata","spietrata","spifferata","spigionata","spignorata","spigolata","spigrita","spillata","spilluzzicata","spiluccata","spinta","spintonata","spiombata","spiralizzata","spirantizzata","spirata","spiritualizzata","spiumata","spizzicata","spodestata","spoetizzata","spogliata","spolettata","spoliata","spoliticizzata","spollonata","spolmonata","spolpata","spoltronita","spolverata","spolverizzata","spompata","spompinata","sponsorizzata","spopolata","spoppata","sporcata","sportata","sporta","sposata","sposseduta","spossessata","spostata","sposta","sprangata","sprecata","spregiata","spremuta","spretata","sprezzata","sprigionata","sprimacciata","spromessa","spronata","sprotetta","sprovincializzata","sprovveduta","sprovvista","spruzzata","spugnata","spulata","spulciata","spuntata","spuntellata","spupazzata","spurgata","sputacchiata","sputata","sputtanata","squadernata","squadrata","squagliata","squagliatasela","squagliata","squalificata","squamata","squarciata","squartata","squassata","squattrinata","squilibrata","squinternata","sradicata","srotolata","srugginita","stabbiata","stabilita","stabilizzata","stabulata","staccata","stacciata","staffata","staffilata","staggiata","staggita","stagionata","stagliata","stagnata","stamburata","stampata","stampigliata","stanata","stancata","standardizzata","stangata","stanziata","stappata","starata","starnazzata","stasata","statalizzata","statizzata","statoca","statosena","statuita","stazzata","stazzonata","steccacciata","steccata","stecchita","stecconata","stemperata","stempiata","stenografata","stereotipata","sterilita","sterilizzata","sterpata","sterrata","sterzata","stesa","stigliata","stigmatizzata","stilata","stilettata","stilizzata","stillata","stimata","stimolata","stinta","stipata","stipendiata","stipulata","stiracchiata","stirata","stivata","stizzita","stoccata","stolta","stomacata","stonata","stondata","stoppata","stordita","storicizzata","stornata","storpiata","stortata","storta","stozzata","strabenedetta","strabuzzata","stracannata","straccata","stracciata","stracotta","strafogata","stragoduta","stralciata","stralodata","stralunata","stramaledetta","stramortita","strangolata","straniata","stranita","straorzata","strapagata","strapazzata","straperduta","strapersa","strappata","strasaputa","strascicata","strascinata","strasformata","stratificata","strattonata","stravaccata","stravinta","stravolta","stravoluta","straziata","stregata","stremata","stressata","striata","stridulata","strigata","strigliata","strillata","striminzita","strimpellata","strinata","stringata","strisciata","stritolata","strizzata","strofinata","strombata","strombazzata","stroncata","stronzata","stropicciata","stroppata","stroppiata","strozzata","struccata","strumentalizzata","strumentata","strusciata","strutta","strutturalizzata","strutturata","stuccata","studiacchiata","studiata","stuellata","stufata","stupefatta","stupita","stuprata","sturata","stutata","stuzzicata","suasa","subaffittata","subappaltata","subbiata","subdelegata","subissata","subita","sublicenziata","sublimata","sublocata","subodorata","subordinata","subornata","suburbanizzata","sucata","succhiata","succhiellata","succiata","succinta","succisa","suddistinta","suddivisa","suffissata","suffissa","suffragata","suffumicata","suffusa","suggellata","suggerita","suggestionata","suicidata","sunteggiata","sunta","suolata","suonata","superata","superpagata","superraffreddata","supervalutata","supervisionata","supplicata","supplita","supportata","supposta","suppurata","surclassata","surfata","surgelata","surraffreddata","surriscaldata","surrogata","survoltata","suscitata","susseguita","sussidiata","sussunta","sussurrata","suturata","svaccata","svagata","svaligiata","svalutata","svapata","svariata","svasata","svecchiata","svegliata","svelata","svelenita","sveltita","svelta","svenata","svenduta","sventagliata","sventata","sventolata","sventrata","sverginata","svergognata","svergolata","sverminata","sverniciata","svestita","svettata","svezzata","sviata","svignatosela","svigorita","svilita","svillaneggiata","sviluppata","svinata","svincolata","sviolinata","svirgolata","svirilizzata","svisata","sviscerata","svitata","sviticchiata","svolata","svolazzata","svolta","svoluta","svuotata","tabuizzata","tabulata","taccata","taccheggiata","tacciata","tacitata","taciuta","tagliata","taglieggiata","tagliuzzata","talebanizzata","tallonata","tampinata","tamponata","tanguta","tannata","tappata","tappezzata","tarata","tardata","targata","tariffata","tarlata","tarmata","taroccata","tarpata","tartagliata","tartassata","tartufata","tassata","tassellata","tastata","tasteggiata","tatuata","tecnicizzata","tecnologizzata","tedeschizzata","tediata","teflonata","telecomandata","telecontrollata","telediffusa","telefonata","telegrafata","teleguidata","telematizzata","telemetrata","teleradiotrasmessa","teletrasmessa","teletrasportata","tematizzata","temperata","tempestata","tempificata","templatizzata","temporizzata","temprata","temuta","tentata","tenuta","teologizzata","teorizzata","tepefatta","terebrata","terminata","termostatata","terrazzata","terrificata","terrorizzata","tersa","terzarolata","terziarizzata","terziata","tesata","tesaurizzata","tesa","tesserata","testata","testificata","testimoniata","timbrata","tindalizzata","tinteggiata","tinta","tipicizzata","tipizzata","tippata","tiranneggiata","tirata","titillata","titolata","toccata","toelettata","tollerata","tolta","tonalizzata","tonificata","tonneggiata","tonsurata","torchiata","tormentata","tornatosena","tornita","torrefatta","torta","tortoreggiata","torturata","tosata","toscaneggiata","toscanizzata","tostata","totalizzata","traboccata","trabuccata","tracannata","tracciata","tradita","tradotta","trafficata","trafilata","trafitta","traforata","trafugata","traghettata","traguardata","trainata","tralasciata","tralignata","tramandata","tramata","trambasciata","tramessa","tramestata","tramezzata","tramortita","tramutata","tranciata","trangugiata","tranquillata","tranquillizzata","transatta","transcesa","transcodificata","transcorsa","transcritta","transennata","transfluita","transfusa","transistorizzata","translitterata","transposta","transricevuta","transustanziata","transveduta","transvista","trapanata","trapassata","trapiantata","traportata","traposta","trapposta","trapuntata","trapunta","trarotta","trasandata","trasbordata","trascelta","trascesa","trascinata","trascorsa","trascritta","trascurata","trasdotta","trasferita","trasfigurata","trasformata","trasfusa","trasgredita","traslata","traslitterata","traslocata","trasmessa","trasmutata","trasparita","traspirata","trasportata","trasposta","trastullata","trasudata","trasvolata","trasvolta","trattata","tratteggiata","trattenuta","tratta","traumatizzata","travagliata","travalicata","travasata","traveduta","traversata","travestita","traviata","travisata","travista","travolta","trebbiata","triangolata","tribbiata","tribolata","tributata","triennalizzata","trimestralizzata","trincata","trincerata","trinciata","tripartita","triplicata","trisecata","trisezionata","tritata","triturata","trivellata","trollata","trombata","troncata","tropicalizzata","trovata","truccata","trucidata","truffata","tuffata","tumefatta","tumulata","turata","turbata","turlupinata","tutelata","ubbligata","ubicata","ubidita","ubiquitinata","ubriacata","uccellata","uccellinata","uccisa","udita","ufficializzata","uggita","ugnata","uguagliata","ulcerata","ulita","ulolata","ultimata","ultracentrifugata","ululata","umanata","umanizzata","umettata","umidificata","umidita","umiliata","uncinata","unguentata","unificata","uniformata","unita","univerbata","universaleggiata","universalizzata","untata","unta","uperizzata","urbanizzata","urgenzata","urlata","urtacchiata","urtata","urticchiata","usata","usciolata","usolata","ustionata","usucapita","usurata","usurpata","utilitata","utilizzata","vaccinata","vagabondeggiata","vagellata","vagheggiata","vagillata","vagliata","valcata","valicata","validata","valorizzata","valsa","valutata","vanagloriata","vanata","vandalizzata","vangata","vangelizzata","vanificata","vanita","vantaggiata","vantata","vaporata","vaporizzata","varata","varcata","variata","vasectomizzata","vaticinata","vedovata","veduta","vegetata","veggiata","vegliata","veicolata","velarizzata","velata","velettata","velinata","vellicata","vellutata","velocizzata","vendemmiata","vendicata","vendicchiata","venducchiata","venduta","venerata","vengiata","ventagliata","ventilata","ventolata","verbalizzata","vergata","vergheggiata","vergognata","vergolata","verificata","verminata","vernalizzata","verniciata","verrinata","versata","verseggiata","versificata","verticalizzata","vessata","vestita","vestita","vetrificata","vetrinata","vetrioleggiata","vettovagliata","vezzeggiata","viaggiata","vicinata","vicitata","videochattata","videochiamata","videocomunicata","videoregistrata","videotrasmessa","vidimata","vigilata","vigliata","vigoreggiata","vigorita","vilificata","vilipesa","villaneggiata","vincolata","vinta","violata","violentata","violinata","virgolata","virgoleggiata","virgolettata","virilizzata","virtualizzata","visionata","visitata","vissuta","vistata","vista","visualizzata","vitaliziata","vitalizzata","vitaminizzata","vittimizzata","vituperata","vivacizzata","vivandata","vivificata","vivisezionata","viziata","vocabolarizzata","vocalizzata","vocata","vociferata","volantinata","volatilizzata","volgarizzata","volicchiata","volpeggiata","voltata","volta","voltolata","volturata","voluminizzata","voluta","volutoca","vomitata","vorata","votata","vulcanizzata","vuotata","wappata","wikificata","xerocopiata","zaffata","zampata","zampettata","zampillata","zannata","zappata","zappettata","zapponata","zavorrata","zeppata","zigrinata","zigzagata","zimbellata","zincata","zinnata","zipolata","zippata","zirlata","zittita","zizzagata","zoccolata","zollata","zombata","zonata","zonizzata","zoppata","zoppeggiata","zoppicata","zucconata","zufolata","zumata","zuppata","abalienate","abbacchiate","abbacinate","abbadate","abbagliate","abbaiate","abballate","abbambinate","abbancate","abbandonate","abbarbagliate","abbarbate","abbarcate","abbaruffate","abbassate","abbatacchiate","abbattute","abbatuffolate","abbelite","abbellate","abbellite","abbendate","abbeverate","abbiadate","abbicate","abbigliate","abbinate","abbindolate","abbioccate","abbiosciate","abbisciate","abbittate","abboccate","abboffate","abbominate","abbonacciate","abbonate","abbonite","abbordate","abborracciate","abborrate","abborrite","abbottinate","abbottonate","abbozzacchiate","abbozzate","abbozzolate","abbracciate","abbraciate","abbrancate","abbreviate","abbriccate","abbrigliate","abbrivate","abbriviate","abbrividite","abbronzate","abbrostolate","abbrostolite","abbruciacchiate","abbruciate","abbrunate","abbrunite","abbruscate","abbrusciate","abbrustiate","abbrustolate","abbrustolite","abbrutite","abbruttite","abbuffate","abbuiate","abbuonate","abburattate","abbuzzite","abdicate","abdotte","abiettate","abilitate","abissate","abitate","abituate","abiurate","abolite","abominate","abondate","aborrite","abrase","abrogate","abusate","accaffate","accagionate","accagliate","accalappiate","accalcate","accaldate","accallate","accalorate","accalorite","accambiate","accampate","accampionate","accanalate","accanate","accaneggiate","accanite","accantonate","accaparrate","accapezzate","accapigliate","accapottate","accappiate","accappiettate","accapponate","accappucciate","accaprettate","accareggiate","accarezzate","accarnate","accarpionate","accartocciate","accasate","accasciate","accasellate","accasermate","accastellate","accastellinate","accatarrate","accatastate","accattate","accattivate","accavalcate","accavalciate","accavallate","accavezzate","accecate","acceffate","accelerate","accellerate","accennate","accensate","accentate","accentrate","accentuate","acceppate","accerchiate","accercinate","accertate","accese","accessoriate","accettate","acchetate","acchiappate","acchiocciolate","acchitate","acchiudute","acciabattate","acciaiate","acciambellate","acciarpate","acciecate","accigliate","acciglionate","accignute","accincignate","accinte","acciocchite","acciottolate","accipigliate","accismate","accise","acciucchite","acciuffate","accivettate","acclamate","acclarate","acclimatate","accluse","accoccate","accoccolate","accoccovate","accodate","accollate","accoltellate","accolte","accomandate","accomiatate","accommiatate","accomodate","accompagnate","accomunate","acconciate","acconigliate","accontate","accontentate","accoppate","accoppiate","accorate","accorciate","accorcite","accordate","accordellate","accorpate","accorte","accosciate","accostate","accostumate","accotonate","accottimate","accovacciate","accovate","accovonate","accozzate","accreditate","accresciute","accrespate","accucciate","accucciolate","accudite","acculate","acculturate","accumulate","accumunate","accusate","acetificate","acetilate","acetite","acidate","acidificate","acidulate","acquadernate","acquarellate","acquartierate","acquate","acquattate","acquerellate","acquetate","acquietate","acquisite","acquistate","acromatizzate","acuite","acuminate","acutizzate","adacquate","adagiate","adattate","addaziate","addebbiate","addebitate","addecimate","addensate","addentate","addentellate","addentrate","addestrate","addette","addiacciate","addimandate","addimesticate","addimorate","addimostrate","addipanate","addirizzate","additate","additivate","addizionate","addobbate","addocilite","addogliate","addolcate","addolciate","addolcite","addolorate","addomandate","addomesticate","addoppiate","addormentate","addossate","addotte","addottorate","addottrinate","addrizzate","adduate","addugliate","adeguate","adempite","adempiute","adequate","aderizzate","adescate","adibite","adirate","adite","adiuvate","adizzate","adocchiate","adombrate","adonate","adonestate","adontate","adoperate","adoprate","adorate","adornate","adottate","adsorbite","aduggiate","adugnate","adulate","adulterate","adunate","adunghiate","adusate","aerate","aereate","aerotrainate","aerotrasportate","affabulate","affaccendate","affacchinate","affacciate","affagottate","affaldate","affamate","affamigliate","affannate","affardellate","affascinate","affastellate","affaticate","affattucchiate","affatturate","affermate","afferrate","affettate","affezionate","affiancate","affiatate","affibbiate","affidate","affienate","affievolite","affigliate","affigurate","affilate","affilettate","affiliate","affinate","affiochite","affiorate","affisate","affissate","affisse","affittate","affittite","afflitte","afflosciate","affocate","affogate","affogliate","affollate","affoltate","affondate","afforcate","afforestate","afforzate","affossate","affralite","affrancate","affrante","affratellate","affrenate","affrenellate","affrescate","affrettate","affrittellate","affrontate","affumate","affumicate","affumigate","affuocate","affusolate","africanizzate","ageminate","agevolate","aggallate","agganciate","aggangherate","aggarbate","aggattonate","aggavignate","aggelate","aggettivate","agghiacciate","agghiadate","agghiaiate","agghindate","aggiaccate","aggiogate","aggiornate","aggirate","aggiucchite","aggiudicate","aggiuntate","aggiunte","aggiustate","agglomerate","agglutinate","aggomitolate","aggottate","aggradite","aggraffate","aggranchiate","aggranchite","aggrandite","aggrappate","aggraticciate","aggravate","aggredite","aggregate","aggrevate","aggricciate","aggrinzate","aggrinzite","aggrommate","aggrondate","aggroppate","aggrottate","aggrovigliate","aggrumate","aggruppate","aggruzzolate","agguagliate","agguantate","agguardate","agguatate","aggueffate","agitate","agognate","agrarizzate","aguatate","agucchiate","agunate","agurate","aguzzate","aitate","aiutate","aizzate","alate","alberate","albergate","alcalinizzate","alchilate","alchimiate","alchimizzate","alcolizzate","alcoolizzate","alenate","alesate","alettate","alfabetate","alfabetizzate","alidite","alienate","alimentate","allacciate","allagate","allappate","allargate","allascate","allattate","alleate","allegate","alleggerite","alleggiate","allegorizzate","alleluiate","allenate","allenite","allentate","allertate","allessate","allestite","allettate","allevate","alleviate","allibate","allibite","allibrate","allicciate","allietate","allindate","allineate","allise","allocate","allogate","alloggiate","allontanate","allottate","allucchettate","allucciolate","allucinate","allumate","alluminate","alluminiate","allungate","allupate","alluse","alluzzate","alogenate","alonate","alpeggiate","alterate","alternate","alzate","amalgamate","amareggiate","amaricate","amate","ambientate","ambiguate","ambite","americanizzate","amicate","ammaccate","ammaestrate","ammainate","ammalate","ammaliate","ammalinconite","ammaltate","ammanettate","ammanicate","ammanierate","ammanigliate","ammannate","ammannellate","ammannite","ammansate","ammansite","ammantate","ammantellate","ammarate","ammarezzate","ammassate","ammassellate","ammassicciate","ammatassate","ammattonate","ammazzate","ammelmate","ammencite","ammendate","ammennicolate","ammesse","ammetate","ammezzite","amministrate","amminutate","ammirate","ammiserite","ammobiliate","ammodernate","ammodernizzate","ammogliate","ammoinate","ammollate","ammollite","ammonite","ammonticchiate","ammonticellate","ammorbate","ammorbidate","ammorbidite","ammorsate","ammortate","ammortite","ammortizzate","ammorzate","ammosciate","ammoscite","ammostate","ammotinate","ammucchiate","ammulinate","ammusate","ammutate","ammutinate","amnistiate","amoracciate","ampiate","ampliate","amplificate","amputate","anagrammate","analizzate","anamorfizzate","anastomizzate","anatematizzate","anatomizzate","anchilosate","ancise","ancorate","andatosene","andicappate","anellate","anemizzate","anestetizzate","angariate","anglicizzate","angolate","angosciate","angustiate","animate","annacquate","annaffiate","annasate","annaspate","annaspicate","annebbiate","annegate","annerate","annerite","annesse","annestate","annichilate","annichilite","annidate","annientate","annitrite","annobilite","annodate","annodicchiate","annoiate","annotate","annottate","annottolate","annoverate","annullate","annunciate","annunziate","annusate","annuvolate","anodizzate","anonimizzate","antecedute","anteposte","antergate","anticheggiate","antichizzate","anticipate","anticonosciute","antidatate","antivedute","antiviste","antologizzate","antropizzate","antropomorfizzate","aocchiate","aombrate","aonestate","aontate","aperte","apocopate","apologizzate","apostrofate","appaciate","appacificate","appagate","appaiate","appalesate","appallottolate","appaltate","appanettate","appannate","apparate","apparecchiate","apparentate","apparigliate","apparite","appartate","appassionate","appastate","appastellate","appellate","appennellate","appercepite","appertizzate","appesantite","appesite","appese","appestate","appetite","appezzate","appiacevolite","appianate","appiastrate","appiatate","appiattate","appiattite","appiccate","appiccicate","appiccolite","appiedate","appigionate","appigliate","appinzate","appiombate","appioppate","appisolate","applaudite","applicate","appoderate","appoggiate","appollaiate","appoppate","apportate","appostate","apposte","appratite","appresentate","apprese","appressate","apprestate","apprettate","apprezzate","approcciate","approfittate","approfondate","approfondite","approntate","appropinquate","appropriate","approssimate","approvate","approvisionate","approvvigionate","appruate","appulcrate","appuntate","appuntellate","appuntite","appurate","appuzzate","arabescate","arabizzate","arate","arbitrate","arborate","arcaizzate","arcate","architettate","archiviate","arcuate","ardite","areate","argentate","arginate","argomentate","arguite","arianizzate","arieggiate","armate","armonizzate","aromatizzate","arpeggiate","arpionate","arponate","arrabattate","arraffate","arraffiate","arrandellate","arrangiate","arrapate","arrapinate","arrappate","arrazzate","arrecate","arredate","arreggimentate","arrembate","arrenate","arresise","arrese","arrestate","arretrate","arricchite","arricciate","arricciolate","arriffate","arringate","arrischiate","arrisicate","arrise","arrocate","arroccate","arrochite","arrogate","arrolate","arroncate","arronzate","arrosate","arrossate","arrostate","arrostite","arrotate","arrotolate","arrotondate","arrovellate","arroventate","arroventite","arrovesciate","arrubinate","arruffate","arruffianate","arrugginite","arruncigliate","arruolate","arruvidite","arsicciate","arse","artefatte","articolate","artigliate","ascese","asciate","asciolvute","asciugate","ascoltate","ascose","ascoste","ascritte","asfaltate","asfissiate","asperse","aspettate","aspirate","asportate","aspreggiate","assaettate","assaggiate","assalite","assaltate","assaporate","assaporite","assassinate","assecondate","assecurate","assediate","asseggiate","assegnate","assembiate","assemblate","assembrate","assemprate","assentate","asserite","asserragliate","asservite","assestate","assetate","assettate","asseverate","assibilate","assicurate","assiderate","assiemate","assiepate","assillate","assimigliate","assimilate","assiomatizzate","assise","assistite","associate","assodate","assoggettate","assolcate","assoldate","assolte","assolutizzate","assomate","assommate","assonate","assonnate","assopite","assorbite","assordate","assordite","assortite","assottigliate","assuefatte","assunte","asteggiate","astenute","asterse","astratte","astrette","atomizzate","atrofizzate","atrovate","attaccate","attagliate","attanagliate","attardate","attediate","atteggiate","attempate","attendate","attentate","attenuate","attenute","attergate","atterrate","atterrite","atterzate","attese","attestate","atticizzate","attillate","attinte","attirate","attivate","attivizzate","attizzate","attorcigliate","attorniate","attorte","attoscate","attossicate","attraccate","attrappite","attratte","attraversate","attrezzate","attribuite","attristate","attristite","attruppate","attualizzate","attuate","attuffate","attutate","attutite","auggiate","augumentate","augurate","aulite","aumentate","aunghiate","ausate","auscultate","auspicate","autenticate","autentificate","autoaccusate","autoaffondate","autoalimentate","autoassolte","autocandidate","autocensurate","autocitate","autocommiserate","autoconsumate","autoconvinte","autodefinite","autodenunciate","autodistrutte","autofinanziate","autogestite","autogovernate","autografate","autoincensate","autointersecate","autoinvitate","autolesionate","autolimitate","automaticizzate","automatizzate","automotivate","autonominate","autoproclamate","autoprodotte","autoprotette","autopubblicate","autopubblicizzate","autoregolamentate","autoregolate","autoridotte","autoriparate","autorizzate","autosomministrate","autosostenute","autosuggestionate","autotassate","autotrapiantate","autotrasportate","autovalutate","avallate","avampate","avanzate","avariate","avinte","aviolanciate","aviotrasportate","avocate","avolterate","avulse","avutacele","avute","avvalorate","avvalse","avvantaggiate","avvelate","avvelenate","avventate","avventurate","avverate","avversate","avvertite","avvezzate","avviate","avvicendate","avvicinate","avvignate","avvilite","avviluppate","avvinate","avvinchiate","avvinghiate","avvinte","avvisate","avvistate","avvitate","avviticchiate","avvitite","avvivate","avvolte","avvoltolate","aziendalizzate","azionate","azotate","azzannate","azzardate","azzeccate","azzerate","azzimate","azzittate","azzittite","azzoppate","azzoppite","azzuffate","azzurrate","bacate","baccagliate","bacchettate","bacchiate","baciate","badate","bagnate","baipassate","balbettate","balcanizzate","ballate","baloccate","balzate","banalizzate","bancate","bandite","bannate","baraccate","barattate","barbarizzate","barcamenate","bardate","barellate","barrate","barricate","basate","basciate","basculate","bassate","bastate","bastionate","bastite","bastonate","battezzate","battute","bazzicate","beatificate","beate","beccate","beccheggiate","becchettate","beffate","beffeggiate","bendate","benedette","beneficate","benvolute","berlusconizzate","bersagliate","bestemmiate","bevute","biadate","bianchettate","bianchite","biascicate","biasimate","biasmate","bidonate","biennalizzate","biforcate","bigiate","bilanciate","binate","bindolate","biodegradate","biografate","bipartite","bisbigliate","biscottate","bisecate","bisellate","bisognate","bissate","bistrate","bistrattate","bitumate","bituminate","blandite","bleffate","blindate","bloccate","bobinate","boccheggiate","bocciate","boicottate","bollate","bollite","bombardate","bombate","bonderizzate","bonificate","bootate","borbottate","bordate","boriate","borrate","borseggiate","braccate","bracciate","bramate","bramite","brancicate","brandeggiate","brandite","brasate","bravate","brevettate","breviate","brillantate","brillate","brinate","broccate","brocciate","broccolate","brontolate","bronzate","brucate","bruciacchiate","bruciate","brunite","bruscate","bruschinate","brutalizzate","bruttate","bucate","bucherellate","bufate","buffate","bufferizzate","buggerate","bugnate","bulicate","bulinate","bullettate","bullonate","burattate","burlate","burocratizzate","burrificate","buscate","buttate","butterate","bypassate","cablate","cabrate","cacate","cacciate","cadenzate","cadmiate","caducate","cagate","caggiate","cagionate","cagliate","calafatate","calamitate","calandrate","calate","calcate","calciate","calcificate","calcolate","caldeggiate","calettate","calibrate","calmate","calmierate","calpestate","calumate","calunniate","calzate","cambiate","camerate","campionate","campite","camuffate","canalizzate","cancellate","cancerizzate","candeggiate","candidate","candite","canforate","cangiate","cannate","canneggiate","cannibalizzate","cannoneggiate","canonizzate","cantate","canterellate","canticchiate","cantilenate","canzonate","caolinizzate","capacitate","capeggiate","capillarizzate","capitalizzate","capitanate","capitaneggiate","capite","capitozzate","capivolte","caponate","capotate","capottate","capovolte","capponate","captate","caramellate","caramellizzate","caratate","caratterizzate","carbonizzate","carbossilate","carburate","carcate","carcerate","cardate","carenate","carezzate","cariate","caricate","caricaturate","caricaturizzate","carotate","carpionate","carpite","carreggiate","carrozzate","cartavetrate","carteggiate","cartellinate","cartografate","cartolarizzate","cartonate","cascolate","cassate","casse","castigate","castrate","casualizzate","catabolizzate","catalizzate","catalogate","catapultate","catechizzate","categorizzate","cateterizzate","catramate","cattolicizzate","catturate","causate","cautelate","cauterizzate","cauzionate","cavalcate","cavatasele","cavate","cazzate","cazziate","cazzottate","cedrate","cedute","celate","celebrate","cellofanate","cementate","cementificate","cennate","censite","censurate","centellate","centellinate","centimetrate","centinate","centralizzate","centrate","centrifugate","centuplicate","cerate","cercate","cerchiate","cernute","certificate","cesellate","cessate","cestinate","cheratinizzate","chetate","chiamate","chiappate","chiarificate","chiarite","chiaroscurate","chiavate","chiazzate","chieste","chilificate","chilometrate","chimificate","chinate","chinizzate","chiodate","chiosate","chiuse","choccate","ciancicate","cianfrinate","cianfrugliate","ciangottate","ciattate","cibate","cicatrizzate","ciccate","cicchettate","ciclizzate","ciclostilate","cifrate","cilindrate","cimate","cimentate","cincischiate","cinematografate","cintate","cinte","cioncate","ciondolate","circolate","circoncinte","circoncise","circondate","circondotte","circonflesse","circonfluite","circonfuse","circonscritte","circonvenute","circoscritte","circostanziate","circuite","circumcinte","circumnavigate","citate","ciucciate","ciurmate","civettate","civilizzate","clamate","classate","classicizzate","classificate","cliccate","climatizzate","clivate","clonate","cloroformizzate","clorurate","clusterizzate","co-dirette","coacervate","coadiuvate","coagulate","coalizzate","coartate","coccolate","codificate","coeditate","coesistite","cofinanziate","cofirmate","cofondate","cogestite","cogitate","coglionate","cognosciute","coibentate","coincise","cointeressate","cointestate","coinvolte","cokificate","colate","colettate","collassate","collaudate","collazionate","collegate","collettivizzate","collezionate","collimate","colliquate","collise","collocate","colluttate","colmate","colonizzate","colorate","colorite","colorizzate","colpevolizzate","colpite","coltellate","coltivate","colte","coltrate","comandate","combattute","combinate","comburute","comicizzate","cominciate","commemorate","commendate","commensurate","commentate","commercializzate","commesse","comminate","commiserate","commissariate","commissionate","commisurate","commosse","commutate","comodate","compaginate","comparite","compartimentalizzate","compartite","compassionate","compatibilizzate","compatite","compattate","compendiate","compenetrate","compensate","comperate","compiaciute","compiante","compilate","compitate","compiute","complessate","complessificate","complesse","completate","complicate","complimentate","comportate","compostate","composte","comprate","compravendute","comprese","compresse","compromesse","comprovate","compulsate","compunte","computate","computerizzate","comunicate","comunistizzate","concatenate","concedute","concelebrate","concentrate","concepite","concertate","concesse","concettate","concettualizzate","conchiuse","conciate","conciliate","concimate","concitate","conclamate","concluse","concordate","concotte","concretate","concretizzate","conculcate","concupite","condannate","condensate","condite","condivise","condizionate","condolute","condonate","condotte","confatte","confederate","conferite","confermate","confessate","confettate","confezionate","conficcate","confidate","configurate","confinate","confinte","confiscate","confitte","conformate","confortate","confricate","confrontate","confuse","confutate","congedate","congegnate","congelate","congestionate","congetturate","congiunte","conglobate","conglomerate","conglutinate","congratulate","congregate","conguagliate","coniate","coniugate","connaturate","connesse","connotate","connumerate","conosciute","conquistate","consacrate","consapevolizzate","consegnate","conseguite","consentite","conservate","considerate","consigliate","consistite","consociate","consolate","consolidate","consorziate","consparse","consperse","constatate","constrette","construite","consultate","consumate","consunte","contabilizzate","contagiate","containerizzate","contaminate","contate","contattate","conteggiate","contemperate","contemplate","contentate","contenute","contese","contestate","contestualizzate","contingentate","continuate","contornate","contorte","contrabbandate","contraccambiate","contraddette","contraddistinte","contradette","contraffatte","contrappesate","contrapposte","contrappuntate","contrariate","contrassegnate","contrastate","contrate","contrattaccate","contrattate","contratte","contravvalse","contristate","controbattute","controbilanciate","controdatate","controfirmate","controindicate","controllate","controminate","contronotate","controproposte","controprovate","controquerelate","controsoffittate","controstampate","controventate","conturbate","contuse","convalidate","convenute","convenzionate","convertite","convinte","convitate","convocate","convogliate","convolte","coobate","cooptate","coordinate","coperchiate","coperte","copiaincollate","copiate","copolimerizzate","coppellate","coprodotte","corazzate","corbellate","corcate","cordonate","coreografate","coricate","cornificate","coronate","corredate","correlate","corresponsabilizzate","corrette","corricchiate","corrisposte","corroborate","corrose","corrotte","corrucciate","corrugate","corse","corteate","corteggiate","cortocircuitate","coruscate","cosate","coscritte","cosparse","cosperse","costatate","costeggiate","costellate","costernate","costicchiate","costipate","costituite","costituzionalizzate","costrette","costruite","costudite","cotonate","cotte","covate","coventrizzate","coverchiate","craccate","create","credute","cremate","crepate","cresciute","cresimate","crespate","criminalizzate","crioconcentrate","criptate","cristallizzate","cristianizzate","criticate","crittate","crittografate","crivellate","crocchiate","crocefisse","crocefitte","crocifisse","crocifitte","crogiolate","cromate","cronicizzate","cronometrate","crostate","crucciate","crucifisse","crucifitte","cuccate","cucinate","cucite","cullate","cumulate","cuntate","curate","curvate","curvate","custodite","customizzate","damascate","damaschinate","damate","dannate","danneggiate","danzate","dardeggiate","datate","date","dattilografate","dattiloscritte","daziate","deacidificate","deattivate","debbiate","debellate","debilitate","decaffeinate","decaffeinizzate","decalcate","decalcificate","decantate","decapate","decapitate","decappottate","decarbossilate","decarburate","decatizzate","decelerate","decentralizzate","decentrate","decerebrate","decernute","decespugliate","deciferate","decifrate","decimalizzate","decimate","decise","declamate","declassate","declassificate","declinate","declorate","decodificate","decolonizzate","decolorate","decompartimentate","decompilate","decomposte","decompresse","deconcentrate","decondizionate","decongelate","decongestionate","decontaminate","decontestualizzate","decontratte","decorate","decorticate","decostruite","decrementate","decretate","decriminalizzate","decriptate","decrittate","decuplicate","decurtate","dedicate","dedotte","defacciate","defalcate","defascistizzate","defecate","defenestrate","deferite","defilate","definite","defiscalizzate","defitte","deflazionate","deflemmate","deflorate","defogliate","defoliate","deforestate","deformate","defosforate","defosforilate","deframmentate","defraudate","degassate","degassificate","deglutite","degnate","degradate","degustate","deidratate","deidrogenate","deificate","deindicizzate","deindustrializzate","deionizzate","delegate","delegificate","delegittimate","delibate","deliberate","delimitate","delineate","delirate","deliziate","delocalizzate","delucidate","deluse","demagnetizzate","demandate","demanializzate","demarcate","demeritate","demerse","demetallizzate","demilitarizzate","demineralizzate","demistificate","demitizzate","democratizzate","demodulate","demolite","demoltiplicate","demonetate","demonetizzate","demonizzate","demoralizzate","demorse","demotivate","denaturalizzate","denaturate","denazificate","denazionalizzate","denicotinizzate","denigrate","denitrificate","denocciolate","denominate","denotate","dentellate","denuclearizzate","denudate","denunciate","denunziate","deodorate","deossidate","deossigenate","deostruite","depauperate","depenalizzate","depennate","depilate","depinte","depistate","deplorate","depolarizzate","depolimerizzate","depoliticizzate","depolverizzate","deportate","depositate","deposte","depotenziate","depravate","deprecate","depredate","depresse","depressurizzate","deprezzate","deprivate","deprotonate","depulse","depurate","dequalificate","deratizzate","derattizzate","dereferenziate","deregolamentate","deregolate","derequisite","deresponsabilizzate","derise","derubate","derubricate","desacralizzate","desalate","desalinizzate","descolarizzate","descritte","desecretate","desegretate","deselezionate","desensibilizzate","desessualizzate","desiate","desiderate","designate","desinate","desirate","desolate","desolforate","desonorizzate","desorbite","desossidate","desquamate","destabilizzate","destagionalizzate","destalinizzate","destatalizzate","destatizzate","destate","destinate","destituite","destoricizzate","destreggiate","destrutte","destrutturate","desunte","detassate","detenute","deteriorate","determinate","deterse","detestate","detonate","detorte","detossificate","detratte","detronizzate","dettagliate","dettate","dette","deturpate","deumidificate","devastate","deventate","deviate","deviscerate","devitalizzate","devitaminizzate","devolute","dezippate","diaframmate","diagnosticate","diagonalizzate","diagrammate","dializzate","dialogate","dialogizzate","diazotate","dibattute","diboscate","dichiarate","diesate","diesizzate","difese","diffamate","differite","diffidate","diffrante","diffratte","diffuse","digerite","digitalizzate","digitate","digiunte","digrassate","digrignate","digrossate","dilacerate","dilaniate","dilapidate","dilatate","dilavate","dilazionate","dileggiate","dileguate","dilettate","dilette","diliscate","dilucidate","diluite","dilungate","dimagrate","dimandate","dimenate","dimensionate","dimenticate","dimerizzate","dimesse","dimezzate","diminuite","dimissionate","dimostrate","dimunte","dinamizzate","dinoccate","dipanate","dipelate","dipinte","diplomate","diposte","diradate","diramate","dirette","direzionate","dirimute","diroccate","dirottate","dirotte","dirozzate","disabilitate","disabituate","disaccentate","disaccoppiate","disaccordate","disacerbate","disacidate","disacidificate","disacidite","disaerate","disaffezionate","disaggregate","disalberate","disallineate","disamate","disambiguate","disaminate","disamorate","disancorate","disanimate","disappannate","disapplicate","disapprese","disapprovate","disarcionate","disarmate","disarticolate","disascoste","disassemblate","disassuefatte","disatomizzate","disattese","disattivate","disattrezzate","disavvezzate","disboscate","disbrigate","discacciate","discalzate","discantate","discaricate","discernute","discese","disceverate","dischieste","dischiuse","discinte","disciolte","disciplinate","discolorate","discolpate","discommesse","discompagnate","discomposte","disconcluse","disconfitte","discongiunte","disconnesse","disconosciute","discoperte","discordate","discoscese","discostate","discreditate","discresciute","discriminate","discritte","discucite","discuoiate","discusse","disdegnate","disdettate","disdette","diseccate","diseccitate","diseducate","disegnate","diserbate","diseredate","disertate","diserte","disfatte","disgelate","disgiunte","disgraziate","disgregate","disgustate","disidentificate","disiderate","disidratate","disilluse","disimballate","disimparate","disimpegnate","disimpresse","disincagliate","disincantate","disincentivate","disincrostate","disindustrializzate","disinfestate","disinfettate","disinflazionate","disinformate","disingannate","disingranate","disinibite","disinnamorate","disinnescate","disinnestate","disinquinate","disinserite","disinstallate","disintasate","disintegrate","disinteressate","disintese","disintossicate","disinvestite","disinvolte","disistimate","dislocate","dismesse","disobbedite","disobbligate","disonorate","disordinate","disorganizzate","disorientate","disormeggiate","disossate","disossidate","disostruite","disotterrate","disparite","dispensate","dispente","disperdute","disperse","dispese","dispiegate","dispinte","dispogliate","disposte","dispregiate","disprezzate","dispromesse","disproporzionate","disputate","disqualificate","disrotte","dissacrate","dissalate","dissaldate","dissanguate","dissecate","disseccate","disselciate","dissellate","disseminate","dissepolte","disseppellite","dissequestrate","disserrate","dissestate","dissetate","dissezionate","dissigillate","dissimulate","dissipate","dissociate","dissodate","dissolte","dissomigliate","dissotterrate","dissuase","dissuggellate","distaccate","distanziate","distese","distillate","distinte","distolte","distorte","distratte","distrette","distribuite","districate","distrigate","distrutte","disturbate","disubbidite","disumanate","disumanizzate","disunite","disusate","disvedute","disvelate","disvestite","disviate","disviste","disvolte","disvolute","dittongate","divallate","divaricate","divelte","diversificate","divertite","divezzate","divinate","divincolate","divinizzate","divise","divolte","divorate","divorziate","divulgate","documentate","dogate","dogmatizzate","dolcificate","dollarizzate","dolorate","dolute","domandate","domate","domesticate","domiciliate","dominate","donate","dondolate","dopate","doppiate","dorate","dormitoce","dosate","dotate","dovute","dragate","drammatizzate","drappeggiate","drenate","dribblate","drizzate","drogate","dugliate","duplicate","duramificate","ebraizzate","eccedute","eccepite","eccettuate","eccitate","echeggiate","eclissate","economizzate","edificate","editate","edotte","educate","edulcorate","effettuate","efficientate","effigiate","effinte","effluite","effuse","egemonizzate","eguagliate","eiettate","elaborate","elargite","elasticizzate","elementarizzate","elemosinate","elencate","elette","elettrificate","elettrizzate","elettrocoagulate","elettrolizzate","elevate","eliminate","elise","elitrasportate","ellenizzate","elogiate","elucidate","elucubrate","eluite","eluse","emanate","emancipate","emarginate","embricate","emendate","emesse","emozionate","empite","empiute","emulate","emulsionate","emunte","encomiate","endocitate","energizzate","enfatizzate","enfiate","entusiasmate","enucleate","enumerate","enunciate","epicureggiate","epurate","equalizzate","equilibrate","equipaggiate","equiparate","eradicate","erase","ereditate","erette","erogate","eroicizzate","erose","erotizzate","erpicate","erse","erudite","eruttate","esacerbate","esagerate","esagitate","esalate","esaltate","esaminate","esasperate","esaudite","esaurite","esautorate","esborsate","escluse","escogitate","escomiate","escoriate","escosse","escusse","esecrate","esecutate","eseguite","esemplificate","esentate","esercitate","esfoliate","esibite","esilarate","esiliate","esimute","esitate","esonerate","esorbitate","esorcizzate","esortate","espanse","esparse","esperimentate","esperite","espettorate","espiantate","espiate","espirate","espletate","esplicate","esplicitate","esplorate","esplose","esportate","esposte","espresse","espropriate","espugnate","espulse","espunte","espurgate","essiccate","essute","estasiate","estenuate","esterificate","esteriorizzate","esterminate","esternalizzate","esternate","estese","estimate","estinte","estirpate","estivate","estorte","estradate","estraniate","estrapolate","estratte","estremizzate","estrinsecate","estromesse","estruse","estubate","esulcerate","esultate","esumate","eterificate","eterizzate","eternate","eternizzate","etichettate","etossilate","euforizzate","europeizzate","evacuate","evangelizzate","evase","evete","evidenziate","evinte","evirate","eviscerate","evitate","evocate","evolte","evolute","evulse","fabbricate","faccettate","facilitate","fagocitate","falciate","falcidiate","fallite","falsate","falsificate","familiarizzate","fanatizzate","fantasticate","farcite","farfugliate","fasciate","fascicolate","fascistizzate","fattacele","fatte","fattorizzate","fatturate","favellate","favoreggiate","favorite","faxate","fecondate","fedecommesse","federalizzate","federate","felicitate","felpate","feltrate","femminilizzate","fendute","ferite","fermate","fermentate","ferrate","fertilizzate","fesse","fessurate","festeggiate","festonate","feudalizzate","fiaccate","fiammeggiate","fiancheggiate","ficcate","fidanzate","fidate","fidecommesse","fidelizzate","figliate","figurate","filate","filettate","filmate","filosofate","filtrate","finalizzate","finanziate","finitale","finite","finlandizzate","fintate","finte","fiocinate","fiondate","fiorettate","firmate","fiscalizzate","fischiate","fischiettate","fissate","fissionate","fitte","fiutate","flagellate","flaggate","flambate","flangiate","flemmatizzate","flesse","flippate","flottate","fluidificate","fluidizzate","fluorizzate","fluorurate","focalizzate","focheggiate","foderate","foggiate","fognate","folgorate","follate","fomentate","fonate","fondate","foracchiate","foraggiate","forate","forestate","forfettizzate","forgiate","formalizzate","formate","formattate","formilate","formulate","fornite","fortificate","forviate","forwardate","forzate","fosfatate","fosforate","fosforilate","fossilizzate","fotocomposte","fotocopiate","fotografate","fottute","fracassate","fraintese","framesse","frammentate","frammesse","frammezzate","frammischiate","franceseggiate","francesizzate","frangiate","frante","frantumate","frappate","frapposte","fraseggiate","frastagliate","frastornate","fratturate","frazionate","freddate","fregate","fregiate","frenate","frequentate","fresate","frettate","friendzonate","fritte","frizionate","frodate","frollate","fronteggiate","frugate","fruite","frullate","frusciate","frustate","frustrate","fruttate","fucilate","fucinate","fugate","fuggite","fulminate","fumate","fumigate","funestate","funte","funzionate","fuoriuscite","fuorviate","fuse","fustellate","fustigate","gabbate","gabellate","gallate","gallicizzate","gallonate","galvanizzate","gambizzate","garantite","garnettate","garrotate","garzate","gasate","gassate","gassificate","gazate","gelatinizzate","gelate","gelificate","gemellate","gemicate","geminate","generalizzate","generate","gentrificate","genuflesse","geometrizzate","georeferenziate","gerarchizzate","germanizzate","gestite","gettate","gettonate","ghermite","ghettizzate","ghigliottinate","ghindate","gibollate","gingillate","ginnate","giocate","gioite","gionglate","giovaneggiate","girandolate","girate","giudicate","giulebbate","giuntate","giunte","giuracchiate","giurate","giustapposte","giustificate","giustiziate","glamourizzate","glassate","glissate","globalizzate","gloriate","glorificate","glossate","godronate","godute","goffrate","gommate","gonfiate","googlate","gottate","governate","gradinate","gradite","gradualizzate","graduate","graffate","graffiate","graffite","graficate","grafitate","gramolate","granagliate","grandinate","granellate","granite","granulate","graticciate","graticolate","gratificate","gratinate","grattate","grattugiate","gravate","graziate","grecheggiate","grecizzate","gremite","gridate","griffate","grigliate","grippate","groccate","grondate","grugate","grugnite","guadagnate","gualcite","guardate","guarite","guarnite","guastate","guatate","guerreggiate","gufate","guidate","gustate","hackerate","handicappate","ibridate","idealizzate","ideate","identificate","ideologizzate","idolatrate","idoleggiate","idratate","idrogenate","idrolizzate","iettate","igienizzate","ignifugate","ignorate","illanguidite","illeggiadrite","illividite","illuminate","illuse","illustrate","imbacuccate","imbaldanzite","imballate","imbalsamate","imbambolate","imbandierate","imbandite","imbarbarite","imbarcate","imbarilate","imbastardite","imbastite","imbattute","imbavagliate","imbeccate","imbellettate","imbellite","imbestialite","imbestiate","imbevute","imbiaccate","imbiancate","imbianchite","imbibite","imbiettate","imbiondite","imbizzarrite","imboccate","imbonite","imborghesite","imboscate","imboschite","imbottate","imbottigliate","imbottite","imbozzimate","imbracate","imbracciate","imbragate","imbrancate","imbrattate","imbrecciate","imbrigliate","imbrillantinate","imbroccate","imbrodate","imbrogliate","imbronciate","imbruttite","imbucate","imbudellate","imbullettate","imbullonate","imburrate","imbussolate","imbustate","imbutite","imitate","immagazzinate","immaginate","immalinconite","immatricolate","immedesimate","immerse","immesse","immischiate","immiserite","immobilizzate","immolate","immortalate","immunizzate","immusonite","impaccate","impacchettate","impacciate","impadronite","impaginate","impagliate","impalate","impalcate","impallate","impallinate","impalmate","impaludate","impanate","impaniate","impannate","impantanate","impaperate","impapocchiate","impappinate","imparentate","imparruccate","impartite","impastate","impasticcate","impasticciate","impastocchiate","impastoiate","impataccate","impattate","impaurite","impavesate","impeciate","impedicate","impedite","impegnate","impegolate","impelagate","impellicciate","impennacchiate","impennate","impensierite","impepate","imperlate","impermalite","impermeabilizzate","imperniate","impersonate","impersonificate","impestate","impetrate","impiallacciate","impiantate","impiastrate","impiastricciate","impiccate","impicciate","impicciolite","impiccolite","impidocchiate","impiegate","impietosite","impietrite","impigliate","impigrite","impilate","impillaccherate","impinguate","impinte","impinzate","impiombate","impipate","impiumate","implementate","implicate","implorate","impollinate","impolpate","impoltronite","impolverate","impomatate","imporcate","imporporate","importate","importunate","impossessate","impossibilitate","impostate","imposte","impratichite","impregnate","imprese","impressionate","impresse","imprestate","impreziosite","imprigionate","impromesse","improntate","improsciuttite","impugnate","impuntite","impunturate","impupate","imputate","impuzzolentite","inabilitate","inabissate","inacerbite","inacetite","inacidite","inacutite","inaffiate","inalate","inalberate","inalveate","inalzate","inamidate","inanellate","inarcate","inargentate","inaridite","inasprite","inastate","inattivate","inaugurate","incacchiate","incalcinate","incalorite","incalzate","incamerate","incamiciate","incamminate","incanaglite","incanalate","incannate","incannucciate","incaponite","incappottate","incappucciate","incaprettate","incapricciate","incapsulate","incarcerate","incardinate","incaricate","incarnate","incarrozzate","incartate","incartocciate","incartonate","incasellate","incasinate","incassate","incastellate","incastonate","incastrate","incatenate","incatramate","incattivite","incavate","incavigliate","incavolate","incazzate","incellofanate","incendiate","incenerite","incensate","incentivate","incentrate","inceppate","incerate","incernierate","incerottate","incese","incettate","inchiappettate","inchiavardate","inchieste","inchinate","inchiodate","inchiostrate","incipriate","incise","incistate","incitate","inciuccate","incivilite","inclinate","incluse","incoccate","incocciate","incoiate","incollate","incolonnate","incolpate","incominciate","incomodate","incontrate","incoraggiate","incordate","incornate","incorniciate","incoronate","incorporate","incotte","incravattate","incrementate","increspate","incretinite","incriminate","incrinate","incrociate","incrostate","incrudelite","incrudite","incruscate","incubate","inculate","inculcate","incuneate","incuoiate","incuorate","incupite","incuriosite","incurvate","incusse","indagate","indebitate","indebolite","indemaniate","indennizzate","indette","indicate","indicizzate","indignate","indirette","indirizzate","indispettite","indisposte","individualizzate","individuate","indolenzite","indorate","indossate","indotte","indottome","indottrinate","indovinate","indugiate","indulte","indurate","indurite","industrializzate","industriate","inebetite","inebriate","inerite","inerpicate","infagottate","infamate","infangate","infarcite","infarinate","infastidite","infatuate","infeltrite","inferite","inferocite","inferte","infervorate","infestate","infettate","infeudate","infiacchite","infialate","infialettate","infiammate","infiascate","infibulate","inficiate","infilate","infiltrate","infilzate","infingardite","infinocchiate","infinte","infioccate","infiocchettate","infiochite","infiorate","infirmate","infischiate","infisse","infittite","inflazionate","inflesse","inflitte","influenzate","infocate","infoderate","infognate","infoibate","infoltite","inforcate","informatizzate","informate","informicolate","informicolite","infornaciate","infornate","infortunate","infoscate","infossate","infradiciate","inframesse","inframezzate","inframmesse","inframmezzate","infrancesate","infrapposte","infrascate","infrattate","infreddate","infronzolate","infuocate","infurbite","infuriate","ingabbiate","ingaggiate","ingagliardite","ingannate","ingarbugliate","ingavonate","ingegnate","ingegnerizzate","ingelosite","ingemmate","ingenerate","ingentilite","ingerite","ingessate","inghiaiate","inghiottite","inghirlandate","ingiallite","ingigantite","inginocchiate","ingioiellate","ingiunte","ingiuriate","inglesizzate","inglobate","ingoffite","ingoiate","ingolfate","ingollate","ingolosite","ingombrate","ingommate","ingorgate","ingozzate","ingranate","ingrandite","ingrassate","ingraticciate","ingraticolate","ingravidate","ingraziate","ingraziosite","ingrigite","ingrommate","ingrossate","ingrullite","inguaiate","inguainate","ingualdrappate","inguantate","ingurgitate","inibite","iniettate","inimicate","inizializzate","iniziate","inmillate","innacquate","innaffiate","innalzate","innamorate","innastate","innervate","innervosite","innescate","innestate","innevate","innocentate","innocuizzate","innovate","inoculate","inoltrate","inondate","inorgoglite","inorpellate","inorridite","inquadrate","inquietate","inquisite","insabbiate","insacchettate","insalate","insaldate","insalivate","insanguinate","insaponate","insaporite","inscatolate","inscenate","inscritte","insecchite","insediate","insegnate","inseguite","insellate","inselvatichite","inserite","insidiate","insignite","insilate","insinuate","insolentite","insonnolite","insonorizzate","insordite","insospettite","insozzate","inspessite","inspirate","installate","instaurate","insterilite","instillate","instituite","instradate","insudiciate","insufflate","insultate","insuperbite","intabaccate","intabarrate","intaccate","intagliate","intarsiate","intasate","intascate","intavolate","integrate","intelaiate","intelate","intellettualizzate","intenebrate","intenerite","intensificate","intentate","intepidite","intercalate","intercambiate","intercettate","intercise","intercluse","intercollegate","interconnesse","interconvertite","interdette","interessate","interfacciate","interfogliate","interfoliate","interiorizzate","interlacciate","interlineate","intermesse","intermezzate","internalizzate","internate","internazionalizzate","interpellate","interpenetrate","interpolate","interposte","interpretate","interpunte","interrate","interrogate","interrotte","intersecate","intervallate","intervistate","intese","intessute","intestardite","intestate","intiepidite","intimate","intimidite","intimorite","intinte","intirizzite","intitolate","intonacate","intonate","intontite","intorbidate","intorbidite","intorpidite","intortate","intossicate","intralciate","intramesse","intramezzate","intrappolate","intraprese","intrattenute","intravedute","intraviste","intravvedute","intravviste","intrecciate","intricate","intrigate","intrinsecate","intrippate","intrise","introdotte","introflesse","introiettate","introitate","intromesse","intronate","intronizzate","intrudute","intrufolate","intrugliate","intruppate","intruse","intubate","intubettate","intuite","inumate","inumidite","inurbate","inutilizzate","invaghite","invaginate","invalidate","invasate","invase","invelenite","inventariate","inventate","invenute","inverdite","invergate","inverniciate","investigate","investite","invetriate","inviate","invidiate","invigorite","inviluppate","invischiate","invitate","invocate","invogliate","involate","involgarite","involtate","involte","inzaccherate","inzeppate","inzigate","inzolfate","inzuccate","inzuccherate","inzuppate","iodurate","ionizzate","ipertrofizzate","ipnotizzate","ipostatizzate","ipotecate","ipotizzate","iridate","irradiate","irraggiate","irreggimentate","irretite","irrigate","irrigidite","irrise","irritate","irrobustite","irrogate","irrorate","irrugginite","irruvidite","ischeletrite","iscritte","islamizzate","isolate","isomerizzate","ispanizzate","ispessite","ispezionate","ispirate","issate","istallate","istanziate","istaurate","isterilite","istigate","istillate","istituite","istituzionalizzate","istoriate","istradate","istruite","istupidite","italianeggiate","italianizzate","iterate","iudicate","killerate","labbreggiate","labializzate","laccate","lacerate","laconizzate","lacrimate","ladroneggiate","lagnate","lagrimate","laicizzate","lambiccate","lambite","lamentate","laminate","lanciate","lapidate","lappate","lardate","lardellate","largite","larvate","lascate","lasciate","lastricate","latinizzate","laudate","laureate","lavate","lavorate","leccate","legalizzate","legate","leggicchiate","leggiucchiate","legittimate","legittimizzate","legnate","lemmatizzate","lenite","lesinate","lesionate","lese","lessate","lette","levate","levigate","liberalizzate","liberate","licenziate","lievitate","liftate","lignificate","limate","limitate","linciate","linearizzate","lineate","linkate","liofilizzate","liquefatte","liquidate","lisate","lisciate","lisciviate","listate","litografate","livellate","lizzate","lobotomizzate","localizzate","locate","lodate","logorate","lordate","lottate","lottizzate","lubrificate","lucchettate","lucidate","lucrate","lumeggiate","luppolizzate","lusingate","lussate","lustrate","macadamizzate","macchiate","macchinate","macellate","macerate","maciullate","maggesate","maggiorate","magnate","magnetizzate","magnificate","maiolicate","maledette","malfatte","malignate","malmenate","malmesse","maltate","maltrattate","malvedute","malversate","malviste","malvolute","mandate","mandrinate","manducate","maneggiate","manganate","manganellate","mangiate","mangiucchiate","manifatturate","manifestate","manimesse","manipolate","manlevate","manomesse","manoscritte","manovrate","mansuefatte","mantecate","mantenutase","mantenute","manualizzate","manutenute","mappate","marcate","marchiate","marcite","marezzate","marginalizzate","marginate","margottate","marimesse","marinate","maritate","marmorizzate","marnate","marocchinate","martellate","martellinate","martirizzate","martoriate","mascherate","maschiate","maschiettate","mascolinizzate","massacrate","massaggiate","massellate","massicciate","massificate","massimate","massimizzate","mastectomizzate","masterizzate","masticate","masturbate","matematizzate","materializzate","matricolate","mattonate","maturate","mazziate","mazzolate","meccanizzate","medagliate","mediate","medicalizzate","medicate","meditate","membrate","memorizzate","menate","mendicate","menomate","mentovate","menzionate","meravigliate","mercanteggiate","mercerizzate","mercificate","meriate","meridionalizzate","meritate","merlate","merlettate","merse","mesciate","mesciute","mescolate","mescute","mesmerizzate","messaggiate","messe","messoce","mestate","mesticate","mestruate","metabolizzate","metaforeggiate","metaforizzate","metallizzate","metamorfizzate","metamorfosate","metanizzate","metilate","metodizzate","microfilmate","microfonate","microminiaturizzate","micronizzate","mietute","migliorate","militarizzate","millantate","millimetrate","mimate","mimeografate","mimetizzate","minacciate","minate","minchionate","mineralizzate","miniate","miniaturizzate","minimizzate","minuite","minuzzate","miracolate","miscelate","mischiate","misconosciute","missate","mistificate","misturate","misurate","miticizzate","mitigate","mitizzate","mitragliate","mitrate","mixate","mobiliate","mobilitate","mobilizzate","modanate","modellate","modellizzate","moderate","modernizzate","modificate","modulate","molate","molestate","mollate","molleggiate","moltiplicate","monacate","mondate","mondializzate","monetarizzate","monetate","monetizzate","monitorate","monitorizzate","monocromatizzate","monopolizzate","monottongate","montate","monumentalizzate","mordenzate","mordicchiate","mormorate","morphate","morsicate","morsicchiate","morse","mortasate","mortificate","mosse","mostrate","motivate","motorizzate","motteggiate","movimentate","mozzate","mugolate","mulcite","multate","multiplexate","mummificate","municipalizzate","munite","munte","murate","musate","musicate","mussate","mutate","mutilate","mutizzate","mutuate","nappate","narcotizzate","narrativizzate","narrate","nasalizzate","nascose","nascoste","nastrate","naturaleggiate","naturalizzate","nauseate","naverate","navicate","navigate","nazificate","nazionalizzate","nebulizzate","necessitate","necrosate","necrotizzate","negativizzate","negate","neglette","negoziate","negreggiate","neologizzate","nerbate","nericate","nettate","neutralizzate","nevate","nevicate","nevischiate","nevrotizzate","nichelate","niellate","ninfeggiate","ninnate","ninnolate","nitratate","nitrificate","nobilitate","noiate","noleggiate","nomate","nominalizzate","nominate","normalizzate","normate","notate","notificate","notiziate","notricate","noverate","nuclearizzate","nudricate","nullificate","numerate","numerizzate","nuotate","nutrite","obbiettate","obbliate","obbligate","oberate","obiettate","obiettivate","obiettivizzate","obiurgate","obliate","obliterate","obnubilate","occasionate","occhieggiate","occidentalizzate","occise","occluse","occultate","occupate","ocheggiate","odiate","odorate","odorizzate","offerite","offerte","offese","officiate","offiziate","offuscate","ofiziate","oggettivate","oggettivizzate","oggettualizzate","oliate","olite","olografate","oltraggiate","oltrapassate","oltrepassate","omaggiate","ombrate","ombreggiate","omesse","omogeneizzate","omogenizzate","omologate","ondate","ondulate","onestate","onnubilate","onorate","opacate","opacizzate","operate","opinate","oppiate","oppignorate","oppilate","opposte","oppresse","oppugnate","oprate","opsonizzate","optate","opzionate","orbitate","orchestrate","ordinate","ordite","orecchiate","organate","organicate","organizzate","orgasmate","orientalizzate","orientate","originate","origliate","orizzontate","orlate","orlettate","ormate","ormeggiate","ornate","orpellate","orrate","orripilate","ortogonalizzate","osannate","osate","osculate","oscurate","ospedalizzate","ospitate","ossedute","ossequiate","osservate","ossessionate","ossidate","ossificate","ossitonizzate","ostacolate","osteggiate","ostentate","ostinate","ostracizzate","ostruite","ottemperate","ottenebrate","ottenute","ottimalizzate","ottimate","ottimizzate","ottonate","ottriate","ottuplicate","otturate","ottuse","ottusse","ovalizzate","ovariectomizzate","ovattate","overcloccate","ovrate","ovviate","ozieggiate","ozonizzate","pacate","pacciamate","pacificate","padroneggiate","paganizzate","pagate","paginate","palafittate","palatalizzate","palate","palesate","palettate","palettizzate","palificate","palleggiate","pallettizzate","palpate","palpeggiate","panate","panneggiate","panoramicate","pappate","paracadutate","parafate","paraffinate","parafrasate","paragonate","paragrafate","paralizzate","parallelizzate","parametrate","parametrizzate","parassitate","parate","parcate","parcellizzate","parcheggiate","pareggiate","parificate","parkerizzate","parlate","parlucchiate","parodiate","partecipate","particolareggiate","particolarizzate","partizionate","partorite","parzializzate","pasciute","pascolate","passate","passeggiate","passionate","passivate","pasticciate","pastorizzate","pasturate","patinate","patite","patrocinate","patteggiate","pattugliate","pattuite","paventate","pavesate","pavimentate","pavoneggiate","pazziate","pedinate","pedonalizzate","peggiorate","pelate","pellettizzate","penalizzate","penetrate","pennellate","pensate","pensionate","pentite","pepate","peptonizzate","peragrate","percentualizzate","percepite","percolate","percorse","percosse","perdonate","perdotte","perdute","perequate","perfatte","perfezionate","perforate","performate","perite","periziate","perlustrate","permeate","permesse","perorate","perpetrate","perpetuate","perplimute","perquisite","perscrutate","perseguitate","perseguite","perse","personalizzate","personificate","persuase","perturbate","pervase","pervertite","pesate","pescate","pestate","petrarcheggiate","pettegolate","pettinate","piagate","piaggiate","piallate","pianeggiate","pianificate","piantate","piantatale","piantate","piante","piantonate","piantumate","piastrellate","piatite","piazzate","picchettate","picchiate","picchierellate","picchiettate","picconate","piegate","pieghettate","pietrificate","pigiate","pigliate","pigmentate","pignorate","pigolate","pilotate","pimentate","pinte","pinzate","piombate","piovigginate","piovute","pipate","pippate","piratate","pirogenate","pisciate","pitoccate","pittate","pitturate","pizzicate","pizzicottate","placate","placcate","plagiate","plasmate","plasticate","plastificate","platinate","plissettate","pluralizzate","poetate","poeticizzate","poggiate","polarizzate","poligrafate","polimerizzate","politicizzate","polverizzate","pomiciate","pompate","ponderate","ponzate","popolarizzate","popolate","poppate","porcellanate","porfirizzate","portate","portese","porte","porzionate","posate","posdatate","positivizzate","posizionate","posposte","possedute","postate","postdatate","posteggiate","posticipate","postillate","poste","postsincronizzate","postulate","potabilizzate","potate","potenziate","potute","pralinate","praticate","preaccennate","preannunciate","preannunziate","preavvertite","preavvisate","precaricate","precedute","precettate","precinte","precisate","precluse","precompilate","precompresse","preconfezionate","preconizzate","preconosciute","precorse","precostituite","predate","predefinite","predestinate","predeterminate","predette","predicate","predigerite","predilette","predisposte","preelette","preesistute","prefabbricate","prefate","prefatte","prefazionate","preferite","prefigurate","prefinanziate","prefissate","prefisse","preformate","pregate","pregiate","pregiudicate","pregustate","preimpregnate","prelevate","premeditate","premescolate","premesse","premiate","premonite","premunite","premurate","premute","prenotate","preoccupate","preordinate","preparate","prepensionate","prepigmentate","preposte","preprogrammate","preraffreddate","prerefrigerate","preregistrate","preregolate","preriscaldate","prese","presagite","presapute","presasele","prescelte","prescritte","presedute","presegnalate","preselezionate","presentate","presentite","preservate","presidiate","presiedute","prese","pressate","presse","pressurizzate","prestabilite","prestampate","prestate","prestigiate","presunte","presupposte","pretermesse","pretese","pretrattate","prevaricate","prevedute","prevendute","preventivate","prevenute","previste","prezzate","prezzolate","principiate","privatizzate","private","privilegiate","problematizzate","procacciate","processate","proclamate","procrastinate","procreate","procurate","prodigate","prodotte","profanate","proferite","professate","professionalizzate","profetate","profetizzate","profferite","profilate","profondate","profumate","profuse","progettate","prognosticate","programmate","proibite","proiettate","proletarizzate","prolungate","promanate","promesse","promosse","promozionate","promulgate","pronosticate","pronunciate","pronunziate","propagandate","propagate","propagginate","propalate","propinate","propiziate","proporzionate","proposte","propugnate","propulse","prorogate","prosciolte","prosciugate","proscritte","proseguite","prospettate","prosternate","prostese","prostituite","prostrate","prosunte","protese","protestate","protette","protocollate","protonate","protratte","protruse","provate","provedute","provincializzate","proviste","provocate","provvedute","provviste","psicanalizzate","psichiatrizzate","psicoanalizzate","psicologizzate","pubblicate","pubblicizzate","puddellate","pugnalate","pulite","pungolate","punite","puntate","punteggiate","puntellate","punte","puntualizzate","punzecchiate","punzonate","purgate","purificate","putite","putrefatte","putrite","quadrate","quadrettate","quadriennalizzate","quadruplicate","qualificate","quantificate","quantizzate","querelate","questuate","quetate","quietanzate","quietate","quintessenziate","quintuplicate","quotate","quotizzate","rabberciate","rabboccate","rabbonite","rabbuffate","rabuffate","raccapezzate","raccapricciate","raccattate","raccerchiate","raccese","racchetate","racchiuse","raccolte","raccolte","raccomandate","raccomodate","raccontate","raccorciate","raccorcite","raccordate","raccostate","raccozzate","racemizzate","racimolate","radazzate","raddensate","raddobbate","raddolcite","raddoppiate","raddotte","raddrizzate","radiate","radicalizzate","radioassistite","radioattivate","radiocomandate","radiodiffuse","radiografate","radioguidate","radiolocalizzate","radiomarcate","radiotelegrafate","radiotrasmesse","radunate","raffazzonate","raffermate","raffigurate","raffilate","raffinate","rafforzate","raffreddate","raffrenate","raffrescate","raffrontate","raggelate","raggentilite","ragghiate","raggirate","raggiunte","raggiustate","raggomitolate","raggranchiate","raggranchite","raggranellate","raggrinzate","raggrinzite","raggrumate","raggruppate","raggruzzolate","ragguagliate","ralingate","rallegrate","rallentate","ramate","ramazzate","rammagliate","rammaricate","rammemorate","rammendate","rammentate","rammodernate","rammollite","rammorbidite","rampognate","randellate","randomizzate","rannicchiate","rannuvolate","ranzate","rapate","rapinate","rapite","rappacificate","rappate","rappattumate","rappezzate","rapportate","rappresantate","rappresentate","rapprese","rarefatte","rasate","raschiate","raschiettate","rasentate","rase","raspate","rassegnate","rasserenate","rassettate","rassicurate","rassodate","rassomigliate","rassottigliate","rassunte","rastrellate","rastremate","rateate","rateizzate","ratificate","ratinate","rattizzate","rattoppate","rattorte","rattrappite","rattristate","rattristite","raunate","ravvalorate","ravvedute","ravviate","ravvicinate","ravviluppate","ravvisate","ravviste","ravvivate","ravvolte","ravvoltolate","razionalizzate","razionate","razziate","razzolate","realizzate","reassunte","recapitate","recate","recedute","recensite","recepite","recidivate","recintate","recinte","reciprocate","recise","recitate","reclamate","reclamizzate","reclinate","recluse","reclutate","recuperate","redarguite","redatte","redazzate","reddute","redente","redistribuite","redotte","referenziate","refertate","refilate","reflesse","reflettute","refrante","refrigerate","regalate","regimate","regimentate","regionalizzate","registrate","regolamentate","regolarizzate","regolate","reidratate","reificate","reimbarcate","reimmerse","reimmesse","reimparate","reimpastate","reimpiantate","reimpiegate","reimportate","reimpostate","reincarcerate","reincaricate","reincarnate","reincise","reincontrate","reindirizzate","reindustrializzate","reinfettate","reingaggiate","reinizializzate","reinnestate","reinoltrate","reinscritte","reinsediate","reinserite","reinstallate","reinstaurate","reintegrate","reinterpretate","reintitolate","reintrodotte","reinventate","reinvestite","reiterate","relativizzate","relazionate","relegate","remixate","remunerate","renderizzate","reperite","repertate","replicate","represse","repulse","reputate","requisite","rescisse","resecate","resettate","residuate","resinificate","rese","resolate","resolte","respinte","respirate","responsabilizzate","resposte","restaurate","restituite","resunte","resuscitate","reticolate","retinate","retribuite","retrocedute","retrocesse","retrodatate","rettificate","rette","reumatizzate","revisionate","revocate","riabbassate","riabbellite","riabbonate","riabbottonate","riabbracciate","riabilitate","riabitate","riabituate","riaccadute","riaccasate","riaccese","riaccettate","riacchiappate","riacciuffate","riaccolte","riaccomodate","riaccompagnate","riaccordate","riaccostate","riaccreditate","riacquisite","riacquistate","riacutizzate","riadattate","riaddestrate","riaddormentate","riadoperate","riaffacciate","riaffermate","riafferrate","riaffiorate","riaffittate","riaffrontate","riagganciate","riaggiornate","riaggiustate","riaggravate","riaggregate","riagguantate","rialimentate","riallacciate","riallargate","riallineate","riallocate","riallungate","rialzate","riamate","riambientate","riammalate","riammesse","riammodernate","riammogliate","rianimate","riannesse","riannodate","riannunciate","riaperte","riappacificate","riappaltate","riapparecchiate","riapparite","riappese","riappiccicate","riapplicate","riapprese","riapprodate","riappropriate","riapprovate","riarmate","riarrangiate","riarredate","riascoltate","riasfaltate","riassalite","riassaporate","riassegnate","riassemblate","riassestate","riassettate","riassicurate","riassociate","riassopite","riassorbite","riassunte","riattaccate","riattate","riattese","riattinte","riattivate","riattizzate","riattraversate","riaumentate","riavute","riavventate","riavvertite","riavviate","riavvicinate","riavvinte","riavvisate","riavvistate","riavvolte","riazzuffate","ribaciate","ribadite","ribaltate","ribassate","ribattezzate","ribattute","ribellate","ribenedette","ribevute","ributtate","ricacciate","ricalate","ricalcate","ricalcificate","ricalcitrate","ricalcolate","ricalibrate","ricamate","ricambiate","ricanalizzate","ricandidate","ricantate","ricapitalizzate","ricapitolate","ricaricate","ricategorizzate","ricattate","ricavate","ricelebrate","ricercate","ricetrasmesse","ricettate","ricevute","richiamate","richieste","richiuse","riciclate","ricinte","ricircolate","riclassificate","ricodificate","ricollegate","ricollocate","ricolmate","ricolonizzate","ricolorate","ricolorite","ricoltivate","ricombinate","ricominciate","ricommesse","ricomparite","ricompattate","ricompensate","ricomperate","ricompilate","ricompiute","ricomposte","ricomprate","ricompresse","ricomunicate","riconcedute","riconcesse","riconciliate","ricondizionate","ricondotte","riconfermate","riconfezionate","riconfigurate","riconfortate","riconfuse","ricongelate","ricongiunte","riconnesse","riconosciute","riconquistate","riconsacrate","riconsegnate","riconsiderate","riconsigliate","riconsolate","ricontate","ricontattate","ricontrattate","ricontratte","ricontrollate","riconvalidate","riconvenute","riconvertite","riconvinte","riconvocate","riconvogliate","ricoperte","ricopiate","ricordate","ricoricate","ricorrette","ricosparse","ricostituite","ricostrette","ricostruite","ricotte","ricoverate","ricreate","ricristallizzate","ricrocifisse","ricucite","ricuperate","ricusate","ridate","ridecorate","ridefinite","ridenominate","ridestate","rideterminate","ridette","ridicolizzate","ridigitate","ridimensionate","ridipinte","ridiscese","ridisciolte","ridisciplinate","ridiscusse","ridisegnate","ridisfatte","ridisposte","ridistese","ridistinte","ridistribuite","ridivise","ridomandate","ridonate","ridondate","ridorate","ridotate","ridotte","ridovute","riecheggiate","riedificate","rieducate","rielaborate","rielette","riemesse","riempite","riempiute","rientrate","riepilogate","riequilibrate","riequipaggiate","riesaminate","rieseguite","riesercitate","riesplose","riesportate","riesposte","riespresse","riespulse","riestese","riesumate","rietichettate","rievaporate","rievocate","rifabbricate","rifasciate","rifatte","rifendute","riferite","rifermate","rifermentate","rifesse","rificcate","rifilate","rifiltrate","rifinanziate","rifinite","rifirmate","rifischiate","rifisse","rifiutate","riflesse","riflettute","rifocillate","rifoderate","rifondate","riforestate","riforgiate","riformate","riformattate","riformulate","rifornite","rifrante","rifritte","rifrugate","rifuggite","rifugiate","rifuse","rigassificate","rigate","rigelate","rigenerate","rigettate","righettate","rigiocate","rigirate","rigiudicate","rigiunte","rigodute","rigonfiate","rigovernate","riguadagnate","riguardate","rigurgitate","rilanciate","rilasciate","rilassate","rilavate","rilavorate","rilegate","rilette","rilevate","rilocalizzate","rimagliate","rimandate","rimaneggiate","rimangiate","rimappate","rimarcate","rimarchiate","rimarginate","rimaritate","rimasticate","rimate","rimbacuccate","rimbaldanzite","rimbarcate","rimbeccate","rimbecillite","rimbellite","rimbiancate","rimbiondite","rimboccate","rimbombate","rimborsate","rimboscate","rimboschite","rimbrottate","rimediate","rimembrate","rimemorate","rimenate","rimeritate","rimescolate","rimesse","rimestate","rimilitarizzate","rimirate","rimischiate","rimisurate","rimodellate","rimodernate","rimodulate","rimondate","rimontate","rimorchiate","rimorse","rimosse","rimostrate","rimotivate","rimpacchettate","rimpadronite","rimpaginate","rimpagliate","rimpannucciate","rimpastate","rimpatriate","rimpiallacciate","rimpiante","rimpiattate","rimpiazzate","rimpicciolite","rimpiccolite","rimpiegate","rimpinguate","rimpinzate","rimpolpate","rimpossessate","rimpresse","rimproverate","rimuginate","rimunerate","rimunte","rimusicate","rimutate","rinarrate","rinascoste","rincalcate","rincalzate","rincamminate","rincantucciate","rincarate","rincarcerate","rincarnate","rincentrate","rinchieste","rinchiodate","rinchiuse","rincitrullite","rincivilite","rincoglionite","rincollate","rincominciate","rincontrate","rincoraggiate","rincorate","rincorporate","rincorse","rincretinite","rincrudite","rinculcate","rincuorate","rindossate","rindurite","rinegoziate","rinfacciate","rinfagottate","rinfiammate","rinfiancate","rinfilate","rinfittite","rinfocolate","rinfoderate","rinforzate","rinfrancate","rinfrante","rinfrescate","rinfuse","ringagliardite","ringalluzzite","ringiovanite","ringiovenite","ringoiate","ringorgate","ringraziate","ringuainate","rinnamorate","rinnegate","rinnestate","rinnovate","rinnovellate","rinociute","rinomate","rinominate","rinormalizzate","rinquadrate","rinsaccate","rinsaldate","rinsanguate","rinselvatichite","rinselvate","rinserrate","rintanate","rintasate","rintascate","rintavolate","rintenerite","rinterrate","rinterrogate","rintese","rintiepidite","rintoccate","rintonacate","rintontite","rintorpidite","rintracciate","rintrodotte","rintronate","rintuzzate","rinunciate","rinunziate","rinutrite","rinvangate","rinvasate","rinvenute","rinverdite","rinvestite","rinviate","rinvigorite","rinvilite","rinvitate","rinvoltate","rinvolte","rinvoltolate","rinzaffate","rinzeppate","riobbligate","rioccupate","riofferte","rioffese","rioperate","riordinate","riorganizzate","riorientate","riosservate","riottenute","riottimizzate","riotturate","ripagate","riparametrizzate","riparate","ripartite","ripassate","ripercorse","ripercosse","riperdute","riperse","ripesate","ripescate","ripestate","ripetute","ripianate","ripianificate","ripiantate","ripiante","ripicchiate","ripiegate","ripigliate","ripinte","ripiovute","ripitturate","riplasmate","ripolarizzate","ripopolate","riportate","riporte","riposate","riposizionate","ripossedute","riposte","ripotute","ripresentate","riprese","riprestate","ripretese","riprincipiate","ripristinate","riprivatizzate","riprodotte","riprogettate","riprogrammate","ripromesse","riproposte","riprotette","riprovate","riprovvedute","riprovviste","ripubblicate","ripudiate","ripugnate","ripulite","ripuntate","ripunte","ripurgate","riputate","riquadrate","riqualificate","rirese","rirotte","risaldate","risalite","risaltate","risalutate","risanate","risapute","risarcite","riscalate","riscaldate","riscattate","riscelte","riscese","rischiarate","rischiate","risciacquate","risciolte","riscommesse","riscontate","riscontrate","risconvolte","riscoperte","riscoppiate","riscorse","riscosse","riscritte","risecate","risedute","risegate","risegnate","riselciate","riselezionate","riseminate","risentite","riseppellite","riserbate","riservate","risicate","risigillate","risistemate","rise","risoffiate","risoggiunte","risolate","risolidificate","risollevate","risolte","risommate","risommerse","risonate","risorpassate","risospese","risospinte","risottomesse","risparmiate","risparse","rispecchiate","rispedite","rispente","risperse","rispettate","rispiegate","rispinte","rispolverate","risposate","risposte","rissate","ristabilite","ristagnate","ristampate","ristaurate","ristese","ristilizzate","ristorate","ristrette","ristrutte","ristrutturate","ristuccate","ristudiate","risucchiate","risultate","risuolate","risuonate","risuscitate","risvegliate","risvolte","ritagliate","ritarate","ritardate","ritemprate","ritentate","ritenute","riterse","ritese","ritinte","ritirate","ritoccate","ritolte","ritorte","ritracciate","ritradotte","ritrascorse","ritrascritte","ritrasferite","ritrasformate","ritrasmesse","ritrasposte","ritrattate","ritratte","ritrovate","ritualizzate","rituffate","riudite","riunificate","riunite","riusate","riutilizzate","rivaccinate","rivaleggiate","rivalorizzate","rivalse","rivalutate","rivangate","rivedute","rivelate","rivendicate","rivendute","riverberate","riverite","riverniciate","riversate","rivestite","rivettate","rivinte","rivisitate","rivissute","riviste","rivitalizzate","rivivificate","rivoltate","rivolte","rivoltolate","rivolute","rivoluzionate","rizappate","rizzate","robotizzate","rodate","rogate","rollate","romanizzate","romanticizzate","romanzate","roncolate","rosicate","rosicchiate","rose","rosolate","rotacizzate","rotate","roteate","rotolate","rottamate","rotte","rovesciate","rovinate","rovistate","rubacchiate","rubate","rullate","ruminate","ruotate","russificate","ruzzolate","sabbiate","sabotate","saccarificate","saccheggiate","sacralizzate","sacramentate","sacrificate","saettate","saggiate","sagginate","sagomate","salamoiate","salariate","salassate","salate","saldate","salificate","salinizzate","salite","salmeggiate","salmistrate","salpate","saltate","salutate","salvaguardate","salvate","sanate","sancite","sanforizzate","sanificate","sanitizzate","santificate","sanzionate","saponificate","sapute","sarchiate","sarchiellate","sartiate","satellizzate","satinate","satireggiate","satisfatte","satollate","saturate","saziate","sbaccellate","sbaciucchiate","sbafate","sbaffate","sbalestrate","sballate","sballottate","sballottolate","sbalordite","sbalzate","sbancate","sbandate","sbandierate","sbandite","sbaraccate","sbaragliate","sbarazzate","sbarbate","sbarcate","sbardate","sbarrate","sbassate","sbastite","sbatacchiate","sbattezzate","sbattute","sbeccate","sbeffeggiate","sbellicate","sbendate","sbertucciate","sbiadite","sbiancate","sbianchite","sbiellate","sbiettate","sbigottite","sbilanciate","sbirbate","sbirciate","sbizzarrite","sbloccate","sbobinate","sboccate","sbocconcellate","sbollentate","sbolognate","sborniate","sborsate","sboscate","sbottonate","sbozzate","sbozzimate","sbozzolate","sbracate","sbracciate","sbraciate","sbraitate","sbranate","sbrancate","sbrattate","sbreccate","sbriciolate","sbrigate","sbrigliate","sbrinate","sbrindellate","sbrodolate","sbrogliate","sbronzate","sbruffate","sbucciate","sbudellate","sbuffate","sbugiardate","sbullettate","sbullonate","sburrate","scacazzate","scacchiate","scacciate","scaccolate","scadenzate","scafate","scaffalate","scagionate","scagliate","scaglionate","scalate","scalcate","scalcinate","scaldate","scalettate","scalfate","scalfite","scalmanate","scaloppate","scalpate","scalpellate","scalpellinate","scaltrite","scalzate","scambiate","scamiciate","scamosciate","scamozzate","scampate","scampatale","scampate","scamuffate","scanalate","scancellate","scandagliate","scandalizzate","scandite","scannate","scannellate","scannerate","scannerizate","scannerizzate","scansate","scansionate","scapecchiate","scapezzate","scapicollate","scapigliate","scapitozzate","scapocchiate","scappate","scappellate","scappottate","scapricciate","scapsulate","scarabocchiate","scaracchiate","scaraventate","scarcerate","scardassate","scardate","scardinate","scaricate","scarificate","scarmigliate","scarnate","scarnificate","scarnite","scarrellate","scarrocciate","scarrozzate","scarruffate","scartabellate","scartate","scartavetrate","scartinate","scartocciate","scassate","scassinate","scatenate","scattate","scavalcate","scavallate","scavate","scavezzate","scazzottate","scekerate","scelte","scempiate","sceneggiate","scernute","scervellate","scese","sceverate","schedate","schedulate","scheggiate","scheletrite","schematizzate","schermate","schermite","schermografate","schernite","schiacciate","schiaffate","schiaffeggiate","schiantate","schiarite","schiavardate","schiavizzate","schiccherate","schierate","schifate","schinciate","schioccate","schiodate","schiumate","schiuse","schivate","schizzate","schizzettate","sciabolate","sciabordate","sciacquate","scialacquate","sciamanizzate","sciamannate","sciancate","sciancrate","scimmieggiate","scimmiottate","scinte","scioccate","sciolinate","sciolte","sciorinate","scippate","sciroppate","scisse","sciupacchiate","sciupate","sclamate","sclerosate","sclerotizzate","scoccate","scocciate","scodate","scodellate","scoiate","scolarizzate","scolate","scollacciate","scollate","scollegate","scolorate","scolorite","scolpate","scolpite","scombaciate","scombinate","scombussolate","scommesse","scomodate","scompaginate","scompagnate","scompartite","scompattate","scompensate","scompiacute","scompigliate","scomposte","scomputate","scomunicate","sconcertate","sconciate","sconcluse","sconfessate","sconficcate","sconﬁtte","sconfortate","sconfuse","scongelate","scongiurate","sconnesse","sconosciute","sconquassate","sconsacrate","sconsigliate","sconsolate","scontate","scontentate","scontornate","scontorte","scontrate","sconvolte","scopate","scoperchiate","scoperte","scopiazzate","scoraggiate","scoraggite","scorate","scorazzate","scorciate","scorcite","scordate","scoreggiate","scorificate","scornate","scorniciate","scoronate","scorporate","scorrazzate","scorreggiate","scorrette","scorse","scortate","scortecciate","scorticate","scorte","scorzate","scoscese","scosciate","scosse","scostate","scostolate","scotennate","scoticate","scotolate","scotomizzate","scottate","scotte","scovate","scoverte","scozzate","scozzonate","screditate","scremate","screpolate","screziate","scribacchiate","scriminate","scristianizzate","scritte","scritturate","scroccate","scrocchiate","scrollate","scrostate","scrutate","scrutinate","scucite","scudisciate","scuffiate","sculacciate","sculettate","scuoiate","scuriosate","scurite","scusate","sdaziate","sdebitate","sdegnate","sdemanializzate","sdentate","sdilinquite","sdoganate","sdolute","sdoppiate","sdraiate","sdrammatizzate","sdrucite","secate","seccate","secernute","secolarizzate","secondate","secretate","secrete","sedate","sedentarizzate","sedotte","segate","seghettate","segmentate","segnalate","segnate","segnoreggiate","segregate","segretate","seguitate","seguite","selciate","selezionate","sellate","sembrate","sementate","semicinte","seminate","semplificate","senilizzate","sensibilizzate","sensorizzate","sentenziate","sentite","sentitasele","sentite","sentite","separate","sepolte","seppellite","sequenziate","sequestrate","serbate","serrate","servite","servoassistite","sessualizzate","sestuplicate","setacciate","setificate","settate","settorializzate","settuplicate","seviziate","sezionate","sfaccettate","sfagliate","sfaldate","sfalsate","sfamate","sfanalate","sfangate","sfarinate","sfasate","sfasciate","sfatate","sfatte","sfavillate","sfavorite","sfegatate","sfeltrate","sfendute","sferragliate","sferrate","sferzate","sfesse","sfiancate","sfiatate","sfiate","sfibbiate","sfibrate","sfidate","sfiduciate","sfigurate","sfilate","sfilettate","sfinite","sfioccate","sfiorate","sfittate","sfocate","sfociate","sfoderate","sfogate","sfoggiate","sfogliate","sfollate","sfoltite","sfondate","sforacchiate","sforate","sforbiciate","sformate","sfornaciate","sfornate","sfornite","sforzate","sfottute","sfracellate","sfrangiate","sfrascate","sfratate","sfrattate","sfrecciate","sfregate","sfregiate","sfrenate","sfrisate","sfrondate","sfrucugliate","sfruculiate","sfruttate","sfumate","sfuocate","sgamate","sganasciate","sganciate","sgarbugliate","sgattaiolate","sgelate","sghiacciate","sgocciolate","sgolate","sgomberate","sgombrate","sgomentate","sgominate","sgomitate","sgomitolate","sgonfiate","sgorbiate","sgottate","sgovernate","sgozzate","sgraffiate","sgraffignate","sgranate","sgranchite","sgranellate","sgrassate","sgravate","sgretolate","sgridate","sgrommate","sgrondate","sgroppate","sgrossate","sgrovigliate","sgrugnate","sguainate","sgualcite","sguanciate","sguarnite","sguinzagliate","sgusciate","shakerate","shoccate","shuntate","sigillate","siglate","significate","signoreggiate","silenziate","silicizzate","sillabate","sillogizzate","silurate","simboleggiate","simbolizzate","simmetrizzate","simpatizzate","simulate","sincerate","sincopate","sincretizzate","sincronizzate","sindacalizzate","sindacate","singolarizzate","sinistrate","sinizzate","sinterizzate","sintetizzate","sintonizzate","siringate","sistematizzate","sistemate","situate","slabbrate","slacciate","slamate","slanciate","slappolate","slargate","slavizzate","slegate","slentate","slinguate","slogate","sloggate","sloggiate","slombate","slungate","smaccate","smacchiate","smagliate","smagnetizzate","smagrite","smaliziate","smallate","smaltate","smaltite","smammate","smanacciate","smangiate","smantellate","smarcate","smarginate","smarrite","smascellate","smascherate","smaterializzate","smattonate","smembrate","smentite","smerciate","smerdate","smerigliate","smerlate","smerlettate","smessale","smesse","smezzate","smidollate","smielate","smilitarizzate","sminate","sminuite","sminuzzate","smistate","smitizzate","smobiliate","smobilitate","smobilizzate","smoccolate","smollicate","smonacate","smontate","smorbate","smorzate","smosse","smozzicate","smunte","smurate","smussate","smutandate","snaturate","snazionalizzate","snebbiate","snellite","snervate","snidate","sniffate","snobbate","snocciolate","snodate","snudate","sobbarcate","sobbollite","sobillate","socchiuse","soccorse","soddisfatte","sodisfatte","sodomizzate","sofferite","soffermate","sofferte","soffiate","soffocate","soffregate","soffritte","soffuse","sofisticate","soggettivate","soggettivizzate","sogghignate","soggiogate","soggiunte","sogguardate","sognate","solarizzate","solcate","soleggiate","solennizzate","solfeggiate","solfitate","solfonate","solforate","solidificate","solite","sollazzate","sollecitate","solleticate","sollevate","solte","solubilizzate","solute","soluzionate","solvatate","somatizzate","someggiate","somigliate","sommate","sommerse","sommesse","somministrate","sommosse","sonate","sondate","sonorizzate","sopite","soppalcate","soppesate","soppiantate","sopportate","sopposte","soppresse","sopraddotate","sopraeccitate","sopraedificate","sopraelevate","sopraffate","sopraffatte","sopraggiunte","sopraintese","soprammesse","soprannominate","sopraposte","soprapprese","soprascritte","sopraspese","soprassaturate","soprassedute","sopravanzate","sopravvalutate","sopravvedute","sopravvinte","sopravviste","sopreccitate","sopredificate","soprelevate","soprintese","sorbettate","sorbite","sorgiunte","sormontate","sorpassate","sorprese","sorrase","sorrette","sorseggiate","sorteggiate","sortite","sorvegliate","sorvolate","soscritte","sospese","sospettate","sospinte","sospirate","sostantivate","sostanziate","sostentate","sostenute","sostituite","sottaciute","sotterrate","sottese","sottintese","sottoalimentate","sottocapitalizzate","sottodivise","sottoesposte","sottofirmate","sottolineate","sottomesse","sottomurate","sottopagate","sottopassate","sottoposte","sottorappresentate","sottorise","sottoscritte","sottostimate","sottosviluppate","sottotitolate","sottovalutate","sottratte","soverchiate","sovesciate","sovietizzate","sovracapitalizzate","sovraccaricate","sovradimensionate","sovraeccitate","sovraesposte","sovraffaticate","sovraffollate","sovraggiunte","sovraimposte","sovraintese","sovralimentate","sovramodulate","sovrappopolate","sovrapposte","sovrariscaldate","sovrasaturate","sovrascritte","sovrastampate","sovrastate","sovrastimate","sovrautilizzate","sovreccitate","sovresposte","sovrimposte","sovrintese","sovvenute","sovvenzionate","sovvertite","spaccate","spacchettate","spacciate","spaginate","spaiate","spalancate","spalate","spalcate","spalleggiate","spalmate","spammate","spampanate","spampinate","spanate","spanciate","spandute","spannate","spannocchiate","spanse","spantanate","spante","spaparacchiate","spaparanzate","spappolate","sparate","sparecchiate","sparigliate","sparite","sparlate","sparpagliate","spartite","spassate","spassatosele","spastoiate","spaurate","spaurite","spaventate","spazializzate","spaziate","spazieggiate","spazientite","spazzate","spazzolate","specchiate","specializzate","specificate","specillate","specolate","spedite","spegnate","spelacchiate","spelate","spellate","spennacchiate","spennate","spennellate","spente","spenzolate","sperate","sperimentate","spernacchiate","speronate","sperperate","spersonalizzate","sperticate","spesate","spese","spessite","spettacolarizzate","spettinate","spezzate","spezzettate","spezziate","spezzonate","spiaccicate","spianate","spiantate","spiate","spiattellate","spiazzate","spiccate","spicciate","spiccicate","spicciolate","spicconate","spidocchiate","spiegate","spiegazzate","spietrate","spifferate","spigionate","spignorate","spigolate","spigrite","spillate","spilluzzicate","spiluccate","spinte","spintonate","spiombate","spiralizzate","spirantizzate","spirate","spiritualizzate","spiumate","spizzicate","spodestate","spoetizzate","spogliate","spolettate","spoliate","spoliticizzate","spollonate","spolmonate","spolpate","spoltronite","spolverate","spolverizzate","spompate","spompinate","sponsorizzate","spopolate","spoppate","sporcate","sportate","sporte","sposate","spossedute","spossessate","spostate","sposte","sprangate","sprecate","spregiate","spremute","spretate","sprezzate","sprigionate","sprimacciate","spromesse","spronate","sprotette","sprovincializzate","sprovvedute","sprovviste","spruzzate","spugnate","spulate","spulciate","spuntate","spuntellate","spupazzate","spurgate","sputacchiate","sputate","sputtanate","squadernate","squadrate","squagliate","squagliatasele","squagliate","squalificate","squamate","squarciate","squartate","squassate","squattrinate","squilibrate","squinternate","sradicate","srotolate","srugginite","stabbiate","stabilite","stabilizzate","stabulate","staccate","stacciate","staffate","staffilate","staggiate","staggite","stagionate","stagliate","stagnate","stamburate","stampate","stampigliate","stanate","stancate","standardizzate","stangate","stanziate","stappate","starate","starnazzate","stasate","statalizzate","statizzate","statoce","statosene","statuite","stazzate","stazzonate","steccacciate","steccate","stecchite","stecconate","stemperate","stempiate","stenografate","stereotipate","sterilite","sterilizzate","sterpate","sterrate","sterzate","stese","stigliate","stigmatizzate","stilate","stilettate","stilizzate","stillate","stimate","stimolate","stinte","stipate","stipendiate","stipulate","stiracchiate","stirate","stivate","stizzite","stoccate","stolte","stomacate","stonate","stondate","stoppate","stordite","storicizzate","stornate","storpiate","stortate","storte","stozzate","strabenedette","strabuzzate","stracannate","straccate","stracciate","stracotte","strafogate","stragodute","stralciate","stralodate","stralunate","stramaledette","stramortite","strangolate","straniate","stranite","straorzate","strapagate","strapazzate","straperdute","straperse","strappate","strasapute","strascicate","strascinate","strasformate","stratificate","strattonate","stravaccate","stravinte","stravolte","stravolute","straziate","stregate","stremate","stressate","striate","stridulate","strigate","strigliate","strillate","striminzite","strimpellate","strinate","stringate","strisciate","stritolate","strizzate","strofinate","strombate","strombazzate","stroncate","stronzate","stropicciate","stroppate","stroppiate","strozzate","struccate","strumentalizzate","strumentate","strusciate","strutte","strutturalizzate","strutturate","stuccate","studiacchiate","studiate","stuellate","stufate","stupefatte","stupite","stuprate","sturate","stutate","stuzzicate","suase","subaffittate","subappaltate","subbiate","subdelegate","subissate","subite","sublicenziate","sublimate","sublocate","subodorate","subordinate","subornate","suburbanizzate","sucate","succhiate","succhiellate","succiate","succinte","succise","suddistinte","suddivise","suffissate","suffisse","suffragate","suffumicate","suffuse","suggellate","suggerite","suggestionate","suicidate","sunteggiate","sunte","suolate","suonate","superate","superpagate","superraffreddate","supervalutate","supervisionate","supplicate","supplite","supportate","supposte","suppurate","surclassate","surfate","surgelate","surraffreddate","surriscaldate","surrogate","survoltate","suscitate","susseguite","sussidiate","sussunte","sussurrate","suturate","svaccate","svagate","svaligiate","svalutate","svapate","svariate","svasate","svecchiate","svegliate","svelate","svelenite","sveltite","svelte","svenate","svendute","sventagliate","sventate","sventolate","sventrate","sverginate","svergognate","svergolate","sverminate","sverniciate","svestite","svettate","svezzate","sviate","svignatosele","svigorite","svilite","svillaneggiate","sviluppate","svinate","svincolate","sviolinate","svirgolate","svirilizzate","svisate","sviscerate","svitate","sviticchiate","svolate","svolazzate","svolte","svolute","svuotate","tabuizzate","tabulate","taccate","taccheggiate","tacciate","tacitate","taciute","tagliate","taglieggiate","tagliuzzate","talebanizzate","tallonate","tampinate","tamponate","tangute","tannate","tappate","tappezzate","tarate","tardate","targate","tariffate","tarlate","tarmate","taroccate","tarpate","tartagliate","tartassate","tartufate","tassate","tassellate","tastate","tasteggiate","tatuate","tecnicizzate","tecnologizzate","tedeschizzate","tediate","teflonate","telecomandate","telecontrollate","telediffuse","telefonate","telegrafate","teleguidate","telematizzate","telemetrate","teleradiotrasmesse","teletrasmesse","teletrasportate","tematizzate","temperate","tempestate","tempificate","templatizzate","temporizzate","temprate","temute","tentate","tenute","teologizzate","teorizzate","tepefatte","terebrate","terminate","termostatate","terrazzate","terrificate","terrorizzate","terse","terzarolate","terziarizzate","terziate","tesate","tesaurizzate","tese","tesserate","testate","testificate","testimoniate","timbrate","tindalizzate","tinteggiate","tinte","tipicizzate","tipizzate","tippate","tiranneggiate","tirate","titillate","titolate","toccate","toelettate","tollerate","tolte","tonalizzate","tonificate","tonneggiate","tonsurate","torchiate","tormentate","tornatosene","tornite","torrefatte","torte","tortoreggiate","torturate","tosate","toscaneggiate","toscanizzate","tostate","totalizzate","traboccate","trabuccate","tracannate","tracciate","tradite","tradotte","trafficate","trafilate","trafitte","traforate","trafugate","traghettate","traguardate","trainate","tralasciate","tralignate","tramandate","tramate","trambasciate","tramesse","tramestate","tramezzate","tramortite","tramutate","tranciate","trangugiate","tranquillate","tranquillizzate","transatte","transcese","transcodificate","transcorse","transcritte","transennate","transfluite","transfuse","transistorizzate","translitterate","transposte","transricevute","transustanziate","transvedute","transviste","trapanate","trapassate","trapiantate","traportate","traposte","trapposte","trapuntate","trapunte","trarotte","trasandate","trasbordate","trascelte","trascese","trascinate","trascorse","trascritte","trascurate","trasdotte","trasferite","trasfigurate","trasformate","trasfuse","trasgredite","traslate","traslitterate","traslocate","trasmesse","trasmutate","trasparite","traspirate","trasportate","trasposte","trastullate","trasudate","trasvolate","trasvolte","trattate","tratteggiate","trattenute","tratte","traumatizzate","travagliate","travalicate","travasate","travedute","traversate","travestite","traviate","travisate","traviste","travolte","trebbiate","triangolate","tribbiate","tribolate","tributate","triennalizzate","trimestralizzate","trincate","trincerate","trinciate","tripartite","triplicate","trisecate","trisezionate","tritate","triturate","trivellate","trollate","trombate","troncate","tropicalizzate","trovate","truccate","trucidate","truffate","tuffate","tumefatte","tumulate","turate","turbate","turlupinate","tutelate","ubbligate","ubicate","ubidite","ubiquitinate","ubriacate","uccellate","uccellinate","uccise","udite","ufficializzate","uggite","ugnate","uguagliate","ulcerate","ulite","ulolate","ultimate","ultracentrifugate","ululate","umanate","umanizzate","umettate","umidificate","umidite","umiliate","uncinate","unguentate","unificate","uniformate","unite","univerbate","universaleggiate","universalizzate","untate","unte","uperizzate","urbanizzate","urgenzate","urlate","urtacchiate","urtate","urticchiate","usate","usciolate","usolate","ustionate","usucapite","usurate","usurpate","utilitate","utilizzate","vaccinate","vagabondeggiate","vagellate","vagheggiate","vagillate","vagliate","valcate","valicate","validate","valorizzate","valse","valutate","vanagloriate","vanate","vandalizzate","vangate","vangelizzate","vanificate","vanite","vantaggiate","vantate","vaporate","vaporizzate","varate","varcate","variate","vasectomizzate","vaticinate","vedovate","vedute","vegetate","veggiate","vegliate","veicolate","velarizzate","velate","velettate","velinate","vellicate","vellutate","velocizzate","vendemmiate","vendicate","vendicchiate","venducchiate","vendute","venerate","vengiate","ventagliate","ventilate","ventolate","verbalizzate","vergate","vergheggiate","vergognate","vergolate","verificate","verminate","vernalizzate","verniciate","verrinate","versate","verseggiate","versificate","verticalizzate","vessate","vestite","vestite","vetrificate","vetrinate","vetrioleggiate","vettovagliate","vezzeggiate","viaggiate","vicinate","vicitate","videochattate","videochiamate","videocomunicate","videoregistrate","videotrasmesse","vidimate","vigilate","vigliate","vigoreggiate","vigorite","vilificate","vilipese","villaneggiate","vincolate","vinte","violate","violentate","violinate","virgolate","virgoleggiate","virgolettate","virilizzate","virtualizzate","visionate","visitate","vissute","vistate","viste","visualizzate","vitaliziate","vitalizzate","vitaminizzate","vittimizzate","vituperate","vivacizzate","vivandate","vivificate","vivisezionate","viziate","vocabolarizzate","vocalizzate","vocate","vociferate","volantinate","volatilizzate","volgarizzate","volicchiate","volpeggiate","voltate","volte","voltolate","volturate","voluminizzate","volute","volutoce","vomitate","vorate","votate","vulcanizzate","vuotate","wappate","wikificate","xerocopiate","zaffate","zampate","zampettate","zampillate","zannate","zappate","zappettate","zapponate","zavorrate","zeppate","zigrinate","zigzagate","zimbellate","zincate","zinnate","zipolate","zippate","zirlate","zittite","zizzagate","zoccolate","zollate","zombate","zonate","zonizzate","zoppate","zoppeggiate","zoppicate","zucconate","zufolate","zumate","zuppate","abalienati","abbacchiati","abbacinati","abbadati","abbagliati","abbaiati","abballati","abbambinati","abbancati","abbandonati","abbarbagliati","abbarbati","abbarcati","abbaruffati","abbassati","abbatacchiati","abbattuti","abbatuffolati","abbeliti","abbellati","abbelliti","abbendati","abbeverati","abbiadati","abbicati","abbigliati","abbinati","abbindolati","abbioccati","abbiosciati","abbisciati","abbittati","abboccati","abboffati","abbominati","abbonacciati","abbonati","abboniti","abbordati","abborracciati","abborrati","abborriti","abbottinati","abbottonati","abbozzacchiati","abbozzati","abbozzolati","abbracciati","abbraciati","abbrancati","abbreviati","abbriccati","abbrigliati","abbrivati","abbriviati","abbrividiti","abbronzati","abbrostolati","abbrostoliti","abbruciacchiati","abbruciati","abbrunati","abbruniti","abbruscati","abbrusciati","abbrustiati","abbrustolati","abbrustoliti","abbrutiti","abbruttiti","abbuffati","abbuiati","abbuonati","abburattati","abbuzziti","abdicati","abdotti","abiettati","abilitati","abissati","abitati","abituati","abiurati","aboliti","abominati","abondati","aborriti","abrasi","abrogati","abusati","accaffati","accagionati","accagliati","accalappiati","accalcati","accaldati","accallati","accalorati","accaloriti","accambiati","accampati","accampionati","accanalati","accanati","accaneggiati","accaniti","accantonati","accaparrati","accapezzati","accapigliati","accapottati","accappiati","accappiettati","accapponati","accappucciati","accaprettati","accareggiati","accarezzati","accarnati","accarpionati","accartocciati","accasati","accasciati","accasellati","accasermati","accastellati","accastellinati","accatarrati","accatastati","accattati","accattivati","accavalcati","accavalciati","accavallati","accavezzati","accecati","acceffati","accelerati","accellerati","accennati","accensati","accentati","accentrati","accentuati","acceppati","accerchiati","accercinati","accertati","accesi","accessoriati","accettati","acchetati","acchiappati","acchiocciolati","acchitati","acchiuduti","acciabattati","acciaiati","acciambellati","acciarpati","acciecati","accigliati","acciglionati","accignuti","accincignati","accinti","acciocchiti","acciottolati","accipigliati","accismati","accisi","acciucchiti","acciuffati","accivettati","acclamati","acclarati","acclimatati","acclusi","accoccati","accoccolati","accoccovati","accodati","accollati","accoltellati","accolti","accomandati","accomiatati","accommiatati","accomodati","accompagnati","accomunati","acconciati","acconigliati","accontati","accontentati","accoppati","accoppiati","accorati","accorciati","accorciti","accordati","accordellati","accorpati","accorti","accosciati","accostati","accostumati","accotonati","accottimati","accovacciati","accovati","accovonati","accozzati","accreditati","accresciuti","accrespati","accucciati","accucciolati","accuditi","acculati","acculturati","accumulati","accumunati","accusati","acetificati","acetilati","acetiti","acidati","acidificati","acidulati","acquadernati","acquarellati","acquartierati","acquati","acquattati","acquerellati","acquetati","acquietati","acquisiti","acquistati","acromatizzati","acuiti","acuminati","acutizzati","adacquati","adagiati","adattati","addaziati","addebbiati","addebitati","addecimati","addensati","addentati","addentellati","addentrati","addestrati","addetti","addiacciati","addimandati","addimesticati","addimorati","addimostrati","addipanati","addirizzati","additati","additivati","addizionati","addobbati","addociliti","addogliati","addolcati","addolciati","addolciti","addolorati","addomandati","addomesticati","addoppiati","addormentati","addossati","addotti","addottorati","addottrinati","addrizzati","adduati","addugliati","adeguati","adempiti","adempiuti","adequati","aderizzati","adescati","adibiti","adirati","aditi","adiuvati","adizzati","adocchiati","adombrati","adonati","adonestati","adontati","adoperati","adoprati","adorati","adornati","adottati","adsorbiti","aduggiati","adugnati","adulati","adulterati","adunati","adunghiati","adusati","aerati","aereati","aerotrainati","aerotrasportati","affabulati","affaccendati","affacchinati","affacciati","affagottati","affaldati","affamati","affamigliati","affannati","affardellati","affascinati","affastellati","affaticati","affattucchiati","affatturati","affermati","afferrati","affettati","affezionati","affiancati","affiatati","affibbiati","affidati","affienati","affievoliti","affigliati","affigurati","affilati","affilettati","affiliati","affinati","affiochiti","affiorati","affisati","affissati","affissi","affittati","affittiti","afflitti","afflosciati","affocati","affogati","affogliati","affollati","affoltati","affondati","afforcati","afforestati","afforzati","affossati","affraliti","affrancati","affranti","affratellati","affrenati","affrenellati","affrescati","affrettati","affrittellati","affrontati","affumati","affumicati","affumigati","affuocati","affusolati","africanizzati","ageminati","agevolati","aggallati","agganciati","aggangherati","aggarbati","aggattonati","aggavignati","aggelati","aggettivati","agghiacciati","agghiadati","agghiaiati","agghindati","aggiaccati","aggiogati","aggiornati","aggirati","aggiucchiti","aggiudicati","aggiuntati","aggiunti","aggiustati","agglomerati","agglutinati","aggomitolati","aggottati","aggraditi","aggraffati","aggranchiati","aggranchiti","aggranditi","aggrappati","aggraticciati","aggravati","aggrediti","aggregati","aggrevati","aggricciati","aggrinzati","aggrinziti","aggrommati","aggrondati","aggroppati","aggrottati","aggrovigliati","aggrumati","aggruppati","aggruzzolati","agguagliati","agguantati","agguardati","agguatati","aggueffati","agitati","agognati","agrarizzati","aguatati","agucchiati","agunati","agurati","aguzzati","aitati","aiutati","aizzati","alati","alberati","albergati","alcalinizzati","alchilati","alchimiati","alchimizzati","alcolizzati","alcoolizzati","alenati","alesati","alettati","alfabetati","alfabetizzati","aliditi","alienati","alimentati","allacciati","allagati","allappati","allargati","allascati","allattati","alleati","allegati","alleggeriti","alleggiati","allegorizzati","alleluiati","allenati","alleniti","allentati","allertati","allessati","allestiti","allettati","allevati","alleviati","allibati","allibiti","allibrati","allicciati","allietati","allindati","allineati","allisi","allocati","allogati","alloggiati","allontanati","allottati","allucchettati","allucciolati","allucinati","allumati","alluminati","alluminiati","allungati","allupati","allusi","alluzzati","alogenati","alonati","alpeggiati","alterati","alternati","alzati","amalgamati","amareggiati","amaricati","amati","ambientati","ambiguati","ambiti","americanizzati","amicati","ammaccati","ammaestrati","ammainati","ammalati","ammaliati","ammalinconiti","ammaltati","ammanettati","ammanicati","ammanierati","ammanigliati","ammannati","ammannellati","ammanniti","ammansati","ammansiti","ammantati","ammantellati","ammarati","ammarezzati","ammassati","ammassellati","ammassicciati","ammatassati","ammattonati","ammazzati","ammelmati","ammenciti","ammendati","ammennicolati","ammessi","ammetati","ammezziti","amministrati","amminutati","ammirati","ammiseriti","ammobiliati","ammodernati","ammodernizzati","ammogliati","ammoinati","ammollati","ammolliti","ammoniti","ammonticchiati","ammonticellati","ammorbati","ammorbidati","ammorbiditi","ammorsati","ammortati","ammortiti","ammortizzati","ammorzati","ammosciati","ammosciti","ammostati","ammotinati","ammucchiati","ammulinati","ammusati","ammutati","ammutinati","amnistiati","amoracciati","ampiati","ampliati","amplificati","amputati","anagrammati","analizzati","anamorfizzati","anastomizzati","anatematizzati","anatomizzati","anchilosati","ancisi","ancorati","andatoseni","andicappati","anellati","anemizzati","anestetizzati","angariati","anglicizzati","angolati","angosciati","angustiati","animati","annacquati","annaffiati","annasati","annaspati","annaspicati","annebbiati","annegati","annerati","anneriti","annessi","annestati","annichilati","annichiliti","annidati","annientati","annitriti","annobiliti","annodati","annodicchiati","annoiati","annotati","annottati","annottolati","annoverati","annullati","annunciati","annunziati","annusati","annuvolati","anodizzati","anonimizzati","anteceduti","anteposti","antergati","anticheggiati","antichizzati","anticipati","anticonosciuti","antidatati","antiveduti","antivisti","antologizzati","antropizzati","antropomorfizzati","aocchiati","aombrati","aonestati","aontati","aperti","apocopati","apologizzati","apostrofati","appaciati","appacificati","appagati","appaiati","appalesati","appallottolati","appaltati","appanettati","appannati","apparati","apparecchiati","apparentati","apparigliati","appariti","appartati","appassionati","appastati","appastellati","appellati","appennellati","appercepiti","appertizzati","appesantiti","appesiti","appesi","appestati","appetiti","appezzati","appiacevoliti","appianati","appiastrati","appiatati","appiattati","appiattiti","appiccati","appiccicati","appiccoliti","appiedati","appigionati","appigliati","appinzati","appiombati","appioppati","appisolati","applauditi","applicati","appoderati","appoggiati","appollaiati","appoppati","apportati","appostati","apposti","appratiti","appresentati","appresi","appressati","apprestati","apprettati","apprezzati","approcciati","approfittati","approfondati","approfonditi","approntati","appropinquati","appropriati","approssimati","approvati","approvisionati","approvvigionati","appruati","appulcrati","appuntati","appuntellati","appuntiti","appurati","appuzzati","arabescati","arabizzati","arati","arbitrati","arborati","arcaizzati","arcati","architettati","archiviati","arcuati","arditi","areati","argentati","arginati","argomentati","arguiti","arianizzati","arieggiati","armati","armonizzati","aromatizzati","arpeggiati","arpionati","arponati","arrabattati","arraffati","arraffiati","arrandellati","arrangiati","arrapati","arrapinati","arrappati","arrazzati","arrecati","arredati","arreggimentati","arrembati","arrenati","arresisi","arresi","arrestati","arretrati","arricchiti","arricciati","arricciolati","arriffati","arringati","arrischiati","arrisicati","arrisi","arrocati","arroccati","arrochiti","arrogati","arrolati","arroncati","arronzati","arrosati","arrossati","arrostati","arrostiti","arrotati","arrotolati","arrotondati","arrovellati","arroventati","arroventiti","arrovesciati","arrubinati","arruffati","arruffianati","arrugginiti","arruncigliati","arruolati","arruviditi","arsicciati","arsi","artefatti","articolati","artigliati","ascesi","asciati","asciolvuti","asciugati","ascoltati","ascosi","ascosti","ascritti","asfaltati","asfissiati","aspersi","aspettati","aspirati","asportati","aspreggiati","assaettati","assaggiati","assaliti","assaltati","assaporati","assaporiti","assassinati","assecondati","assecurati","assediati","asseggiati","assegnati","assembiati","assemblati","assembrati","assemprati","assentati","asseriti","asserragliati","asserviti","assestati","assetati","assettati","asseverati","assibilati","assicurati","assiderati","assiemati","assiepati","assillati","assimigliati","assimilati","assiomatizzati","assisi","assistiti","associati","assodati","assoggettati","assolcati","assoldati","assolti","assolutizzati","assomati","assommati","assonati","assonnati","assopiti","assorbiti","assordati","assorditi","assortiti","assottigliati","assuefatti","assunti","asteggiati","astenuti","astersi","astratti","astretti","atomizzati","atrofizzati","atrovati","attaccati","attagliati","attanagliati","attardati","attediati","atteggiati","attempati","attendati","attentati","attenuati","attenuti","attergati","atterrati","atterriti","atterzati","attesi","attestati","atticizzati","attillati","attinti","attirati","attivati","attivizzati","attizzati","attorcigliati","attorniati","attorti","attoscati","attossicati","attraccati","attrappiti","attratti","attraversati","attrezzati","attribuiti","attristati","attristiti","attruppati","attualizzati","attuati","attuffati","attutati","attutiti","auggiati","augumentati","augurati","auliti","aumentati","aunghiati","ausati","auscultati","auspicati","autenticati","autentificati","autoaccusati","autoaffondati","autoalimentati","autoassolti","autocandidati","autocensurati","autocitati","autocommiserati","autoconsumati","autoconvinti","autodefiniti","autodenunciati","autodistrutti","autofinanziati","autogestiti","autogovernati","autografati","autoincensati","autointersecati","autoinvitati","autolesionati","autolimitati","automaticizzati","automatizzati","automotivati","autonominati","autoproclamati","autoprodotti","autoprotetti","autopubblicati","autopubblicizzati","autoregolamentati","autoregolati","autoridotti","autoriparati","autorizzati","autosomministrati","autosostenuti","autosuggestionati","autotassati","autotrapiantati","autotrasportati","autovalutati","avallati","avampati","avanzati","avariati","avinti","aviolanciati","aviotrasportati","avocati","avolterati","avulsi","avutaceli","avuti","avvalorati","avvalsi","avvantaggiati","avvelati","avvelenati","avventati","avventurati","avverati","avversati","avvertiti","avvezzati","avviati","avvicendati","avvicinati","avvignati","avviliti","avviluppati","avvinati","avvinchiati","avvinghiati","avvinti","avvisati","avvistati","avvitati","avviticchiati","avvititi","avvivati","avvolti","avvoltolati","aziendalizzati","azionati","azotati","azzannati","azzardati","azzeccati","azzerati","azzimati","azzittati","azzittiti","azzoppati","azzoppiti","azzuffati","azzurrati","bacati","baccagliati","bacchettati","bacchiati","baciati","badati","bagnati","baipassati","balbettati","balcanizzati","ballati","baloccati","balzati","banalizzati","bancati","banditi","bannati","baraccati","barattati","barbarizzati","barcamenati","bardati","barellati","barrati","barricati","basati","basciati","basculati","bassati","bastati","bastionati","bastiti","bastonati","battezzati","battuti","bazzicati","beatificati","beati","beccati","beccheggiati","becchettati","beffati","beffeggiati","bendati","benedetti","beneficati","benvoluti","berlusconizzati","bersagliati","bestemmiati","bevuti","biadati","bianchettati","bianchiti","biascicati","biasimati","biasmati","bidonati","biennalizzati","biforcati","bigiati","bilanciati","binati","bindolati","biodegradati","biografati","bipartiti","bisbigliati","biscottati","bisecati","bisellati","bisognati","bissati","bistrati","bistrattati","bitumati","bituminati","blanditi","bleffati","blindati","bloccati","bobinati","boccheggiati","bocciati","boicottati","bollati","bolliti","bombardati","bombati","bonderizzati","bonificati","bootati","borbottati","bordati","boriati","borrati","borseggiati","braccati","bracciati","bramati","bramiti","brancicati","brandeggiati","branditi","brasati","bravati","brevettati","breviati","brillantati","brillati","brinati","broccati","brocciati","broccolati","brontolati","bronzati","brucati","bruciacchiati","bruciati","bruniti","bruscati","bruschinati","brutalizzati","bruttati","bucati","bucherellati","bufati","buffati","bufferizzati","buggerati","bugnati","bulicati","bulinati","bullettati","bullonati","burattati","burlati","burocratizzati","burrificati","buscati","buttati","butterati","bypassati","cablati","cabrati","cacati","cacciati","cadenzati","cadmiati","caducati","cagati","caggiati","cagionati","cagliati","calafatati","calamitati","calandrati","calati","calcati","calciati","calcificati","calcolati","caldeggiati","calettati","calibrati","calmati","calmierati","calpestati","calumati","calunniati","calzati","cambiati","camerati","campionati","campiti","camuffati","canalizzati","cancellati","cancerizzati","candeggiati","candidati","canditi","canforati","cangiati","cannati","canneggiati","cannibalizzati","cannoneggiati","canonizzati","cantati","canterellati","canticchiati","cantilenati","canzonati","caolinizzati","capacitati","capeggiati","capillarizzati","capitalizzati","capitanati","capitaneggiati","capiti","capitozzati","capivolti","caponati","capotati","capottati","capovolti","capponati","captati","caramellati","caramellizzati","caratati","caratterizzati","carbonizzati","carbossilati","carburati","carcati","carcerati","cardati","carenati","carezzati","cariati","caricati","caricaturati","caricaturizzati","carotati","carpionati","carpiti","carreggiati","carrozzati","cartavetrati","carteggiati","cartellinati","cartografati","cartolarizzati","cartonati","cascolati","cassati","cassi","castigati","castrati","casualizzati","catabolizzati","catalizzati","catalogati","catapultati","catechizzati","categorizzati","cateterizzati","catramati","cattolicizzati","catturati","causati","cautelati","cauterizzati","cauzionati","cavalcati","cavataseli","cavati","cazzati","cazziati","cazzottati","cedrati","ceduti","celati","celebrati","cellofanati","cementati","cementificati","cennati","censiti","censurati","centellati","centellinati","centimetrati","centinati","centralizzati","centrati","centrifugati","centuplicati","cerati","cercati","cerchiati","cernuti","certificati","cesellati","cessati","cestinati","cheratinizzati","chetati","chiamati","chiappati","chiarificati","chiariti","chiaroscurati","chiavati","chiazzati","chiesti","chilificati","chilometrati","chimificati","chinati","chinizzati","chiodati","chiosati","chiusi","choccati","ciancicati","cianfrinati","cianfrugliati","ciangottati","ciattati","cibati","cicatrizzati","ciccati","cicchettati","ciclizzati","ciclostilati","cifrati","cilindrati","cimati","cimentati","cincischiati","cinematografati","cintati","cinti","cioncati","ciondolati","circolati","circoncinti","circoncisi","circondati","circondotti","circonflessi","circonfluiti","circonfusi","circonscritti","circonvenuti","circoscritti","circostanziati","circuiti","circumcinti","circumnavigati","citati","ciucciati","ciurmati","civettati","civilizzati","clamati","classati","classicizzati","classificati","cliccati","climatizzati","clivati","clonati","cloroformizzati","clorurati","clusterizzati","co-diretti","coacervati","coadiuvati","coagulati","coalizzati","coartati","coccolati","codificati","coeditati","coesistiti","cofinanziati","cofirmati","cofondati","cogestiti","cogitati","coglionati","cognosciuti","coibentati","coincisi","cointeressati","cointestati","coinvolti","cokificati","colati","colettati","collassati","collaudati","collazionati","collegati","collettivizzati","collezionati","collimati","colliquati","collisi","collocati","colluttati","colmati","colonizzati","colorati","coloriti","colorizzati","colpevolizzati","colpiti","coltellati","coltivati","colti","coltrati","comandati","combattuti","combinati","comburuti","comicizzati","cominciati","commemorati","commendati","commensurati","commentati","commercializzati","commessi","comminati","commiserati","commissariati","commissionati","commisurati","commossi","commutati","comodati","compaginati","compariti","compartimentalizzati","compartiti","compassionati","compatibilizzati","compatiti","compattati","compendiati","compenetrati","compensati","comperati","compiaciuti","compianti","compilati","compitati","compiuti","complessati","complessificati","complessi","completati","complicati","complimentati","comportati","compostati","composti","comprati","compravenduti","compresi","compressi","compromessi","comprovati","compulsati","compunti","computati","computerizzati","comunicati","comunistizzati","concatenati","conceduti","concelebrati","concentrati","concepiti","concertati","concessi","concettati","concettualizzati","conchiusi","conciati","conciliati","concimati","concitati","conclamati","conclusi","concordati","concotti","concretati","concretizzati","conculcati","concupiti","condannati","condensati","conditi","condivisi","condizionati","condoluti","condonati","condotti","confatti","confederati","conferiti","confermati","confessati","confettati","confezionati","conficcati","confidati","configurati","confinati","confinti","confiscati","confitti","conformati","confortati","confricati","confrontati","confusi","confutati","congedati","congegnati","congelati","congestionati","congetturati","congiunti","conglobati","conglomerati","conglutinati","congratulati","congregati","conguagliati","coniati","coniugati","connaturati","connessi","connotati","connumerati","conosciuti","conquistati","consacrati","consapevolizzati","consegnati","conseguiti","consentiti","conservati","considerati","consigliati","consistiti","consociati","consolati","consolidati","consorziati","consparsi","conspersi","constatati","constretti","construiti","consultati","consumati","consunti","contabilizzati","contagiati","containerizzati","contaminati","contati","contattati","conteggiati","contemperati","contemplati","contentati","contenuti","contesi","contestati","contestualizzati","contingentati","continuati","contornati","contorti","contrabbandati","contraccambiati","contraddetti","contraddistinti","contradetti","contraffatti","contrappesati","contrapposti","contrappuntati","contrariati","contrassegnati","contrastati","contrati","contrattaccati","contrattati","contratti","contravvalsi","contristati","controbattuti","controbilanciati","controdatati","controfirmati","controindicati","controllati","controminati","contronotati","controproposti","controprovati","controquerelati","controsoffittati","controstampati","controventati","conturbati","contusi","convalidati","convenuti","convenzionati","convertiti","convinti","convitati","convocati","convogliati","convolti","coobati","cooptati","coordinati","coperchiati","coperti","copiaincollati","copiati","copolimerizzati","coppellati","coprodotti","corazzati","corbellati","corcati","cordonati","coreografati","coricati","cornificati","coronati","corredati","correlati","corresponsabilizzati","corretti","corricchiati","corrisposti","corroborati","corrosi","corrotti","corrucciati","corrugati","corsi","corteati","corteggiati","cortocircuitati","coruscati","cosati","coscritti","cosparsi","cospersi","costatati","costeggiati","costellati","costernati","costicchiati","costipati","costituiti","costituzionalizzati","costretti","costruiti","costuditi","cotonati","cotti","covati","coventrizzati","coverchiati","craccati","creati","creduti","cremati","crepati","cresciuti","cresimati","crespati","criminalizzati","crioconcentrati","criptati","cristallizzati","cristianizzati","criticati","crittati","crittografati","crivellati","crocchiati","crocefissi","crocefitti","crocifissi","crocifitti","crogiolati","cromati","cronicizzati","cronometrati","crostati","crucciati","crucifissi","crucifitti","cuccati","cucinati","cuciti","cullati","cumulati","cuntati","curati","curvati","curvati","custoditi","customizzati","damascati","damaschinati","damati","dannati","danneggiati","danzati","dardeggiati","datati","dati","dattilografati","dattiloscritti","daziati","deacidificati","deattivati","debbiati","debellati","debilitati","decaffeinati","decaffeinizzati","decalcati","decalcificati","decantati","decapati","decapitati","decappottati","decarbossilati","decarburati","decatizzati","decelerati","decentralizzati","decentrati","decerebrati","decernuti","decespugliati","deciferati","decifrati","decimalizzati","decimati","decisi","declamati","declassati","declassificati","declinati","declorati","decodificati","decolonizzati","decolorati","decompartimentati","decompilati","decomposti","decompressi","deconcentrati","decondizionati","decongelati","decongestionati","decontaminati","decontestualizzati","decontratti","decorati","decorticati","decostruiti","decrementati","decretati","decriminalizzati","decriptati","decrittati","decuplicati","decurtati","dedicati","dedotti","defacciati","defalcati","defascistizzati","defecati","defenestrati","deferiti","defilati","definiti","defiscalizzati","defitti","deflazionati","deflemmati","deflorati","defogliati","defoliati","deforestati","deformati","defosforati","defosforilati","deframmentati","defraudati","degassati","degassificati","deglutiti","degnati","degradati","degustati","deidratati","deidrogenati","deificati","deindicizzati","deindustrializzati","deionizzati","delegati","delegificati","delegittimati","delibati","deliberati","delimitati","delineati","delirati","deliziati","delocalizzati","delucidati","delusi","demagnetizzati","demandati","demanializzati","demarcati","demeritati","demersi","demetallizzati","demilitarizzati","demineralizzati","demistificati","demitizzati","democratizzati","demodulati","demoliti","demoltiplicati","demonetati","demonetizzati","demonizzati","demoralizzati","demorsi","demotivati","denaturalizzati","denaturati","denazificati","denazionalizzati","denicotinizzati","denigrati","denitrificati","denocciolati","denominati","denotati","dentellati","denuclearizzati","denudati","denunciati","denunziati","deodorati","deossidati","deossigenati","deostruiti","depauperati","depenalizzati","depennati","depilati","depinti","depistati","deplorati","depolarizzati","depolimerizzati","depoliticizzati","depolverizzati","deportati","depositati","deposti","depotenziati","depravati","deprecati","depredati","depressi","depressurizzati","deprezzati","deprivati","deprotonati","depulsi","depurati","dequalificati","deratizzati","derattizzati","dereferenziati","deregolamentati","deregolati","derequisiti","deresponsabilizzati","derisi","derubati","derubricati","desacralizzati","desalati","desalinizzati","descolarizzati","descritti","desecretati","desegretati","deselezionati","desensibilizzati","desessualizzati","desiati","desiderati","designati","desinati","desirati","desolati","desolforati","desonorizzati","desorbiti","desossidati","desquamati","destabilizzati","destagionalizzati","destalinizzati","destatalizzati","destatizzati","destati","destinati","destituiti","destoricizzati","destreggiati","destrutti","destrutturati","desunti","detassati","detenuti","deteriorati","determinati","detersi","detestati","detonati","detorti","detossificati","detratti","detronizzati","dettagliati","dettati","detti","deturpati","deumidificati","devastati","deventati","deviati","deviscerati","devitalizzati","devitaminizzati","devoluti","dezippati","diaframmati","diagnosticati","diagonalizzati","diagrammati","dializzati","dialogati","dialogizzati","diazotati","dibattuti","diboscati","dichiarati","diesati","diesizzati","difesi","diffamati","differiti","diffidati","diffranti","diffratti","diffusi","digeriti","digitalizzati","digitati","digiunti","digrassati","digrignati","digrossati","dilacerati","dilaniati","dilapidati","dilatati","dilavati","dilazionati","dileggiati","dileguati","dilettati","diletti","diliscati","dilucidati","diluiti","dilungati","dimagrati","dimandati","dimenati","dimensionati","dimenticati","dimerizzati","dimessi","dimezzati","diminuiti","dimissionati","dimostrati","dimunti","dinamizzati","dinoccati","dipanati","dipelati","dipinti","diplomati","diposti","diradati","diramati","diretti","direzionati","dirimuti","diroccati","dirottati","dirotti","dirozzati","disabilitati","disabituati","disaccentati","disaccoppiati","disaccordati","disacerbati","disacidati","disacidificati","disaciditi","disaerati","disaffezionati","disaggregati","disalberati","disallineati","disamati","disambiguati","disaminati","disamorati","disancorati","disanimati","disappannati","disapplicati","disappresi","disapprovati","disarcionati","disarmati","disarticolati","disascosti","disassemblati","disassuefatti","disatomizzati","disattesi","disattivati","disattrezzati","disavvezzati","disboscati","disbrigati","discacciati","discalzati","discantati","discaricati","discernuti","discesi","disceverati","dischiesti","dischiusi","discinti","disciolti","disciplinati","discolorati","discolpati","discommessi","discompagnati","discomposti","disconclusi","disconfitti","discongiunti","disconnessi","disconosciuti","discoperti","discordati","discoscesi","discostati","discreditati","discresciuti","discriminati","discritti","discuciti","discuoiati","discussi","disdegnati","disdettati","disdetti","diseccati","diseccitati","diseducati","disegnati","diserbati","diseredati","disertati","diserti","disfatti","disgelati","disgiunti","disgraziati","disgregati","disgustati","disidentificati","disiderati","disidratati","disillusi","disimballati","disimparati","disimpegnati","disimpressi","disincagliati","disincantati","disincentivati","disincrostati","disindustrializzati","disinfestati","disinfettati","disinflazionati","disinformati","disingannati","disingranati","disinibiti","disinnamorati","disinnescati","disinnestati","disinquinati","disinseriti","disinstallati","disintasati","disintegrati","disinteressati","disintesi","disintossicati","disinvestiti","disinvolti","disistimati","dislocati","dismessi","disobbediti","disobbligati","disonorati","disordinati","disorganizzati","disorientati","disormeggiati","disossati","disossidati","disostruiti","disotterrati","dispariti","dispensati","dispenti","disperduti","dispersi","dispesi","dispiegati","dispinti","dispogliati","disposti","dispregiati","disprezzati","dispromessi","disproporzionati","disputati","disqualificati","disrotti","dissacrati","dissalati","dissaldati","dissanguati","dissecati","disseccati","disselciati","dissellati","disseminati","dissepolti","disseppelliti","dissequestrati","disserrati","dissestati","dissetati","dissezionati","dissigillati","dissimulati","dissipati","dissociati","dissodati","dissolti","dissomigliati","dissotterrati","dissuasi","dissuggellati","distaccati","distanziati","distesi","distillati","distinti","distolti","distorti","distratti","distretti","distribuiti","districati","distrigati","distrutti","disturbati","disubbiditi","disumanati","disumanizzati","disuniti","disusati","disveduti","disvelati","disvestiti","disviati","disvisti","disvolti","disvoluti","dittongati","divallati","divaricati","divelti","diversificati","divertiti","divezzati","divinati","divincolati","divinizzati","divisi","divolti","divorati","divorziati","divulgati","documentati","dogati","dogmatizzati","dolcificati","dollarizzati","dolorati","doluti","domandati","domati","domesticati","domiciliati","dominati","donati","dondolati","dopati","doppiati","dorati","dormitoci","dosati","dotati","dovuti","dragati","drammatizzati","drappeggiati","drenati","dribblati","drizzati","drogati","dugliati","duplicati","duramificati","ebraizzati","ecceduti","eccepiti","eccettuati","eccitati","echeggiati","eclissati","economizzati","edificati","editati","edotti","educati","edulcorati","effettuati","efficientati","effigiati","effinti","effluiti","effusi","egemonizzati","eguagliati","eiettati","elaborati","elargiti","elasticizzati","elementarizzati","elemosinati","elencati","eletti","elettrificati","elettrizzati","elettrocoagulati","elettrolizzati","elevati","eliminati","elisi","elitrasportati","ellenizzati","elogiati","elucidati","elucubrati","eluiti","elusi","emanati","emancipati","emarginati","embricati","emendati","emessi","emozionati","empiti","empiuti","emulati","emulsionati","emunti","encomiati","endocitati","energizzati","enfatizzati","enfiati","entusiasmati","enucleati","enumerati","enunciati","epicureggiati","epurati","equalizzati","equilibrati","equipaggiati","equiparati","eradicati","erasi","ereditati","eretti","erogati","eroicizzati","erosi","erotizzati","erpicati","ersi","eruditi","eruttati","esacerbati","esagerati","esagitati","esalati","esaltati","esaminati","esasperati","esauditi","esauriti","esautorati","esborsati","esclusi","escogitati","escomiati","escoriati","escossi","escussi","esecrati","esecutati","eseguiti","esemplificati","esentati","esercitati","esfoliati","esibiti","esilarati","esiliati","esimuti","esitati","esonerati","esorbitati","esorcizzati","esortati","espansi","esparsi","esperimentati","esperiti","espettorati","espiantati","espiati","espirati","espletati","esplicati","esplicitati","esplorati","esplosi","esportati","esposti","espressi","espropriati","espugnati","espulsi","espunti","espurgati","essiccati","essuti","estasiati","estenuati","esterificati","esteriorizzati","esterminati","esternalizzati","esternati","estesi","estimati","estinti","estirpati","estivati","estorti","estradati","estraniati","estrapolati","estratti","estremizzati","estrinsecati","estromessi","estrusi","estubati","esulcerati","esultati","esumati","eterificati","eterizzati","eternati","eternizzati","etichettati","etossilati","euforizzati","europeizzati","evacuati","evangelizzati","evasi","eveti","evidenziati","evinti","evirati","eviscerati","evitati","evocati","evolti","evoluti","evulsi","fabbricati","faccettati","facilitati","fagocitati","falciati","falcidiati","falliti","falsati","falsificati","familiarizzati","fanatizzati","fantasticati","farciti","farfugliati","fasciati","fascicolati","fascistizzati","fattaceli","fatti","fattorizzati","fatturati","favellati","favoreggiati","favoriti","faxati","fecondati","fedecommessi","federalizzati","federati","felicitati","felpati","feltrati","femminilizzati","fenduti","feriti","fermati","fermentati","ferrati","fertilizzati","fessi","fessurati","festeggiati","festonati","feudalizzati","fiaccati","fiammeggiati","fiancheggiati","ficcati","fidanzati","fidati","fidecommessi","fidelizzati","figliati","figurati","filati","filettati","filmati","filosofati","filtrati","finalizzati","finanziati","finitali","finiti","finlandizzati","fintati","finti","fiocinati","fiondati","fiorettati","firmati","fiscalizzati","fischiati","fischiettati","fissati","fissionati","fitti","fiutati","flagellati","flaggati","flambati","flangiati","flemmatizzati","flessi","flippati","flottati","fluidificati","fluidizzati","fluorizzati","fluorurati","focalizzati","focheggiati","foderati","foggiati","fognati","folgorati","follati","fomentati","fonati","fondati","foracchiati","foraggiati","forati","forestati","forfettizzati","forgiati","formalizzati","formati","formattati","formilati","formulati","forniti","fortificati","forviati","forwardati","forzati","fosfatati","fosforati","fosforilati","fossilizzati","fotocomposti","fotocopiati","fotografati","fottuti","fracassati","fraintesi","framessi","frammentati","frammessi","frammezzati","frammischiati","franceseggiati","francesizzati","frangiati","franti","frantumati","frappati","frapposti","fraseggiati","frastagliati","frastornati","fratturati","frazionati","freddati","fregati","fregiati","frenati","frequentati","fresati","frettati","friendzonati","fritti","frizionati","frodati","frollati","fronteggiati","frugati","fruiti","frullati","frusciati","frustati","frustrati","fruttati","fucilati","fucinati","fugati","fuggiti","fulminati","fumati","fumigati","funestati","funti","funzionati","fuoriusciti","fuorviati","fusi","fustellati","fustigati","gabbati","gabellati","gallati","gallicizzati","gallonati","galvanizzati","gambizzati","garantiti","garnettati","garrotati","garzati","gasati","gassati","gassificati","gazati","gelatinizzati","gelati","gelificati","gemellati","gemicati","geminati","generalizzati","generati","gentrificati","genuflessi","geometrizzati","georeferenziati","gerarchizzati","germanizzati","gestiti","gettati","gettonati","ghermiti","ghettizzati","ghigliottinati","ghindati","gibollati","gingillati","ginnati","giocati","gioiti","gionglati","giovaneggiati","girandolati","girati","giudicati","giulebbati","giuntati","giunti","giuracchiati","giurati","giustapposti","giustificati","giustiziati","glamourizzati","glassati","glissati","globalizzati","gloriati","glorificati","glossati","godronati","goduti","goffrati","gommati","gonfiati","googlati","gottati","governati","gradinati","graditi","gradualizzati","graduati","graffati","graffiati","graffiti","graficati","grafitati","gramolati","granagliati","grandinati","granellati","graniti","granulati","graticciati","graticolati","gratificati","gratinati","grattati","grattugiati","gravati","graziati","grecheggiati","grecizzati","gremiti","gridati","griffati","grigliati","grippati","groccati","grondati","grugati","grugniti","guadagnati","gualciti","guardati","guariti","guarniti","guastati","guatati","guerreggiati","gufati","guidati","gustati","hackerati","handicappati","ibridati","idealizzati","ideati","identificati","ideologizzati","idolatrati","idoleggiati","idratati","idrogenati","idrolizzati","iettati","igienizzati","ignifugati","ignorati","illanguiditi","illeggiadriti","illividiti","illuminati","illusi","illustrati","imbacuccati","imbaldanziti","imballati","imbalsamati","imbambolati","imbandierati","imbanditi","imbarbariti","imbarcati","imbarilati","imbastarditi","imbastiti","imbattuti","imbavagliati","imbeccati","imbellettati","imbelliti","imbestialiti","imbestiati","imbevuti","imbiaccati","imbiancati","imbianchiti","imbibiti","imbiettati","imbionditi","imbizzarriti","imboccati","imboniti","imborghesiti","imboscati","imboschiti","imbottati","imbottigliati","imbottiti","imbozzimati","imbracati","imbracciati","imbragati","imbrancati","imbrattati","imbrecciati","imbrigliati","imbrillantinati","imbroccati","imbrodati","imbrogliati","imbronciati","imbruttiti","imbucati","imbudellati","imbullettati","imbullonati","imburrati","imbussolati","imbustati","imbutiti","imitati","immagazzinati","immaginati","immalinconiti","immatricolati","immedesimati","immersi","immessi","immischiati","immiseriti","immobilizzati","immolati","immortalati","immunizzati","immusoniti","impaccati","impacchettati","impacciati","impadroniti","impaginati","impagliati","impalati","impalcati","impallati","impallinati","impalmati","impaludati","impanati","impaniati","impannati","impantanati","impaperati","impapocchiati","impappinati","imparentati","imparruccati","impartiti","impastati","impasticcati","impasticciati","impastocchiati","impastoiati","impataccati","impattati","impauriti","impavesati","impeciati","impedicati","impediti","impegnati","impegolati","impelagati","impellicciati","impennacchiati","impennati","impensieriti","impepati","imperlati","impermaliti","impermeabilizzati","imperniati","impersonati","impersonificati","impestati","impetrati","impiallacciati","impiantati","impiastrati","impiastricciati","impiccati","impicciati","impiccioliti","impiccoliti","impidocchiati","impiegati","impietositi","impietriti","impigliati","impigriti","impilati","impillaccherati","impinguati","impinti","impinzati","impiombati","impipati","impiumati","implementati","implicati","implorati","impollinati","impolpati","impoltroniti","impolverati","impomatati","imporcati","imporporati","importati","importunati","impossessati","impossibilitati","impostati","imposti","impratichiti","impregnati","impresi","impressionati","impressi","imprestati","impreziositi","imprigionati","impromessi","improntati","improsciuttiti","impugnati","impuntiti","impunturati","impupati","imputati","impuzzolentiti","inabilitati","inabissati","inacerbiti","inacetiti","inaciditi","inacutiti","inaffiati","inalati","inalberati","inalveati","inalzati","inamidati","inanellati","inarcati","inargentati","inariditi","inaspriti","inastati","inattivati","inaugurati","incacchiati","incalcinati","incaloriti","incalzati","incamerati","incamiciati","incamminati","incanagliti","incanalati","incannati","incannucciati","incaponiti","incappottati","incappucciati","incaprettati","incapricciati","incapsulati","incarcerati","incardinati","incaricati","incarnati","incarrozzati","incartati","incartocciati","incartonati","incasellati","incasinati","incassati","incastellati","incastonati","incastrati","incatenati","incatramati","incattiviti","incavati","incavigliati","incavolati","incazzati","incellofanati","incendiati","inceneriti","incensati","incentivati","incentrati","inceppati","incerati","incernierati","incerottati","incesi","incettati","inchiappettati","inchiavardati","inchiesti","inchinati","inchiodati","inchiostrati","incipriati","incisi","incistati","incitati","inciuccati","inciviliti","inclinati","inclusi","incoccati","incocciati","incoiati","incollati","incolonnati","incolpati","incominciati","incomodati","incontrati","incoraggiati","incordati","incornati","incorniciati","incoronati","incorporati","incotti","incravattati","incrementati","increspati","incretiniti","incriminati","incrinati","incrociati","incrostati","incrudeliti","incruditi","incruscati","incubati","inculati","inculcati","incuneati","incuoiati","incuorati","incupiti","incuriositi","incurvati","incussi","indagati","indebitati","indeboliti","indemaniati","indennizzati","indetti","indicati","indicizzati","indignati","indiretti","indirizzati","indispettiti","indisposti","individualizzati","individuati","indolenziti","indorati","indossati","indotti","indottomi","indottrinati","indovinati","indugiati","indulti","indurati","induriti","industrializzati","industriati","inebetiti","inebriati","ineriti","inerpicati","infagottati","infamati","infangati","infarciti","infarinati","infastiditi","infatuati","infeltriti","inferiti","inferociti","inferti","infervorati","infestati","infettati","infeudati","infiacchiti","infialati","infialettati","infiammati","infiascati","infibulati","inficiati","infilati","infiltrati","infilzati","infingarditi","infinocchiati","infinti","infioccati","infiocchettati","infiochiti","infiorati","infirmati","infischiati","infissi","infittiti","inflazionati","inflessi","inflitti","influenzati","infocati","infoderati","infognati","infoibati","infoltiti","inforcati","informatizzati","informati","informicolati","informicoliti","infornaciati","infornati","infortunati","infoscati","infossati","infradiciati","inframessi","inframezzati","inframmessi","inframmezzati","infrancesati","infrapposti","infrascati","infrattati","infreddati","infronzolati","infuocati","infurbiti","infuriati","ingabbiati","ingaggiati","ingagliarditi","ingannati","ingarbugliati","ingavonati","ingegnati","ingegnerizzati","ingelositi","ingemmati","ingenerati","ingentiliti","ingeriti","ingessati","inghiaiati","inghiottiti","inghirlandati","ingialliti","ingigantiti","inginocchiati","ingioiellati","ingiunti","ingiuriati","inglesizzati","inglobati","ingoffiti","ingoiati","ingolfati","ingollati","ingolositi","ingombrati","ingommati","ingorgati","ingozzati","ingranati","ingranditi","ingrassati","ingraticciati","ingraticolati","ingravidati","ingraziati","ingraziositi","ingrigiti","ingrommati","ingrossati","ingrulliti","inguaiati","inguainati","ingualdrappati","inguantati","ingurgitati","inibiti","iniettati","inimicati","inizializzati","iniziati","inmillati","innacquati","innaffiati","innalzati","innamorati","innastati","innervati","innervositi","innescati","innestati","innevati","innocentati","innocuizzati","innovati","inoculati","inoltrati","inondati","inorgogliti","inorpellati","inorriditi","inquadrati","inquietati","inquisiti","insabbiati","insacchettati","insalati","insaldati","insalivati","insanguinati","insaponati","insaporiti","inscatolati","inscenati","inscritti","insecchiti","insediati","insegnati","inseguiti","insellati","inselvatichiti","inseriti","insidiati","insigniti","insilati","insinuati","insolentiti","insonnoliti","insonorizzati","insorditi","insospettiti","insozzati","inspessiti","inspirati","installati","instaurati","insteriliti","instillati","instituiti","instradati","insudiciati","insufflati","insultati","insuperbiti","intabaccati","intabarrati","intaccati","intagliati","intarsiati","intasati","intascati","intavolati","integrati","intelaiati","intelati","intellettualizzati","intenebrati","inteneriti","intensificati","intentati","intepiditi","intercalati","intercambiati","intercettati","intercisi","interclusi","intercollegati","interconnessi","interconvertiti","interdetti","interessati","interfacciati","interfogliati","interfoliati","interiorizzati","interlacciati","interlineati","intermessi","intermezzati","internalizzati","internati","internazionalizzati","interpellati","interpenetrati","interpolati","interposti","interpretati","interpunti","interrati","interrogati","interrotti","intersecati","intervallati","intervistati","intesi","intessuti","intestarditi","intestati","intiepiditi","intimati","intimiditi","intimoriti","intinti","intirizziti","intitolati","intonacati","intonati","intontiti","intorbidati","intorbiditi","intorpiditi","intortati","intossicati","intralciati","intramessi","intramezzati","intrappolati","intrapresi","intrattenuti","intraveduti","intravisti","intravveduti","intravvisti","intrecciati","intricati","intrigati","intrinsecati","intrippati","intrisi","introdotti","introflessi","introiettati","introitati","intromessi","intronati","intronizzati","intruduti","intrufolati","intrugliati","intruppati","intrusi","intubati","intubettati","intuiti","inumati","inumiditi","inurbati","inutilizzati","invaghiti","invaginati","invalidati","invasati","invasi","inveleniti","inventariati","inventati","invenuti","inverditi","invergati","inverniciati","investigati","investiti","invetriati","inviati","invidiati","invigoriti","inviluppati","invischiati","invitati","invocati","invogliati","involati","involgariti","involtati","involti","inzaccherati","inzeppati","inzigati","inzolfati","inzuccati","inzuccherati","inzuppati","iodurati","ionizzati","ipertrofizzati","ipnotizzati","ipostatizzati","ipotecati","ipotizzati","iridati","irradiati","irraggiati","irreggimentati","irretiti","irrigati","irrigiditi","irrisi","irritati","irrobustiti","irrogati","irrorati","irrugginiti","irruviditi","ischeletriti","iscritti","islamizzati","isolati","isomerizzati","ispanizzati","ispessiti","ispezionati","ispirati","issati","istallati","istanziati","istaurati","isteriliti","istigati","istillati","istituiti","istituzionalizzati","istoriati","istradati","istruiti","istupiditi","italianeggiati","italianizzati","iterati","iudicati","killerati","labbreggiati","labializzati","laccati","lacerati","laconizzati","lacrimati","ladroneggiati","lagnati","lagrimati","laicizzati","lambiccati","lambiti","lamentati","laminati","lanciati","lapidati","lappati","lardati","lardellati","largiti","larvati","lascati","lasciati","lastricati","latinizzati","laudati","laureati","lavati","lavorati","leccati","legalizzati","legati","leggicchiati","leggiucchiati","legittimati","legittimizzati","legnati","lemmatizzati","leniti","lesinati","lesionati","lesi","lessati","letti","levati","levigati","liberalizzati","liberati","licenziati","lievitati","liftati","lignificati","limati","limitati","linciati","linearizzati","lineati","linkati","liofilizzati","liquefatti","liquidati","lisati","lisciati","lisciviati","listati","litografati","livellati","lizzati","lobotomizzati","localizzati","locati","lodati","logorati","lordati","lottati","lottizzati","lubrificati","lucchettati","lucidati","lucrati","lumeggiati","luppolizzati","lusingati","lussati","lustrati","macadamizzati","macchiati","macchinati","macellati","macerati","maciullati","maggesati","maggiorati","magnati","magnetizzati","magnificati","maiolicati","maledetti","malfatti","malignati","malmenati","malmessi","maltati","maltrattati","malveduti","malversati","malvisti","malvoluti","mandati","mandrinati","manducati","maneggiati","manganati","manganellati","mangiati","mangiucchiati","manifatturati","manifestati","manimessi","manipolati","manlevati","manomessi","manoscritti","manovrati","mansuefatti","mantecati","mantenutasi","mantenuti","manualizzati","manutenuti","mappati","marcati","marchiati","marciti","marezzati","marginalizzati","marginati","margottati","marimessi","marinati","maritati","marmorizzati","marnati","marocchinati","martellati","martellinati","martirizzati","martoriati","mascherati","maschiati","maschiettati","mascolinizzati","massacrati","massaggiati","massellati","massicciati","massificati","massimati","massimizzati","mastectomizzati","masterizzati","masticati","masturbati","matematizzati","materializzati","matricolati","mattonati","maturati","mazziati","mazzolati","meccanizzati","medagliati","mediati","medicalizzati","medicati","meditati","membrati","memorizzati","menati","mendicati","menomati","mentovati","menzionati","meravigliati","mercanteggiati","mercerizzati","mercificati","meriati","meridionalizzati","meritati","merlati","merlettati","mersi","mesciati","mesciuti","mescolati","mescuti","mesmerizzati","messaggiati","messi","messoci","mestati","mesticati","mestruati","metabolizzati","metaforeggiati","metaforizzati","metallizzati","metamorfizzati","metamorfosati","metanizzati","metilati","metodizzati","microfilmati","microfonati","microminiaturizzati","micronizzati","mietuti","migliorati","militarizzati","millantati","millimetrati","mimati","mimeografati","mimetizzati","minacciati","minati","minchionati","mineralizzati","miniati","miniaturizzati","minimizzati","minuiti","minuzzati","miracolati","miscelati","mischiati","misconosciuti","missati","mistificati","misturati","misurati","miticizzati","mitigati","mitizzati","mitragliati","mitrati","mixati","mobiliati","mobilitati","mobilizzati","modanati","modellati","modellizzati","moderati","modernizzati","modificati","modulati","molati","molestati","mollati","molleggiati","moltiplicati","monacati","mondati","mondializzati","monetarizzati","monetati","monetizzati","monitorati","monitorizzati","monocromatizzati","monopolizzati","monottongati","montati","monumentalizzati","mordenzati","mordicchiati","mormorati","morphati","morsicati","morsicchiati","morsi","mortasati","mortificati","mossi","mostrati","motivati","motorizzati","motteggiati","movimentati","mozzati","mugolati","mulciti","multati","multiplexati","mummificati","municipalizzati","muniti","munti","murati","musati","musicati","mussati","mutati","mutilati","mutizzati","mutuati","nappati","narcotizzati","narrativizzati","narrati","nasalizzati","nascosi","nascosti","nastrati","naturaleggiati","naturalizzati","nauseati","naverati","navicati","navigati","nazificati","nazionalizzati","nebulizzati","necessitati","necrosati","necrotizzati","negativizzati","negati","negletti","negoziati","negreggiati","neologizzati","nerbati","nericati","nettati","neutralizzati","nevati","nevicati","nevischiati","nevrotizzati","nichelati","niellati","ninfeggiati","ninnati","ninnolati","nitratati","nitrificati","nobilitati","noiati","noleggiati","nomati","nominalizzati","nominati","normalizzati","normati","notati","notificati","notiziati","notricati","noverati","nuclearizzati","nudricati","nullificati","numerati","numerizzati","nuotati","nutriti","obbiettati","obbliati","obbligati","oberati","obiettati","obiettivati","obiettivizzati","obiurgati","obliati","obliterati","obnubilati","occasionati","occhieggiati","occidentalizzati","occisi","occlusi","occultati","occupati","ocheggiati","odiati","odorati","odorizzati","offeriti","offerti","offesi","officiati","offiziati","offuscati","ofiziati","oggettivati","oggettivizzati","oggettualizzati","oliati","oliti","olografati","oltraggiati","oltrapassati","oltrepassati","omaggiati","ombrati","ombreggiati","omessi","omogeneizzati","omogenizzati","omologati","ondati","ondulati","onestati","onnubilati","onorati","opacati","opacizzati","operati","opinati","oppiati","oppignorati","oppilati","opposti","oppressi","oppugnati","oprati","opsonizzati","optati","opzionati","orbitati","orchestrati","ordinati","orditi","orecchiati","organati","organicati","organizzati","orgasmati","orientalizzati","orientati","originati","origliati","orizzontati","orlati","orlettati","ormati","ormeggiati","ornati","orpellati","orrati","orripilati","ortogonalizzati","osannati","osati","osculati","oscurati","ospedalizzati","ospitati","osseduti","ossequiati","osservati","ossessionati","ossidati","ossificati","ossitonizzati","ostacolati","osteggiati","ostentati","ostinati","ostracizzati","ostruiti","ottemperati","ottenebrati","ottenuti","ottimalizzati","ottimati","ottimizzati","ottonati","ottriati","ottuplicati","otturati","ottusi","ottussi","ovalizzati","ovariectomizzati","ovattati","overcloccati","ovrati","ovviati","ozieggiati","ozonizzati","pacati","pacciamati","pacificati","padroneggiati","paganizzati","pagati","paginati","palafittati","palatalizzati","palati","palesati","palettati","palettizzati","palificati","palleggiati","pallettizzati","palpati","palpeggiati","panati","panneggiati","panoramicati","pappati","paracadutati","parafati","paraffinati","parafrasati","paragonati","paragrafati","paralizzati","parallelizzati","parametrati","parametrizzati","parassitati","parati","parcati","parcellizzati","parcheggiati","pareggiati","parificati","parkerizzati","parlati","parlucchiati","parodiati","partecipati","particolareggiati","particolarizzati","partizionati","partoriti","parzializzati","pasciuti","pascolati","passati","passeggiati","passionati","passivati","pasticciati","pastorizzati","pasturati","patinati","patiti","patrocinati","patteggiati","pattugliati","pattuiti","paventati","pavesati","pavimentati","pavoneggiati","pazziati","pedinati","pedonalizzati","peggiorati","pelati","pellettizzati","penalizzati","penetrati","pennellati","pensati","pensionati","pentiti","pepati","peptonizzati","peragrati","percentualizzati","percepiti","percolati","percorsi","percossi","perdonati","perdotti","perduti","perequati","perfatti","perfezionati","perforati","performati","periti","periziati","perlustrati","permeati","permessi","perorati","perpetrati","perpetuati","perplimuti","perquisiti","perscrutati","perseguitati","perseguiti","persi","personalizzati","personificati","persuasi","perturbati","pervasi","pervertiti","pesati","pescati","pestati","petrarcheggiati","pettegolati","pettinati","piagati","piaggiati","piallati","pianeggiati","pianificati","piantati","piantatali","piantati","pianti","piantonati","piantumati","piastrellati","piatiti","piazzati","picchettati","picchiati","picchierellati","picchiettati","picconati","piegati","pieghettati","pietrificati","pigiati","pigliati","pigmentati","pignorati","pigolati","pilotati","pimentati","pinti","pinzati","piombati","piovigginati","piovuti","pipati","pippati","piratati","pirogenati","pisciati","pitoccati","pittati","pitturati","pizzicati","pizzicottati","placati","placcati","plagiati","plasmati","plasticati","plastificati","platinati","plissettati","pluralizzati","poetati","poeticizzati","poggiati","polarizzati","poligrafati","polimerizzati","politicizzati","polverizzati","pomiciati","pompati","ponderati","ponzati","popolarizzati","popolati","poppati","porcellanati","porfirizzati","portati","portesi","porti","porzionati","posati","posdatati","positivizzati","posizionati","posposti","posseduti","postati","postdatati","posteggiati","posticipati","postillati","posti","postsincronizzati","postulati","potabilizzati","potati","potenziati","potuti","pralinati","praticati","preaccennati","preannunciati","preannunziati","preavvertiti","preavvisati","precaricati","preceduti","precettati","precinti","precisati","preclusi","precompilati","precompressi","preconfezionati","preconizzati","preconosciuti","precorsi","precostituiti","predati","predefiniti","predestinati","predeterminati","predetti","predicati","predigeriti","prediletti","predisposti","preeletti","preesistuti","prefabbricati","prefati","prefatti","prefazionati","preferiti","prefigurati","prefinanziati","prefissati","prefissi","preformati","pregati","pregiati","pregiudicati","pregustati","preimpregnati","prelevati","premeditati","premescolati","premessi","premiati","premoniti","premuniti","premurati","premuti","prenotati","preoccupati","preordinati","preparati","prepensionati","prepigmentati","preposti","preprogrammati","preraffreddati","prerefrigerati","preregistrati","preregolati","preriscaldati","presi","presagiti","presaputi","presaseli","prescelti","prescritti","preseduti","presegnalati","preselezionati","presentati","presentiti","preservati","presidiati","presieduti","presi","pressati","pressi","pressurizzati","prestabiliti","prestampati","prestati","prestigiati","presunti","presupposti","pretermessi","pretesi","pretrattati","prevaricati","preveduti","prevenduti","preventivati","prevenuti","previsti","prezzati","prezzolati","principiati","privatizzati","privati","privilegiati","problematizzati","procacciati","processati","proclamati","procrastinati","procreati","procurati","prodigati","prodotti","profanati","proferiti","professati","professionalizzati","profetati","profetizzati","profferiti","profilati","profondati","profumati","profusi","progettati","prognosticati","programmati","proibiti","proiettati","proletarizzati","prolungati","promanati","promessi","promossi","promozionati","promulgati","pronosticati","pronunciati","pronunziati","propagandati","propagati","propagginati","propalati","propinati","propiziati","proporzionati","proposti","propugnati","propulsi","prorogati","prosciolti","prosciugati","proscritti","proseguiti","prospettati","prosternati","prostesi","prostituiti","prostrati","prosunti","protesi","protestati","protetti","protocollati","protonati","protratti","protrusi","provati","proveduti","provincializzati","provisti","provocati","provveduti","provvisti","psicanalizzati","psichiatrizzati","psicoanalizzati","psicologizzati","pubblicati","pubblicizzati","puddellati","pugnalati","puliti","pungolati","puniti","puntati","punteggiati","puntellati","punti","puntualizzati","punzecchiati","punzonati","purgati","purificati","putiti","putrefatti","putriti","quadrati","quadrettati","quadriennalizzati","quadruplicati","qualificati","quantificati","quantizzati","querelati","questuati","quetati","quietanzati","quietati","quintessenziati","quintuplicati","quotati","quotizzati","rabberciati","rabboccati","rabboniti","rabbuffati","rabuffati","raccapezzati","raccapricciati","raccattati","raccerchiati","raccesi","racchetati","racchiusi","raccolti","raccolti","raccomandati","raccomodati","raccontati","raccorciati","raccorciti","raccordati","raccostati","raccozzati","racemizzati","racimolati","radazzati","raddensati","raddobbati","raddolciti","raddoppiati","raddotti","raddrizzati","radiati","radicalizzati","radioassistiti","radioattivati","radiocomandati","radiodiffusi","radiografati","radioguidati","radiolocalizzati","radiomarcati","radiotelegrafati","radiotrasmessi","radunati","raffazzonati","raffermati","raffigurati","raffilati","raffinati","rafforzati","raffreddati","raffrenati","raffrescati","raffrontati","raggelati","raggentiliti","ragghiati","raggirati","raggiunti","raggiustati","raggomitolati","raggranchiati","raggranchiti","raggranellati","raggrinzati","raggrinziti","raggrumati","raggruppati","raggruzzolati","ragguagliati","ralingati","rallegrati","rallentati","ramati","ramazzati","rammagliati","rammaricati","rammemorati","rammendati","rammentati","rammodernati","rammolliti","rammorbiditi","rampognati","randellati","randomizzati","rannicchiati","rannuvolati","ranzati","rapati","rapinati","rapiti","rappacificati","rappati","rappattumati","rappezzati","rapportati","rappresantati","rappresentati","rappresi","rarefatti","rasati","raschiati","raschiettati","rasentati","rasi","raspati","rassegnati","rasserenati","rassettati","rassicurati","rassodati","rassomigliati","rassottigliati","rassunti","rastrellati","rastremati","rateati","rateizzati","ratificati","ratinati","rattizzati","rattoppati","rattorti","rattrappiti","rattristati","rattristiti","raunati","ravvalorati","ravveduti","ravviati","ravvicinati","ravviluppati","ravvisati","ravvisti","ravvivati","ravvolti","ravvoltolati","razionalizzati","razionati","razziati","razzolati","realizzati","reassunti","recapitati","recati","receduti","recensiti","recepiti","recidivati","recintati","recinti","reciprocati","recisi","recitati","reclamati","reclamizzati","reclinati","reclusi","reclutati","recuperati","redarguiti","redatti","redazzati","redduti","redenti","redistribuiti","redotti","referenziati","refertati","refilati","reflessi","reflettuti","refranti","refrigerati","regalati","regimati","regimentati","regionalizzati","registrati","regolamentati","regolarizzati","regolati","reidratati","reificati","reimbarcati","reimmersi","reimmessi","reimparati","reimpastati","reimpiantati","reimpiegati","reimportati","reimpostati","reincarcerati","reincaricati","reincarnati","reincisi","reincontrati","reindirizzati","reindustrializzati","reinfettati","reingaggiati","reinizializzati","reinnestati","reinoltrati","reinscritti","reinsediati","reinseriti","reinstallati","reinstaurati","reintegrati","reinterpretati","reintitolati","reintrodotti","reinventati","reinvestiti","reiterati","relativizzati","relazionati","relegati","remixati","remunerati","renderizzati","reperiti","repertati","replicati","repressi","repulsi","reputati","requisiti","rescissi","resecati","resettati","residuati","resinificati","resi","resolati","resolti","respinti","respirati","responsabilizzati","resposti","restaurati","restituiti","resunti","resuscitati","reticolati","retinati","retribuiti","retroceduti","retrocessi","retrodatati","rettificati","retti","reumatizzati","revisionati","revocati","riabbassati","riabbelliti","riabbonati","riabbottonati","riabbracciati","riabilitati","riabitati","riabituati","riaccaduti","riaccasati","riaccesi","riaccettati","riacchiappati","riacciuffati","riaccolti","riaccomodati","riaccompagnati","riaccordati","riaccostati","riaccreditati","riacquisiti","riacquistati","riacutizzati","riadattati","riaddestrati","riaddormentati","riadoperati","riaffacciati","riaffermati","riafferrati","riaffiorati","riaffittati","riaffrontati","riagganciati","riaggiornati","riaggiustati","riaggravati","riaggregati","riagguantati","rialimentati","riallacciati","riallargati","riallineati","riallocati","riallungati","rialzati","riamati","riambientati","riammalati","riammessi","riammodernati","riammogliati","rianimati","riannessi","riannodati","riannunciati","riaperti","riappacificati","riappaltati","riapparecchiati","riappariti","riappesi","riappiccicati","riapplicati","riappresi","riapprodati","riappropriati","riapprovati","riarmati","riarrangiati","riarredati","riascoltati","riasfaltati","riassaliti","riassaporati","riassegnati","riassemblati","riassestati","riassettati","riassicurati","riassociati","riassopiti","riassorbiti","riassunti","riattaccati","riattati","riattesi","riattinti","riattivati","riattizzati","riattraversati","riaumentati","riavuti","riavventati","riavvertiti","riavviati","riavvicinati","riavvinti","riavvisati","riavvistati","riavvolti","riazzuffati","ribaciati","ribaditi","ribaltati","ribassati","ribattezzati","ribattuti","ribellati","ribenedetti","ribevuti","ributtati","ricacciati","ricalati","ricalcati","ricalcificati","ricalcitrati","ricalcolati","ricalibrati","ricamati","ricambiati","ricanalizzati","ricandidati","ricantati","ricapitalizzati","ricapitolati","ricaricati","ricategorizzati","ricattati","ricavati","ricelebrati","ricercati","ricetrasmessi","ricettati","ricevuti","richiamati","richiesti","richiusi","riciclati","ricinti","ricircolati","riclassificati","ricodificati","ricollegati","ricollocati","ricolmati","ricolonizzati","ricolorati","ricoloriti","ricoltivati","ricombinati","ricominciati","ricommessi","ricompariti","ricompattati","ricompensati","ricomperati","ricompilati","ricompiuti","ricomposti","ricomprati","ricompressi","ricomunicati","riconceduti","riconcessi","riconciliati","ricondizionati","ricondotti","riconfermati","riconfezionati","riconfigurati","riconfortati","riconfusi","ricongelati","ricongiunti","riconnessi","riconosciuti","riconquistati","riconsacrati","riconsegnati","riconsiderati","riconsigliati","riconsolati","ricontati","ricontattati","ricontrattati","ricontratti","ricontrollati","riconvalidati","riconvenuti","riconvertiti","riconvinti","riconvocati","riconvogliati","ricoperti","ricopiati","ricordati","ricoricati","ricorretti","ricosparsi","ricostituiti","ricostretti","ricostruiti","ricotti","ricoverati","ricreati","ricristallizzati","ricrocifissi","ricuciti","ricuperati","ricusati","ridati","ridecorati","ridefiniti","ridenominati","ridestati","rideterminati","ridetti","ridicolizzati","ridigitati","ridimensionati","ridipinti","ridiscesi","ridisciolti","ridisciplinati","ridiscussi","ridisegnati","ridisfatti","ridisposti","ridistesi","ridistinti","ridistribuiti","ridivisi","ridomandati","ridonati","ridondati","ridorati","ridotati","ridotti","ridovuti","riecheggiati","riedificati","rieducati","rielaborati","rieletti","riemessi","riempiti","riempiuti","rientrati","riepilogati","riequilibrati","riequipaggiati","riesaminati","rieseguiti","riesercitati","riesplosi","riesportati","riesposti","riespressi","riespulsi","riestesi","riesumati","rietichettati","rievaporati","rievocati","rifabbricati","rifasciati","rifatti","rifenduti","riferiti","rifermati","rifermentati","rifessi","rificcati","rifilati","rifiltrati","rifinanziati","rifiniti","rifirmati","rifischiati","rifissi","rifiutati","riflessi","riflettuti","rifocillati","rifoderati","rifondati","riforestati","riforgiati","riformati","riformattati","riformulati","riforniti","rifranti","rifritti","rifrugati","rifuggiti","rifugiati","rifusi","rigassificati","rigati","rigelati","rigenerati","rigettati","righettati","rigiocati","rigirati","rigiudicati","rigiunti","rigoduti","rigonfiati","rigovernati","riguadagnati","riguardati","rigurgitati","rilanciati","rilasciati","rilassati","rilavati","rilavorati","rilegati","riletti","rilevati","rilocalizzati","rimagliati","rimandati","rimaneggiati","rimangiati","rimappati","rimarcati","rimarchiati","rimarginati","rimaritati","rimasticati","rimati","rimbacuccati","rimbaldanziti","rimbarcati","rimbeccati","rimbecilliti","rimbelliti","rimbiancati","rimbionditi","rimboccati","rimbombati","rimborsati","rimboscati","rimboschiti","rimbrottati","rimediati","rimembrati","rimemorati","rimenati","rimeritati","rimescolati","rimessi","rimestati","rimilitarizzati","rimirati","rimischiati","rimisurati","rimodellati","rimodernati","rimodulati","rimondati","rimontati","rimorchiati","rimorsi","rimossi","rimostrati","rimotivati","rimpacchettati","rimpadroniti","rimpaginati","rimpagliati","rimpannucciati","rimpastati","rimpatriati","rimpiallacciati","rimpianti","rimpiattati","rimpiazzati","rimpiccioliti","rimpiccoliti","rimpiegati","rimpinguati","rimpinzati","rimpolpati","rimpossessati","rimpressi","rimproverati","rimuginati","rimunerati","rimunti","rimusicati","rimutati","rinarrati","rinascosti","rincalcati","rincalzati","rincamminati","rincantucciati","rincarati","rincarcerati","rincarnati","rincentrati","rinchiesti","rinchiodati","rinchiusi","rincitrulliti","rinciviliti","rincoglioniti","rincollati","rincominciati","rincontrati","rincoraggiati","rincorati","rincorporati","rincorsi","rincretiniti","rincruditi","rinculcati","rincuorati","rindossati","rinduriti","rinegoziati","rinfacciati","rinfagottati","rinfiammati","rinfiancati","rinfilati","rinfittiti","rinfocolati","rinfoderati","rinforzati","rinfrancati","rinfranti","rinfrescati","rinfusi","ringagliarditi","ringalluzziti","ringiovaniti","ringioveniti","ringoiati","ringorgati","ringraziati","ringuainati","rinnamorati","rinnegati","rinnestati","rinnovati","rinnovellati","rinociuti","rinomati","rinominati","rinormalizzati","rinquadrati","rinsaccati","rinsaldati","rinsanguati","rinselvatichiti","rinselvati","rinserrati","rintanati","rintasati","rintascati","rintavolati","rinteneriti","rinterrati","rinterrogati","rintesi","rintiepiditi","rintoccati","rintonacati","rintontiti","rintorpiditi","rintracciati","rintrodotti","rintronati","rintuzzati","rinunciati","rinunziati","rinutriti","rinvangati","rinvasati","rinvenuti","rinverditi","rinvestiti","rinviati","rinvigoriti","rinviliti","rinvitati","rinvoltati","rinvolti","rinvoltolati","rinzaffati","rinzeppati","riobbligati","rioccupati","riofferti","rioffesi","rioperati","riordinati","riorganizzati","riorientati","riosservati","riottenuti","riottimizzati","riotturati","ripagati","riparametrizzati","riparati","ripartiti","ripassati","ripercorsi","ripercossi","riperduti","ripersi","ripesati","ripescati","ripestati","ripetuti","ripianati","ripianificati","ripiantati","ripianti","ripicchiati","ripiegati","ripigliati","ripinti","ripiovuti","ripitturati","riplasmati","ripolarizzati","ripopolati","riportati","riporti","riposati","riposizionati","riposseduti","riposti","ripotuti","ripresentati","ripresi","riprestati","ripretesi","riprincipiati","ripristinati","riprivatizzati","riprodotti","riprogettati","riprogrammati","ripromessi","riproposti","riprotetti","riprovati","riprovveduti","riprovvisti","ripubblicati","ripudiati","ripugnati","ripuliti","ripuntati","ripunti","ripurgati","riputati","riquadrati","riqualificati","riresi","rirotti","risaldati","risaliti","risaltati","risalutati","risanati","risaputi","risarciti","riscalati","riscaldati","riscattati","riscelti","riscesi","rischiarati","rischiati","risciacquati","risciolti","riscommessi","riscontati","riscontrati","risconvolti","riscoperti","riscoppiati","riscorsi","riscossi","riscritti","risecati","riseduti","risegati","risegnati","riselciati","riselezionati","riseminati","risentiti","riseppelliti","riserbati","riservati","risicati","risigillati","risistemati","risi","risoffiati","risoggiunti","risolati","risolidificati","risollevati","risolti","risommati","risommersi","risonati","risorpassati","risospesi","risospinti","risottomessi","risparmiati","risparsi","rispecchiati","rispediti","rispenti","rispersi","rispettati","rispiegati","rispinti","rispolverati","risposati","risposti","rissati","ristabiliti","ristagnati","ristampati","ristaurati","ristesi","ristilizzati","ristorati","ristretti","ristrutti","ristrutturati","ristuccati","ristudiati","risucchiati","risultati","risuolati","risuonati","risuscitati","risvegliati","risvolti","ritagliati","ritarati","ritardati","ritemprati","ritentati","ritenuti","ritersi","ritesi","ritinti","ritirati","ritoccati","ritolti","ritorti","ritracciati","ritradotti","ritrascorsi","ritrascritti","ritrasferiti","ritrasformati","ritrasmessi","ritrasposti","ritrattati","ritratti","ritrovati","ritualizzati","rituffati","riuditi","riunificati","riuniti","riusati","riutilizzati","rivaccinati","rivaleggiati","rivalorizzati","rivalsi","rivalutati","rivangati","riveduti","rivelati","rivendicati","rivenduti","riverberati","riveriti","riverniciati","riversati","rivestiti","rivettati","rivinti","rivisitati","rivissuti","rivisti","rivitalizzati","rivivificati","rivoltati","rivolti","rivoltolati","rivoluti","rivoluzionati","rizappati","rizzati","robotizzati","rodati","rogati","rollati","romanizzati","romanticizzati","romanzati","roncolati","rosicati","rosicchiati","rosi","rosolati","rotacizzati","rotati","roteati","rotolati","rottamati","rotti","rovesciati","rovinati","rovistati","rubacchiati","rubati","rullati","ruminati","ruotati","russificati","ruzzolati","sabbiati","sabotati","saccarificati","saccheggiati","sacralizzati","sacramentati","sacrificati","saettati","saggiati","sagginati","sagomati","salamoiati","salariati","salassati","salati","saldati","salificati","salinizzati","saliti","salmeggiati","salmistrati","salpati","saltati","salutati","salvaguardati","salvati","sanati","sanciti","sanforizzati","sanificati","sanitizzati","santificati","sanzionati","saponificati","saputi","sarchiati","sarchiellati","sartiati","satellizzati","satinati","satireggiati","satisfatti","satollati","saturati","saziati","sbaccellati","sbaciucchiati","sbafati","sbaffati","sbalestrati","sballati","sballottati","sballottolati","sbalorditi","sbalzati","sbancati","sbandati","sbandierati","sbanditi","sbaraccati","sbaragliati","sbarazzati","sbarbati","sbarcati","sbardati","sbarrati","sbassati","sbastiti","sbatacchiati","sbattezzati","sbattuti","sbeccati","sbeffeggiati","sbellicati","sbendati","sbertucciati","sbiaditi","sbiancati","sbianchiti","sbiellati","sbiettati","sbigottiti","sbilanciati","sbirbati","sbirciati","sbizzarriti","sbloccati","sbobinati","sboccati","sbocconcellati","sbollentati","sbolognati","sborniati","sborsati","sboscati","sbottonati","sbozzati","sbozzimati","sbozzolati","sbracati","sbracciati","sbraciati","sbraitati","sbranati","sbrancati","sbrattati","sbreccati","sbriciolati","sbrigati","sbrigliati","sbrinati","sbrindellati","sbrodolati","sbrogliati","sbronzati","sbruffati","sbucciati","sbudellati","sbuffati","sbugiardati","sbullettati","sbullonati","sburrati","scacazzati","scacchiati","scacciati","scaccolati","scadenzati","scafati","scaffalati","scagionati","scagliati","scaglionati","scalati","scalcati","scalcinati","scaldati","scalettati","scalfati","scalfiti","scalmanati","scaloppati","scalpati","scalpellati","scalpellinati","scaltriti","scalzati","scambiati","scamiciati","scamosciati","scamozzati","scampati","scampatali","scampati","scamuffati","scanalati","scancellati","scandagliati","scandalizzati","scanditi","scannati","scannellati","scannerati","scannerizati","scannerizzati","scansati","scansionati","scapecchiati","scapezzati","scapicollati","scapigliati","scapitozzati","scapocchiati","scappati","scappellati","scappottati","scapricciati","scapsulati","scarabocchiati","scaracchiati","scaraventati","scarcerati","scardassati","scardati","scardinati","scaricati","scarificati","scarmigliati","scarnati","scarnificati","scarniti","scarrellati","scarrocciati","scarrozzati","scarruffati","scartabellati","scartati","scartavetrati","scartinati","scartocciati","scassati","scassinati","scatenati","scattati","scavalcati","scavallati","scavati","scavezzati","scazzottati","scekerati","scelti","scempiati","sceneggiati","scernuti","scervellati","scesi","sceverati","schedati","schedulati","scheggiati","scheletriti","schematizzati","schermati","schermiti","schermografati","scherniti","schiacciati","schiaffati","schiaffeggiati","schiantati","schiariti","schiavardati","schiavizzati","schiccherati","schierati","schifati","schinciati","schioccati","schiodati","schiumati","schiusi","schivati","schizzati","schizzettati","sciabolati","sciabordati","sciacquati","scialacquati","sciamanizzati","sciamannati","sciancati","sciancrati","scimmieggiati","scimmiottati","scinti","scioccati","sciolinati","sciolti","sciorinati","scippati","sciroppati","scissi","sciupacchiati","sciupati","sclamati","sclerosati","sclerotizzati","scoccati","scocciati","scodati","scodellati","scoiati","scolarizzati","scolati","scollacciati","scollati","scollegati","scolorati","scoloriti","scolpati","scolpiti","scombaciati","scombinati","scombussolati","scommessi","scomodati","scompaginati","scompagnati","scompartiti","scompattati","scompensati","scompiacuti","scompigliati","scomposti","scomputati","scomunicati","sconcertati","sconciati","sconclusi","sconfessati","sconficcati","sconﬁtti","sconfortati","sconfusi","scongelati","scongiurati","sconnessi","sconosciuti","sconquassati","sconsacrati","sconsigliati","sconsolati","scontati","scontentati","scontornati","scontorti","scontrati","sconvolti","scopati","scoperchiati","scoperti","scopiazzati","scoraggiati","scoraggiti","scorati","scorazzati","scorciati","scorciti","scordati","scoreggiati","scorificati","scornati","scorniciati","scoronati","scorporati","scorrazzati","scorreggiati","scorretti","scorsi","scortati","scortecciati","scorticati","scorti","scorzati","scoscesi","scosciati","scossi","scostati","scostolati","scotennati","scoticati","scotolati","scotomizzati","scottati","scotti","scovati","scoverti","scozzati","scozzonati","screditati","scremati","screpolati","screziati","scribacchiati","scriminati","scristianizzati","scritti","scritturati","scroccati","scrocchiati","scrollati","scrostati","scrutati","scrutinati","scuciti","scudisciati","scuffiati","sculacciati","sculettati","scuoiati","scuriosati","scuriti","scusati","sdaziati","sdebitati","sdegnati","sdemanializzati","sdentati","sdilinquiti","sdoganati","sdoluti","sdoppiati","sdraiati","sdrammatizzati","sdruciti","secati","seccati","secernuti","secolarizzati","secondati","secretati","secreti","sedati","sedentarizzati","sedotti","segati","seghettati","segmentati","segnalati","segnati","segnoreggiati","segregati","segretati","seguitati","seguiti","selciati","selezionati","sellati","sembrati","sementati","semicinti","seminati","semplificati","senilizzati","sensibilizzati","sensorizzati","sentenziati","sentiti","sentitaseli","sentiti","sentiti","separati","sepolti","seppelliti","sequenziati","sequestrati","serbati","serrati","serviti","servoassistiti","sessualizzati","sestuplicati","setacciati","setificati","settati","settorializzati","settuplicati","seviziati","sezionati","sfaccettati","sfagliati","sfaldati","sfalsati","sfamati","sfanalati","sfangati","sfarinati","sfasati","sfasciati","sfatati","sfatti","sfavillati","sfavoriti","sfegatati","sfeltrati","sfenduti","sferragliati","sferrati","sferzati","sfessi","sfiancati","sfiatati","sfiati","sfibbiati","sfibrati","sfidati","sfiduciati","sfigurati","sfilati","sfilettati","sfiniti","sfioccati","sfiorati","sfittati","sfocati","sfociati","sfoderati","sfogati","sfoggiati","sfogliati","sfollati","sfoltiti","sfondati","sforacchiati","sforati","sforbiciati","sformati","sfornaciati","sfornati","sforniti","sforzati","sfottuti","sfracellati","sfrangiati","sfrascati","sfratati","sfrattati","sfrecciati","sfregati","sfregiati","sfrenati","sfrisati","sfrondati","sfrucugliati","sfruculiati","sfruttati","sfumati","sfuocati","sgamati","sganasciati","sganciati","sgarbugliati","sgattaiolati","sgelati","sghiacciati","sgocciolati","sgolati","sgomberati","sgombrati","sgomentati","sgominati","sgomitati","sgomitolati","sgonfiati","sgorbiati","sgottati","sgovernati","sgozzati","sgraffiati","sgraffignati","sgranati","sgranchiti","sgranellati","sgrassati","sgravati","sgretolati","sgridati","sgrommati","sgrondati","sgroppati","sgrossati","sgrovigliati","sgrugnati","sguainati","sgualciti","sguanciati","sguarniti","sguinzagliati","sgusciati","shakerati","shoccati","shuntati","sigillati","siglati","significati","signoreggiati","silenziati","silicizzati","sillabati","sillogizzati","silurati","simboleggiati","simbolizzati","simmetrizzati","simpatizzati","simulati","sincerati","sincopati","sincretizzati","sincronizzati","sindacalizzati","sindacati","singolarizzati","sinistrati","sinizzati","sinterizzati","sintetizzati","sintonizzati","siringati","sistematizzati","sistemati","situati","slabbrati","slacciati","slamati","slanciati","slappolati","slargati","slavizzati","slegati","slentati","slinguati","slogati","sloggati","sloggiati","slombati","slungati","smaccati","smacchiati","smagliati","smagnetizzati","smagriti","smaliziati","smallati","smaltati","smaltiti","smammati","smanacciati","smangiati","smantellati","smarcati","smarginati","smarriti","smascellati","smascherati","smaterializzati","smattonati","smembrati","smentiti","smerciati","smerdati","smerigliati","smerlati","smerlettati","smessali","smessi","smezzati","smidollati","smielati","smilitarizzati","sminati","sminuiti","sminuzzati","smistati","smitizzati","smobiliati","smobilitati","smobilizzati","smoccolati","smollicati","smonacati","smontati","smorbati","smorzati","smossi","smozzicati","smunti","smurati","smussati","smutandati","snaturati","snazionalizzati","snebbiati","snelliti","snervati","snidati","sniffati","snobbati","snocciolati","snodati","snudati","sobbarcati","sobbolliti","sobillati","socchiusi","soccorsi","soddisfatti","sodisfatti","sodomizzati","sofferiti","soffermati","sofferti","soffiati","soffocati","soffregati","soffritti","soffusi","sofisticati","soggettivati","soggettivizzati","sogghignati","soggiogati","soggiunti","sogguardati","sognati","solarizzati","solcati","soleggiati","solennizzati","solfeggiati","solfitati","solfonati","solforati","solidificati","soliti","sollazzati","sollecitati","solleticati","sollevati","solti","solubilizzati","soluti","soluzionati","solvatati","somatizzati","someggiati","somigliati","sommati","sommersi","sommessi","somministrati","sommossi","sonati","sondati","sonorizzati","sopiti","soppalcati","soppesati","soppiantati","sopportati","sopposti","soppressi","sopraddotati","sopraeccitati","sopraedificati","sopraelevati","sopraffati","sopraffatti","sopraggiunti","sopraintesi","soprammessi","soprannominati","sopraposti","soprappresi","soprascritti","sopraspesi","soprassaturati","soprasseduti","sopravanzati","sopravvalutati","sopravveduti","sopravvinti","sopravvisti","sopreccitati","sopredificati","soprelevati","soprintesi","sorbettati","sorbiti","sorgiunti","sormontati","sorpassati","sorpresi","sorrasi","sorretti","sorseggiati","sorteggiati","sortiti","sorvegliati","sorvolati","soscritti","sospesi","sospettati","sospinti","sospirati","sostantivati","sostanziati","sostentati","sostenuti","sostituiti","sottaciuti","sotterrati","sottesi","sottintesi","sottoalimentati","sottocapitalizzati","sottodivisi","sottoesposti","sottofirmati","sottolineati","sottomessi","sottomurati","sottopagati","sottopassati","sottoposti","sottorappresentati","sottorisi","sottoscritti","sottostimati","sottosviluppati","sottotitolati","sottovalutati","sottratti","soverchiati","sovesciati","sovietizzati","sovracapitalizzati","sovraccaricati","sovradimensionati","sovraeccitati","sovraesposti","sovraffaticati","sovraffollati","sovraggiunti","sovraimposti","sovraintesi","sovralimentati","sovramodulati","sovrappopolati","sovrapposti","sovrariscaldati","sovrasaturati","sovrascritti","sovrastampati","sovrastati","sovrastimati","sovrautilizzati","sovreccitati","sovresposti","sovrimposti","sovrintesi","sovvenuti","sovvenzionati","sovvertiti","spaccati","spacchettati","spacciati","spaginati","spaiati","spalancati","spalati","spalcati","spalleggiati","spalmati","spammati","spampanati","spampinati","spanati","spanciati","spanduti","spannati","spannocchiati","spansi","spantanati","spanti","spaparacchiati","spaparanzati","spappolati","sparati","sparecchiati","sparigliati","spariti","sparlati","sparpagliati","spartiti","spassati","spassatoseli","spastoiati","spaurati","spauriti","spaventati","spazializzati","spaziati","spazieggiati","spazientiti","spazzati","spazzolati","specchiati","specializzati","specificati","specillati","specolati","spediti","spegnati","spelacchiati","spelati","spellati","spennacchiati","spennati","spennellati","spenti","spenzolati","sperati","sperimentati","spernacchiati","speronati","sperperati","spersonalizzati","sperticati","spesati","spesi","spessiti","spettacolarizzati","spettinati","spezzati","spezzettati","spezziati","spezzonati","spiaccicati","spianati","spiantati","spiati","spiattellati","spiazzati","spiccati","spicciati","spiccicati","spicciolati","spicconati","spidocchiati","spiegati","spiegazzati","spietrati","spifferati","spigionati","spignorati","spigolati","spigriti","spillati","spilluzzicati","spiluccati","spinti","spintonati","spiombati","spiralizzati","spirantizzati","spirati","spiritualizzati","spiumati","spizzicati","spodestati","spoetizzati","spogliati","spolettati","spoliati","spoliticizzati","spollonati","spolmonati","spolpati","spoltroniti","spolverati","spolverizzati","spompati","spompinati","sponsorizzati","spopolati","spoppati","sporcati","sportati","sporti","sposati","sposseduti","spossessati","spostati","sposti","sprangati","sprecati","spregiati","spremuti","spretati","sprezzati","sprigionati","sprimacciati","spromessi","spronati","sprotetti","sprovincializzati","sprovveduti","sprovvisti","spruzzati","spugnati","spulati","spulciati","spuntati","spuntellati","spupazzati","spurgati","sputacchiati","sputati","sputtanati","squadernati","squadrati","squagliati","squagliataseli","squagliati","squalificati","squamati","squarciati","squartati","squassati","squattrinati","squilibrati","squinternati","sradicati","srotolati","srugginiti","stabbiati","stabiliti","stabilizzati","stabulati","staccati","stacciati","staffati","staffilati","staggiati","staggiti","stagionati","stagliati","stagnati","stamburati","stampati","stampigliati","stanati","stancati","standardizzati","stangati","stanziati","stappati","starati","starnazzati","stasati","statalizzati","statizzati","statoci","statoseni","statuiti","stazzati","stazzonati","steccacciati","steccati","stecchiti","stecconati","stemperati","stempiati","stenografati","stereotipati","steriliti","sterilizzati","sterpati","sterrati","sterzati","stesi","stigliati","stigmatizzati","stilati","stilettati","stilizzati","stillati","stimati","stimolati","stinti","stipati","stipendiati","stipulati","stiracchiati","stirati","stivati","stizziti","stoccati","stolti","stomacati","stonati","stondati","stoppati","storditi","storicizzati","stornati","storpiati","stortati","storti","stozzati","strabenedetti","strabuzzati","stracannati","straccati","stracciati","stracotti","strafogati","stragoduti","stralciati","stralodati","stralunati","stramaledetti","stramortiti","strangolati","straniati","straniti","straorzati","strapagati","strapazzati","straperduti","strapersi","strappati","strasaputi","strascicati","strascinati","strasformati","stratificati","strattonati","stravaccati","stravinti","stravolti","stravoluti","straziati","stregati","stremati","stressati","striati","stridulati","strigati","strigliati","strillati","striminziti","strimpellati","strinati","stringati","strisciati","stritolati","strizzati","strofinati","strombati","strombazzati","stroncati","stronzati","stropicciati","stroppati","stroppiati","strozzati","struccati","strumentalizzati","strumentati","strusciati","strutti","strutturalizzati","strutturati","stuccati","studiacchiati","studiati","stuellati","stufati","stupefatti","stupiti","stuprati","sturati","stutati","stuzzicati","suasi","subaffittati","subappaltati","subbiati","subdelegati","subissati","subiti","sublicenziati","sublimati","sublocati","subodorati","subordinati","subornati","suburbanizzati","sucati","succhiati","succhiellati","succiati","succinti","succisi","suddistinti","suddivisi","suffissati","suffissi","suffragati","suffumicati","suffusi","suggellati","suggeriti","suggestionati","suicidati","sunteggiati","sunti","suolati","suonati","superati","superpagati","superraffreddati","supervalutati","supervisionati","supplicati","suppliti","supportati","supposti","suppurati","surclassati","surfati","surgelati","surraffreddati","surriscaldati","surrogati","survoltati","suscitati","susseguiti","sussidiati","sussunti","sussurrati","suturati","svaccati","svagati","svaligiati","svalutati","svapati","svariati","svasati","svecchiati","svegliati","svelati","sveleniti","sveltiti","svelti","svenati","svenduti","sventagliati","sventati","sventolati","sventrati","sverginati","svergognati","svergolati","sverminati","sverniciati","svestiti","svettati","svezzati","sviati","svignatoseli","svigoriti","sviliti","svillaneggiati","sviluppati","svinati","svincolati","sviolinati","svirgolati","svirilizzati","svisati","sviscerati","svitati","sviticchiati","svolati","svolazzati","svolti","svoluti","svuotati","tabuizzati","tabulati","taccati","taccheggiati","tacciati","tacitati","taciuti","tagliati","taglieggiati","tagliuzzati","talebanizzati","tallonati","tampinati","tamponati","tanguti","tannati","tappati","tappezzati","tarati","tardati","targati","tariffati","tarlati","tarmati","taroccati","tarpati","tartagliati","tartassati","tartufati","tassati","tassellati","tastati","tasteggiati","tatuati","tecnicizzati","tecnologizzati","tedeschizzati","tediati","teflonati","telecomandati","telecontrollati","telediffusi","telefonati","telegrafati","teleguidati","telematizzati","telemetrati","teleradiotrasmessi","teletrasmessi","teletrasportati","tematizzati","temperati","tempestati","tempificati","templatizzati","temporizzati","temprati","temuti","tentati","tenuti","teologizzati","teorizzati","tepefatti","terebrati","terminati","termostatati","terrazzati","terrificati","terrorizzati","tersi","terzarolati","terziarizzati","terziati","tesati","tesaurizzati","tesi","tesserati","testati","testificati","testimoniati","timbrati","tindalizzati","tinteggiati","tinti","tipicizzati","tipizzati","tippati","tiranneggiati","tirati","titillati","titolati","toccati","toelettati","tollerati","tolti","tonalizzati","tonificati","tonneggiati","tonsurati","torchiati","tormentati","tornatoseni","torniti","torrefatti","torti","tortoreggiati","torturati","tosati","toscaneggiati","toscanizzati","tostati","totalizzati","traboccati","trabuccati","tracannati","tracciati","traditi","tradotti","trafficati","trafilati","trafitti","traforati","trafugati","traghettati","traguardati","trainati","tralasciati","tralignati","tramandati","tramati","trambasciati","tramessi","tramestati","tramezzati","tramortiti","tramutati","tranciati","trangugiati","tranquillati","tranquillizzati","transatti","transcesi","transcodificati","transcorsi","transcritti","transennati","transfluiti","transfusi","transistorizzati","translitterati","transposti","transricevuti","transustanziati","transveduti","transvisti","trapanati","trapassati","trapiantati","traportati","traposti","trapposti","trapuntati","trapunti","trarotti","trasandati","trasbordati","trascelti","trascesi","trascinati","trascorsi","trascritti","trascurati","trasdotti","trasferiti","trasfigurati","trasformati","trasfusi","trasgrediti","traslati","traslitterati","traslocati","trasmessi","trasmutati","traspariti","traspirati","trasportati","trasposti","trastullati","trasudati","trasvolati","trasvolti","trattati","tratteggiati","trattenuti","tratti","traumatizzati","travagliati","travalicati","travasati","traveduti","traversati","travestiti","traviati","travisati","travisti","travolti","trebbiati","triangolati","tribbiati","tribolati","tributati","triennalizzati","trimestralizzati","trincati","trincerati","trinciati","tripartiti","triplicati","trisecati","trisezionati","tritati","triturati","trivellati","trollati","trombati","troncati","tropicalizzati","trovati","truccati","trucidati","truffati","tuffati","tumefatti","tumulati","turati","turbati","turlupinati","tutelati","ubbligati","ubicati","ubiditi","ubiquitinati","ubriacati","uccellati","uccellinati","uccisi","uditi","ufficializzati","uggiti","ugnati","uguagliati","ulcerati","uliti","ulolati","ultimati","ultracentrifugati","ululati","umanati","umanizzati","umettati","umidificati","umiditi","umiliati","uncinati","unguentati","unificati","uniformati","uniti","univerbati","universaleggiati","universalizzati","untati","unti","uperizzati","urbanizzati","urgenzati","urlati","urtacchiati","urtati","urticchiati","usati","usciolati","usolati","ustionati","usucapiti","usurati","usurpati","utilitati","utilizzati","vaccinati","vagabondeggiati","vagellati","vagheggiati","vagillati","vagliati","valcati","valicati","validati","valorizzati","valsi","valutati","vanagloriati","vanati","vandalizzati","vangati","vangelizzati","vanificati","vaniti","vantaggiati","vantati","vaporati","vaporizzati","varati","varcati","variati","vasectomizzati","vaticinati","vedovati","veduti","vegetati","veggiati","vegliati","veicolati","velarizzati","velati","velettati","velinati","vellicati","vellutati","velocizzati","vendemmiati","vendicati","vendicchiati","venducchiati","venduti","venerati","vengiati","ventagliati","ventilati","ventolati","verbalizzati","vergati","vergheggiati","vergognati","vergolati","verificati","verminati","vernalizzati","verniciati","verrinati","versati","verseggiati","versificati","verticalizzati","vessati","vestiti","vestiti","vetrificati","vetrinati","vetrioleggiati","vettovagliati","vezzeggiati","viaggiati","vicinati","vicitati","videochattati","videochiamati","videocomunicati","videoregistrati","videotrasmessi","vidimati","vigilati","vigliati","vigoreggiati","vigoriti","vilificati","vilipesi","villaneggiati","vincolati","vinti","violati","violentati","violinati","virgolati","virgoleggiati","virgolettati","virilizzati","virtualizzati","visionati","visitati","vissuti","vistati","visti","visualizzati","vitaliziati","vitalizzati","vitaminizzati","vittimizzati","vituperati","vivacizzati","vivandati","vivificati","vivisezionati","viziati","vocabolarizzati","vocalizzati","vocati","vociferati","volantinati","volatilizzati","volgarizzati","volicchiati","volpeggiati","voltati","volti","voltolati","volturati","voluminizzati","voluti","volutoci","vomitati","vorati","votati","vulcanizzati","vuotati","wappati","wikificati","xerocopiati","zaffati","zampati","zampettati","zampillati","zannati","zappati","zappettati","zapponati","zavorrati","zeppati","zigrinati","zigzagati","zimbellati","zincati","zinnati","zipolati","zippati","zirlati","zittiti","zizzagati","zoccolati","zollati","zombati","zonati","zonizzati","zoppati","zoppeggiati","zoppicati","zucconati","zufolati","zumati","zuppati"];};
+
+},{}],192:[function(require,module,exports){
+"use strict";
+/**
+  * Returns a list with stopwords for the Italian passive voice assessment.
+  * @returns {Array} The list with stopwords.
+  */
+
+module.exports = function () {
+    return ["a condizione che", "a meno che non", "a patto che", "a seconda che", "acché", "affinché", "al fine di", "allorché", "allorquando", "anche se", "anziché", "avvegnaché", "basta que", "benché", "beninteso que", "chi", "cui", "dal momento che", "dopo che", "dove", "finché non", "fintantoché", "i quali", "il quale", "in caso", "in modo che", "la quale", "le quali", "malgrado", "mentre", "nel caso in cui", "nel eventualità che", "nonostante che", "ogni volta che", "per il fatto che", "perché", "piuttosto che", "piuttosto di", "poiche", "prima che", "purché", "qualora", "quando", "quantunque", "quello che", "sebbene", "senza che", "siccome", "tranne che", "una volta che"];
+};
+
+
+},{}],193:[function(require,module,exports){
 "use strict";
 /** @module config/transitionWords */
 
@@ -18194,7 +21061,7 @@ module.exports = function () {
 };
 
 
-},{}],178:[function(require,module,exports){
+},{}],194:[function(require,module,exports){
 "use strict";
 /**
  * Returns an array with two-part transition words to be used by the assessments.
@@ -18206,7 +21073,7 @@ module.exports = function () {
 };
 
 
-},{}],179:[function(require,module,exports){
+},{}],195:[function(require,module,exports){
 "use strict";
 
 var countWords = require("../stringProcessing/countWords");
@@ -18224,12 +21091,12 @@ function keyphraseLengthResearch(paper) {
 module.exports = keyphraseLengthResearch;
 
 
-},{"../stringProcessing/countWords":221,"../stringProcessing/sanitizeString":251}],180:[function(require,module,exports){
+},{"../stringProcessing/countWords":243,"../stringProcessing/sanitizeString":275}],196:[function(require,module,exports){
 "use strict";
 /** @module analyses/getKeywordCount */
 
 var matchWords = require("../stringProcessing/matchTextWithWord.js");
-var normalizeQuotes = require("../stringProcessing/quotes.js").normalize;
+var unique = require("lodash/uniq");
 var escapeRegExp = require("lodash/escapeRegExp");
 /**
  * Calculates the keyword count.
@@ -18238,14 +21105,20 @@ var escapeRegExp = require("lodash/escapeRegExp");
  * @returns {number} The keyword count.
  */
 module.exports = function (paper) {
-  var keyword = escapeRegExp(normalizeQuotes(paper.getKeyword()));
-  var text = normalizeQuotes(paper.getText());
-  var locale = paper.getLocale();
-  return matchWords(text, keyword, locale);
+    var keyword = escapeRegExp(paper.getKeyword());
+    var text = paper.getText();
+    var locale = paper.getLocale();
+    var keywordsFound = matchWords(text, keyword, locale);
+    return {
+        count: keywordsFound.count,
+        matches: unique(keywordsFound.matches).sort(function (a, b) {
+            return b.length - a.length;
+        })
+    };
 };
 
 
-},{"../stringProcessing/matchTextWithWord.js":242,"../stringProcessing/quotes.js":246,"lodash/escapeRegExp":487}],181:[function(require,module,exports){
+},{"../stringProcessing/matchTextWithWord.js":265,"lodash/escapeRegExp":515,"lodash/uniq":573}],197:[function(require,module,exports){
 "use strict";
 /** @module researches/countKeywordInUrl */
 
@@ -18260,11 +21133,121 @@ var escapeRegExp = require("lodash/escapeRegExp");
 module.exports = function (paper) {
   var keyword = paper.getKeyword().replace("'", "").replace(/\s/ig, "-");
   keyword = escapeRegExp(keyword);
-  return wordMatch(paper.getUrl(), keyword, paper.getLocale());
+  return wordMatch(paper.getUrl(), keyword, paper.getLocale()).count;
 };
 
 
-},{"../stringProcessing/matchTextWithWord.js":242,"lodash/escapeRegExp":487}],182:[function(require,module,exports){
+},{"../stringProcessing/matchTextWithWord.js":265,"lodash/escapeRegExp":515}],198:[function(require,module,exports){
+"use strict";
+
+var sortBy = require("lodash/sortBy");
+var topicCount = require("./topicCount");
+/**
+ * Gets the distance (in terms of characters) between two keywords, between the beginning
+ * of the text and the first keyword, or the last keyword and the end of the text.
+ *
+ * @param {number}  keywordIndex     The index of the keyword.
+ * @param {Array}   keywordIndices   All keyword indices.
+ * @param {number}  textLength       The length of the text in characters.
+ *
+ * @returns {Array} The distances for a given keyword in characters.
+ */
+var getKeywordDistances = function getKeywordDistances(keywordIndex, keywordIndices, textLength) {
+  var currentIndexWithinArray = keywordIndices.indexOf(keywordIndex);
+  var indexOfPreviousKeyword = void 0;
+  var distances = [];
+  /*
+   * If there's only one keyword, return the distance from the beginning
+   * of the text to the keyword and from the keyword to the end of the text.
+   */
+  if (currentIndexWithinArray === 0 && keywordIndices.length === 1) {
+    distances.push(keywordIndex.index);
+    distances.push(textLength - keywordIndex.index);
+    return distances;
+  }
+  /*
+   * For the first instance of the keyword calculate the distance between
+   * the beginning of the text and that keyword.
+   */
+  if (currentIndexWithinArray === 0) {
+    distances.push(keywordIndex.index);
+    return distances;
+  }
+  /*
+   * For the last instance of the keyword, calculate the distance between that keyword
+   * and the previous keyword and also the distance between that keyword and the end
+   * of the text.
+   */
+  if (currentIndexWithinArray === keywordIndices.length - 1) {
+    indexOfPreviousKeyword = keywordIndices[currentIndexWithinArray - 1].index;
+    distances.push(keywordIndex.index - indexOfPreviousKeyword);
+    distances.push(textLength - keywordIndex.index);
+    return distances;
+  }
+  /*
+   * For all instances in between first and last, calculate the distance between
+   * that keyword and the preceding keyword.
+   */
+  indexOfPreviousKeyword = keywordIndices[currentIndexWithinArray - 1].index;
+  distances.push(keywordIndex.index - indexOfPreviousKeyword);
+  return distances;
+};
+/**
+ * Gets the largest keyword distance (in characters) from the array of all keyword distances.
+ *
+ * @param {Array} keywordDistances All keyword distances in characters.
+ *
+ * @returns {number} The largest keyword distance in characters.
+ */
+var getLargestDistanceInCharacters = function getLargestDistanceInCharacters(keywordDistances) {
+  keywordDistances = sortBy(keywordDistances);
+  keywordDistances = keywordDistances.reverse();
+  return keywordDistances[0];
+};
+/**
+ * Calculates the largest percentage of the text without a keyword.
+ *
+ * @param {Paper} paper The paper to check the keyword distance for.
+ *
+ * @returns {number} Returns the largest percentage of the text between two keyword occurrences
+ *                   or a keyword occurrence and the start/end of the text.
+ */
+module.exports = function (paper) {
+  var keywordIndices = topicCount(paper).matchesIndices;
+  var textLength = paper.getText().length;
+  var keywordDistances = [];
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = keywordIndices[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var keywordIndex = _step.value;
+
+      var currentDistances = getKeywordDistances(keywordIndex, keywordIndices, textLength);
+      keywordDistances = keywordDistances.concat(currentDistances);
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  var largestKeywordDistanceInCharacters = getLargestDistanceInCharacters(keywordDistances);
+  return largestKeywordDistanceInCharacters / textLength * 100;
+};
+
+
+},{"./topicCount":234,"lodash/sortBy":562}],199:[function(require,module,exports){
 "use strict";
 /* @module analyses/matchKeywordInSubheadings */
 
@@ -18294,7 +21277,7 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/getSubheadings.js":233,"../stringProcessing/stripNonTextTags.js":254,"../stringProcessing/subheadingsMatch.js":257,"lodash/escapeRegExp":487}],183:[function(require,module,exports){
+},{"../stringProcessing/getSubheadings.js":255,"../stringProcessing/stripNonTextTags.js":278,"../stringProcessing/subheadingsMatch.js":282,"lodash/escapeRegExp":515}],200:[function(require,module,exports){
 "use strict";
 
 var matchTextWithWord = require("../stringProcessing/matchTextWithWord.js");
@@ -18311,11 +21294,11 @@ module.exports = function (paper) {
         return -1;
     }
     var keyword = escapeRegExp(paper.getKeyword());
-    return matchTextWithWord(paper.getDescription(), keyword, paper.getLocale());
+    return matchTextWithWord(paper.getDescription(), keyword, paper.getLocale()).count;
 };
 
 
-},{"../stringProcessing/matchTextWithWord.js":242,"lodash/escapeRegExp":487}],184:[function(require,module,exports){
+},{"../stringProcessing/matchTextWithWord.js":265,"lodash/escapeRegExp":515}],201:[function(require,module,exports){
 "use strict";
 /**
  * Check the length of the description.
@@ -18328,7 +21311,7 @@ module.exports = function (paper) {
 };
 
 
-},{}],185:[function(require,module,exports){
+},{}],202:[function(require,module,exports){
 "use strict";
 /**
  * Check the width of the title in pixels
@@ -18344,7 +21327,7 @@ module.exports = function (paper) {
 };
 
 
-},{}],186:[function(require,module,exports){
+},{}],203:[function(require,module,exports){
 "use strict";
 
 var filter = require("lodash/filter");
@@ -18392,7 +21375,7 @@ module.exports = function (sentenceText, language) {
 };
 
 
-},{"../../../stringProcessing/getWords.js":234,"../../russian/passiveVoice/participlesShortenedList.js":199,"lodash/filter":488}],187:[function(require,module,exports){
+},{"../../../stringProcessing/getWords.js":256,"../../russian/passiveVoice/participlesShortenedList.js":218,"lodash/filter":516}],204:[function(require,module,exports){
 "use strict";
 
 var isEmpty = require("lodash/isEmpty");
@@ -18410,7 +21393,7 @@ module.exports = function () {
 };
 
 
-},{"lodash/isEmpty":508}],188:[function(require,module,exports){
+},{"lodash/isEmpty":536}],205:[function(require,module,exports){
 "use strict";
 
 var arrayToRegex = require("../../../stringProcessing/createRegexFromArray.js");
@@ -18445,7 +21428,7 @@ module.exports = function (sentencePartText, auxiliaries, language) {
 };
 
 
-},{"../../../stringProcessing/createRegexFromArray.js":222,"../../german/passiveVoice/auxiliaries.js":156,"../../german/passiveVoice/getParticiples.js":158,"./determineSentencePartIsPassive.js":189,"./getParticiples.js":191}],189:[function(require,module,exports){
+},{"../../../stringProcessing/createRegexFromArray.js":244,"../../german/passiveVoice/auxiliaries.js":166,"../../german/passiveVoice/getParticiples.js":168,"./determineSentencePartIsPassive.js":206,"./getParticiples.js":208}],206:[function(require,module,exports){
 "use strict";
 
 var forEach = require("lodash/forEach");
@@ -18467,7 +21450,7 @@ module.exports = function (participles) {
 };
 
 
-},{"lodash/forEach":493}],190:[function(require,module,exports){
+},{"lodash/forEach":521}],207:[function(require,module,exports){
 "use strict";
 /**
  * Matches words from a list in sentence parts and returns them and their indices.
@@ -18492,7 +21475,7 @@ module.exports = function (sentencePart, regex) {
 };
 
 
-},{}],191:[function(require,module,exports){
+},{}],208:[function(require,module,exports){
 "use strict";
 
 var getWords = require("../../../stringProcessing/getWords.js");
@@ -18502,6 +21485,7 @@ var irregularParticipleRegex = matchParticiples.irregularParticiples;
 var EnglishParticiple = require("../../english/passiveVoice/EnglishParticiple.js");
 var FrenchParticiple = require("../../french/passiveVoice/FrenchParticiple.js");
 var SpanishParticiple = require("../../spanish/passiveVoice/SpanishParticiple.js");
+var ItalianParticiple = require("../../italian/passiveVoice/ItalianParticiple.js");
 var forEach = require("lodash/forEach");
 /**
  * Creates participle objects for the participles found in a sentence part.
@@ -18530,6 +21514,9 @@ module.exports = function (sentencePartText, auxiliaries, language) {
                 case "es":
                     foundParticiples.push(new SpanishParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: type, language: language }));
                     break;
+                case "it":
+                    foundParticiples.push(new ItalianParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: type, language: language }));
+                    break;
                 case "en":
                 default:
                     foundParticiples.push(new EnglishParticiple(word, sentencePartText, { auxiliaries: auxiliaries, type: type, language: language }));
@@ -18541,7 +21528,7 @@ module.exports = function (sentencePartText, auxiliaries, language) {
 };
 
 
-},{"../../../stringProcessing/getWords.js":234,"../../english/passiveVoice/EnglishParticiple.js":131,"../../french/passiveVoice/FrenchParticiple.js":144,"../../spanish/passiveVoice/SpanishParticiple.js":204,".//matchParticiples":193,"lodash/forEach":493}],192:[function(require,module,exports){
+},{"../../../stringProcessing/getWords.js":256,"../../english/passiveVoice/EnglishParticiple.js":141,"../../french/passiveVoice/FrenchParticiple.js":154,"../../italian/passiveVoice/ItalianParticiple.js":188,"../../spanish/passiveVoice/SpanishParticiple.js":225,".//matchParticiples":210,"lodash/forEach":521}],209:[function(require,module,exports){
 "use strict";
 
 var indices = require("../../../stringProcessing/indices");
@@ -18559,29 +21546,40 @@ var isUndefined = require("lodash/isUndefined");
 var includes = require("lodash/includes");
 var map = require("lodash/map");
 var forEach = require("lodash/forEach");
-// English-specific constiables and imports.
+// English-specific variables and imports.
 var SentencePartEnglish = require("../../english/passiveVoice/SentencePart");
 var auxiliariesEnglish = require("../../english/passiveVoice/auxiliaries.js")().all;
 var stopwordsEnglish = require("../../english/passiveVoice/stopwords.js")();
-var stopCharacterRegexEnglish = /([:,]|('ll)|('ve))(?=[ \n\r\t\'\"\+\-»«‹›<>])/ig;
-var verbEndingInIngRegex = /\w+ing(?=$|[ \n\r\t\.,'\(\)\"\+\-;!?:\/»«‹›<>])/ig;
+var stopCharacterRegexEnglish = /([:,]|('ll)|('ve))(?=[ \n\r\t'"+\-»«‹›<>])/ig;
+var verbEndingInIngRegex = /\w+ing(?=$|[ \n\r\t.,'()"+\-;!?:/»«‹›<>])/ig;
 var ingExclusionArray = ["king", "cling", "ring", "being", "thing", "something", "anything"];
 // French-specific variables and imports.
 var SentencePartFrench = require("../../french/passiveVoice/SentencePart");
 var auxiliariesFrench = require("../../french/passiveVoice/auxiliaries.js")();
 var stopwordsFrench = require("../../french/passiveVoice/stopwords.js")();
-var stopCharacterRegexFrench = /(,)(?=[ \n\r\t\'\"\+\-»«‹›<>])/ig;
+var stopCharacterRegexFrench = /(,)(?=[ \n\r\t'"+\-»«‹›<>])/ig;
 var followingAuxiliaryExceptionWordsFrench = ["le", "la", "les", "une", "l'un", "l'une"];
 var reflexivePronounsFrench = ["se", "me", "te", "s'y", "m'y", "t'y", "nous nous", "vous vous"];
-var directPrecedenceExceptionRegex = arrayToRegex(reflexivePronounsFrench);
+var directPrecedenceExceptionRegexFrench = arrayToRegex(reflexivePronounsFrench);
 var elisionAuxiliaryExceptionWords = ["c'", "s'", "peut-"];
 var elisionAuxiliaryExceptionRegex = arrayToRegex(elisionAuxiliaryExceptionWords, true);
 // Spanish-specific variables and imports.
 var SentencePartSpanish = require("../../spanish/passiveVoice/SentencePart");
 var auxiliariesSpanish = require("../../spanish/passiveVoice/auxiliaries.js")();
 var stopwordsSpanish = require("../../spanish/passiveVoice/stopwords.js")();
-var stopCharacterRegexSpanish = /([:,])(?=[ \n\r\t\'\"\+\-»«‹›<>])/ig;
 var followingAuxiliaryExceptionWordsSpanish = ["el", "la", "los", "las", "una"];
+// Italian-specific variables and imports.
+var SentencePartItalian = require("../../italian/passiveVoice/SentencePart");
+var auxiliariesItalian = require("../../italian/passiveVoice/auxiliaries.js")();
+var stopwordsItalian = require("../../italian/passiveVoice/stopwords.js")();
+var followingAuxiliaryExceptionWordsItalian = ["il", "i", "la", "le", "lo", "gli", "uno", "una"];
+var reflexivePronounsItalian = ["mi", "ti", "si", "ci", "vi"];
+var directPrecedenceExceptionRegexItalian = arrayToRegex(reflexivePronounsItalian);
+/*
+ * Variables applying to multiple languages
+ * This regex applies to Spanish and Italian
+ */
+var stopCharacterRegexOthers = /([:,])(?=[ \n\r\t'"+\-»«‹›<>])/ig;
 // The language-specific variables used to split sentences into sentence parts.
 var languageVariables = {
     en: {
@@ -18597,15 +21595,25 @@ var languageVariables = {
         SentencePart: SentencePartFrench,
         auxiliaries: auxiliariesFrench,
         stopCharacterRegex: stopCharacterRegexFrench,
-        followingAuxiliaryExceptionRegex: arrayToRegex(followingAuxiliaryExceptionWordsFrench)
+        followingAuxiliaryExceptionRegex: arrayToRegex(followingAuxiliaryExceptionWordsFrench),
+        directPrecedenceExceptionRegex: directPrecedenceExceptionRegexFrench
     },
     es: {
         stopwords: stopwordsSpanish,
         auxiliaryRegex: arrayToRegex(auxiliariesSpanish),
         SentencePart: SentencePartSpanish,
         auxiliaries: auxiliariesSpanish,
-        stopCharacterRegex: stopCharacterRegexSpanish,
+        stopCharacterRegex: stopCharacterRegexOthers,
         followingAuxiliaryExceptionRegex: arrayToRegex(followingAuxiliaryExceptionWordsSpanish)
+    },
+    it: {
+        stopwords: stopwordsItalian,
+        auxiliaryRegex: arrayToRegex(auxiliariesItalian),
+        SentencePart: SentencePartItalian,
+        auxiliaries: auxiliariesItalian,
+        stopCharacterRegex: stopCharacterRegexOthers,
+        followingAuxiliaryExceptionRegex: arrayToRegex(followingAuxiliaryExceptionWordsItalian),
+        directPrecedenceExceptionRegex: directPrecedenceExceptionRegexItalian
     }
 };
 /**
@@ -18647,10 +21655,12 @@ var getStopCharacters = function getStopCharacters(sentence, language) {
  *
  * @param {string} text The text part in which to check.
  * @param {Array} auxiliaryMatches The auxiliary matches for which to check.
+ * @param {string} language The language for which to check auxiliary precedence exceptions.
+ *
  * @returns {Array} The filtered list of auxiliary indices.
  */
-var auxiliaryPrecedenceExceptionFilter = function auxiliaryPrecedenceExceptionFilter(text, auxiliaryMatches) {
-    var directPrecedenceExceptionMatches = getWordIndices(text, directPrecedenceExceptionRegex);
+var auxiliaryPrecedenceExceptionFilter = function auxiliaryPrecedenceExceptionFilter(text, auxiliaryMatches, language) {
+    var directPrecedenceExceptionMatches = getWordIndices(text, languageVariables[language].directPrecedenceExceptionRegex);
     forEach(auxiliaryMatches, function (auxiliaryMatch) {
         if (includesIndex(directPrecedenceExceptionMatches, auxiliaryMatch.index)) {
             auxiliaryMatches = auxiliaryMatches.filter(function (auxiliaryObject) {
@@ -18720,12 +21730,17 @@ var getSentenceBreakers = function getSentenceBreakers(sentence, language) {
     switch (language) {
         case "fr":
             // Filters auxiliaries matched in the sentence based on a precedence exception filter.
-            auxiliaryIndices = auxiliaryPrecedenceExceptionFilter(sentence, auxiliaryIndices);
+            auxiliaryIndices = auxiliaryPrecedenceExceptionFilter(sentence, auxiliaryIndices, "fr");
             // Filters auxiliaries matched in the sentence based on a elision exception filter.
             auxiliaryIndices = elisionAuxiliaryExceptionFilter(sentence, auxiliaryIndices);
             indices = [].concat(auxiliaryIndices, stopwordIndices, stopCharacterIndices);
             break;
         case "es":
+            indices = [].concat(auxiliaryIndices, stopwordIndices, stopCharacterIndices);
+            break;
+        case "it":
+            // Filters auxiliaries matched in the sentence based on a precedence exception filter.
+            auxiliaryIndices = auxiliaryPrecedenceExceptionFilter(sentence, auxiliaryIndices, "it");
             indices = [].concat(auxiliaryIndices, stopwordIndices, stopCharacterIndices);
             break;
         case "en":
@@ -18751,11 +21766,12 @@ var getAuxiliaryMatches = function getAuxiliaryMatches(sentencePart, language) {
     switch (language) {
         case "fr":
         case "es":
+        case "it":
             // An array with the matched auxiliaries and their indices.
             var auxiliaryMatchIndices = getIndicesOfList(auxiliaryMatches, sentencePart);
-            if (language === "fr") {
+            if (language === "fr" || language === "it") {
                 // Filters auxiliaries matched in the sentence part based on a precedence exception filter.
-                auxiliaryMatchIndices = auxiliaryPrecedenceExceptionFilter(sentencePart, auxiliaryMatchIndices);
+                auxiliaryMatchIndices = auxiliaryPrecedenceExceptionFilter(sentencePart, auxiliaryMatchIndices, language);
             }
             // Filters auxiliaries matched in the sentence part based on a exception filter for words following the auxiliary.
             auxiliaryMatchIndices = followingAuxiliaryExceptionFilter(sentencePart, auxiliaryMatchIndices, language);
@@ -18819,7 +21835,7 @@ module.exports = function (sentence, language) {
 };
 
 
-},{"../../../stringProcessing/createRegexFromArray.js":222,"../../../stringProcessing/followsIndex":227,"../../../stringProcessing/includesIndex":237,"../../../stringProcessing/indices":238,"../../../stringProcessing/quotes.js":246,"../../../stringProcessing/stripSpaces.js":256,"../../english/passiveVoice/SentencePart":132,"../../english/passiveVoice/auxiliaries.js":133,"../../english/passiveVoice/stopwords.js":136,"../../french/passiveVoice/SentencePart":145,"../../french/passiveVoice/auxiliaries.js":146,"../../french/passiveVoice/stopwords.js":149,"../../spanish/passiveVoice/SentencePart":203,"../../spanish/passiveVoice/auxiliaries.js":205,"../../spanish/passiveVoice/stopwords.js":207,"./getIndicesWithRegex.js":190,"lodash/filter":488,"lodash/forEach":493,"lodash/includes":499,"lodash/isUndefined":521,"lodash/map":524}],193:[function(require,module,exports){
+},{"../../../stringProcessing/createRegexFromArray.js":244,"../../../stringProcessing/followsIndex":249,"../../../stringProcessing/includesIndex":259,"../../../stringProcessing/indices":260,"../../../stringProcessing/quotes.js":270,"../../../stringProcessing/stripSpaces.js":280,"../../english/passiveVoice/SentencePart":142,"../../english/passiveVoice/auxiliaries.js":143,"../../english/passiveVoice/stopwords.js":146,"../../french/passiveVoice/SentencePart":155,"../../french/passiveVoice/auxiliaries.js":156,"../../french/passiveVoice/stopwords.js":159,"../../italian/passiveVoice/SentencePart":189,"../../italian/passiveVoice/auxiliaries.js":190,"../../italian/passiveVoice/stopwords.js":192,"../../spanish/passiveVoice/SentencePart":224,"../../spanish/passiveVoice/auxiliaries.js":226,"../../spanish/passiveVoice/stopwords.js":228,"./getIndicesWithRegex.js":207,"lodash/filter":516,"lodash/forEach":521,"lodash/includes":527,"lodash/isUndefined":547,"lodash/map":550}],210:[function(require,module,exports){
 "use strict";
 
 var find = require("lodash/find");
@@ -18831,13 +21847,14 @@ var irregularsRegularFrench = require("../../french/passiveVoice/irregulars")().
 var irregularsIrregularFrench = require("../../french/passiveVoice/irregulars")().irregularsIrregular;
 var irregularsEndingInSFrench = require("../../french/passiveVoice/irregulars")().irregularsEndingInS;
 var spanishParticiples = require("../../spanish/passiveVoice/participles")();
+var italianParticiples = require("../../italian/passiveVoice/participles")();
 // The language-specific participle regexes.
 var languageVariables = {
     en: {
-        regularParticiplesRegex: /\w+ed($|[ \n\r\t\.,'\(\)\"\+\-;!?:\/»«‹›<>])/ig
+        regularParticiplesRegex: /\w+ed($|[ \n\r\t.,'()"+\-;!?:/»«‹›<>])/ig
     },
     fr: {
-        regularParticiplesRegex: /\S+(é|ée|és|ées)($|[ \n\r\t\.,'\(\)\"\+\-;!?:\/»«‹›<>])/ig
+        regularParticiplesRegex: /\S+(é|ée|és|ées)($|[ \n\r\t.,'()"+\-;!?:/»«‹›<>])/ig
     }
 };
 /**
@@ -18849,8 +21866,8 @@ var languageVariables = {
  * @returns {Array} A list with the matches.
  */
 var regularParticiples = function regularParticiples(word, language) {
-    // In Spanish we don't match participles with a regular regex pattern.
-    if (language === "es") {
+    // In Spanish and Italian we don't match participles with a regular regex pattern.
+    if (language === "es" || language === "it") {
         return [];
     }
     // Matches all words with a language-specific participle suffix.
@@ -18863,7 +21880,7 @@ var regularParticiples = function regularParticiples(word, language) {
  * @param {string} word The word to match on.
  * @param {Array} irregulars The list of irregulars to match.
  * @param {string} suffixes The suffixes to match the word with.
- * @param {Array} matches The array into which to push the matches.
+ *
  * @returns {Array} A list with matched irregular participles.
  */
 var matchFrenchParticipleWithSuffix = function matchFrenchParticipleWithSuffix(word, irregulars, suffixes) {
@@ -18905,6 +21922,12 @@ var irregularParticiples = function irregularParticiples(word, language) {
                 matches.push(word);
             }
             break;
+        case "it":
+            // In Italian, we only match passives from a word list.
+            if (includes(italianParticiples, word)) {
+                matches.push(word);
+            }
+            break;
         case "en":
         default:
             find(irregularsEnglish, function (irregularParticiple) {
@@ -18924,7 +21947,7 @@ module.exports = function () {
 };
 
 
-},{"../../english/passiveVoice/irregulars":134,"../../french/passiveVoice/irregulars":148,"../../spanish/passiveVoice/participles":206,"lodash/find":489,"lodash/forEach":493,"lodash/includes":499,"lodash/memoize":525}],194:[function(require,module,exports){
+},{"../../english/passiveVoice/irregulars":144,"../../french/passiveVoice/irregulars":158,"../../italian/passiveVoice/participles":191,"../../spanish/passiveVoice/participles":227,"lodash/find":517,"lodash/forEach":521,"lodash/includes":527,"lodash/memoize":551}],211:[function(require,module,exports){
 "use strict";
 
 var transitionWords = require("./transitionWords.js")().singleWords;
@@ -18996,7 +22019,7 @@ module.exports = function () {
 };
 
 
-},{"./transitionWords.js":195}],195:[function(require,module,exports){
+},{"./transitionWords.js":212}],212:[function(require,module,exports){
 "use strict";
 
 var singleWords = ["ademais", "afinal", "aliás", "analogamente", "anteriormente", "assim", "certamente", "conforme", "conquanto", "contudo", "decerto", "embora", "enfim", "enquanto", "então", "entretanto", "eventualmente", "igualmente", "inegavelmente", "inesperadamente", "mas", "outrossim", "pois", "porquanto", "porque", "portanto", "posteriormente", "precipuamente", "primeiramente", "primordialmente", "principalmente", "salvo", "semelhantemente", "similarmente", "sobretudo", "surpreendentemente", "todavia"];
@@ -19014,7 +22037,7 @@ module.exports = function () {
 };
 
 
-},{}],196:[function(require,module,exports){
+},{}],213:[function(require,module,exports){
 "use strict";
 /**
  * Returns an array with two-part transition words to be used by the assessments.
@@ -19026,7 +22049,7 @@ module.exports = function () {
 };
 
 
-},{}],197:[function(require,module,exports){
+},{}],214:[function(require,module,exports){
 "use strict";
 
 var wordCountInText = require("./wordCountInText.js");
@@ -19052,7 +22075,7 @@ module.exports = function (paper) {
 };
 
 
-},{"./imageCountInText.js":174,"./wordCountInText.js":214}],198:[function(require,module,exports){
+},{"./imageCountInText.js":185,"./wordCountInText.js":236}],215:[function(require,module,exports){
 "use strict";
 
 var getRelevantWords = require("../stringProcessing/relevantWords").getRelevantWords;
@@ -19068,7 +22091,92 @@ function relevantWords(paper) {
 module.exports = relevantWords;
 
 
-},{"../stringProcessing/relevantWords":247}],199:[function(require,module,exports){
+},{"../stringProcessing/relevantWords":271}],216:[function(require,module,exports){
+"use strict";
+/**
+ *  Returns an array with exceptions for the sentence beginning researcher.
+ *  @returns {Array} The array filled with exceptions.
+ *  */
+
+module.exports = function () {
+    return [
+    // Numbers 1-10:
+    "один", "одна", "одно", "два", "две", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять", "десять",
+    // Demonstrative pronouns: тот, этот, такой, таков, столько
+    "этот", "этого", "этому", "этим", "этом", "эта", "этой", "эту", "это", "этого", "этому", "эти", "этих", "этим", "этими", "тот", "того", "тому", "тем", "том", "та", "той", "ту", "те", "тех", "тем", "теми", "тех", "такой", "такого", "такому", "таким", "такая", "такую", "такое", "такие", "таких", "таким", "такими", "стольких", "стольким", "столько", "столькими", "вот"];
+};
+
+
+},{}],217:[function(require,module,exports){
+"use strict";
+
+var transitionWords = require("./transitionWords.js")().allWords;
+/**
+ * Returns an object with exceptions for the prominent words researcher
+ * @returns {Object} The object filled with exception arrays.
+ */
+// Verbs
+var filteredPassiveAuxiliaries = ["быть", "был", "была", "было", "были", "будет", "будут"];
+var otherAuxiliaries = ["мочь", "мог", "могла", "могли", "могу", "можешь", "может", "можем", "можете", "могут", "смочь", "смогу", "сможешь", "сможет", "сможем", "сможете", "смогут", "решиться", "решился", "решилась", "решились", "решусь", "решишься", "решится", "решимся", "решитесь", "решатся", "делать", "делал", "делала", "делало", "делали", "делали", "делаю", "делаешь", "делает", "делаем", "делаете", "делают", "сделать", "сделал", "сделала", "сделало", "сделали", "сделали", "сделаю", "сделаешь", "сделает", "сделаем", "сделаете", "сделают", "иметь", "имел", "имела", "имело", "имели", "имею", "имеешь", "имеет", "имеем", "имеете", "имеют", "следует", "следовало", "необходимо", "необходим", "необходима", "необходимы", "нужно", "нужен", "нужна", "обязан", "обязана", "обязано", "обязаны", "должен", "должна", "должно", "должны", "требуется", "требуются", "имеется", "имеются", "есть", "можно"];
+var copula = ["появиться", "появился", "появилась", "появилось", "появились", "появлюсь", "появишься", "появится", "появимся", "появитесь", "появимся", "появляться", "появлялся", "появлялась", "появлялось", "появлялись", "появляюсь", "появляешься", "появляется", "появляемся", "появляются", "появляетесь", "стал", "стала", "стало", "стану", "станешь", "станет", "станем", "станете", "станут", "становиться", "становился", "становилось", "становилась", "становились", "становлюсь", "становишься", "становится", "становимся", "становитесь", "становятся", "прийти", "пришел", "пришёл", "пришла", "пришло", "пришли", "приду", "придешь", "придёшь", "придет", "придёт", "придем", "придём", "придете", "придёте", "придут", "приходить", "приходил", "приходила", "приходило", "приходили", "прихожу", "приходишь", "приходит", "приходим", "приходите", "происходить", "происходил", "происходила", "происходило", "происходили", "происходит", "происходят", "держать", "держал", "держала", "держало", "держали", "держу", "держишь", "держит", "держим", "держите", "держут", "содержать", "содержал", "содержала", "содержало", "содержали", "содержу", "содержишь", "содержит", "содержим", "содержите", "содержут", "остаться", "остался", "осталась", "осталось", "остались", "останусь", "останешься", "останется", "останутся", "останетесь", "останемся", "оставаться", "оставался", "оставалась", "оставалось", "оставались", "остаюсь", "остаешься", "остаёшься", "остается", "остаётся", "остаемся", "остаёмся", "остаетесь", "остаётесь", "остаются", "изменяться", "изменялся", "изменялась", "изменялось", "изменялись", "изменюсь", "изменишься", "изменится", "изменимся", "изменитесь", "изменятся", "успеть", "успел", "успела", "успело", "успели", "успею", "успеешь", "успеет", "успеем", "успеете", "успеют", "заниматься", "занимался", "занималась", "занимаюсь", "занимаешься", "занимается", "занимаемся", "занимаетесь", "занимаемся", "заняться", "занялся", "занялась", "занялись", "займусь", "займешься", "займется", "займемся", "займетесь", "займутся", "займёшься", "займётся", "займёмся", "займётесь"];
+// These verbs are frequently used in interviews to indicate questions and answers.
+var interviewVerbs = ["сказать", "сказал", "сказала", "сказали", "говорить", "говорил", "говорила", "говорили", "говорит", "говорю", "говорим", "говоришь", "говорят", "говорите", "объявить", "объявил", "объявила", "объявили", "заявить", "заявил", "заявила", "заявили", "спросить", "спросил", "спросила", "спросили", "указать", "указал", "указала", "указали", "объяснить", "объяснил", "объяснила", "объяснили", "подумать", "подумал", "подумала", "подумали", "думать", "думал", "думала", "думали", "думаю", "думает", "думаешь", "думаем", "думаете", "думают", "рассказывать", "рассказывал", "рассказывала", "рассказывали", "рассказывают", "рассказывает", "рассказать", "рассказал", "рассказала", "рассказали", "обсудить", "обсудил", "обсудила", "обсудили", "предложить", "предложил", "предложила", "предложили", "понимать", "понимал", "понимала", "понимали", "понимаю", "понимаешь", "понимает", "понимаем", "понимаете", "понимают", "добавить", "добавил", "добавила", "добавили", "добавлю", "добавишь", "добавит", "добавим", "добавите", "добавят"];
+var delexicalizedVerbs = ["казаться", "кажется", "казалось", "казалась", "казался", "казались", "кажутся", "давайте", "давай", "хотеть", "хочу", "хочешь", "хочет", "хотим", "хотите", "хотят", "хотел", "хотела", "хотело", "хотели", "показать", "показал", "показала", "показало", "показали", "покажу", "покажешь", "покажет", "покажем", "покажете", "покажут", "показывать", "показывал", "показывала", "показывало", "показывали", "показываю", "показываешь", "показывает", "показываем", "показываете", "показывают", "идти", "шел", "шёл", "шла", "шло", "шли", "иду", "идешь", "идёшь", "идет", "идёт", "идем", "идём", "идете", "идёте", "идут", "брать", "брал", "брала", "брало", "брали", "беру", "берешь", "берёшь", "берёт", "берем", "берём", "берёте", "берут", "взять", "взял", "взяла", "взяло", "взяли", "возьму", "возьмешь", "возьмет", "возьмем", "возьмете", "возьмут", "класть", "кладу", "кладешь", "кладет", "кладёшь", "кладёт", "кладем", "кладете", "кладём", "кладёте", "кладут", "положить", "положил", "положила", "положило", "положили", "положу", "положишь", "положит", "положим", "положите", "положат", "использовать", "использовал", "использовала", "использовало", "использовали", "использую", "используешь", "используем", "используете", "используют", "пробовать", "пробовал", "пробовала", "пробовало", "пробовали", "пробую", "пробуешь", "пробует", "пробуем", "пробуете", "пробуют", "попробовать", "попробовал", "попробовала", "попробовало", "попробовали", "попробую", "попробуешь", "попробует", "попробуем", "попробуете", "попробуют", "иметь", "имел", "имела", "имело", "имели", "имею", "имеешь", "имеет", "имеем", "имеете", "имеют", "означать", "означал", "означала", "означало", "означали", "означает", "означают", "добавлять", "добавлял", "добавляла", "добавляло", "добавляли", "добавляю", "добавляешь", "добавляет", "добавляем", "добавляете", "добавляют", "состоять", "состоял", "состояла", "состояло", "состояли", "состою", "состоишь", "состоит", "состоим", "состоите", "состоят", "убеждаться", "убедился", "убедилась", "убедилось", "убедишься", "убедится", "убедимся", "убедитесь", "убедятся", "убеждать", "убедил", "убедила", "убедили", "убедишь", "убедит", "убедим", "убедите", "убедят", "являться", "являлся", "являлась", "являлось", "являлись", "являюсь", "являешься", "является", "являемся", "являетесь", "являются"];
+// Numerals
+var cardinalNumerals = ["один", "одна", "одно", "одни", "два", "две", "двое", "двух", "двоих", "двум", "двоим", "двумя", "двоими", "три", "трое", "трех", "трёх", "троих", "трем", "трём", "троим", "тремя", "четыре", "пять", "шесть", "семь", "восемь", "девять", "десять", "одиннадцать", "двенадцать", "тринадцать", "четырнадцать", "пятнадцать", "шестнадцать", "семнадцать", "восемнадцать", "девятнадцать", "двадцать", "тридцать", "сорок", "пятьдесят", "шестьдесят", "семьдесят", "восемьдесят", "девяносто", "сто", "сотни", "двести", "триста", "четыреста", "пятьсот", "шестьсот", "семьсот", "восемьсот", "девятьсот", "тысяча", "тысячи", "тысяче", "тысячей", "тысячам", "тысячами", "тысячах", "тыс", "миллион", "миллиона", "миллиону", "миллионом", "миллионе", "миллионы", "миллионов", "миллионам", "миллионами", "миллионах", "миллиард", "миллиарда", "миллиарду", "миллиардом", "миллиарде", "миллиарды", "миллиардов", "миллиардам", "миллиардами", "миллиардах"];
+var ordinalNumerals = ["первый", "первого", "первому", "первом", "первым", "первая", "первой", "первое", "первые", "первых", "первыми", "второй", "второго", "второму", "втором", "вторым", "вторая", "второй", "второе", "вторые", "вторых", "вторыми", "третий", "третьего", "третьему", "третьим", "третьем", "третья", "третьей", "третье", "третьи", "третьих", "третьими", "четвертый", "четвертого", "четвертому", "четвертым", "четвертом", "четвертая", "четвертой", "четвертое", "четвертые", "четвертых", "четвертыми", "пятый", "пятого", "пятому", "пятом", "пятым", "пятая", "пятое", "пятые", "пятых", "пятыми", "шестой", "шестого", "шестому", "шестым", "шестая", "шестое", "шестые", "шестых", "шестыми", "седьмой", "седьмого", "седьмому", "седьмым", "седьмая", "седьмое", "седьмые", "седьмых", "седьмыми", "восьмой", "восьмого", "восьмому", "восьмым", "восьмая", "восьмое", "восьмые", "восьмых", "восьмыми", "девятый", "девятого", "девятому", "девятым", "девятая", "девятое", "девятые", "девятых", "девятыми", "десятый", "десятого", "десятому", "десятым", "десятая", "десятое", "десятые", "десятых", "десятыми", "одиннадцатый", "одиннадцатого", "одиннадцатому", "одиннадцатым", "одиннадцатая", "одиннадцатое", "одиннадцатые", "одиннадцатых", "одиннадцатыми", "двенадцатый", "двенадцатого", "двенадцатому", "двенадцатым", "двенадцатая", "двенадцатое", "двенадцатые", "двенадцатых", "двенадцатыми", "тринадцатый", "тринадцатого", "тринадцатому", "тринадцатым", "тринадцатая", "тринадцатое", "тринадцатые", "тринадцатых", "тринадцатыми", "четырнадцатый", "четырнадцатого", "четырнадцатому", "четырнадцатым", "четырнадцатая", "четырнадцатое", "четырнадцатые", "четырнадцатых", "четырнадцатыми", "пятнадцатый", "пятнадцатого", "пятнадцатому", "пятнадцатым", "пятнадцатая", "пятнадцатое", "пятнадцатые", "пятнадцатых", "пятнадцатыми", "шестнадцатый", "шестнадцатого", "шестнадцатому", "шестнадцатым", "шестнадцатая", "шестнадцатое", "шестнадцатые", "шестнадцатых", "шестнадцатыми", "семнадцатый", "семнадцатого", "семнадцатому", "семнадцатым", "семнадцатая", "семнадцатое", "семнадцатые", "семнадцатых", "семнадцатыми", "восемнадцатый", "восемнадцатого", "восемнадцатому", "восемнадцатым", "восемнадцатая", "восемнадцатое", "восемнадцатые", "восемнадцатых", "восемнадцатыми", "девятнадцатый", "девятнадцатого", "девятнадцатому", "девятнадцатым", "девятнадцатая", "девятнадцатое", "девятнадцатые", "девятнадцатых", "девятнадцатыми", "двадцатый", "двадцатого", "двадцатому", "двадцатым", "двадцатая", "двадцатое", "двадцатые", "двадцатых", "двадцатыми", "тридцатый", "тридцатого", "тридцатому", "тридцатым", "тридцатая", "тридцатое", "тридцатые", "тридцатых", "тридцатыми", "сороковой", "сорокового", "сороковому", "сороковым", "сороковая", "сороковое", "сороковые", "сороковых", "сороковыми", "пятидесятый", "пятидесятого", "пятидесятому", "пятидесятым", "пятидесятая", "пятидесятое", "пятидесятые", "пятидесятых", "пятидесятыми", "шестидесятый", "шестидесятого", "шестидесятому", "шестидесятым", "шестидесятая", "шестидесятое", "шестидесятые", "шестидесятых", "шестидесятыми", "семидесятый", "семидесятого", "семидесятому", "семидесятым", "семидесятая", "семидесятое", "семидесятые", "семидесятых", "семидесятыми", "восьмидесятый", "восьмидесятого", "восьмидесятому", "восьмидесятым", "восьмидесятая", "восьмидесятое", "восьмидесятые", "восьмидесятых", "восьмидесятыми", "девяностый", "девяностого", "девяностому", "девяностым", "девяностая", "девяностое", "девяностые", "девяностых", "девяностыми", "сотый", "сотого", "сотому", "сотым", "сотая", "сотое", "сотые", "сотых", "сотыми", "двухсотый", "двухсотого", "двухсотому", "двухсотым", "двухсотая", "двухсотое", "двухсотые", "двухсотых", "двухсотыми", "трехсотый", "трехсотого", "трехсотому", "трехсотым", "трехсотая", "трехсотое", "трехсотые", "трехсотых", "трехсотыми", "трёхсотый", "трёхсотого", "трёхсотому", "трёхсотым", "трёхсотая", "трёхсотое", "трёхсотые", "трёхсотых", "трёхсотыми", "четырехсотый", "четырехсотого", "четырехсотому", "четырехсотым", "четырехсотая", "четырехсотое", "четырехсотые", "четырехсотых", "четырехсотыми", "четырёхсотый", "четырёхсотого", "четырёхсотому", "четырёхсотым", "четырёхсотая", "четырёхсотое", "четырёхсотые", "четырёхсотых", "четырёхсотыми", "пятисотый", "пятисотого", "пятисотому", "пятисотым", "пятисотая", "пятисотое", "пятисотые", "пятисотых", "пятисотыми", "шестисотый", "шестисотого", "шестисотому", "шестисотым", "шестисотая", "шестисотое", "шестисотые", "шестисотых", "шестисотыми", "семисотый", "семисотого", "семисотому", "семисотым", "семисотая", "семисотое", "семисотые", "семисотых", "семисотыми", "восьмисотый", "восьмисотого", "восьмисотому", "восьмисотым", "восьмисотая", "восьмисотое", "восьмисотые", "восьмисотых", "восьмисотыми", "девятисотый", "девятисотого", "девятисотому", "девятисотым", "девятисотая", "девятисотое", "девятисотые", "девятисотых", "девятисотыми", "тысячный", "тысячного", "тысячному", "тысячным", "тысячная", "тысячное", "тысячные", "тысячных", "тысячными", "миллионный", "миллионного", "миллионному", "миллионным", "миллионная", "миллионное", "миллионные", "миллионных", "миллионными", "миллиардный", "миллиардного", "миллиардному", "миллиардным", "миллиардная", "миллиардное", "миллиардные", "миллиардных", "миллиардными"];
+// Pronouns (in all cases)
+var personalPronouns = ["я", "меня", "мне", "мной", "мною", "ты", "тебя", "тебе", "тобой", "он", "его", "него", "ему", "нему", "нем", "нём", "им", "ним", "она", "ее", "нее", "неё", "её", "ей", "ею", "ней", "нею", "оно", "мы", "нам", "нас", "нами", "вы", "вас", "вам", "вами", "они", "них", "ими", "ними", "их"];
+var demonstrativePronouns = ["тот", "тому", "том", "тем", "того", "та", "той", "ту", "то", "те", "тех", "теми", "этот", "этому", "этом", "этим", "этого", "эта", "этой", "эту", "это", "эти", "этих", "этими", "такой", "такого", "такому", "таким", "таком", "такая", "такую", "такое", "такие", "таких", "такими", "этакий", "этакого", "этакому", "этаким", "этаком", "этакая", "этакую", "этакое", "этакие", "этаких", "этакими"];
+var possessivePronouns = ["мой", "моего", "моему", "моём", "моим", "моя", "моей", "мое", "моё", "мои", "моих", "моим", "твой", "твоего", "твоему", "твоём", "твоем", "твоим", "твоя", "твоей", "твою", "твое", "твоё", "твои", "твоих", "твоим", "свой", "своего", "своему", "своём", "своем", "своим", "своя", "своей", "свою", "свое", "своё", "свои", "своих", "своим",
+// Words "его", "ее", "их" already included in personalPronouns
+"наш", "нашего", "нашему", "нашем", "наша", "нашей", "наше", "наши", "нашим", "наших", "ваш", "вашего", "вашему", "вашем", "ваша", "вашей", "ваше", "ваши", "вашим", "ваших"];
+var quantifiers = ["некоторый", "некоторого", "некоторому", "некоторым", "некотором", "некоторая", "некоторую", "некоторое", "некоторые", "некоторых", "некоторыми", "многие", "многого", "многому", "многим", "многом", "многая", "многую", "многое", "многие", "многих", "многими", "много", "множество", "каждый", "каждого", "каждому", "каждым", "каждом", "каждая", "каждую", "каждое", "каждые", "каждых", "каждыми", "достаточно", "мало", "более", "больше", "большинство", "большинства", "большинству", "большинстве", "несколько", "нескольких", "менее", "меньше", "наиболее", "наименее",
+// For expressions like "что угодно", "кто угодно", "зачем угодно"
+"угодно", "же"];
+var reflexivePronouns = ["себя", "себе"];
+var indefinitePronouns = ["ничто", "ничего", "ничему", "ничем", "ни о чем", "ни о чём", "никто", "никого", "никому", "никем", "ни о ком", "весь", "всего", "всему", "всем", "всём", "все", "всё", "всех", "всеми", "всякий", "всякого", "всякому", "всяким", "всяком", "всякая", "всякой", "всякую", "всякое", "всякие", "всяких", "всякими", "кто-то", "кого-то", "кому-то", "кем-то", "ком-то", "что-то", "чего-то", "чему-то", "чем-то", "чём-то", "кто-либо", "кого-либо", "кому-либо", "кем-либо", "ком-либо", "что-либо", "чего-либо", "чему-либо", "чем-либо", "чём-либо", "кое-кто", "кое-кого", "кое-кому", "кое-кем", "кое-ком", "кое-что", "кое-чего", "кое-чему", "кое-чем", "кое-чём", "любой", "любого", "любому", "любым", "любом", "любая", "любую", "любое", "любые", "любых", "любыми", "какой", "какого", "какому", "каким", "каком", "какая", "какую", "какое", "какие", "каких", "какими", "какой-то", "какого-то", "какому-то", "каким-то", "каком-то", "какая-то", "какую-то", "какое-то", "какие-то", "каких-то", "какими-то"];
+var indefinitePronounsPossessive = ["чей-то", "чьего-то", "чьему-то", "чьим-то", "чьем-то", "чьём-то", "чья-то", "чьей-то", "чье-то", "чьё-то", "чьи-то", "чьих-то", "чьими-то", "ничей", "чьего", "чьему", "чьим", "чьем", "чьём", "чья", "чьей", "чье", "чьё", "чьи", "чьих", "чьими", "ничейный", "ничейного", "ничейному", "ничейным", "ничейном", "ничейная", "ничейной", "ничейную", "ничейное", "ничейные", "ничейных", "ничейными"];
+// Interrogatives, adverbs, intensifiers, adjectives
+var interrogativeDeterminers = ["который", "которого", "которому", "которым", "котором", "которая", "которую", "которое", "которые", "которых", "которыми", "чей", "чьего", "чьему", "чьим", "чьем", "чьём", "чья", "чьей", "чье", "чьё", "чьи", "чьих", "чьими"];
+var interrogativePronouns = ["кто", "кого", "кому", "кем", "что", "чего", "чему", "чем", "чём"];
+var interrogativeProAdverbs = ["где", "куда", "откуда", "как", "почему", "зачем", "сколько", "ли", "когда"];
+var locativeAdverbs = ["везде", "нигде", "там", "здесь", "повсюду"];
+var adverbialGenitives = ["никогда", "всегда", "однажды", "единожды", "дважды", "трижды", "четырежды", "уже"];
+var intensifiers = ["чрезвычайно", "очень", "крайне", "абсолютно", "полностью", "совершенно", "часто", "чаще", "довольно", "несколько", "значительно", "немного", "немножко", "частично", "просто"];
+var generalAdjectivesAdverbs = ["базовый", "базового", "базовому", "базовым", "базовом", "базовая", "базовой", "базовое", "базовые", "базовых", "базовым", "базовыми", "быстрый", "быстрого", "быстрому", "быстрым", "быстром", "быстрая", "быстрой", "быстрое", "быстрые", "быстрых", "быстрым", "быстрыми", "быстрейший", "быстрейшего", "быстрейшему", "быстрейшим", "быстрейшем", "быстрейшая", "быстрейшей", "быстрейшее", "быстрейшие", "быстрейших", "быстрейшим", "быстрейшими", "большой", "большого", "большому", "большим", "большом", "большая", "большое", "большие", "больших", "большим", "большими", "быстрее", "быстро", "важный", "важного", "важному", "важным", "важном", "важная", "важной", "важное", "важные", "важных", "важным", "важными", "важнее", "важно", "возможный", "возможного", "возможному", "возможным", "возможном", "возможная", "возможной", "возможное", "возможные", "возможных", "возможным", "возможными", "высокий", "высокого", "высокому", "высоким", "высоком", "высокая", "высокой", "высокое", "высокие", "высоких", "высоким", "высокими", "выше", "высоко", "главный", "главного", "главному", "главным", "главном", "главная", "главной", "главное", "главные", "главных", "главным", "главными", "далекий", "далекого", "далекому", "далеким", "далеком", "далекая", "далекой", "далекое", "далекие", "далеких", "далеким", "далекими", "далёкий", "далёкого", "далёкому", "далёким", "далёком", "далёкая", "далёкой", "далёкое", "далёкие", "далёких", "далёким", "далёкими", "длиннее", "длинный", "длинного", "длинному", "длинным", "длинном", "длинная", "длинной", "длинное", "длинные", "длинных", "длинным", "длинными", "доступный", "доступного", "доступному", "доступным", "доступном", "доступная", "доступной", "доступное", "доступные", "доступных", "доступным", "доступными", "жуткий", "жуткого", "жуткому", "жутким", "жутком", "жуткая", "жуткой", "жуткое", "жуткие", "жутких", "жутким", "жуткими", "законченный", "законченного", "законченному", "законченным", "законченном", "законченная", "законченной", "законченное", "законченные", "законченных", "законченным", "законченными", "занят", "занята", "заняты", "занятой", "занятого", "занятому", "занятым", "занятом", "занятая", "занятое", "занятые", "занятых", "занятым", "занятыми", "короткий", "короткого", "короткому", "коротким", "коротком", "короткая", "короткой", "короткое", "короткие", "коротких", "коротким", "короткими", "короче", "кошмарный", "кошмарного", "кошмарному", "кошмарным", "кошмарном", "кошмарная", "кошмарной", "кошмарное", "кошмарные", "кошмарных", "кошмарным", "кошмарными", "красивый", "красивого", "красивому", "красивым", "красивом", "красивая", "красивой", "красивое", "красивые", "красивых", "красивым", "красивыми", "лёгкий", "лёгкого", "лёгкому", "лёгким", "лёгком", "лёгкая", "лёгкой", "лёгкое", "лёгкие", "лёгких", "лёгким", "лёгкими", "легкий", "легкого", "легкому", "легким", "легком", "легкая", "легкой", "легкое", "легкие", "легких", "легким", "легкими", "легко", "легче", "лучше", "лучший", "лучшего", "лучшему", "лучшим", "лучшем", "лучшая", "лучшей", "лучшее", "лучшие", "лучших", "лучшим", "лучшими", "маленький", "маленького", "маленькому", "маленьким", "маленьком", "маленькая", "маленькой", "маленькое", "маленькие", "маленьких", "маленьким", "маленькими", "малюсенький", "малюсенького", "малюсенькому", "малюсеньким", "малюсеньком", "малюсенькая", "малюсенькой", "малюсенькое", "малюсенькие", "малюсеньких", "малюсеньким", "малюсенькими", "меньший", "меньшего", "меньшему", "меньшим", "меньшем", "меньшая", "меньшей", "меньшее", "меньшие", "меньших", "меньшим", "меньшими", "многочисленный", "многочисленного", "многочисленному", "многочисленным", "многочисленном", "многочисленная", "многочисленной", "многочисленное", "многочисленные", "многочисленных", "многочисленным", "многочисленными", "молодой", "молодого", "молодому", "молодым", "молодом", "молодая", "молодое", "называемый", "называемого", "называемому", "называемым", "называемом", "называемая", "называемой", "называемое", "называемые", "называемых", "называемым", "называемыми", "больший", "большего", "большему", "большим", "большем", "большая", "большей", "большее", "большие", "больших", "большим", "большими", "наибольший", "наибольшего", "наибольшему", "наибольшим", "наибольшем", "наибольшая", "наибольшей", "наибольшее", "наибольшие", "наибольших", "наибольшим", "наибольшими", "меньший", "меньшего", "меньшему", "меньшим", "меньшем", "меньшая", "меньшей", "меньшее", "меньшие", "меньших", "меньшим", "меньшими", "наименьший", "наименьшего", "наименьшему", "наименьшим", "наименьшем", "наименьшая", "наименьшей", "наименьшее", "наименьшие", "наименьших", "наименьшим", "наименьшими", "наихудший", "наихудшего", "наихудшему", "наихудшим", "наихудшем", "наихудшая", "наихудшей", "наихудшее", "наихудшие", "наихудших", "наихудшим", "наихудшими", "напрямую", "настоящий", "настоящего", "настоящему", "настоящим", "настоящем", "настоящая", "настоящей", "настоящее", "настоящие", "настоящих", "настоящим", "настоящими", "недавний", "недавнего", "недавнему", "недавним", "недавнем", "недавняя", "недавней", "недавнее", "недавние", "недавних", "недавним", "недавними", "необходимый", "необходимого", "необходимому", "необходимым", "необходимом", "необходимая", "необходимой", "необходимое", "необходимые", "необходимых", "необходимым", "необходимыми", "ниже", "низкий", "низкого", "низкому", "низким", "низком", "низкая", "низкой", "низкое", "низкие", "низких", "низким", "низкими", "новейший", "новейшего", "новейшему", "новейшим", "новейшем", "новейшая", "новейшей", "новейшее", "новейшие", "новейших", "новейшим", "новейшими", "новый", "нового", "новому", "новым", "новом", "новая", "новое", "новые", "новых", "новым", "новыми", "нормальный", "нормального", "нормальному", "нормальным", "нормальном", "нормальная", "нормальное", "нормальные", "нормальных", "нормальным", "нормальными", "обыкновенный", "обыкновенного", "обыкновенному", "обыкновенным", "обыкновенном", "обыкновенная", "обыкновенное", "обыкновенные", "обыкновенных", "обыкновенным", "обыкновенными", "обычный", "обычного", "обычному", "обычным", "обычном", "обычная", "обычное", "обычные", "обычных", "обычным", "обычными", "основной", "основного", "основному", "основным", "основном", "основная", "основное", "основные", "основных", "основным", "основными", "особенный", "особенного", "особенному", "особенным", "особенном", "особенная", "особенное", "особенные", "особенных", "особенным", "особенными", "отличный", "отличного", "отличному", "отличным", "отличном", "отличная", "отличное", "отличные", "отличных", "отличным", "отличными", "очевидный", "очевидного", "очевидному", "очевидным", "очевидном", "очевидная", "очевидное", "очевидные", "очевидных", "очевидным", "очевидными", "плохой", "плохого", "плохому", "плохим", "плохом", "плохая", "плохое", "плохие", "плохих", "плохим", "плохими", "последний", "последнего", "последнему", "последним", "последнем", "последняя", "последней", "последнее", "последние", "последних", "последним", "последними", "постоянно", "постоянный", "постоянного", "постоянному", "постоянным", "постоянном", "постоянная", "постоянное", "постоянные", "постоянных", "постоянным", "постоянными", "похожий", "похожего", "похожему", "похожим", "похожем", "похожая", "похожей", "похожее", "похожие", "похожих", "похожим", "похожими", "почти", "предыдущий", "предыдущего", "предыдущему", "предыдущим", "предыдущем", "предыдущая", "предыдущей", "предыдущее", "предыдущие", "предыдущих", "предыдущим", "предыдущими", "простейший", "простейшая", "простейшей", "простой", "простого", "простому", "простым", "простом", "простая", "простое", "простые", "простых", "простым", "простыми", "проще", "ранний", "раннего", "раннему", "ранним", "раннем", "ранняя", "ранней", "раннее", "ранние", "ранних", "ранним", "ранними", "разный", "разного", "разному", "разным", "разном", "разная", "разной", "разное", "разные", "разных", "разным", "разными", "самый", "самого", "самому", "самым", "самом", "самая", "самой", "самое", "самые", "самых", "самым", "самыми", "собственный", "собственного", "собственному", "собственным", "собственном", "собственная", "собственное", "собственные", "собственных", "собственным", "собственными", "специальный", "специального", "специальному", "специальным", "специальном", "специальная", "специальное", "специальные", "специальных", "специальным", "специальными", "специфичный", "специфичного", "специфичному", "специфичным", "специфичном", "специфичная", "специфичное", "специфичные", "специфичных", "специфичным", "специфичными", "средний", "среднего", "среднему", "средним", "среднем", "средняя", "средней", "среднее", "средние", "средних", "средним", "средними", "старейший", "старейшего", "старейшему", "старейшим", "старейшем", "старейшая", "старейшей", "старейшее", "старейшие", "старейших", "старейшим", "старейшими", "старый", "старого", "старому", "старым", "старом", "старая", "старой", "старое", "старые", "старых", "старым", "старыми", "текущий", "текущего", "текущему", "текущим", "текущем", "текущая", "текущей", "текущее", "текущие", "текущих", "текущим", "текущими", "тяжелее", "тяжёлый", "тяжёлого", "тяжёлому", "тяжёлым", "тяжёлом", "тяжёлая", "тяжёлое", "тяжёлые", "тяжёлых", "тяжёлым", "тяжёлыми", "тяжелый", "тяжелого", "тяжелому", "тяжелым", "тяжелом", "тяжелая", "тяжелое", "тяжелые", "тяжелых", "тяжелым", "тяжелыми", "хороший", "хорошего", "хорошему", "хорошим", "хорошем", "хорошая", "хорошей", "хорошее", "хорошие", "хороших", "хорошим", "хорошими", "хорошо", "худший", "худшего", "худшему", "худшим", "худшем", "худшая", "худшей", "худшее", "худшие", "худших", "худшим", "худшими", "хуже", "целый", "целого", "целому", "целым", "целом", "целая", "целой", "целое", "целые", "целых", "целым", "целыми", "именно", "обязательно", "действительно"];
+// Prepositions, taken from https://github.com/sshra/database-russian-morphology/blob/master/words-russian-prepositions-morf.sql.gz
+var prepositions = ["а-ля", "без", "безо", "без ведома", "благодаря", "близ", "в", "во", "в адрес", "в аспекте", "в виде", "в глазах", "в глубь", "в деле", "в дополнение к", "в духе", "в завершение", "в зависимости от", "в заключение", "в знак", "в интересах", "в качестве", "в лице", "в меру", "в направлении", "в направлении к", "в направлении ко", "в нарушение", "в области", "в обмен на", "в обстановке", "в обход", "в ответ на", "в отдалении от", "в отличие от", "в отношении", "в память", "в плане", "в пользу", "в порядке", "в предвидении", "в предвкушении", "в преддверии", "в присутствии", "в продолжение", "в противность", "в противовес", "в противоположность", "в процессе", "в разрезе", "в районе", "в рамках", "в рассуждении", "в расчете на", "в результате", "в роли", "в ряду", "в свете", "в связи с", "в связи со", "в силу", "в случае", "в смысле", "в согласии с", "в сообществе с", "в соответствии с", "в соответствии со", "в сопоставлении с", "в сопровождении", "в составе", "в сравнении с", "в сравнении со", "в стороне от", "в сторону", "в сфере", "в счет", "в течение", "в угоду", "в унисон с", "в условиях", "в ущерб", "в форме", "в ходе", "в целях", "в честь", "в числе", "в число", "вблизи", "вблизи от", "вверху", "ввиду", "вглубь", "вдалеке от", "вдали", "вдали от", "вдобавок к", "вдобавок ко", "вдогон", "вдогонку", "вдоль", "вдоль по", "взамен", "включая", "вкось", "вкруг", "вместе с", "вместе со", "вместо", "вне", "вне зависимости от", "внизу", "внутри", "внутрь", "вовнутрь", "во время", "во главе", "во главе с", "во главе со", "во избежание", "во изменение", "во имя", "во исполнение", "во славу", "возле", "вокруг", "волею", "вопреки", "вперед", "впереди", "вплоть до", "впредь до", "вразрез", "времен", "вроде", "вслед", "вослед", "вслед за", "вследствие", "выше", "для", "до", "за", "за исключением", "за счет", "заботами", "из", "изо", "из числа", "из-за", "из-под", "из-подо", "изнутри", "именем", "имени", "исключая", "исходя из", "к", "ко", "к числу", "касаемо", "касательно", "кончая", "кроме", "кругом", "между", "меж", "промеж", "промежду", "на", "мимо", "минуя", "на", "на базе", "на благо", "на глазах у", "на грани", "на имя", "на манер", "на основании", "на основе", "на почве", "на правах", "на предмет", "на протяжении", "на пути", "на пути к", "на пути ко", "на путях", "на путях к", "на путях ко", "на радость", "на случай", "на смену", "на стороне", "на сторону", "на уровне", "на фоне", "наверху", "навстречу", "над", "надо", "назади", "накануне", "наперекор", "наперерез", "наперехват", "наподобие", "напротив", "наравне с", "наравне со", "наряду с", "наряду со", "насупротив", "насчет", "начиная", "начиная от", "начиная с", "начиная со", "не без", "не в пример", "не говоря о", "не говоря об", "не говоря обо", "не до", "не считая", "невдалеке от", "невзирая на", "недалеко", "недалеко от", "независимо", "независимо от", "неподалеку от", "несмотря на", "ниже", "о", "об", "обо", "около", "окрест", "от", "ото", "от имени", "от лица", "относительно", "памяти", "перед", "передо", "пред", "предо", "перед", "передо", "пред", "предо", "перед лицом", "плюс к", "плюс ко", "по", "по адресу", "по аналогии с", "по аналогии со", "по вине", "по истечении", "по линии", "по мере", "по направлению", "по направлению к", "по направлению ко", "по отношению к", "по отношению ко", "по поводу", "по праву", "по примеру", "по причине", "по прошествии", "по пути", "по случаю", "по сравнению с", "по сравнению со", "по стопам", "по части", "по-за", "по-над", "по-под", "поблизости", "поблизости от", "поверх", "погодя", "под", "подо", "под видом", "под знаком", "под предлогом", "под председательством", "под эгидой", "подле", "подобно", "позади", "позднее", "поздней", "позже", "помимо", "поодаль от", "поперед", "поперек", "порядка", "посереди", "посередине", "посередке", "посередь", "после", "посреди", "посредине", "посредством", "превыше", "прежде", "при", "при всей", "при всем", "при всех", "при помощи", "при посредстве", "при условии", "применительно к", "применительно ко", "про", "против", "противно", "путем", "ради", "раньше", "рядом с", "рядом со", "с", "со", "с ведома", "с помощью", "с учетом", "с целью", "сбоку", "сбоку от", "сверх", "сверху", "свыше", "сзади", "силами", "сквозь", "следом за", "смотря по", "снаружи", "снизу", "со стороны", "совместно с", "совместно со", "совокупно с", "согласно", "согласно с", "согласно со", "сообразно", "сообразно с", "сообразно со", "сообща с", "сообща со", "соответственно", "соответственно с", "соответственно со", "соразмерно", "соразмерно с", "соразмерно со", "спереди", "спустя", "сравнительно с", "сравнительно со", "среди", "средь", "сродни", "судя по", "супротив", "считая", "типа", "у", "ценой", "ценою", "через", "что до"];
+// Conjunctions (also covered by transition words
+var coordinatingConjunctions = ["и", "или", "и/или", "еще", "ещё", "а"];
+var subordinatingConjunctions = ["если", "даже"];
+var interjections = ["ох", "вау", "тю-тю", "ох-ох-ох", "эх", "фуф", "ага", "угу", "упс", "ой", "бее", "ну", "вот"];
+// These words and abbreviations are frequently used in recipes in lists of ingredients.
+var recipeWords = ["ст", "ч", "л", "кг", "полкило", "г", "гр", "мл", "дл", "пол-литра", "мг", "см", "м", "км"];
+// "век" and all its forms were not added because of conflict with "веко"
+var timeWords = ["секунд", "секунда", "минут", "минута", "час", "часа", "часов", "день", "дня", "дней", "неделя", "недели", "недель", "месяц", "месяца", "месяцев", "год", "года", "году", "годы", "лет", "гг", "сегодня", "завтра", "послезавтра", "вчера", "позавчера", "тыс до н э", "н э", "до н э", "тыс до н"];
+// 'People' should only be removed in combination with 'some', 'many' and 'few' (and is therefore not yet included in the list below).
+var vagueNouns = ["вещь", "вещи", "вещью", "вещей", "вещам", "вещами", "вещах", "метод", "метода", "методом", "методу", "методе", "методы", "методам", "методами", "методах", "способ", "способа", "способом", "способу", "способе", "способы", "способам", "способами", "способах", "свойство", "свойства", "свойстве", "свойств", "свойствам", "свойствах", "свойствами", "случай", "случая", "случаем", "случаю", "случае", "случаи", "случаям", "случаями", "случаях", "дело", "дела", "делом", "делу", "деле", "делам", "делами", "делах", "сходство", "сходства", "сходстве", "сходств", "сходствам", "сходствах", "сходствами", "часть", "части", "частью", "частей", "частям", "частями", "частях", "штука", "штуки", "штуке", "штуку", "штук", "штукам", "штуками", "штуках", "раз", "раза", "разом", "разу", "разе", "разы", "разам", "разами", "разах", "вид", "вида", "видом", "виду", "виде", "виды", "видам", "видами", "видах", "процент", "процента", "процентом", "проценту", "проценте", "проценты", "процентам", "процентами", "процентах", "аспект", "аспекта", "аспектом", "аспекту", "аспекте", "аспекты", "аспектам", "аспектами", "аспектах", "пункт", "пункта", "пунктом", "пункту", "пункте", "пункты", "пунктам", "пунктами", "пунктах", "идея", "идеи", "идее", "идеей", "идеям", "идеями", "идеях", "тема", "темы", "теме", "тему", "темой", "темам", "темами", "темах", "человек", "человека", "человеком", "человеку", "человеке", "деталь", "детали", "деталью", "деталей", "деталям", "деталями", "деталях", "подробность", "подробности", "подробностью", "подробностей", "подробностям", "подробностями", "подробностях", "фактор", "фактора", "фактором", "фактору", "факторе", "факторы", "факторам", "факторами", "факторах", "разница", "разницы", "разнице", "разницу", "разницей", "различие", "различия", "различию", "различий", "различиям", "различиями", "различиях", "отличие", "отличия", "отличию", "отличий", "отличиям", "отличиями", "отличиях", "ситуация", "ситуации", "ситуацией", "ситуаций", "ситуациям", "ситуациями", "ситуациях", "сфера", "сферы", "сфере", "сферу", "сферой", "сферам", "сферами", "сферах"];
+// 'No' is already included in the quantifier list.
+var miscellaneous = ["нет", "да", "конечно", "отлично", "верх", "низ", "ок", "окей", "аминь", "и т д", "и т. д.", "и так далее", "и тому подобное", "прости", "простите", "пожалуйста", "тут", "так", "не", "вдруг", "теперь", "точно", "бы", "сам", "сама", "само", "сами", "иногда", "сейчас", "тоже", "также", "пока", "ведь", "потом", "поэтому", "явно", "ни", "не", "будто", "напрочь", "причем", "причём", "зато", "вперед", "вперёд", "назад", "сразу", "пусть", "пускай"];
+var titlesPreceding = ["г-н", "г-жа", "тов", "гр-н", "гр-а", "гр", "проф"];
+// "ст" is already included in recipe words
+var titlesFollowing = ["мл"];
+module.exports = function () {
+    return {
+        // These word categories are filtered at the ending of word combinations.
+        filteredAtEnding: [].concat(ordinalNumerals, generalAdjectivesAdverbs),
+        // These word categories are filtered at the beginning and ending of word combinations.
+        filteredAtBeginningAndEnding: [].concat(prepositions, coordinatingConjunctions, demonstrativePronouns, intensifiers, quantifiers, possessivePronouns),
+        // These word categories are filtered everywhere within word combinations.
+        filteredAnywhere: [].concat(transitionWords, adverbialGenitives, personalPronouns, reflexivePronouns, interjections, cardinalNumerals, filteredPassiveAuxiliaries, otherAuxiliaries, copula, interviewVerbs, delexicalizedVerbs, indefinitePronouns, subordinatingConjunctions, interrogativeDeterminers, interrogativePronouns, interrogativeProAdverbs, locativeAdverbs, miscellaneous, recipeWords, timeWords, vagueNouns),
+        // This export contains all of the above words.
+        all: [].concat(cardinalNumerals, ordinalNumerals, demonstrativePronouns, possessivePronouns, reflexivePronouns, personalPronouns, quantifiers, indefinitePronouns, indefinitePronounsPossessive, interrogativeDeterminers, interrogativePronouns, interrogativeProAdverbs, locativeAdverbs, adverbialGenitives, filteredPassiveAuxiliaries, otherAuxiliaries, copula, prepositions, coordinatingConjunctions, subordinatingConjunctions, interviewVerbs, transitionWords, intensifiers, delexicalizedVerbs, interjections, generalAdjectivesAdverbs, recipeWords, vagueNouns, miscellaneous, titlesPreceding, titlesFollowing)
+    };
+};
+
+
+},{"./transitionWords.js":219}],218:[function(require,module,exports){
 "use strict";
 /**
  * Returns a list of all frequent participles used for the Russian passive voice assessment.
@@ -19098,7 +22206,39 @@ module.exports = function () {
 };
 
 
-},{}],200:[function(require,module,exports){
+},{}],219:[function(require,module,exports){
+"use strict";
+/** @module config/transitionWords */
+
+var singleWords = ["безусловно", "бесспорно", "вероятно", "вестимо", "вдобавок", "видимо", "вишь", "во-вторых", "во-первых", "вообще-то", "впрочем", "дабы", "едва", "ежели", "если", "затем ", "зачем", "ибо", "итак", "кабы", "кажется", "кажись", "коли", "кстати", "лишь", "лучше", "наверно", "наверное", "например", "небось", "нежели", "несомненно", "но", "однако", "особенно", "оттого", "отчего", "поди", "пожалуй", "позволь", "позвольте", "покамест", "покуда", "поскольку", "потому", "притом", "причем", "только", "хотя", "чтоб", "чтобы", "чуть", "якобы"];
+var multipleWords = ["а вдобавок", "а вот", "а именно", "а не то", "а не", "а потом", "а также", "без всякого сомнения", "без того чтобы не", "без того, чтобы не", "благодаря тому", "более того", "будто бы", "будь то", "буквально", "в итоге", "в конце концов", "в общей сложности", "в общем-то", "в общем", "в отношении того что", "в отношении того, что", "в принципе", "в противовес тому что", "в противовес тому, что", "в противоположность тому", "в результате", "в самом деле", "в свою очередь", "в связи с тем что", "в связи с тем", "в силу того что", "в силу того", "в силу чего", "в случа", "в сравнении с тем", "в сущности говоря", "в сущности", "в таком случае", "в то время как", "в то время, как", "в том случае", "в частности", "в-третьих", "ввиду того", "вернее говоря", "вероятнее всего", "видите ли", "видишь ли", "вместе с тем", "вместо того", "вне всякого сомнения", "вне сомнения", "во всяком случае", "воля ваша", "воля твоя", "вообще говоря", "вопреки тому", "вплоть до того", "вроде того как", "вроде того что", "вроде того", "вроде того", "вследствие того что", "вследствие чего", "грубо говоря", "да еще", "да и то", "дай бог память", "даром что", "для того чтобы", "для того, чтобы", "до тех пор пока", "до тех пор, пока", "до того как", "до того, как", "едва лишь", "едва только", "ежели бы", "если угодно", "жалко, что", "жаль, что", "за счет того что", "за счет того, что", "знамо дело", "и вот еще", "из-за того что", "из-за того, что", "иначе говоря", "исходя из того", "к вашему сведению", "к несчастью", "к огорчению", "к примеру сказать", "к примеру", "к прискорбию", "к радости", "к слову сказать", "к сожалению", "к стыду своему", "к стыду", "к счастью", "к твоему сведению", "к тому же", "к удивлению", "к ужасу", "к чести", "как будто", "как бы там ни было", "как бы то ни было", "как бы", "как вам известно", "как вдруг", "как видите", "как видишь", "как видно", "как водится", "как выяснилось", "как выясняется", "как говорилось", "как говорится", "как если бы", "как знать", "как известно", "как на заказ", "как назло", "как нарочно", "как ни говори", "как ни говорите", "как ни странно", "как оказалось", "как оказывается", "как полагается", "как положено", "как правило", "как принято говорить", "как принято", "как сказано", "как скоро", "как следствие", "как словно", "как только", "как хотите", "как это ни странно", "ко всему прочему", "коль скоро", "коль уж", "коротко говоря", "короче говоря", "кроме всего прочего", "кстати говоря", "кстати сказать", "лишь бы", "лишь только", "мало сказать", "мало того", "между нами говоря", "между прочим", "между тем как", "может статься", "можно подумать", "мягко выражаясь", "мягко говоря", "на беду", "на ваш взгляд", "на мой взгляд", "на несчастье", "на основании того что", "на основании того, что", "на первый взгляд", "на самом деле", "на случай", "на твой взгляд", "на худой конец", "надо полагать", "наряду с тем что", "наряду с тем", "насчет того что", "насчет того, что", "не в пример тому как", "не в пример тому, как", "не то чтобы", "невзирая на то", "независимо от того", "несмотря на то", "ничего не скажешь", "но вообще-то", "но кроме того", "однако же", "откровенно сказать", "относительно того что", "относительно того, что", "перед тем", "по вашему мнению", "по видимости", "по всей вероятности", "по всей видимости", "по данным", "по замыслу", "по идее", "по крайней мере", "по мере того как", "по мере того, как", "по мнению", "по моему мнению", "по обыкновению", "по обычаю", "по определению", "по поводу того", "по правде говоря", "по правде сказать", "по правде", "по преданию", "по причине того", "по прогнозам", "по сведениям", "по своему обыкновению", "по слухам", "по совести говоря", "по совести сказать", "по совести", "по сообщению", "по сообщениям", "по справедливости говоря", "по справедливости", "по сравнению", "по статистике", "по сути говоря", "по сути дела", "по сути", "по существу говоря", "по существу", "по счастью", "по твоему мнению", "по чести говоря", "по чести признаться", "по чести сказать", "по-вашему", "по-видимому", "по-ихнему", "по-моему", "по-нашему", "по-твоему", "под видом того что", "под видом того, что", "под предлогом", "подобно тому", "подумать только", "помимо всего прочего", "помимо всего", "помимо того", "помимо того", "помимо этого", "понятное дело", "попросту говоря", "попросту сказать", "после того", "потому как", "потому что", "правду говоря", "правду сказать", "правильнее говоря", "прежде всего", "прежде нежели", "прежде чем", "при всем том", "при условии что", "при условии, что", "против обыкновения", "проще говоря", "проще сказать", "прямо-таки как", "пускай бы", "равно как", "ради того чтобы", "разве что", "разумеется", "с вашего позволения", "с вашего разрешения", "с другой стороны", "с моей точки зрения", "с одной стороны", "с позволения сказать", "с твоего позволения", "с твоего разрешения", "с тем чтобы", "с тех пор как", "с той целью чтобы", "с точки зрения", "само собой разумеется", "сверх того что", "сверх того", "сказать по правде", "сказать по совести", "сказать по чести", "скорее всего", "смотря по тому", "со своей стороны", "собственно говоря", "совсем как", "стало быть", "стоит отметить", "строго говоря", "судя по всему", "судя по тому", "так или иначе", "так как", "так что", "так чтобы", "тем более что", "тем не менее", "тем паче что", "то бишь", "то есть", "тогда как", "только бы", "только лишь", "только чуть", "точнее говоря", "точнее сказать", "точно так же", "что и говорить", "что ни говори", "что ни говорите", "чуть лишь", "чуть только", "шутка ли сказать", "шутка ли", "шутка сказать", "это значит, что"];
+/**
+ * Returns lists with transition words to be used by the assessments.
+ * @returns {Object} The object with transition word lists.
+ */
+module.exports = function () {
+    return {
+        singleWords: singleWords,
+        multipleWords: multipleWords,
+        allWords: singleWords.concat(multipleWords)
+    };
+};
+
+
+},{}],220:[function(require,module,exports){
+"use strict";
+/** @module config/twoPartTransitionWords */
+/**
+ * Returns an array with two-part transition words to be used by the assessments.
+ * @returns {Array} The array filled with two-part transition words.
+ */
+
+module.exports = function () {
+    return [["будь то", "или"], ["возможно", "а может быть"], ["возможно", "возможно"], ["достаточно", "чтобы"], ["едва", "как"], ["ежели", "то"], ["если говорить о", "то"], ["если и не", "то"], ["если не", "то"], ["если", "то"], ["мало того что", "еще и"], ["мало того, что", "еще и"], ["не сказать чтобы", "но"], ["не сказать, чтобы", "но"], ["не столько", "сколько"], ["не то чтобы", "но"], ["не только не", "но и"], ["стоило", "как"], ["так как", "то"], ["только", "как"], ["хоть бы", "а то"], ["хоть", "хоть"], ["хотя", "но"], ["чем", "лучше бы"], ["чем", "тем"], ["что касается", "то"]];
+};
+
+
+},{}],221:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -19112,7 +22252,7 @@ function default_1(paper) {
 exports.default = default_1;
 
 
-},{"../stringProcessing/getSentences":231}],201:[function(require,module,exports){
+},{"../stringProcessing/getSentences":253}],222:[function(require,module,exports){
 "use strict";
 /**
  * Returns an array with exceptions for the sentence beginning researcher.
@@ -19132,7 +22272,7 @@ module.exports = function () {
 };
 
 
-},{}],202:[function(require,module,exports){
+},{}],223:[function(require,module,exports){
 "use strict";
 
 var transitionWords = require("./transitionWords.js")().singleWords;
@@ -19215,7 +22355,7 @@ module.exports = function () {
 };
 
 
-},{"./transitionWords.js":208}],203:[function(require,module,exports){
+},{"./transitionWords.js":229}],224:[function(require,module,exports){
 "use strict";
 
 var SentencePart = require("../../../values/SentencePart.js");
@@ -19242,7 +22382,7 @@ SpanishSentencePart.prototype.getParticiples = function () {
 module.exports = SpanishSentencePart;
 
 
-},{"../../../values/SentencePart.js":269,"../../passiveVoice/periphrastic/getParticiples.js":191,"util":50}],204:[function(require,module,exports){
+},{"../../../values/SentencePart.js":294,"../../passiveVoice/periphrastic/getParticiples.js":208,"util":50}],225:[function(require,module,exports){
 "use strict";
 
 var Participle = require("../../../values/Participle.js");
@@ -19280,7 +22420,7 @@ SpanishParticiple.prototype.precedenceException = precedenceException;
 module.exports = SpanishParticiple;
 
 
-},{"../../../stringProcessing/directPrecedenceException":225,"../../../stringProcessing/precedenceException":244,"../../../values/Participle.js":267,"../../passiveVoice/periphrastic/checkException.js":187,"util":50}],205:[function(require,module,exports){
+},{"../../../stringProcessing/directPrecedenceException":247,"../../../stringProcessing/precedenceException":268,"../../../values/Participle.js":292,"../../passiveVoice/periphrastic/checkException.js":204,"util":50}],226:[function(require,module,exports){
 "use strict";
 /**
  * Returns a list with auxiliaries for the Spanish passive voice assessment.
@@ -19292,7 +22432,7 @@ module.exports = function () {
 };
 
 
-},{}],206:[function(require,module,exports){
+},{}],227:[function(require,module,exports){
 "use strict";
 /**
  * Returns a list of all participles used for the Spanish passive voice assessment.
@@ -19305,7 +22445,7 @@ module.exports = function () {
 };
 
 
-},{}],207:[function(require,module,exports){
+},{}],228:[function(require,module,exports){
 "use strict";
 /**
  * Returns a list with stopwords for the Spanish passive voice assessment.
@@ -19317,7 +22457,7 @@ module.exports = function () {
 };
 
 
-},{}],208:[function(require,module,exports){
+},{}],229:[function(require,module,exports){
 "use strict";
 /** @module config/transitionWords */
 
@@ -19336,7 +22476,7 @@ module.exports = function () {
 };
 
 
-},{}],209:[function(require,module,exports){
+},{}],230:[function(require,module,exports){
 "use strict";
 /** @module config/twoPartTransitionWords */
 /**
@@ -19349,7 +22489,7 @@ module.exports = function () {
 };
 
 
-},{}],210:[function(require,module,exports){
+},{}],231:[function(require,module,exports){
 "use strict";
 /** @module researches/stopWordsInKeyword */
 
@@ -19366,7 +22506,7 @@ module.exports = function (paper) {
 };
 
 
-},{"./stopWordsInText.js":211,"lodash/escapeRegExp":487}],211:[function(require,module,exports){
+},{"./stopWordsInText.js":232,"lodash/escapeRegExp":515}],232:[function(require,module,exports){
 "use strict";
 
 var stopwords = require("../config/stopwords.js")();
@@ -19389,7 +22529,7 @@ module.exports = function (text) {
 };
 
 
-},{"../config/stopwords.js":89,"../stringProcessing/createWordRegex.js":224}],212:[function(require,module,exports){
+},{"../config/stopwords.js":91,"../stringProcessing/createWordRegex.js":246}],233:[function(require,module,exports){
 "use strict";
 /** @module researches/stopWordsInUrl */
 
@@ -19404,7 +22544,90 @@ module.exports = function (paper) {
 };
 
 
-},{"./stopWordsInText.js":211}],213:[function(require,module,exports){
+},{"./stopWordsInText.js":232}],234:[function(require,module,exports){
+"use strict";
+/** @module analyses/getTopicCount */
+
+var matchTextWithArray = require("../stringProcessing/matchTextWithArray.js");
+var normalizeQuotes = require("../stringProcessing/quotes.js").normalize;
+var parseSynonyms = require("../stringProcessing/parseSynonyms");
+var unique = require("lodash/uniq");
+var isEmpty = require("lodash/isEmpty");
+var getSentences = require("../stringProcessing/getSentences");
+var arrayToRegex = require("../stringProcessing/createRegexFromArray");
+var addMark = require("../markers/addMarkSingleWord");
+var Mark = require("../values/Mark.js");
+/**
+ * Calculates the topic count, i.e., how many times the keyword or its synonyms were encountered in the text.
+ *
+ * @param {Object}  paper                   The paper containing keyword, text and potentially synonyms.
+ * @param {boolean} [onlyKeyword=false]     Whether to only use the keyword for the count.
+ *
+ * @returns {number} The keyword count.
+ */
+module.exports = function (paper) {
+    var onlyKeyword = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+    var keyword = paper.getKeyword();
+    var synonyms = parseSynonyms(paper.getSynonyms());
+    var text = normalizeQuotes(paper.getText());
+    var sentences = getSentences(text);
+    var topicWords = [];
+    if (onlyKeyword === true) {
+        topicWords = topicWords.concat(keyword);
+    } else {
+        topicWords = topicWords.concat(keyword, synonyms).filter(Boolean);
+        topicWords.sort(function (a, b) {
+            return b.length - a.length;
+        });
+    }
+    if (isEmpty(topicWords)) {
+        return {
+            count: 0,
+            matches: [],
+            markings: [],
+            matchesIndices: []
+        };
+    }
+    var topicFound = [];
+    var topicFoundInSentence = [];
+    var markings = [];
+    var indexOfSentence = 0;
+    var indexRunningThroughSentence = 0;
+    var matchesIndices = [];
+    sentences.forEach(function (sentence) {
+        topicFoundInSentence = matchTextWithArray(sentence, topicWords).matches;
+        if (topicFoundInSentence.length > 0) {
+            topicFoundInSentence.forEach(function (occurrence) {
+                var indexOfOccurrenceInSentence = sentence.indexOf(occurrence, indexRunningThroughSentence);
+                matchesIndices.push({
+                    index: indexOfOccurrenceInSentence + indexOfSentence,
+                    match: occurrence
+                });
+                indexRunningThroughSentence += indexOfOccurrenceInSentence + occurrence.length;
+            });
+            markings = markings.concat(new Mark({
+                original: sentence,
+                marked: sentence.replace(arrayToRegex(topicFoundInSentence), function (x) {
+                    return addMark(x);
+                })
+            }));
+        }
+        topicFound = topicFound.concat(topicFoundInSentence);
+        indexOfSentence += sentence.length + 1;
+    });
+    return {
+        count: topicFound.length,
+        matches: unique(topicFound).sort(function (a, b) {
+            return b.length - a.length;
+        }),
+        markings: markings,
+        matchesIndices: matchesIndices
+    };
+};
+
+
+},{"../markers/addMarkSingleWord":124,"../stringProcessing/createRegexFromArray":244,"../stringProcessing/getSentences":253,"../stringProcessing/matchTextWithArray.js":263,"../stringProcessing/parseSynonyms":267,"../stringProcessing/quotes.js":270,"../values/Mark.js":290,"lodash/isEmpty":536,"lodash/uniq":573}],235:[function(require,module,exports){
 "use strict";
 /** @module analyses/isUrlTooLong */
 /**
@@ -19426,7 +22649,7 @@ module.exports = function (paper) {
 };
 
 
-},{}],214:[function(require,module,exports){
+},{}],236:[function(require,module,exports){
 "use strict";
 
 var wordCount = require("../stringProcessing/countWords.js");
@@ -19440,27 +22663,29 @@ module.exports = function (paper) {
 };
 
 
-},{"../stringProcessing/countWords.js":221}],215:[function(require,module,exports){
+},{"../stringProcessing/countWords.js":243}],237:[function(require,module,exports){
 "use strict";
 
-var Assessor = require("./assessor.js");
-var introductionKeyword = require("./assessments/seo/introductionKeywordAssessment.js");
-var keyphraseLength = require("./assessments/seo/keyphraseLengthAssessment.js");
-var keywordDensity = require("./assessments/seo/keywordDensityAssessment.js");
-var keywordStopWords = require("./assessments/seo/keywordStopWordsAssessment.js");
-var metaDescriptionKeyword = require("./assessments/seo/metaDescriptionKeywordAssessment.js");
-var MetaDescriptionLength = require("./assessments/seo/metaDescriptionLengthAssessment.js");
-var SubheadingsKeyword = require("./assessments/seo/subheadingsKeywordAssessment.js");
-var textCompetingLinks = require("./assessments/seo/textCompetingLinksAssessment.js");
-var TextImages = require("./assessments/seo/textImagesAssessment.js");
-var TextLength = require("./assessments/seo/textLengthAssessment.js");
-var OutboundLinks = require("./assessments/seo/outboundLinksAssessment.js");
-var internalLinks = require("./assessments/seo/internalLinksAssessment");
-var titleKeyword = require("./assessments/seo/titleKeywordAssessment.js");
-var TitleWidth = require("./assessments/seo/pageTitleWidthAssessment.js");
-var UrlKeyword = require("./assessments/seo/urlKeywordAssessment.js");
-var UrlLength = require("./assessments/seo/urlLengthAssessment.js");
-var urlStopWords = require("./assessments/seo/urlStopWordsAssessment.js");
+Object.defineProperty(exports, "__esModule", { value: true });
+var util_1 = require("util");
+var Assessor = require("./assessor");
+var introductionKeyword = require("./assessments/seo/introductionKeywordAssessment");
+var KeyphraseLengthAssessment_1 = require("./assessments/seo/KeyphraseLengthAssessment");
+var KeywordDensityAssessment_1 = require("./assessments/seo/KeywordDensityAssessment");
+var keywordStopWords = require("./assessments/seo/keywordStopWordsAssessment");
+var metaDescriptionKeyword = require("./assessments/seo/metaDescriptionKeywordAssessment");
+var MetaDescriptionLength = require("./assessments/seo/metaDescriptionLengthAssessment");
+var SubheadingsKeyword = require("./assessments/seo/subheadingsKeywordAssessment");
+var textCompetingLinks = require("./assessments/seo/textCompetingLinksAssessment");
+var TextImages = require("./assessments/seo/textImagesAssessment");
+var TextLength = require("./assessments/seo/textLengthAssessment");
+var OutboundLinks = require("./assessments/seo/outboundLinksAssessment");
+var InternalLinksAssessment_1 = require("./assessments/seo/InternalLinksAssessment");
+var titleKeyword = require("./assessments/seo/titleKeywordAssessment");
+var TitleWidth = require("./assessments/seo/pageTitleWidthAssessment");
+var UrlKeywordAssessment_1 = require("./assessments/seo/UrlKeywordAssessment");
+var UrlLength = require("./assessments/seo/urlLengthAssessment");
+var urlStopWords = require("./assessments/seo/urlStopWordsAssessment");
 /**
  * Creates the Assessor
  *
@@ -19472,15 +22697,16 @@ var urlStopWords = require("./assessments/seo/urlStopWordsAssessment.js");
  */
 var SEOAssessor = function SEOAssessor(i18n, options) {
     Assessor.call(this, i18n, options);
-    this._assessments = [introductionKeyword, keyphraseLength, keywordDensity, keywordStopWords, metaDescriptionKeyword, new MetaDescriptionLength(), new SubheadingsKeyword(), textCompetingLinks, new TextImages(), new TextLength(), new OutboundLinks(), internalLinks, titleKeyword, new TitleWidth(), new UrlKeyword(), new UrlLength(), urlStopWords];
+    this._assessments = [introductionKeyword, new KeyphraseLengthAssessment_1.default(), new KeywordDensityAssessment_1.default(), keywordStopWords, metaDescriptionKeyword, new MetaDescriptionLength(), new SubheadingsKeyword(), textCompetingLinks, new TextImages(), new TextLength(), new OutboundLinks(), new InternalLinksAssessment_1.default(), titleKeyword, new TitleWidth(), new UrlKeywordAssessment_1.default(), new UrlLength(), urlStopWords];
 };
-require("util").inherits(SEOAssessor, Assessor);
+util_1.inherits(SEOAssessor, Assessor);
 module.exports = SEOAssessor;
 
 
-},{"./assessments/seo/internalLinksAssessment":63,"./assessments/seo/introductionKeywordAssessment.js":64,"./assessments/seo/keyphraseLengthAssessment.js":65,"./assessments/seo/keywordDensityAssessment.js":66,"./assessments/seo/keywordStopWordsAssessment.js":67,"./assessments/seo/metaDescriptionKeywordAssessment.js":68,"./assessments/seo/metaDescriptionLengthAssessment.js":69,"./assessments/seo/outboundLinksAssessment.js":70,"./assessments/seo/pageTitleWidthAssessment.js":71,"./assessments/seo/subheadingsKeywordAssessment.js":72,"./assessments/seo/textCompetingLinksAssessment.js":73,"./assessments/seo/textImagesAssessment.js":74,"./assessments/seo/textLengthAssessment.js":75,"./assessments/seo/titleKeywordAssessment.js":76,"./assessments/seo/urlKeywordAssessment.js":77,"./assessments/seo/urlLengthAssessment.js":78,"./assessments/seo/urlStopWordsAssessment.js":79,"./assessor.js":80,"util":50}],216:[function(require,module,exports){
+},{"./assessments/seo/InternalLinksAssessment":63,"./assessments/seo/KeyphraseLengthAssessment":64,"./assessments/seo/KeywordDensityAssessment":65,"./assessments/seo/UrlKeywordAssessment":67,"./assessments/seo/introductionKeywordAssessment":68,"./assessments/seo/keywordStopWordsAssessment":69,"./assessments/seo/metaDescriptionKeywordAssessment":70,"./assessments/seo/metaDescriptionLengthAssessment":71,"./assessments/seo/outboundLinksAssessment":72,"./assessments/seo/pageTitleWidthAssessment":73,"./assessments/seo/subheadingsKeywordAssessment":74,"./assessments/seo/textCompetingLinksAssessment":75,"./assessments/seo/textImagesAssessment":76,"./assessments/seo/textLengthAssessment":77,"./assessments/seo/titleKeywordAssessment":78,"./assessments/seo/urlLengthAssessment":79,"./assessments/seo/urlStopWordsAssessment":80,"./assessor":81,"util":50}],238:[function(require,module,exports){
 "use strict";
 
+Object.defineProperty(exports, "__esModule", { value: true });
 var isEmpty = require("lodash/isEmpty");
 var isElement = require("lodash/isElement");
 var isUndefined = require("lodash/isUndefined");
@@ -19498,6 +22724,7 @@ var snippetEditorTemplate = templates.snippetEditor;
 var hiddenElement = templates.hiddenSpan;
 var SnippetPreviewToggler = require("./snippetPreviewToggler");
 var domManipulation = require("./helpers/domManipulation.js");
+var config_1 = require("./config/config");
 var defaults = {
     data: {
         title: "",
@@ -19524,7 +22751,7 @@ var defaults = {
     previewMode: "desktop"
 };
 var titleMaxLength = 600;
-var metadescriptionMaxLength = 320;
+var maximumMetaDescriptionLength = config_1.default.maxMeta;
 var inputPreviewBindings = [{
     preview: "title_container",
     inputField: "title"
@@ -19638,10 +22865,10 @@ function rateMetaDescLength(metaDescLength) {
     var rating;
     switch (true) {
         case metaDescLength > 0 && metaDescLength < 120:
-        case metaDescLength > 320:
+        case metaDescLength > maximumMetaDescriptionLength:
             rating = "ok";
             break;
-        case metaDescLength >= 120 && metaDescLength <= 320:
+        case metaDescLength >= 120 && metaDescLength <= maximumMetaDescriptionLength:
             rating = "good";
             break;
         default:
@@ -19860,7 +23087,7 @@ SnippetPreview.prototype.renderTemplate = function () {
     this.hasProgressSupport = hasProgressSupport();
     if (this.hasProgressSupport) {
         this.element.progress.title.max = titleMaxLength;
-        this.element.progress.metaDesc.max = metadescriptionMaxLength;
+        this.element.progress.metaDesc.max = maximumMetaDescriptionLength;
     } else {
         forEach(this.element.progress, function (progressElement) {
             domManipulation.addClass(progressElement, "snippet-editor__progress--fallback");
@@ -20034,6 +23261,8 @@ SnippetPreview.prototype.formatCite = function () {
     }
     // URL's cannot contain whitespace so replace it by dashes.
     cite = cite.replace(/\s/g, "-");
+    // Strip out question mark and hash characters from the raw URL.
+    cite = cite.replace(/\?|#/g, "");
     return cite;
 };
 /**
@@ -20053,7 +23282,7 @@ SnippetPreview.prototype.formatMeta = function () {
     }
     meta = stripHTMLTags(meta);
     // Cut-off the meta description according to the maximum length
-    meta = meta.substring(0, metadescriptionMaxLength);
+    meta = meta.substring(0, maximumMetaDescriptionLength);
     if (this.hasApp() && !isEmpty(this.refObj.rawData.keyword)) {
         meta = this.formatKeyword(meta);
     }
@@ -20065,8 +23294,9 @@ SnippetPreview.prototype.formatMeta = function () {
 };
 /**
  * Generates a meta description with an educated guess based on the passed text and excerpt.
- * It uses the keyword to select an appropriate part of the text. If the keyword isn't present it takes the first
- * 320 characters of the text. If both the keyword, text and excerpt are empty this function returns the sample text.
+ * It uses the keyword to select an appropriate part of the text. If the keyword isn't present it takes the maximum
+ * meta description length of the text. If both the keyword, text and excerpt are empty this function returns the
+ * sample text.
  *
  * @returns {string} A generated meta description.
  */
@@ -20082,7 +23312,7 @@ SnippetPreview.prototype.getMetaText = function () {
         }
     }
     metaText = stripHTMLTags(metaText);
-    return metaText.substring(0, metadescriptionMaxLength);
+    return metaText.substring(0, maximumMetaDescriptionLength);
 };
 /**
  * Builds an array with all indexes of the keyword.
@@ -20210,11 +23440,11 @@ SnippetPreview.prototype.checkTextLength = function (event) {
     switch (event.currentTarget.id) {
         case "snippet_meta":
             event.currentTarget.className = "desc";
-            if (text.length > metadescriptionMaxLength) {
+            if (text.length > maximumMetaDescriptionLength) {
                 /* eslint-disable */
                 YoastSEO.app.snippetPreview.unformattedText.snippet_meta = event.currentTarget.textContent;
                 /* eslint-enable */
-                event.currentTarget.textContent = text.substring(0, metadescriptionMaxLength);
+                event.currentTarget.textContent = text.substring(0, maximumMetaDescriptionLength);
             }
             break;
         case "snippet_title":
@@ -20268,7 +23498,7 @@ SnippetPreview.prototype.setUnformattedText = function (event) {
 SnippetPreview.prototype.validateFields = function () {
     var metaDescription = getAnalyzerMetaDesc.call(this);
     var title = getAnalyzerTitle.call(this);
-    if (metaDescription.length > metadescriptionMaxLength) {
+    if (metaDescription.length > maximumMetaDescriptionLength) {
         domManipulation.addClass(this.element.input.metaDesc, "snippet-editor__field--invalid");
     } else {
         domManipulation.removeClass(this.element.input.metaDesc, "snippet-editor__field--invalid");
@@ -20290,7 +23520,7 @@ SnippetPreview.prototype.updateProgressBars = function () {
     titleRating = rateTitleLength(this.data.titleWidth);
     metaDescriptionRating = rateMetaDescLength(metaDescription.length);
     updateProgressBar.call(this, this.element.progress.title, this.data.titleWidth, titleMaxLength, titleRating);
-    updateProgressBar.call(this, this.element.progress.metaDesc, metaDescription.length, metadescriptionMaxLength, metaDescriptionRating);
+    updateProgressBar.call(this, this.element.progress.metaDesc, metaDescription.length, maximumMetaDescriptionLength, metaDescriptionRating);
 };
 /**
  * Gets the width of the Snippet Preview to set its initial view to desktop or mobile.
@@ -20495,7 +23725,7 @@ SnippetPreview.prototype.setMetaDescription = function (metaDesc) {
     this.changedInput();
 };
 /**
- * Creates elements with the purpose to calculate the sizes of elements and puts these elemenents to the body.
+ * Creates elements with the purpose to calculate the sizes of elements and puts these elements to the body.
  *
  * @returns {void}
  */
@@ -20612,7 +23842,7 @@ SnippetPreview.prototype.setFocus = function (ev) {};
 module.exports = SnippetPreview;
 
 
-},{"./helpers/domManipulation.js":102,"./snippetPreviewToggler":217,"./stringProcessing/createWordRegex.js":224,"./stringProcessing/replaceDiacritics.js":249,"./stringProcessing/stripHTMLTags.js":253,"./stringProcessing/stripSpaces.js":256,"./stringProcessing/transliterate.js":260,"./templates.js":263,"lodash/clone":479,"lodash/debounce":481,"lodash/defaultsDeep":483,"lodash/forEach":493,"lodash/isElement":507,"lodash/isEmpty":508,"lodash/isUndefined":521}],217:[function(require,module,exports){
+},{"./config/config":83,"./helpers/domManipulation.js":108,"./snippetPreviewToggler":239,"./stringProcessing/createWordRegex.js":246,"./stringProcessing/replaceDiacritics.js":273,"./stringProcessing/stripHTMLTags.js":277,"./stringProcessing/stripSpaces.js":280,"./stringProcessing/transliterate.js":285,"./templates.js":288,"lodash/clone":507,"lodash/debounce":509,"lodash/defaultsDeep":511,"lodash/forEach":521,"lodash/isElement":535,"lodash/isEmpty":536,"lodash/isUndefined":547}],239:[function(require,module,exports){
 "use strict";
 
 var forEach = require("lodash/forEach");
@@ -20833,7 +24063,7 @@ SnippetPreviewToggler.prototype._setActiveState = function (elementToActivate) {
 module.exports = SnippetPreviewToggler;
 
 
-},{"./helpers/domManipulation.js":102,"lodash/forEach":493}],218:[function(require,module,exports){
+},{"./helpers/domManipulation.js":108,"lodash/forEach":521}],240:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/addWordboundary */
 /**
@@ -20851,17 +24081,18 @@ module.exports = function (matchString) {
     var extraWordBoundary = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : "";
 
     var wordBoundary, wordBoundaryStart, wordBoundaryEnd;
-    wordBoundary = "[ \\u00a0\xA0\\n\\r\\t.,'()\"+-;!?:/\xBB\xAB\u2039\u203A" + extraWordBoundary + "<>]";
-    wordBoundaryStart = "(^|" + wordBoundary + ")";
+    wordBoundary = "[ \\u00a0\xA0\\n\\r\\t.,()\u201D\u201C\u301D\u301E\u301F\u201F\u201E\"+\\-;!?:/\xBB\xAB\u2039\u203A" + extraWordBoundary + "<>";
+    wordBoundaryStart = "(^|" + wordBoundary + "'‘’‛`])";
     if (positiveLookAhead) {
-        wordBoundary = "(?=" + wordBoundary + ")";
+        wordBoundaryEnd = "($|((?=" + wordBoundary + "]))|((['‘’‛`])(" + wordBoundary + "])))";
+    } else {
+        wordBoundaryEnd = "($|(" + wordBoundary + "])|((['‘’‛`])(" + wordBoundary + "])))";
     }
-    wordBoundaryEnd = "($|" + wordBoundary + ")";
     return wordBoundaryStart + matchString + wordBoundaryEnd;
 };
 
 
-},{}],219:[function(require,module,exports){
+},{}],241:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/checkNofollow */
 // We use an external library, which can be found here: https://github.com/fb55/htmlparser2.
@@ -20898,7 +24129,7 @@ module.exports = function (anchorHTML) {
 };
 
 
-},{"htmlparser2":299}],220:[function(require,module,exports){
+},{"htmlparser2":324}],242:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/countSentences */
 
@@ -20919,7 +24150,7 @@ module.exports = function (text) {
 };
 
 
-},{"../stringProcessing/getSentences.js":231}],221:[function(require,module,exports){
+},{"../stringProcessing/getSentences.js":253}],243:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/countWords */
 
@@ -20935,7 +24166,7 @@ module.exports = function (text) {
 };
 
 
-},{"../stringProcessing/getWords.js":234}],222:[function(require,module,exports){
+},{"../stringProcessing/getWords.js":256}],244:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/createRegexFromArray */
 
@@ -20962,7 +24193,7 @@ module.exports = function (array, disableWordBoundary) {
 };
 
 
-},{"../stringProcessing/addWordboundary.js":218,"lodash/map":524}],223:[function(require,module,exports){
+},{"../stringProcessing/addWordboundary.js":240,"lodash/map":550}],245:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/createRegexFromDoubleArray */
 
@@ -20992,7 +24223,7 @@ module.exports = function (array) {
 };
 
 
-},{"../stringProcessing/addWordboundary.js":218}],224:[function(require,module,exports){
+},{"../stringProcessing/addWordboundary.js":240}],246:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/stringToRegex */
 
@@ -21024,7 +24255,7 @@ module.exports = memoize(function (string, extraBoundary, doReplaceDiacritics) {
 });
 
 
-},{"../stringProcessing/addWordboundary.js":218,"../stringProcessing/replaceDiacritics.js":249,"../stringProcessing/sanitizeString":251,"lodash/escapeRegExp":487,"lodash/isUndefined":521,"lodash/memoize":525}],225:[function(require,module,exports){
+},{"../stringProcessing/addWordboundary.js":240,"../stringProcessing/replaceDiacritics.js":273,"../stringProcessing/sanitizeString":275,"lodash/escapeRegExp":515,"lodash/isUndefined":547,"lodash/memoize":551}],247:[function(require,module,exports){
 "use strict";
 
 var getWordIndices = require("../researches/passiveVoice/periphrastic/getIndicesWithRegex.js");
@@ -21033,6 +24264,7 @@ var arrayToRegex = require("./createRegexFromArray.js");
 var cannotDirectlyPrecedePassiveParticipleFrench = require("../researches/french/functionWords.js")().cannotDirectlyPrecedePassiveParticiple;
 var cannotDirectlyPrecedePassiveParticipleEnglish = require("../researches/english/functionWords.js")().cannotDirectlyPrecedePassiveParticiple;
 var cannotDirectlyPrecedePassiveParticipleSpanish = require("../researches/spanish/functionWords.js")().cannotDirectlyPrecedePassiveParticiple;
+var cannotDirectlyPrecedePassiveParticipleItalian = require("../researches/italian/functionWords.js")().cannotDirectlyPrecedePassiveParticiple;
 /**
  * Checks whether the participle is directly preceded by a word from the direct precedence exception list.
  * If this is the case, the sentence part is not passive.
@@ -21053,6 +24285,9 @@ module.exports = function (sentencePart, participleIndex, language) {
         case "es":
             directPrecedenceExceptionRegex = arrayToRegex(cannotDirectlyPrecedePassiveParticipleSpanish);
             break;
+        case "it":
+            directPrecedenceExceptionRegex = arrayToRegex(cannotDirectlyPrecedePassiveParticipleItalian);
+            break;
         case "en":
         default:
             directPrecedenceExceptionRegex = arrayToRegex(cannotDirectlyPrecedePassiveParticipleEnglish);
@@ -21063,7 +24298,7 @@ module.exports = function (sentencePart, participleIndex, language) {
 };
 
 
-},{"../researches/english/functionWords.js":130,"../researches/french/functionWords.js":143,"../researches/passiveVoice/periphrastic/getIndicesWithRegex.js":190,"../researches/spanish/functionWords.js":202,"./createRegexFromArray.js":222,"./includesIndex":237}],226:[function(require,module,exports){
+},{"../researches/english/functionWords.js":140,"../researches/french/functionWords.js":153,"../researches/italian/functionWords.js":187,"../researches/passiveVoice/periphrastic/getIndicesWithRegex.js":207,"../researches/spanish/functionWords.js":223,"./createRegexFromArray.js":244,"./includesIndex":259}],248:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/findKeywordInUrl */
 
@@ -21088,7 +24323,7 @@ module.exports = function (url, keyword, locale) {
 };
 
 
-},{"./matchTextWithTransliteration.js":241,"lodash/escapeRegExp":487}],227:[function(require,module,exports){
+},{"./matchTextWithTransliteration.js":264,"lodash/escapeRegExp":515}],249:[function(require,module,exports){
 "use strict";
 
 var isEmpty = require("lodash/isEmpty");
@@ -21116,7 +24351,7 @@ module.exports = function (followingWords, match) {
 };
 
 
-},{"lodash/forEach":493,"lodash/includes":499,"lodash/isEmpty":508}],228:[function(require,module,exports){
+},{"lodash/forEach":521,"lodash/includes":527,"lodash/isEmpty":536}],250:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/getAlttagContent */
 
@@ -21140,7 +24375,7 @@ module.exports = function (text) {
 };
 
 
-},{"../stringProcessing/stripSpaces.js":256}],229:[function(require,module,exports){
+},{"../stringProcessing/stripSpaces.js":280}],251:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/getAnchorsFromText */
 /**
@@ -21161,7 +24396,7 @@ module.exports = function (text) {
 };
 
 
-},{}],230:[function(require,module,exports){
+},{}],252:[function(require,module,exports){
 "use strict";
 /** @module stringProcess/getLinkType */
 
@@ -21191,7 +24426,7 @@ module.exports = function (text, url) {
 };
 
 
-},{"./url":262}],231:[function(require,module,exports){
+},{"./url":287}],253:[function(require,module,exports){
 "use strict";
 
 var map = require("lodash/map");
@@ -21215,11 +24450,11 @@ var newLines = "\n\r|\n|\r";
 var fullStopRegex = new RegExp("^[" + fullStop + "]$");
 var sentenceDelimiterRegex = new RegExp("^[" + sentenceDelimiters + "]$");
 var sentenceRegex = new RegExp("^[^" + fullStop + sentenceDelimiters + "<\\(\\)\\[\\]]+$");
-var htmlStartRegex = /^<([^>\s\/]+)[^>]*>$/mi;
+var htmlStartRegex = /^<([^>\s/]+)[^>]*>$/mi;
 var htmlEndRegex = /^<\/([^>\s]+)[^>]*>$/mi;
 var newLineRegex = new RegExp(newLines);
-var blockStartRegex = /^\s*[\[\(\{]\s*$/;
-var blockEndRegex = /^\s*[\]\)}]\s*$/;
+var blockStartRegex = /^\s*[[({]\s*$/;
+var blockEndRegex = /^\s*[\])}]\s*$/;
 var tokens = [];
 var sentenceTokenizer;
 /**
@@ -21464,14 +24699,15 @@ module.exports = function (text) {
 };
 
 
-},{"../helpers/html.js":109,"../stringProcessing/quotes.js":246,"../stringProcessing/unifyWhitespace.js":261,"lodash/filter":488,"lodash/flatMap":491,"lodash/forEach":493,"lodash/isEmpty":508,"lodash/isNaN":512,"lodash/isUndefined":521,"lodash/map":524,"lodash/memoize":525,"lodash/negate":528,"tokenizer2/core":549}],232:[function(require,module,exports){
+},{"../helpers/html.js":116,"../stringProcessing/quotes.js":270,"../stringProcessing/unifyWhitespace.js":286,"lodash/filter":516,"lodash/flatMap":519,"lodash/forEach":521,"lodash/isEmpty":536,"lodash/isNaN":539,"lodash/isUndefined":547,"lodash/map":550,"lodash/memoize":551,"lodash/negate":554,"tokenizer2/core":576}],254:[function(require,module,exports){
 "use strict";
+
+var isEmpty = require("lodash/isEmpty.js");
 /**
  * Returns all texts per subheading.
  * @param {string} text The text to analyze from.
  * @returns {Array} an array with text blocks per subheading.
  */
-
 module.exports = function (text) {
   /*
    Matching this in a regex is pretty hard, since we need to find a way for matching the text after a heading, and before the end of the text.
@@ -21482,17 +24718,15 @@ module.exports = function (text) {
    */
   text = text.replace(/\|/ig, "");
   text = text.replace(/<h([1-6])(?:[^>]+)?>(.*?)<\/h\1>/ig, "|");
-  var subheadings = text.split("|");
-  /*
-   * We never need the first entry, if the text starts with a subheading it will be empty, and if the text doesn't start with a subheading,
-   * the text doesnt't belong to a subheading, so it can be removed
-   */
-  subheadings.shift();
-  return subheadings;
+  var subheadingsTexts = text.split("|");
+  if (isEmpty(subheadingsTexts[0])) {
+    subheadingsTexts.shift();
+  }
+  return subheadingsTexts;
 };
 
 
-},{}],233:[function(require,module,exports){
+},{"lodash/isEmpty.js":536}],255:[function(require,module,exports){
 "use strict";
 
 var map = require("lodash/map");
@@ -21531,7 +24765,7 @@ module.exports = {
 };
 
 
-},{"lodash/map":524}],234:[function(require,module,exports){
+},{"lodash/map":550}],256:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/countWords */
 
@@ -21561,7 +24795,7 @@ module.exports = function (text) {
 };
 
 
-},{"./removePunctuation.js":248,"./stripHTMLTags.js":253,"./stripSpaces.js":256,"lodash/filter":488,"lodash/map":524}],235:[function(require,module,exports){
+},{"./removePunctuation.js":272,"./stripHTMLTags.js":277,"./stripSpaces.js":280,"lodash/filter":516,"lodash/map":550}],257:[function(require,module,exports){
 "use strict";
 // We use an external library, which can be found here: https://github.com/fb55/htmlparser2.
 
@@ -21639,7 +24873,7 @@ module.exports = function (text) {
 };
 
 
-},{"htmlparser2":299,"lodash/includes":499}],236:[function(require,module,exports){
+},{"htmlparser2":324,"lodash/includes":527}],258:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/imageInText */
 
@@ -21655,7 +24889,7 @@ module.exports = function (text) {
 };
 
 
-},{"./matchStringWithRegex.js":240}],237:[function(require,module,exports){
+},{"./matchStringWithRegex.js":262}],259:[function(require,module,exports){
 "use strict";
 
 var isEmpty = require("lodash/isEmpty");
@@ -21691,7 +24925,7 @@ module.exports = function (precedingWords, matchIndex) {
 };
 
 
-},{"lodash/forEach":493,"lodash/includes":499,"lodash/isEmpty":508}],238:[function(require,module,exports){
+},{"lodash/forEach":521,"lodash/includes":527,"lodash/isEmpty":536}],260:[function(require,module,exports){
 "use strict";
 
 var isUndefined = require("lodash/isUndefined");
@@ -21777,15 +25011,45 @@ var filterIndices = function filterIndices(indices) {
     }
     return filtered;
 };
+/**
+ * Matches string with an array, returns the word and the index it was found on, and sorts the match instances based on
+ * the index property of the match.
+ *
+ * @param {Array} words The array with strings to match.
+ * @param {string} text The text to match the strings from the array to.
+ * @returns {Array} The array with words, containing the index of the match and the matched string.
+ * Returns an empty array if none are found.
+ */
+var getIndicesByWordListSorted = function getIndicesByWordListSorted(words, text) {
+    var matchedWords = [];
+    forEach(words, function (word) {
+        word = stripSpaces(word);
+        if (!matchWordInSentence(word, text)) {
+            return matchedWords;
+        }
+        matchedWords = matchedWords.concat(getIndicesByWord(word, text));
+    });
+    matchedWords = matchedWords.sort(function (a, b) {
+        if (a.index < b.index) {
+            return -1;
+        }
+        if (a.index > b.index) {
+            return 1;
+        }
+        return 0;
+    });
+    return matchedWords;
+};
 module.exports = {
     getIndicesByWord: getIndicesByWord,
     getIndicesByWordList: getIndicesByWordList,
     filterIndices: filterIndices,
-    sortIndices: sortIndices
+    sortIndices: sortIndices,
+    getIndicesByWordListSorted: getIndicesByWordListSorted
 };
 
 
-},{"../stringProcessing/matchWordInSentence.js":243,"../stringProcessing/stripSpaces.js":256,"lodash/forEach":493,"lodash/isUndefined":521}],239:[function(require,module,exports){
+},{"../stringProcessing/matchWordInSentence.js":266,"../stringProcessing/stripSpaces.js":280,"lodash/forEach":521,"lodash/isUndefined":547}],261:[function(require,module,exports){
 "use strict";
 
 var map = require("lodash/map");
@@ -21837,7 +25101,7 @@ module.exports = function (text) {
 };
 
 
-},{"../helpers/html":109,"lodash/filter":488,"lodash/flatMap":491,"lodash/map":524}],240:[function(require,module,exports){
+},{"../helpers/html":116,"lodash/filter":516,"lodash/flatMap":519,"lodash/map":550}],262:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/matchStringWithRegex */
 /**
@@ -21858,7 +25122,47 @@ module.exports = function (text, regexString) {
 };
 
 
-},{}],241:[function(require,module,exports){
+},{}],263:[function(require,module,exports){
+"use strict";
+/** @module stringProcessing/matchTextWithArray */
+
+var stripSpaces = require("../stringProcessing/stripSpaces.js");
+var removePunctuation = require("../stringProcessing/removePunctuation.js");
+var matchTextWithWord = require("../stringProcessing/matchTextWithWord");
+var unique = require("lodash/uniq");
+/**
+ * Matches strings from an array against a given text.
+ *
+ * @param {String} text The text to match
+ * @param {Array} array The array with strings to match
+ * @param {String} [locale = "en_EN"] The locale of the text to get transliterations
+ *
+ * @returns {Array} array An array with all matches of the text.
+ */
+module.exports = function (text, array) {
+    var locale = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : "en_EN";
+
+    var count = 0;
+    var matches = [];
+    unique(array).forEach(function (wordToMatch) {
+        var occurrence = matchTextWithWord(text, wordToMatch, locale);
+        count += occurrence.count;
+        matches = matches.concat(occurrence.matches);
+    });
+    if (matches === null) {
+        matches = [];
+    }
+    matches = matches.map(function (string) {
+        return stripSpaces(removePunctuation(string));
+    });
+    return {
+        count: count,
+        matches: matches
+    };
+};
+
+
+},{"../stringProcessing/matchTextWithWord":265,"../stringProcessing/removePunctuation.js":272,"../stringProcessing/stripSpaces.js":280,"lodash/uniq":573}],264:[function(require,module,exports){
 "use strict";
 
 var map = require("lodash/map");
@@ -21895,13 +25199,17 @@ module.exports = function (text, keyword, locale) {
 };
 
 
-},{"./addWordboundary.js":218,"./stripSpaces.js":256,"./transliterate.js":260,"lodash/map":524}],242:[function(require,module,exports){
+},{"./addWordboundary.js":240,"./stripSpaces.js":280,"./transliterate.js":285,"lodash/map":550}],265:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/matchTextWithWord */
 
 var stripSomeTags = require("../stringProcessing/stripNonTextTags.js");
+var stripSpaces = require("../stringProcessing/stripSpaces.js");
+var removePunctuation = require("../stringProcessing/removePunctuation.js");
 var unifyWhitespace = require("../stringProcessing/unifyWhitespace.js").unifyAllSpaces;
 var matchStringWithTransliteration = require("../stringProcessing/matchTextWithTransliteration.js");
+var normalizeQuotes = require("../stringProcessing/quotes.js").normalize;
+var map = require("lodash/map");
 /**
  * Returns the number of matches in a given string
  *
@@ -21909,17 +25217,25 @@ var matchStringWithTransliteration = require("../stringProcessing/matchTextWithT
  * @param {string} wordToMatch The word to match in the text
  * @param {string} locale The locale used for transliteration.
  * @param {string} [extraBoundary] An extra string that can be added to the wordboundary regex
- * @returns {number} The amount of matches found.
+ * @returns {Object} The matches found and the number of matches.
  */
 module.exports = function (text, wordToMatch, locale, extraBoundary) {
-  text = stripSomeTags(text);
-  text = unifyWhitespace(text);
-  var matches = matchStringWithTransliteration(text, wordToMatch, locale, extraBoundary);
-  return matches.length;
+    text = stripSomeTags(text);
+    text = unifyWhitespace(text);
+    text = normalizeQuotes(text);
+    wordToMatch = normalizeQuotes(wordToMatch);
+    var matches = matchStringWithTransliteration(text, wordToMatch, locale, extraBoundary);
+    matches = map(matches, function (keyword) {
+        return stripSpaces(removePunctuation(keyword));
+    });
+    return {
+        count: matches.length,
+        matches: matches
+    };
 };
 
 
-},{"../stringProcessing/matchTextWithTransliteration.js":241,"../stringProcessing/stripNonTextTags.js":254,"../stringProcessing/unifyWhitespace.js":261}],243:[function(require,module,exports){
+},{"../stringProcessing/matchTextWithTransliteration.js":264,"../stringProcessing/quotes.js":270,"../stringProcessing/removePunctuation.js":272,"../stringProcessing/stripNonTextTags.js":278,"../stringProcessing/stripSpaces.js":280,"../stringProcessing/unifyWhitespace.js":286,"lodash/map":550}],266:[function(require,module,exports){
 "use strict";
 
 var wordBoundaries = require("../config/wordBoundaries.js")();
@@ -21972,7 +25288,31 @@ module.exports = {
 };
 
 
-},{"../config/wordBoundaries.js":96,"./addWordboundary.js":218,"lodash/includes":499}],244:[function(require,module,exports){
+},{"../config/wordBoundaries.js":101,"./addWordboundary.js":240,"lodash/includes":527}],267:[function(require,module,exports){
+"use strict";
+/** @module stringProcessing/parseSynonyms */
+
+var stripSpaces = require("../stringProcessing/stripSpaces.js");
+var removePunctuation = require("../stringProcessing/removePunctuation.js");
+/**
+ * Matches strings from an array against a given text.
+ *
+ * @param {String} synonyms The text to match
+ *
+ * @returns {Array} An array with all synonyms.
+ */
+module.exports = function (synonyms) {
+    var synonymsSplit = synonyms.split(",");
+    synonymsSplit = synonymsSplit.map(function (synonym) {
+        return removePunctuation(stripSpaces(synonym));
+    }).filter(function (synonym) {
+        return synonym;
+    });
+    return synonymsSplit;
+};
+
+
+},{"../stringProcessing/removePunctuation.js":272,"../stringProcessing/stripSpaces.js":280}],268:[function(require,module,exports){
 "use strict";
 
 var getWordIndices = require("../researches/passiveVoice/periphrastic/getIndicesWithRegex.js");
@@ -21981,6 +25321,7 @@ var arrayToRegex = require("./createRegexFromArray.js");
 var cannotBeBetweenAuxiliaryAndParticipleFrench = require("../researches/french/functionWords.js")().cannotBeBetweenPassiveAuxiliaryAndParticiple;
 var cannotBeBetweenAuxiliaryAndParticipleEnglish = require("../researches/english/functionWords.js")().cannotBeBetweenPassiveAuxiliaryAndParticiple;
 var cannotBeBetweenAuxiliaryAndParticipleSpanish = require("../researches/spanish/functionWords.js")().cannotBeBetweenPassiveAuxiliaryAndParticiple;
+var cannotBeBetweenAuxiliaryAndParticipleItalian = require("../researches/italian/functionWords.js")().cannotBeBetweenPassiveAuxiliaryAndParticiple;
 /**
  * Checks whether a word from the precedence exception list occurs anywhere in the sentence part before the participle.
  * If this is the case, the sentence part is not passive.
@@ -22001,6 +25342,9 @@ module.exports = function (sentencePart, participleIndex, language) {
         case "es":
             precedenceExceptionRegex = arrayToRegex(cannotBeBetweenAuxiliaryAndParticipleSpanish);
             break;
+        case "it":
+            precedenceExceptionRegex = arrayToRegex(cannotBeBetweenAuxiliaryAndParticipleItalian);
+            break;
         case "en":
         default:
             precedenceExceptionRegex = arrayToRegex(cannotBeBetweenAuxiliaryAndParticipleEnglish);
@@ -22011,7 +25355,7 @@ module.exports = function (sentencePart, participleIndex, language) {
 };
 
 
-},{"../researches/english/functionWords.js":130,"../researches/french/functionWords.js":143,"../researches/passiveVoice/periphrastic/getIndicesWithRegex.js":190,"../researches/spanish/functionWords.js":202,"./createRegexFromArray.js":222,"./precedesIndex":245}],245:[function(require,module,exports){
+},{"../researches/english/functionWords.js":140,"../researches/french/functionWords.js":153,"../researches/italian/functionWords.js":187,"../researches/passiveVoice/periphrastic/getIndicesWithRegex.js":207,"../researches/spanish/functionWords.js":223,"./createRegexFromArray.js":244,"./precedesIndex":269}],269:[function(require,module,exports){
 "use strict";
 
 var isEmpty = require("lodash/isEmpty");
@@ -22047,7 +25391,7 @@ module.exports = function (precedingWords, participleIndex) {
 };
 
 
-},{"lodash/forEach":493,"lodash/isEmpty":508}],246:[function(require,module,exports){
+},{"lodash/forEach":521,"lodash/isEmpty":536}],270:[function(require,module,exports){
 "use strict";
 /**
  * Normalizes single quotes to 'regular' quotes.
@@ -22084,20 +25428,14 @@ module.exports = {
 };
 
 
-},{}],247:[function(require,module,exports){
+},{}],271:[function(require,module,exports){
 "use strict";
 
 var getWords = require("../stringProcessing/getWords.js");
 var getSentences = require("../stringProcessing/getSentences.js");
 var WordCombination = require("../values/WordCombination.js");
 var normalizeQuotes = require("../stringProcessing/quotes.js").normalize;
-var germanFunctionWords = require("../researches/german/functionWords.js");
-var englishFunctionWords = require("../researches/english/functionWords.js");
-var dutchFunctionWords = require("../researches/dutch/functionWords.js");
-var spanishFunctionWords = require("../researches/spanish/functionWords.js");
-var italianFunctionWords = require("../researches/italian/functionWords.js");
-var frenchFunctionWords = require("../researches/french/functionWords.js");
-var portugueseFunctionWords = require("../researches/portuguese/functionWords.js");
+var functionWordLists = require("../helpers/getFunctionWords.js")();
 var getLanguage = require("../helpers/getLanguage.js");
 var filter = require("lodash/filter");
 var map = require("lodash/map");
@@ -22264,6 +25602,26 @@ function filterOnDensity(wordCombinations, wordCount, densityLowerLimit, density
     });
 }
 /**
+ * Filters combinations based on whether they end with a specified string or not.
+ *
+ * @param {WordCombination[]} wordCombinations The array of WordCombinations to filter.
+ * @param {string} str The string the WordCombinations that need to be filtered out end with.
+ * @param {string[]} exceptions The array of strings containing exceptions to not filter.
+ * @returns {WordCombination[]} The filtered array of WordCombinations.
+ */
+function filterEndingWith(wordCombinations, str, exceptions) {
+    wordCombinations = wordCombinations.filter(function (combination) {
+        var combinationstr = combination.getCombination();
+        for (var i = 0; i < exceptions.length; i++) {
+            if (combinationstr.endsWith(exceptions[i])) {
+                return true;
+            }
+        }
+        return !combinationstr.endsWith(str);
+    });
+    return wordCombinations;
+}
+/**
  * Filters the list of word combination objects based on the language-specific function word filters.
  * Word combinations with specific parts of speech are removed.
  *
@@ -22272,10 +25630,10 @@ function filterOnDensity(wordCombinations, wordCount, densityLowerLimit, density
  * @returns {Array} The filtered list of word combination objects.
  */
 function filterFunctionWords(combinations, functionWords) {
-    combinations = filterFunctionWordsAnywhere(combinations, functionWords().filteredAnywhere);
-    combinations = filterFunctionWordsAtBeginningAndEnding(combinations, functionWords().filteredAtBeginningAndEnding);
-    combinations = filterFunctionWordsAtEnding(combinations, functionWords().filteredAtEnding);
-    combinations = filterFunctionWordsAtBeginning(combinations, functionWords().filteredAtBeginning);
+    combinations = filterFunctionWordsAnywhere(combinations, functionWords.filteredAnywhere);
+    combinations = filterFunctionWordsAtBeginningAndEnding(combinations, functionWords.filteredAtBeginningAndEnding);
+    combinations = filterFunctionWordsAtEnding(combinations, functionWords.filteredAtEnding);
+    combinations = filterFunctionWordsAtBeginning(combinations, functionWords.filteredAtBeginning);
     return combinations;
 }
 /**
@@ -22284,12 +25642,16 @@ function filterFunctionWords(combinations, functionWords) {
  *
  * @param {Array} combinations The list of word combination objects.
  * @param {Function} functionWords The function containing the lists of function words.
+ * @param {string} language The language for which specific filters should be applied.
  * @returns {Array} The filtered list of word combination objects.
  */
-function filterCombinations(combinations, functionWords) {
+function filterCombinations(combinations, functionWords, language) {
     combinations = filterFunctionWordsAnywhere(combinations, specialCharacters);
     combinations = filterOneCharacterWordCombinations(combinations);
     combinations = filterFunctionWords(combinations, functionWords);
+    if (language === "en") {
+        combinations = filterEndingWith(combinations, "'s", []);
+    }
     return combinations;
 }
 /**
@@ -22300,32 +25662,12 @@ function filterCombinations(combinations, functionWords) {
  * @returns {WordCombination[]} All relevant words sorted and filtered for this text.
  */
 function getRelevantWords(text, locale) {
-    var functionWords = void 0;
-    switch (getLanguage(locale)) {
-        case "de":
-            functionWords = germanFunctionWords;
-            break;
-        case "nl":
-            functionWords = dutchFunctionWords;
-            break;
-        case "fr":
-            functionWords = frenchFunctionWords;
-            break;
-        case "es":
-            functionWords = spanishFunctionWords;
-            break;
-        case "it":
-            functionWords = italianFunctionWords;
-            break;
-        case "pt":
-            functionWords = portugueseFunctionWords;
-            break;
-        default:
-        case "en":
-            functionWords = englishFunctionWords;
-            break;
+    var language = getLanguage(locale);
+    if (!functionWordLists.hasOwnProperty(language)) {
+        language = "en";
     }
-    var words = getWordCombinations(text, 1, functionWords().all);
+    var functionWords = functionWordLists[language];
+    var words = getWordCombinations(text, 1, functionWords.all);
     var wordCount = words.length;
     var oneWordCombinations = getRelevantCombinations(calculateOccurrences(words));
     sortCombinations(oneWordCombinations);
@@ -22334,16 +25676,16 @@ function getRelevantWords(text, locale) {
     forEach(oneWordCombinations, function (combination) {
         oneWordRelevanceMap[combination.getCombination()] = combination.getRelevance(functionWords);
     });
-    var twoWordCombinations = calculateOccurrences(getWordCombinations(text, 2, functionWords().all));
-    var threeWordCombinations = calculateOccurrences(getWordCombinations(text, 3, functionWords().all));
-    var fourWordCombinations = calculateOccurrences(getWordCombinations(text, 4, functionWords().all));
-    var fiveWordCombinations = calculateOccurrences(getWordCombinations(text, 5, functionWords().all));
+    var twoWordCombinations = calculateOccurrences(getWordCombinations(text, 2, functionWords.all));
+    var threeWordCombinations = calculateOccurrences(getWordCombinations(text, 3, functionWords.all));
+    var fourWordCombinations = calculateOccurrences(getWordCombinations(text, 4, functionWords.all));
+    var fiveWordCombinations = calculateOccurrences(getWordCombinations(text, 5, functionWords.all));
     var combinations = oneWordCombinations.concat(twoWordCombinations, threeWordCombinations, fourWordCombinations, fiveWordCombinations);
-    combinations = filterCombinations(combinations, functionWords);
+    combinations = filterCombinations(combinations, functionWords, language);
     forEach(combinations, function (combination) {
         combination.setRelevantWords(oneWordRelevanceMap);
     });
-    combinations = getRelevantCombinations(combinations, wordCount);
+    combinations = getRelevantCombinations(combinations);
     sortCombinations(combinations);
     if (wordCount >= wordCountLowerLimit) {
         combinations = filterOnDensity(combinations, wordCount, densityLowerLimit, densityUpperLimit);
@@ -22361,15 +25703,16 @@ module.exports = {
     filterFunctionWords: filterFunctionWordsAtBeginningAndEnding,
     filterFunctionWordsAnywhere: filterFunctionWordsAnywhere,
     filterOnDensity: filterOnDensity,
-    filterOneCharacterWordCombinations: filterOneCharacterWordCombinations
+    filterOneCharacterWordCombinations: filterOneCharacterWordCombinations,
+    filterEndingWith: filterEndingWith
 };
 
 
-},{"../helpers/getLanguage.js":106,"../researches/dutch/functionWords.js":126,"../researches/english/functionWords.js":130,"../researches/french/functionWords.js":143,"../researches/german/functionWords.js":153,"../researches/italian/functionWords.js":176,"../researches/portuguese/functionWords.js":194,"../researches/spanish/functionWords.js":202,"../stringProcessing/getSentences.js":231,"../stringProcessing/getWords.js":234,"../stringProcessing/quotes.js":246,"../values/WordCombination.js":270,"lodash/filter":488,"lodash/flatMap":491,"lodash/forEach":493,"lodash/has":495,"lodash/includes":499,"lodash/intersection":501,"lodash/isEmpty":508,"lodash/map":524,"lodash/take":540,"lodash/values":548}],248:[function(require,module,exports){
+},{"../helpers/getFunctionWords.js":112,"../helpers/getLanguage.js":113,"../stringProcessing/getSentences.js":253,"../stringProcessing/getWords.js":256,"../stringProcessing/quotes.js":270,"../values/WordCombination.js":295,"lodash/filter":516,"lodash/flatMap":519,"lodash/forEach":521,"lodash/has":523,"lodash/includes":527,"lodash/intersection":529,"lodash/isEmpty":536,"lodash/map":550,"lodash/take":566,"lodash/values":575}],272:[function(require,module,exports){
 "use strict";
 // Replace all other punctuation characters at the beginning or at the end of a word.
 
-var punctuationRegexString = "[\\\u2013\\-\\(\\)_\\[\\]\u2019\u201C\u201D\"'.?!:;,\xBF\xA1\xAB\xBB\u2014\xD7+&]+";
+var punctuationRegexString = "[\\\u2013\\-\\(\\)_\\[\\]\u2019\u201C\u201D\"'.?!:;,\xBF\xA1\xAB\xBB\u2039\u203A\u2014\xD7+&<>]+";
 var punctuationRegexStart = new RegExp("^" + punctuationRegexString);
 var punctuationRegexEnd = new RegExp(punctuationRegexString + "$");
 /**
@@ -22386,7 +25729,7 @@ module.exports = function (text) {
 };
 
 
-},{}],249:[function(require,module,exports){
+},{}],273:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/replaceDiacritics */
 
@@ -22406,7 +25749,7 @@ module.exports = function (text) {
 };
 
 
-},{"../config/diacritics.js":86}],250:[function(require,module,exports){
+},{"../config/diacritics.js":88}],274:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/replaceString */
 /**
@@ -22424,7 +25767,7 @@ module.exports = function (text, stringToReplace, replacement) {
 };
 
 
-},{}],251:[function(require,module,exports){
+},{}],275:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/sanitizeString */
 
@@ -22443,7 +25786,7 @@ module.exports = function (text) {
 };
 
 
-},{"../stringProcessing/stripHTMLTags.js":253,"../stringProcessing/stripSpaces.js":256}],252:[function(require,module,exports){
+},{"../stringProcessing/stripHTMLTags.js":277,"../stringProcessing/stripSpaces.js":280}],276:[function(require,module,exports){
 "use strict";
 
 var wordCount = require("./countWords.js");
@@ -22472,7 +25815,7 @@ module.exports = function (sentences) {
 };
 
 
-},{"./countWords.js":221,"./stripHTMLTags.js":253,"lodash/forEach":493}],253:[function(require,module,exports){
+},{"./countWords.js":243,"./stripHTMLTags.js":277,"lodash/forEach":521}],277:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/stripHTMLTags */
 
@@ -22488,7 +25831,7 @@ var blockElementEndRegex = new RegExp("</(" + blockElements.join("|") + ")[^>]*?
  */
 var stripIncompleteTags = function stripIncompleteTags(text) {
     text = text.replace(/^(<\/([^>]+)>)+/i, "");
-    text = text.replace(/(<([^\/>]+)>)+$/i, "");
+    text = text.replace(/(<([^/>]+)>)+$/i, "");
     return text;
 };
 /**
@@ -22520,7 +25863,7 @@ module.exports = {
 };
 
 
-},{"../helpers/html.js":109,"../stringProcessing/stripSpaces.js":256}],254:[function(require,module,exports){
+},{"../helpers/html.js":116,"../stringProcessing/stripSpaces.js":280}],278:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/stripNonTextTags */
 
@@ -22532,13 +25875,13 @@ var stripSpaces = require("../stringProcessing/stripSpaces.js");
  * @returns {string} The text stripped of tags, except for li, p, dd and h1-h6 tags.
  */
 module.exports = function (text) {
-  text = text.replace(/<(?!li|\/li|p|\/p|h1|\/h1|h2|\/h2|h3|\/h3|h4|\/h4|h5|\/h5|h6|\/h6|dd).*?\>/g, "");
+  text = text.replace(/<(?!li|\/li|p|\/p|h1|\/h1|h2|\/h2|h3|\/h3|h4|\/h4|h5|\/h5|h6|\/h6|dd).*?>/g, "");
   text = stripSpaces(text);
   return text;
 };
 
 
-},{"../stringProcessing/stripSpaces.js":256}],255:[function(require,module,exports){
+},{"../stringProcessing/stripSpaces.js":280}],279:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/stripNumbers */
 
@@ -22560,7 +25903,7 @@ module.exports = function (text) {
 };
 
 
-},{"../stringProcessing/stripSpaces.js":256}],256:[function(require,module,exports){
+},{"../stringProcessing/stripSpaces.js":280}],280:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/stripSpaces */
 /**
@@ -22581,12 +25924,62 @@ module.exports = function (text) {
 };
 
 
-},{}],257:[function(require,module,exports){
+},{}],281:[function(require,module,exports){
+"use strict";
+
+var wordBoundary = "[ \\u00a0\xA0\\n\\r\\t.,'()\"+-;!?:/\xBB\xAB\u2039\u203A<>]";
+var wordBoundaryStart = new RegExp("^(" + wordBoundary + "+)", "ig");
+var wordBoundaryEnd = new RegExp("(" + wordBoundary + "+$)", "ig");
+/**
+ * Strip word boundary markers from text in the beginning
+ *
+ * @param {String} text The text to strip word boundary markers from.
+ *
+ * @returns {String} The text without double word boundary markers.
+ */
+var stripWordBoundariesStart = function stripWordBoundariesStart(text) {
+    // Remove first character if word boundary
+    text = text.replace(wordBoundaryStart, "");
+    return text;
+};
+/**
+ * Strip word boundary markers from text in the end
+ *
+ * @param {String} text The text to strip word boundary markers from.
+ *
+ * @returns {String} The text without double word boundary markers.
+ */
+var stripWordBoundariesEnd = function stripWordBoundariesEnd(text) {
+    // Remove last character if word boundary
+    text = text.replace(wordBoundaryEnd, "");
+    return text;
+};
+/**
+ * Strip word boundary markers from text in the beginning and in the end
+ *
+ * @param {String} text The text to strip word boundary markers from.
+ *
+ * @returns {String} The text without word boundary markers.
+ */
+var stripWordBoundariesEverywhere = function stripWordBoundariesEverywhere(text) {
+    // Remove first/last character if word boundary
+    text = text.replace(wordBoundaryStart, "");
+    text = text.replace(wordBoundaryEnd, "");
+    return text;
+};
+module.exports = {
+    stripWordBoundariesStart: stripWordBoundariesStart,
+    stripWordBoundariesEnd: stripWordBoundariesEnd,
+    stripWordBoundariesEverywhere: stripWordBoundariesEverywhere
+};
+
+
+},{}],282:[function(require,module,exports){
 "use strict";
 
 var replaceString = require("../stringProcessing/replaceString.js");
 var removalWords = require("../config/removalWords.js")();
-var matchTextWithTransliteration = require("../stringProcessing/matchTextWithTransliteration.js");
+var matchTextWithWord = require("../stringProcessing/matchTextWithWord.js");
 /**
  * Matches the keyword in an array of strings
  *
@@ -22596,15 +25989,13 @@ var matchTextWithTransliteration = require("../stringProcessing/matchTextWithTra
  * @returns {number} The number of occurrences of the keyword in the headings.
  */
 module.exports = function (matches, keyword, locale) {
-    var foundInHeader;
-    if (matches === null) {
-        foundInHeader = -1;
-    } else {
+    var foundInHeader = -1;
+    if (matches !== null) {
         foundInHeader = 0;
         for (var i = 0; i < matches.length; i++) {
             // TODO: This replaceString call seemingly doesn't work, as no replacement value is being sent to the .replace method in replaceString
             var formattedHeaders = replaceString(matches[i], removalWords);
-            if (matchTextWithTransliteration(formattedHeaders, keyword, locale).length > 0 || matchTextWithTransliteration(matches[i], keyword, locale).length > 0) {
+            if (matchTextWithWord(formattedHeaders, keyword, locale).count > 0 || matchTextWithWord(matches[i], keyword, locale).count > 0) {
                 foundInHeader++;
             }
         }
@@ -22613,7 +26004,7 @@ module.exports = function (matches, keyword, locale) {
 };
 
 
-},{"../config/removalWords.js":88,"../stringProcessing/matchTextWithTransliteration.js":241,"../stringProcessing/replaceString.js":250}],258:[function(require,module,exports){
+},{"../config/removalWords.js":90,"../stringProcessing/matchTextWithWord.js":265,"../stringProcessing/replaceString.js":274}],283:[function(require,module,exports){
 "use strict";
 
 var isUndefined = require("lodash/isUndefined");
@@ -22710,7 +26101,7 @@ DeviationFragment.prototype.getSyllables = function () {
 module.exports = DeviationFragment;
 
 
-},{"lodash/isUndefined":521,"lodash/pick":532}],259:[function(require,module,exports){
+},{"lodash/isUndefined":547,"lodash/pick":558}],284:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/countSyllables */
 
@@ -22863,7 +26254,7 @@ var countSyllablesInText = function countSyllablesInText(text, locale) {
 module.exports = countSyllablesInText;
 
 
-},{"../../config/syllables.js":90,"../../helpers/syllableCountIterator.js":112,"../getWords.js":234,"./DeviationFragment":258,"lodash/filter":488,"lodash/find":489,"lodash/flatMap":491,"lodash/forEach":493,"lodash/isUndefined":521,"lodash/map":524,"lodash/memoize":525,"lodash/sum":539}],260:[function(require,module,exports){
+},{"../../config/syllables.js":92,"../../helpers/syllableCountIterator.js":119,"../getWords.js":256,"./DeviationFragment":283,"lodash/filter":516,"lodash/find":517,"lodash/flatMap":519,"lodash/forEach":521,"lodash/isUndefined":547,"lodash/map":550,"lodash/memoize":551,"lodash/sum":565}],285:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/replaceDiacritics */
 
@@ -22884,7 +26275,7 @@ module.exports = function (text, locale) {
 };
 
 
-},{"../config/transliterations.js":95}],261:[function(require,module,exports){
+},{"../config/transliterations.js":100}],286:[function(require,module,exports){
 "use strict";
 /** @module stringProcessing/unifyWhitespace */
 /**
@@ -22921,7 +26312,7 @@ module.exports = {
 };
 
 
-},{}],262:[function(require,module,exports){
+},{}],287:[function(require,module,exports){
 "use strict";
 
 var urlFromAnchorRegex = /href=(["'])([^"']+)\1/i;
@@ -23069,7 +26460,7 @@ module.exports = {
 };
 
 
-},{"url":45}],263:[function(require,module,exports){
+},{"url":46}],288:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -23551,7 +26942,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 }).call(undefined);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],264:[function(require,module,exports){
+},{}],289:[function(require,module,exports){
 "use strict";
 
 var isUndefined = require("lodash/isUndefined");
@@ -23700,7 +27091,7 @@ AssessmentResult.prototype.hasMarks = function () {
 module.exports = AssessmentResult;
 
 
-},{"lodash/isNumber":513,"lodash/isUndefined":521}],265:[function(require,module,exports){
+},{"lodash/isNumber":540,"lodash/isUndefined":547}],290:[function(require,module,exports){
 "use strict";
 
 var defaults = require("lodash/defaults");
@@ -23745,16 +27136,18 @@ Mark.prototype.applyWithReplace = function (text) {
 module.exports = Mark;
 
 
-},{"lodash/defaults":482}],266:[function(require,module,exports){
+},{"lodash/defaults":510}],291:[function(require,module,exports){
 "use strict";
 
 var defaults = require("lodash/defaults");
+var isEmpty = require("lodash/isEmpty");
 /**
  * Default attributes to be used by the Paper if they are left undefined.
- * @type {{keyword: string, description: string, title: string, url: string}}
+ * @type {{keyword: string, synonyms: string, description: string, title: string, url: string}}
  */
 var defaultAttributes = {
     keyword: "",
+    synonyms: "",
     description: "",
     title: "",
     titleWidth: 0,
@@ -23775,6 +27168,10 @@ var Paper = function Paper(text, attributes) {
     if (attributes.locale === "") {
         attributes.locale = defaultAttributes.locale;
     }
+    var onlyLetters = attributes.keyword.replace(/[‘’“”"'.?!:;,¿¡«»&*@#±^%|~`[\](){}⟨⟩<>/\\–\-\u2014\u00d7\u002b\u0026\s]/g, "");
+    if (isEmpty(onlyLetters)) {
+        attributes.keyword = defaultAttributes.keyword;
+    }
     this._attributes = attributes;
 };
 /**
@@ -23790,6 +27187,20 @@ Paper.prototype.hasKeyword = function () {
  */
 Paper.prototype.getKeyword = function () {
     return this._attributes.keyword;
+};
+/**
+ * Check whether synonyms is available.
+ * @returns {boolean} Returns true if the Paper has synonyms.
+ */
+Paper.prototype.hasSynonyms = function () {
+    return this._attributes.synonyms !== "";
+};
+/**
+ * Return the associated synonyms or an empty string if no synonyms is available.
+ * @returns {string} Returns synonyms.
+ */
+Paper.prototype.getSynonyms = function () {
+    return this._attributes.synonyms;
 };
 /**
  * Check whether the text is available.
@@ -23892,7 +27303,7 @@ Paper.prototype.getPermalink = function () {
 module.exports = Paper;
 
 
-},{"lodash/defaults":482}],267:[function(require,module,exports){
+},{"lodash/defaults":510,"lodash/isEmpty":536}],292:[function(require,module,exports){
 "use strict";
 
 var getType = require("./../helpers/types.js").getType;
@@ -24018,7 +27429,7 @@ Participle.prototype.setSentencePartPassiveness = function (passive) {
 module.exports = Participle;
 
 
-},{"./../helpers/types.js":114,"lodash/defaults":482,"lodash/forEach":493}],268:[function(require,module,exports){
+},{"./../helpers/types.js":121,"lodash/defaults":510,"lodash/forEach":521}],293:[function(require,module,exports){
 "use strict";
 /**
  * Default attributes to be used by the Sentence if they are left undefined.
@@ -24074,7 +27485,7 @@ Sentence.prototype.setPassive = function (passive) {
 module.exports = Sentence;
 
 
-},{}],269:[function(require,module,exports){
+},{}],294:[function(require,module,exports){
 "use strict";
 /**
  * Constructs a sentence part object.
@@ -24136,7 +27547,7 @@ SentencePart.prototype.setPassive = function (passive) {
 module.exports = SentencePart;
 
 
-},{}],270:[function(require,module,exports){
+},{}],295:[function(require,module,exports){
 "use strict";
 
 var forEach = require("lodash/forEach");
@@ -24297,7 +27708,7 @@ WordCombination.prototype.getDensity = function (wordCount) {
 module.exports = WordCombination;
 
 
-},{"lodash/forEach":493,"lodash/has":495}],271:[function(require,module,exports){
+},{"lodash/forEach":521,"lodash/has":523}],296:[function(require,module,exports){
 /*
   Module dependencies
 */
@@ -24477,7 +27888,7 @@ function renderComment(elem) {
   return '<!--' + elem.data + '-->';
 }
 
-},{"domelementtype":272,"entities":284}],272:[function(require,module,exports){
+},{"domelementtype":297,"entities":309}],297:[function(require,module,exports){
 //Types of elements found in the DOM
 module.exports = {
 	Text: "text", //Text
@@ -24492,7 +27903,7 @@ module.exports = {
 		return elem.type === "tag" || elem.type === "script" || elem.type === "style";
 	}
 };
-},{}],273:[function(require,module,exports){
+},{}],298:[function(require,module,exports){
 //Types of elements found in the DOM
 module.exports = {
 	Text: "text", //Text
@@ -24509,7 +27920,7 @@ module.exports = {
 	}
 };
 
-},{}],274:[function(require,module,exports){
+},{}],299:[function(require,module,exports){
 var ElementType = require("domelementtype");
 
 var re_whitespace = /\s+/g;
@@ -24538,7 +27949,6 @@ function DomHandler(callback, options, elementCB){
 var defaultOpts = {
 	normalizeWhitespace: false, //Replace all whitespace with single spaces
 	withStartIndices: false, //Add startIndex properties to nodes
-	withEndIndices: false, //Add endIndex properties to nodes
 };
 
 DomHandler.prototype.onparserinit = function(parser){
@@ -24569,33 +27979,8 @@ DomHandler.prototype.onerror = function(error){
 
 DomHandler.prototype.onclosetag = function(){
 	//if(this._tagStack.pop().name !== name) this._handleCallback(Error("Tagname didn't match!"));
-	
 	var elem = this._tagStack.pop();
-
-	if(this._options.withEndIndices){
-		elem.endIndex = this._parser.endIndex;
-	}
-
 	if(this._elementCB) this._elementCB(elem);
-};
-
-DomHandler.prototype._createDomElement = function(properties){
-	if (!this._options.withDomLvl1) return properties;
-
-	var element;
-	if (properties.type === "tag") {
-		element = Object.create(ElementPrototype);
-	} else {
-		element = Object.create(NodePrototype);
-	}
-
-	for (var key in properties) {
-		if (properties.hasOwnProperty(key)) {
-			element[key] = properties[key];
-		}
-	}
-
-	return element;
 };
 
 DomHandler.prototype._addDomElement = function(element){
@@ -24608,8 +27993,9 @@ DomHandler.prototype._addDomElement = function(element){
 	if(this._options.withStartIndices){
 		element.startIndex = this._parser.startIndex;
 	}
-	if(this._options.withEndIndices){
-		element.endIndex = this._parser.endIndex;
+
+	if (this._options.withDomLvl1) {
+		element.__proto__ = element.type === "tag" ? ElementPrototype : NodePrototype;
 	}
 
 	if(previousSibling){
@@ -24624,14 +28010,12 @@ DomHandler.prototype._addDomElement = function(element){
 };
 
 DomHandler.prototype.onopentag = function(name, attribs){
-	var properties = {
+	var element = {
 		type: name === "script" ? ElementType.Script : name === "style" ? ElementType.Style : ElementType.Tag,
 		name: name,
 		attribs: attribs,
 		children: []
 	};
-
-	var element = this._createDomElement(properties);
 
 	this._addDomElement(element);
 
@@ -24668,12 +28052,10 @@ DomHandler.prototype.ontext = function(data){
 				data = data.replace(re_whitespace, " ");
 			}
 
-			var element = this._createDomElement({
+			this._addDomElement({
 				data: data,
 				type: ElementType.Text
 			});
-
-			this._addDomElement(element);
 		}
 	}
 };
@@ -24686,27 +28068,23 @@ DomHandler.prototype.oncomment = function(data){
 		return;
 	}
 
-	var properties = {
+	var element = {
 		data: data,
 		type: ElementType.Comment
 	};
-
-	var element = this._createDomElement(properties);
 
 	this._addDomElement(element);
 	this._tagStack.push(element);
 };
 
 DomHandler.prototype.oncdatastart = function(){
-	var properties = {
+	var element = {
 		children: [{
 			data: "",
 			type: ElementType.Text
 		}],
 		type: ElementType.CDATA
 	};
-
-	var element = this._createDomElement(properties);
 
 	this._addDomElement(element);
 	this._tagStack.push(element);
@@ -24717,18 +28095,16 @@ DomHandler.prototype.oncommentend = DomHandler.prototype.oncdataend = function()
 };
 
 DomHandler.prototype.onprocessinginstruction = function(name, data){
-	var element = this._createDomElement({
+	this._addDomElement({
 		name: name,
 		data: data,
 		type: ElementType.Directive
 	});
-
-	this._addDomElement(element);
 };
 
 module.exports = DomHandler;
 
-},{"./lib/element":275,"./lib/node":276,"domelementtype":273}],275:[function(require,module,exports){
+},{"./lib/element":300,"./lib/node":301,"domelementtype":298}],300:[function(require,module,exports){
 // DOM-Level-1-compliant structure
 var NodePrototype = require('./node');
 var ElementPrototype = module.exports = Object.create(NodePrototype);
@@ -24750,7 +28126,7 @@ Object.keys(domLvl1).forEach(function(key) {
 	});
 });
 
-},{"./node":276}],276:[function(require,module,exports){
+},{"./node":301}],301:[function(require,module,exports){
 // This object will be used as the prototype for Nodes when creating a
 // DOM-Level-1-compliant structure.
 var NodePrototype = module.exports = {
@@ -24796,7 +28172,7 @@ Object.keys(domLvl1).forEach(function(key) {
 	});
 });
 
-},{}],277:[function(require,module,exports){
+},{}],302:[function(require,module,exports){
 var DomUtils = module.exports;
 
 [
@@ -24812,7 +28188,7 @@ var DomUtils = module.exports;
 	});
 });
 
-},{"./lib/helpers":278,"./lib/legacy":279,"./lib/manipulation":280,"./lib/querying":281,"./lib/stringify":282,"./lib/traversal":283}],278:[function(require,module,exports){
+},{"./lib/helpers":303,"./lib/legacy":304,"./lib/manipulation":305,"./lib/querying":306,"./lib/stringify":307,"./lib/traversal":308}],303:[function(require,module,exports){
 // removeSubsets
 // Given an array of nodes, remove any member that is contained by another.
 exports.removeSubsets = function(nodes) {
@@ -24955,7 +28331,7 @@ exports.uniqueSort = function(nodes) {
 	return nodes;
 };
 
-},{}],279:[function(require,module,exports){
+},{}],304:[function(require,module,exports){
 var ElementType = require("domelementtype");
 var isTag = exports.isTag = ElementType.isTag;
 
@@ -25044,7 +28420,7 @@ exports.getElementsByTagType = function(type, element, recurse, limit){
 	return this.filter(Checks.tag_type(type), element, recurse, limit);
 };
 
-},{"domelementtype":273}],280:[function(require,module,exports){
+},{"domelementtype":298}],305:[function(require,module,exports){
 exports.removeElement = function(elem){
 	if(elem.prev) elem.prev.next = elem.next;
 	if(elem.next) elem.next.prev = elem.prev;
@@ -25123,7 +28499,7 @@ exports.prepend = function(elem, prev){
 
 
 
-},{}],281:[function(require,module,exports){
+},{}],306:[function(require,module,exports){
 var isTag = require("domelementtype").isTag;
 
 module.exports = {
@@ -25206,21 +28582,20 @@ function existsOne(test, elems){
 	return false;
 }
 
-function findAll(test, rootElems){
+function findAll(test, elems){
 	var result = [];
-	var stack = rootElems.slice();
-	while(stack.length){
-		var elem = stack.shift();
-		if(!isTag(elem)) continue;
-		if (elem.children && elem.children.length > 0) {
-			stack.unshift.apply(stack, elem.children);
+	for(var i = 0, j = elems.length; i < j; i++){
+		if(!isTag(elems[i])) continue;
+		if(test(elems[i])) result.push(elems[i]);
+
+		if(elems[i].children.length > 0){
+			result = result.concat(findAll(test, elems[i].children));
 		}
-		if(test(elem)) result.push(elem);
 	}
 	return result;
 }
 
-},{"domelementtype":273}],282:[function(require,module,exports){
+},{"domelementtype":298}],307:[function(require,module,exports){
 var ElementType = require("domelementtype"),
     getOuterHTML = require("dom-serializer"),
     isTag = ElementType.isTag;
@@ -25239,13 +28614,12 @@ function getInnerHTML(elem, opts){
 
 function getText(elem){
 	if(Array.isArray(elem)) return elem.map(getText).join("");
-	if(isTag(elem)) return elem.name === "br" ? "\n" : getText(elem.children);
-	if(elem.type === ElementType.CDATA) return getText(elem.children);
+	if(isTag(elem) || elem.type === ElementType.CDATA) return getText(elem.children);
 	if(elem.type === ElementType.Text) return elem.data;
 	return "";
 }
 
-},{"dom-serializer":271,"domelementtype":273}],283:[function(require,module,exports){
+},{"dom-serializer":296,"domelementtype":298}],308:[function(require,module,exports){
 var getChildren = exports.getChildren = function(elem){
 	return elem.children;
 };
@@ -25271,7 +28645,7 @@ exports.getName = function(elem){
 	return elem.name;
 };
 
-},{}],284:[function(require,module,exports){
+},{}],309:[function(require,module,exports){
 var encode = require("./lib/encode.js"),
     decode = require("./lib/decode.js");
 
@@ -25306,7 +28680,7 @@ exports.decodeHTMLStrict = decode.HTMLStrict;
 
 exports.escape = encode.escape;
 
-},{"./lib/decode.js":285,"./lib/encode.js":287}],285:[function(require,module,exports){
+},{"./lib/decode.js":310,"./lib/encode.js":312}],310:[function(require,module,exports){
 var entityMap = require("../maps/entities.json"),
     legacyMap = require("../maps/legacy.json"),
     xmlMap    = require("../maps/xml.json"),
@@ -25379,7 +28753,7 @@ module.exports = {
 	HTML: decodeHTML,
 	HTMLStrict: decodeHTMLStrict
 };
-},{"../maps/entities.json":289,"../maps/legacy.json":290,"../maps/xml.json":291,"./decode_codepoint.js":286}],286:[function(require,module,exports){
+},{"../maps/entities.json":314,"../maps/legacy.json":315,"../maps/xml.json":316,"./decode_codepoint.js":311}],311:[function(require,module,exports){
 var decodeMap = require("../maps/decode.json");
 
 module.exports = decodeCodePoint;
@@ -25407,7 +28781,7 @@ function decodeCodePoint(codePoint){
 	return output;
 }
 
-},{"../maps/decode.json":288}],287:[function(require,module,exports){
+},{"../maps/decode.json":313}],312:[function(require,module,exports){
 var inverseXML = getInverseObj(require("../maps/xml.json")),
     xmlReplacer = getInverseReplacer(inverseXML);
 
@@ -25482,16 +28856,16 @@ function escapeXML(data){
 
 exports.escape = escapeXML;
 
-},{"../maps/entities.json":289,"../maps/xml.json":291}],288:[function(require,module,exports){
+},{"../maps/entities.json":314,"../maps/xml.json":316}],313:[function(require,module,exports){
 module.exports={"0":65533,"128":8364,"130":8218,"131":402,"132":8222,"133":8230,"134":8224,"135":8225,"136":710,"137":8240,"138":352,"139":8249,"140":338,"142":381,"145":8216,"146":8217,"147":8220,"148":8221,"149":8226,"150":8211,"151":8212,"152":732,"153":8482,"154":353,"155":8250,"156":339,"158":382,"159":376}
-},{}],289:[function(require,module,exports){
+},{}],314:[function(require,module,exports){
 module.exports={"Aacute":"\u00C1","aacute":"\u00E1","Abreve":"\u0102","abreve":"\u0103","ac":"\u223E","acd":"\u223F","acE":"\u223E\u0333","Acirc":"\u00C2","acirc":"\u00E2","acute":"\u00B4","Acy":"\u0410","acy":"\u0430","AElig":"\u00C6","aelig":"\u00E6","af":"\u2061","Afr":"\uD835\uDD04","afr":"\uD835\uDD1E","Agrave":"\u00C0","agrave":"\u00E0","alefsym":"\u2135","aleph":"\u2135","Alpha":"\u0391","alpha":"\u03B1","Amacr":"\u0100","amacr":"\u0101","amalg":"\u2A3F","amp":"&","AMP":"&","andand":"\u2A55","And":"\u2A53","and":"\u2227","andd":"\u2A5C","andslope":"\u2A58","andv":"\u2A5A","ang":"\u2220","ange":"\u29A4","angle":"\u2220","angmsdaa":"\u29A8","angmsdab":"\u29A9","angmsdac":"\u29AA","angmsdad":"\u29AB","angmsdae":"\u29AC","angmsdaf":"\u29AD","angmsdag":"\u29AE","angmsdah":"\u29AF","angmsd":"\u2221","angrt":"\u221F","angrtvb":"\u22BE","angrtvbd":"\u299D","angsph":"\u2222","angst":"\u00C5","angzarr":"\u237C","Aogon":"\u0104","aogon":"\u0105","Aopf":"\uD835\uDD38","aopf":"\uD835\uDD52","apacir":"\u2A6F","ap":"\u2248","apE":"\u2A70","ape":"\u224A","apid":"\u224B","apos":"'","ApplyFunction":"\u2061","approx":"\u2248","approxeq":"\u224A","Aring":"\u00C5","aring":"\u00E5","Ascr":"\uD835\uDC9C","ascr":"\uD835\uDCB6","Assign":"\u2254","ast":"*","asymp":"\u2248","asympeq":"\u224D","Atilde":"\u00C3","atilde":"\u00E3","Auml":"\u00C4","auml":"\u00E4","awconint":"\u2233","awint":"\u2A11","backcong":"\u224C","backepsilon":"\u03F6","backprime":"\u2035","backsim":"\u223D","backsimeq":"\u22CD","Backslash":"\u2216","Barv":"\u2AE7","barvee":"\u22BD","barwed":"\u2305","Barwed":"\u2306","barwedge":"\u2305","bbrk":"\u23B5","bbrktbrk":"\u23B6","bcong":"\u224C","Bcy":"\u0411","bcy":"\u0431","bdquo":"\u201E","becaus":"\u2235","because":"\u2235","Because":"\u2235","bemptyv":"\u29B0","bepsi":"\u03F6","bernou":"\u212C","Bernoullis":"\u212C","Beta":"\u0392","beta":"\u03B2","beth":"\u2136","between":"\u226C","Bfr":"\uD835\uDD05","bfr":"\uD835\uDD1F","bigcap":"\u22C2","bigcirc":"\u25EF","bigcup":"\u22C3","bigodot":"\u2A00","bigoplus":"\u2A01","bigotimes":"\u2A02","bigsqcup":"\u2A06","bigstar":"\u2605","bigtriangledown":"\u25BD","bigtriangleup":"\u25B3","biguplus":"\u2A04","bigvee":"\u22C1","bigwedge":"\u22C0","bkarow":"\u290D","blacklozenge":"\u29EB","blacksquare":"\u25AA","blacktriangle":"\u25B4","blacktriangledown":"\u25BE","blacktriangleleft":"\u25C2","blacktriangleright":"\u25B8","blank":"\u2423","blk12":"\u2592","blk14":"\u2591","blk34":"\u2593","block":"\u2588","bne":"=\u20E5","bnequiv":"\u2261\u20E5","bNot":"\u2AED","bnot":"\u2310","Bopf":"\uD835\uDD39","bopf":"\uD835\uDD53","bot":"\u22A5","bottom":"\u22A5","bowtie":"\u22C8","boxbox":"\u29C9","boxdl":"\u2510","boxdL":"\u2555","boxDl":"\u2556","boxDL":"\u2557","boxdr":"\u250C","boxdR":"\u2552","boxDr":"\u2553","boxDR":"\u2554","boxh":"\u2500","boxH":"\u2550","boxhd":"\u252C","boxHd":"\u2564","boxhD":"\u2565","boxHD":"\u2566","boxhu":"\u2534","boxHu":"\u2567","boxhU":"\u2568","boxHU":"\u2569","boxminus":"\u229F","boxplus":"\u229E","boxtimes":"\u22A0","boxul":"\u2518","boxuL":"\u255B","boxUl":"\u255C","boxUL":"\u255D","boxur":"\u2514","boxuR":"\u2558","boxUr":"\u2559","boxUR":"\u255A","boxv":"\u2502","boxV":"\u2551","boxvh":"\u253C","boxvH":"\u256A","boxVh":"\u256B","boxVH":"\u256C","boxvl":"\u2524","boxvL":"\u2561","boxVl":"\u2562","boxVL":"\u2563","boxvr":"\u251C","boxvR":"\u255E","boxVr":"\u255F","boxVR":"\u2560","bprime":"\u2035","breve":"\u02D8","Breve":"\u02D8","brvbar":"\u00A6","bscr":"\uD835\uDCB7","Bscr":"\u212C","bsemi":"\u204F","bsim":"\u223D","bsime":"\u22CD","bsolb":"\u29C5","bsol":"\\","bsolhsub":"\u27C8","bull":"\u2022","bullet":"\u2022","bump":"\u224E","bumpE":"\u2AAE","bumpe":"\u224F","Bumpeq":"\u224E","bumpeq":"\u224F","Cacute":"\u0106","cacute":"\u0107","capand":"\u2A44","capbrcup":"\u2A49","capcap":"\u2A4B","cap":"\u2229","Cap":"\u22D2","capcup":"\u2A47","capdot":"\u2A40","CapitalDifferentialD":"\u2145","caps":"\u2229\uFE00","caret":"\u2041","caron":"\u02C7","Cayleys":"\u212D","ccaps":"\u2A4D","Ccaron":"\u010C","ccaron":"\u010D","Ccedil":"\u00C7","ccedil":"\u00E7","Ccirc":"\u0108","ccirc":"\u0109","Cconint":"\u2230","ccups":"\u2A4C","ccupssm":"\u2A50","Cdot":"\u010A","cdot":"\u010B","cedil":"\u00B8","Cedilla":"\u00B8","cemptyv":"\u29B2","cent":"\u00A2","centerdot":"\u00B7","CenterDot":"\u00B7","cfr":"\uD835\uDD20","Cfr":"\u212D","CHcy":"\u0427","chcy":"\u0447","check":"\u2713","checkmark":"\u2713","Chi":"\u03A7","chi":"\u03C7","circ":"\u02C6","circeq":"\u2257","circlearrowleft":"\u21BA","circlearrowright":"\u21BB","circledast":"\u229B","circledcirc":"\u229A","circleddash":"\u229D","CircleDot":"\u2299","circledR":"\u00AE","circledS":"\u24C8","CircleMinus":"\u2296","CirclePlus":"\u2295","CircleTimes":"\u2297","cir":"\u25CB","cirE":"\u29C3","cire":"\u2257","cirfnint":"\u2A10","cirmid":"\u2AEF","cirscir":"\u29C2","ClockwiseContourIntegral":"\u2232","CloseCurlyDoubleQuote":"\u201D","CloseCurlyQuote":"\u2019","clubs":"\u2663","clubsuit":"\u2663","colon":":","Colon":"\u2237","Colone":"\u2A74","colone":"\u2254","coloneq":"\u2254","comma":",","commat":"@","comp":"\u2201","compfn":"\u2218","complement":"\u2201","complexes":"\u2102","cong":"\u2245","congdot":"\u2A6D","Congruent":"\u2261","conint":"\u222E","Conint":"\u222F","ContourIntegral":"\u222E","copf":"\uD835\uDD54","Copf":"\u2102","coprod":"\u2210","Coproduct":"\u2210","copy":"\u00A9","COPY":"\u00A9","copysr":"\u2117","CounterClockwiseContourIntegral":"\u2233","crarr":"\u21B5","cross":"\u2717","Cross":"\u2A2F","Cscr":"\uD835\uDC9E","cscr":"\uD835\uDCB8","csub":"\u2ACF","csube":"\u2AD1","csup":"\u2AD0","csupe":"\u2AD2","ctdot":"\u22EF","cudarrl":"\u2938","cudarrr":"\u2935","cuepr":"\u22DE","cuesc":"\u22DF","cularr":"\u21B6","cularrp":"\u293D","cupbrcap":"\u2A48","cupcap":"\u2A46","CupCap":"\u224D","cup":"\u222A","Cup":"\u22D3","cupcup":"\u2A4A","cupdot":"\u228D","cupor":"\u2A45","cups":"\u222A\uFE00","curarr":"\u21B7","curarrm":"\u293C","curlyeqprec":"\u22DE","curlyeqsucc":"\u22DF","curlyvee":"\u22CE","curlywedge":"\u22CF","curren":"\u00A4","curvearrowleft":"\u21B6","curvearrowright":"\u21B7","cuvee":"\u22CE","cuwed":"\u22CF","cwconint":"\u2232","cwint":"\u2231","cylcty":"\u232D","dagger":"\u2020","Dagger":"\u2021","daleth":"\u2138","darr":"\u2193","Darr":"\u21A1","dArr":"\u21D3","dash":"\u2010","Dashv":"\u2AE4","dashv":"\u22A3","dbkarow":"\u290F","dblac":"\u02DD","Dcaron":"\u010E","dcaron":"\u010F","Dcy":"\u0414","dcy":"\u0434","ddagger":"\u2021","ddarr":"\u21CA","DD":"\u2145","dd":"\u2146","DDotrahd":"\u2911","ddotseq":"\u2A77","deg":"\u00B0","Del":"\u2207","Delta":"\u0394","delta":"\u03B4","demptyv":"\u29B1","dfisht":"\u297F","Dfr":"\uD835\uDD07","dfr":"\uD835\uDD21","dHar":"\u2965","dharl":"\u21C3","dharr":"\u21C2","DiacriticalAcute":"\u00B4","DiacriticalDot":"\u02D9","DiacriticalDoubleAcute":"\u02DD","DiacriticalGrave":"`","DiacriticalTilde":"\u02DC","diam":"\u22C4","diamond":"\u22C4","Diamond":"\u22C4","diamondsuit":"\u2666","diams":"\u2666","die":"\u00A8","DifferentialD":"\u2146","digamma":"\u03DD","disin":"\u22F2","div":"\u00F7","divide":"\u00F7","divideontimes":"\u22C7","divonx":"\u22C7","DJcy":"\u0402","djcy":"\u0452","dlcorn":"\u231E","dlcrop":"\u230D","dollar":"$","Dopf":"\uD835\uDD3B","dopf":"\uD835\uDD55","Dot":"\u00A8","dot":"\u02D9","DotDot":"\u20DC","doteq":"\u2250","doteqdot":"\u2251","DotEqual":"\u2250","dotminus":"\u2238","dotplus":"\u2214","dotsquare":"\u22A1","doublebarwedge":"\u2306","DoubleContourIntegral":"\u222F","DoubleDot":"\u00A8","DoubleDownArrow":"\u21D3","DoubleLeftArrow":"\u21D0","DoubleLeftRightArrow":"\u21D4","DoubleLeftTee":"\u2AE4","DoubleLongLeftArrow":"\u27F8","DoubleLongLeftRightArrow":"\u27FA","DoubleLongRightArrow":"\u27F9","DoubleRightArrow":"\u21D2","DoubleRightTee":"\u22A8","DoubleUpArrow":"\u21D1","DoubleUpDownArrow":"\u21D5","DoubleVerticalBar":"\u2225","DownArrowBar":"\u2913","downarrow":"\u2193","DownArrow":"\u2193","Downarrow":"\u21D3","DownArrowUpArrow":"\u21F5","DownBreve":"\u0311","downdownarrows":"\u21CA","downharpoonleft":"\u21C3","downharpoonright":"\u21C2","DownLeftRightVector":"\u2950","DownLeftTeeVector":"\u295E","DownLeftVectorBar":"\u2956","DownLeftVector":"\u21BD","DownRightTeeVector":"\u295F","DownRightVectorBar":"\u2957","DownRightVector":"\u21C1","DownTeeArrow":"\u21A7","DownTee":"\u22A4","drbkarow":"\u2910","drcorn":"\u231F","drcrop":"\u230C","Dscr":"\uD835\uDC9F","dscr":"\uD835\uDCB9","DScy":"\u0405","dscy":"\u0455","dsol":"\u29F6","Dstrok":"\u0110","dstrok":"\u0111","dtdot":"\u22F1","dtri":"\u25BF","dtrif":"\u25BE","duarr":"\u21F5","duhar":"\u296F","dwangle":"\u29A6","DZcy":"\u040F","dzcy":"\u045F","dzigrarr":"\u27FF","Eacute":"\u00C9","eacute":"\u00E9","easter":"\u2A6E","Ecaron":"\u011A","ecaron":"\u011B","Ecirc":"\u00CA","ecirc":"\u00EA","ecir":"\u2256","ecolon":"\u2255","Ecy":"\u042D","ecy":"\u044D","eDDot":"\u2A77","Edot":"\u0116","edot":"\u0117","eDot":"\u2251","ee":"\u2147","efDot":"\u2252","Efr":"\uD835\uDD08","efr":"\uD835\uDD22","eg":"\u2A9A","Egrave":"\u00C8","egrave":"\u00E8","egs":"\u2A96","egsdot":"\u2A98","el":"\u2A99","Element":"\u2208","elinters":"\u23E7","ell":"\u2113","els":"\u2A95","elsdot":"\u2A97","Emacr":"\u0112","emacr":"\u0113","empty":"\u2205","emptyset":"\u2205","EmptySmallSquare":"\u25FB","emptyv":"\u2205","EmptyVerySmallSquare":"\u25AB","emsp13":"\u2004","emsp14":"\u2005","emsp":"\u2003","ENG":"\u014A","eng":"\u014B","ensp":"\u2002","Eogon":"\u0118","eogon":"\u0119","Eopf":"\uD835\uDD3C","eopf":"\uD835\uDD56","epar":"\u22D5","eparsl":"\u29E3","eplus":"\u2A71","epsi":"\u03B5","Epsilon":"\u0395","epsilon":"\u03B5","epsiv":"\u03F5","eqcirc":"\u2256","eqcolon":"\u2255","eqsim":"\u2242","eqslantgtr":"\u2A96","eqslantless":"\u2A95","Equal":"\u2A75","equals":"=","EqualTilde":"\u2242","equest":"\u225F","Equilibrium":"\u21CC","equiv":"\u2261","equivDD":"\u2A78","eqvparsl":"\u29E5","erarr":"\u2971","erDot":"\u2253","escr":"\u212F","Escr":"\u2130","esdot":"\u2250","Esim":"\u2A73","esim":"\u2242","Eta":"\u0397","eta":"\u03B7","ETH":"\u00D0","eth":"\u00F0","Euml":"\u00CB","euml":"\u00EB","euro":"\u20AC","excl":"!","exist":"\u2203","Exists":"\u2203","expectation":"\u2130","exponentiale":"\u2147","ExponentialE":"\u2147","fallingdotseq":"\u2252","Fcy":"\u0424","fcy":"\u0444","female":"\u2640","ffilig":"\uFB03","fflig":"\uFB00","ffllig":"\uFB04","Ffr":"\uD835\uDD09","ffr":"\uD835\uDD23","filig":"\uFB01","FilledSmallSquare":"\u25FC","FilledVerySmallSquare":"\u25AA","fjlig":"fj","flat":"\u266D","fllig":"\uFB02","fltns":"\u25B1","fnof":"\u0192","Fopf":"\uD835\uDD3D","fopf":"\uD835\uDD57","forall":"\u2200","ForAll":"\u2200","fork":"\u22D4","forkv":"\u2AD9","Fouriertrf":"\u2131","fpartint":"\u2A0D","frac12":"\u00BD","frac13":"\u2153","frac14":"\u00BC","frac15":"\u2155","frac16":"\u2159","frac18":"\u215B","frac23":"\u2154","frac25":"\u2156","frac34":"\u00BE","frac35":"\u2157","frac38":"\u215C","frac45":"\u2158","frac56":"\u215A","frac58":"\u215D","frac78":"\u215E","frasl":"\u2044","frown":"\u2322","fscr":"\uD835\uDCBB","Fscr":"\u2131","gacute":"\u01F5","Gamma":"\u0393","gamma":"\u03B3","Gammad":"\u03DC","gammad":"\u03DD","gap":"\u2A86","Gbreve":"\u011E","gbreve":"\u011F","Gcedil":"\u0122","Gcirc":"\u011C","gcirc":"\u011D","Gcy":"\u0413","gcy":"\u0433","Gdot":"\u0120","gdot":"\u0121","ge":"\u2265","gE":"\u2267","gEl":"\u2A8C","gel":"\u22DB","geq":"\u2265","geqq":"\u2267","geqslant":"\u2A7E","gescc":"\u2AA9","ges":"\u2A7E","gesdot":"\u2A80","gesdoto":"\u2A82","gesdotol":"\u2A84","gesl":"\u22DB\uFE00","gesles":"\u2A94","Gfr":"\uD835\uDD0A","gfr":"\uD835\uDD24","gg":"\u226B","Gg":"\u22D9","ggg":"\u22D9","gimel":"\u2137","GJcy":"\u0403","gjcy":"\u0453","gla":"\u2AA5","gl":"\u2277","glE":"\u2A92","glj":"\u2AA4","gnap":"\u2A8A","gnapprox":"\u2A8A","gne":"\u2A88","gnE":"\u2269","gneq":"\u2A88","gneqq":"\u2269","gnsim":"\u22E7","Gopf":"\uD835\uDD3E","gopf":"\uD835\uDD58","grave":"`","GreaterEqual":"\u2265","GreaterEqualLess":"\u22DB","GreaterFullEqual":"\u2267","GreaterGreater":"\u2AA2","GreaterLess":"\u2277","GreaterSlantEqual":"\u2A7E","GreaterTilde":"\u2273","Gscr":"\uD835\uDCA2","gscr":"\u210A","gsim":"\u2273","gsime":"\u2A8E","gsiml":"\u2A90","gtcc":"\u2AA7","gtcir":"\u2A7A","gt":">","GT":">","Gt":"\u226B","gtdot":"\u22D7","gtlPar":"\u2995","gtquest":"\u2A7C","gtrapprox":"\u2A86","gtrarr":"\u2978","gtrdot":"\u22D7","gtreqless":"\u22DB","gtreqqless":"\u2A8C","gtrless":"\u2277","gtrsim":"\u2273","gvertneqq":"\u2269\uFE00","gvnE":"\u2269\uFE00","Hacek":"\u02C7","hairsp":"\u200A","half":"\u00BD","hamilt":"\u210B","HARDcy":"\u042A","hardcy":"\u044A","harrcir":"\u2948","harr":"\u2194","hArr":"\u21D4","harrw":"\u21AD","Hat":"^","hbar":"\u210F","Hcirc":"\u0124","hcirc":"\u0125","hearts":"\u2665","heartsuit":"\u2665","hellip":"\u2026","hercon":"\u22B9","hfr":"\uD835\uDD25","Hfr":"\u210C","HilbertSpace":"\u210B","hksearow":"\u2925","hkswarow":"\u2926","hoarr":"\u21FF","homtht":"\u223B","hookleftarrow":"\u21A9","hookrightarrow":"\u21AA","hopf":"\uD835\uDD59","Hopf":"\u210D","horbar":"\u2015","HorizontalLine":"\u2500","hscr":"\uD835\uDCBD","Hscr":"\u210B","hslash":"\u210F","Hstrok":"\u0126","hstrok":"\u0127","HumpDownHump":"\u224E","HumpEqual":"\u224F","hybull":"\u2043","hyphen":"\u2010","Iacute":"\u00CD","iacute":"\u00ED","ic":"\u2063","Icirc":"\u00CE","icirc":"\u00EE","Icy":"\u0418","icy":"\u0438","Idot":"\u0130","IEcy":"\u0415","iecy":"\u0435","iexcl":"\u00A1","iff":"\u21D4","ifr":"\uD835\uDD26","Ifr":"\u2111","Igrave":"\u00CC","igrave":"\u00EC","ii":"\u2148","iiiint":"\u2A0C","iiint":"\u222D","iinfin":"\u29DC","iiota":"\u2129","IJlig":"\u0132","ijlig":"\u0133","Imacr":"\u012A","imacr":"\u012B","image":"\u2111","ImaginaryI":"\u2148","imagline":"\u2110","imagpart":"\u2111","imath":"\u0131","Im":"\u2111","imof":"\u22B7","imped":"\u01B5","Implies":"\u21D2","incare":"\u2105","in":"\u2208","infin":"\u221E","infintie":"\u29DD","inodot":"\u0131","intcal":"\u22BA","int":"\u222B","Int":"\u222C","integers":"\u2124","Integral":"\u222B","intercal":"\u22BA","Intersection":"\u22C2","intlarhk":"\u2A17","intprod":"\u2A3C","InvisibleComma":"\u2063","InvisibleTimes":"\u2062","IOcy":"\u0401","iocy":"\u0451","Iogon":"\u012E","iogon":"\u012F","Iopf":"\uD835\uDD40","iopf":"\uD835\uDD5A","Iota":"\u0399","iota":"\u03B9","iprod":"\u2A3C","iquest":"\u00BF","iscr":"\uD835\uDCBE","Iscr":"\u2110","isin":"\u2208","isindot":"\u22F5","isinE":"\u22F9","isins":"\u22F4","isinsv":"\u22F3","isinv":"\u2208","it":"\u2062","Itilde":"\u0128","itilde":"\u0129","Iukcy":"\u0406","iukcy":"\u0456","Iuml":"\u00CF","iuml":"\u00EF","Jcirc":"\u0134","jcirc":"\u0135","Jcy":"\u0419","jcy":"\u0439","Jfr":"\uD835\uDD0D","jfr":"\uD835\uDD27","jmath":"\u0237","Jopf":"\uD835\uDD41","jopf":"\uD835\uDD5B","Jscr":"\uD835\uDCA5","jscr":"\uD835\uDCBF","Jsercy":"\u0408","jsercy":"\u0458","Jukcy":"\u0404","jukcy":"\u0454","Kappa":"\u039A","kappa":"\u03BA","kappav":"\u03F0","Kcedil":"\u0136","kcedil":"\u0137","Kcy":"\u041A","kcy":"\u043A","Kfr":"\uD835\uDD0E","kfr":"\uD835\uDD28","kgreen":"\u0138","KHcy":"\u0425","khcy":"\u0445","KJcy":"\u040C","kjcy":"\u045C","Kopf":"\uD835\uDD42","kopf":"\uD835\uDD5C","Kscr":"\uD835\uDCA6","kscr":"\uD835\uDCC0","lAarr":"\u21DA","Lacute":"\u0139","lacute":"\u013A","laemptyv":"\u29B4","lagran":"\u2112","Lambda":"\u039B","lambda":"\u03BB","lang":"\u27E8","Lang":"\u27EA","langd":"\u2991","langle":"\u27E8","lap":"\u2A85","Laplacetrf":"\u2112","laquo":"\u00AB","larrb":"\u21E4","larrbfs":"\u291F","larr":"\u2190","Larr":"\u219E","lArr":"\u21D0","larrfs":"\u291D","larrhk":"\u21A9","larrlp":"\u21AB","larrpl":"\u2939","larrsim":"\u2973","larrtl":"\u21A2","latail":"\u2919","lAtail":"\u291B","lat":"\u2AAB","late":"\u2AAD","lates":"\u2AAD\uFE00","lbarr":"\u290C","lBarr":"\u290E","lbbrk":"\u2772","lbrace":"{","lbrack":"[","lbrke":"\u298B","lbrksld":"\u298F","lbrkslu":"\u298D","Lcaron":"\u013D","lcaron":"\u013E","Lcedil":"\u013B","lcedil":"\u013C","lceil":"\u2308","lcub":"{","Lcy":"\u041B","lcy":"\u043B","ldca":"\u2936","ldquo":"\u201C","ldquor":"\u201E","ldrdhar":"\u2967","ldrushar":"\u294B","ldsh":"\u21B2","le":"\u2264","lE":"\u2266","LeftAngleBracket":"\u27E8","LeftArrowBar":"\u21E4","leftarrow":"\u2190","LeftArrow":"\u2190","Leftarrow":"\u21D0","LeftArrowRightArrow":"\u21C6","leftarrowtail":"\u21A2","LeftCeiling":"\u2308","LeftDoubleBracket":"\u27E6","LeftDownTeeVector":"\u2961","LeftDownVectorBar":"\u2959","LeftDownVector":"\u21C3","LeftFloor":"\u230A","leftharpoondown":"\u21BD","leftharpoonup":"\u21BC","leftleftarrows":"\u21C7","leftrightarrow":"\u2194","LeftRightArrow":"\u2194","Leftrightarrow":"\u21D4","leftrightarrows":"\u21C6","leftrightharpoons":"\u21CB","leftrightsquigarrow":"\u21AD","LeftRightVector":"\u294E","LeftTeeArrow":"\u21A4","LeftTee":"\u22A3","LeftTeeVector":"\u295A","leftthreetimes":"\u22CB","LeftTriangleBar":"\u29CF","LeftTriangle":"\u22B2","LeftTriangleEqual":"\u22B4","LeftUpDownVector":"\u2951","LeftUpTeeVector":"\u2960","LeftUpVectorBar":"\u2958","LeftUpVector":"\u21BF","LeftVectorBar":"\u2952","LeftVector":"\u21BC","lEg":"\u2A8B","leg":"\u22DA","leq":"\u2264","leqq":"\u2266","leqslant":"\u2A7D","lescc":"\u2AA8","les":"\u2A7D","lesdot":"\u2A7F","lesdoto":"\u2A81","lesdotor":"\u2A83","lesg":"\u22DA\uFE00","lesges":"\u2A93","lessapprox":"\u2A85","lessdot":"\u22D6","lesseqgtr":"\u22DA","lesseqqgtr":"\u2A8B","LessEqualGreater":"\u22DA","LessFullEqual":"\u2266","LessGreater":"\u2276","lessgtr":"\u2276","LessLess":"\u2AA1","lesssim":"\u2272","LessSlantEqual":"\u2A7D","LessTilde":"\u2272","lfisht":"\u297C","lfloor":"\u230A","Lfr":"\uD835\uDD0F","lfr":"\uD835\uDD29","lg":"\u2276","lgE":"\u2A91","lHar":"\u2962","lhard":"\u21BD","lharu":"\u21BC","lharul":"\u296A","lhblk":"\u2584","LJcy":"\u0409","ljcy":"\u0459","llarr":"\u21C7","ll":"\u226A","Ll":"\u22D8","llcorner":"\u231E","Lleftarrow":"\u21DA","llhard":"\u296B","lltri":"\u25FA","Lmidot":"\u013F","lmidot":"\u0140","lmoustache":"\u23B0","lmoust":"\u23B0","lnap":"\u2A89","lnapprox":"\u2A89","lne":"\u2A87","lnE":"\u2268","lneq":"\u2A87","lneqq":"\u2268","lnsim":"\u22E6","loang":"\u27EC","loarr":"\u21FD","lobrk":"\u27E6","longleftarrow":"\u27F5","LongLeftArrow":"\u27F5","Longleftarrow":"\u27F8","longleftrightarrow":"\u27F7","LongLeftRightArrow":"\u27F7","Longleftrightarrow":"\u27FA","longmapsto":"\u27FC","longrightarrow":"\u27F6","LongRightArrow":"\u27F6","Longrightarrow":"\u27F9","looparrowleft":"\u21AB","looparrowright":"\u21AC","lopar":"\u2985","Lopf":"\uD835\uDD43","lopf":"\uD835\uDD5D","loplus":"\u2A2D","lotimes":"\u2A34","lowast":"\u2217","lowbar":"_","LowerLeftArrow":"\u2199","LowerRightArrow":"\u2198","loz":"\u25CA","lozenge":"\u25CA","lozf":"\u29EB","lpar":"(","lparlt":"\u2993","lrarr":"\u21C6","lrcorner":"\u231F","lrhar":"\u21CB","lrhard":"\u296D","lrm":"\u200E","lrtri":"\u22BF","lsaquo":"\u2039","lscr":"\uD835\uDCC1","Lscr":"\u2112","lsh":"\u21B0","Lsh":"\u21B0","lsim":"\u2272","lsime":"\u2A8D","lsimg":"\u2A8F","lsqb":"[","lsquo":"\u2018","lsquor":"\u201A","Lstrok":"\u0141","lstrok":"\u0142","ltcc":"\u2AA6","ltcir":"\u2A79","lt":"<","LT":"<","Lt":"\u226A","ltdot":"\u22D6","lthree":"\u22CB","ltimes":"\u22C9","ltlarr":"\u2976","ltquest":"\u2A7B","ltri":"\u25C3","ltrie":"\u22B4","ltrif":"\u25C2","ltrPar":"\u2996","lurdshar":"\u294A","luruhar":"\u2966","lvertneqq":"\u2268\uFE00","lvnE":"\u2268\uFE00","macr":"\u00AF","male":"\u2642","malt":"\u2720","maltese":"\u2720","Map":"\u2905","map":"\u21A6","mapsto":"\u21A6","mapstodown":"\u21A7","mapstoleft":"\u21A4","mapstoup":"\u21A5","marker":"\u25AE","mcomma":"\u2A29","Mcy":"\u041C","mcy":"\u043C","mdash":"\u2014","mDDot":"\u223A","measuredangle":"\u2221","MediumSpace":"\u205F","Mellintrf":"\u2133","Mfr":"\uD835\uDD10","mfr":"\uD835\uDD2A","mho":"\u2127","micro":"\u00B5","midast":"*","midcir":"\u2AF0","mid":"\u2223","middot":"\u00B7","minusb":"\u229F","minus":"\u2212","minusd":"\u2238","minusdu":"\u2A2A","MinusPlus":"\u2213","mlcp":"\u2ADB","mldr":"\u2026","mnplus":"\u2213","models":"\u22A7","Mopf":"\uD835\uDD44","mopf":"\uD835\uDD5E","mp":"\u2213","mscr":"\uD835\uDCC2","Mscr":"\u2133","mstpos":"\u223E","Mu":"\u039C","mu":"\u03BC","multimap":"\u22B8","mumap":"\u22B8","nabla":"\u2207","Nacute":"\u0143","nacute":"\u0144","nang":"\u2220\u20D2","nap":"\u2249","napE":"\u2A70\u0338","napid":"\u224B\u0338","napos":"\u0149","napprox":"\u2249","natural":"\u266E","naturals":"\u2115","natur":"\u266E","nbsp":"\u00A0","nbump":"\u224E\u0338","nbumpe":"\u224F\u0338","ncap":"\u2A43","Ncaron":"\u0147","ncaron":"\u0148","Ncedil":"\u0145","ncedil":"\u0146","ncong":"\u2247","ncongdot":"\u2A6D\u0338","ncup":"\u2A42","Ncy":"\u041D","ncy":"\u043D","ndash":"\u2013","nearhk":"\u2924","nearr":"\u2197","neArr":"\u21D7","nearrow":"\u2197","ne":"\u2260","nedot":"\u2250\u0338","NegativeMediumSpace":"\u200B","NegativeThickSpace":"\u200B","NegativeThinSpace":"\u200B","NegativeVeryThinSpace":"\u200B","nequiv":"\u2262","nesear":"\u2928","nesim":"\u2242\u0338","NestedGreaterGreater":"\u226B","NestedLessLess":"\u226A","NewLine":"\n","nexist":"\u2204","nexists":"\u2204","Nfr":"\uD835\uDD11","nfr":"\uD835\uDD2B","ngE":"\u2267\u0338","nge":"\u2271","ngeq":"\u2271","ngeqq":"\u2267\u0338","ngeqslant":"\u2A7E\u0338","nges":"\u2A7E\u0338","nGg":"\u22D9\u0338","ngsim":"\u2275","nGt":"\u226B\u20D2","ngt":"\u226F","ngtr":"\u226F","nGtv":"\u226B\u0338","nharr":"\u21AE","nhArr":"\u21CE","nhpar":"\u2AF2","ni":"\u220B","nis":"\u22FC","nisd":"\u22FA","niv":"\u220B","NJcy":"\u040A","njcy":"\u045A","nlarr":"\u219A","nlArr":"\u21CD","nldr":"\u2025","nlE":"\u2266\u0338","nle":"\u2270","nleftarrow":"\u219A","nLeftarrow":"\u21CD","nleftrightarrow":"\u21AE","nLeftrightarrow":"\u21CE","nleq":"\u2270","nleqq":"\u2266\u0338","nleqslant":"\u2A7D\u0338","nles":"\u2A7D\u0338","nless":"\u226E","nLl":"\u22D8\u0338","nlsim":"\u2274","nLt":"\u226A\u20D2","nlt":"\u226E","nltri":"\u22EA","nltrie":"\u22EC","nLtv":"\u226A\u0338","nmid":"\u2224","NoBreak":"\u2060","NonBreakingSpace":"\u00A0","nopf":"\uD835\uDD5F","Nopf":"\u2115","Not":"\u2AEC","not":"\u00AC","NotCongruent":"\u2262","NotCupCap":"\u226D","NotDoubleVerticalBar":"\u2226","NotElement":"\u2209","NotEqual":"\u2260","NotEqualTilde":"\u2242\u0338","NotExists":"\u2204","NotGreater":"\u226F","NotGreaterEqual":"\u2271","NotGreaterFullEqual":"\u2267\u0338","NotGreaterGreater":"\u226B\u0338","NotGreaterLess":"\u2279","NotGreaterSlantEqual":"\u2A7E\u0338","NotGreaterTilde":"\u2275","NotHumpDownHump":"\u224E\u0338","NotHumpEqual":"\u224F\u0338","notin":"\u2209","notindot":"\u22F5\u0338","notinE":"\u22F9\u0338","notinva":"\u2209","notinvb":"\u22F7","notinvc":"\u22F6","NotLeftTriangleBar":"\u29CF\u0338","NotLeftTriangle":"\u22EA","NotLeftTriangleEqual":"\u22EC","NotLess":"\u226E","NotLessEqual":"\u2270","NotLessGreater":"\u2278","NotLessLess":"\u226A\u0338","NotLessSlantEqual":"\u2A7D\u0338","NotLessTilde":"\u2274","NotNestedGreaterGreater":"\u2AA2\u0338","NotNestedLessLess":"\u2AA1\u0338","notni":"\u220C","notniva":"\u220C","notnivb":"\u22FE","notnivc":"\u22FD","NotPrecedes":"\u2280","NotPrecedesEqual":"\u2AAF\u0338","NotPrecedesSlantEqual":"\u22E0","NotReverseElement":"\u220C","NotRightTriangleBar":"\u29D0\u0338","NotRightTriangle":"\u22EB","NotRightTriangleEqual":"\u22ED","NotSquareSubset":"\u228F\u0338","NotSquareSubsetEqual":"\u22E2","NotSquareSuperset":"\u2290\u0338","NotSquareSupersetEqual":"\u22E3","NotSubset":"\u2282\u20D2","NotSubsetEqual":"\u2288","NotSucceeds":"\u2281","NotSucceedsEqual":"\u2AB0\u0338","NotSucceedsSlantEqual":"\u22E1","NotSucceedsTilde":"\u227F\u0338","NotSuperset":"\u2283\u20D2","NotSupersetEqual":"\u2289","NotTilde":"\u2241","NotTildeEqual":"\u2244","NotTildeFullEqual":"\u2247","NotTildeTilde":"\u2249","NotVerticalBar":"\u2224","nparallel":"\u2226","npar":"\u2226","nparsl":"\u2AFD\u20E5","npart":"\u2202\u0338","npolint":"\u2A14","npr":"\u2280","nprcue":"\u22E0","nprec":"\u2280","npreceq":"\u2AAF\u0338","npre":"\u2AAF\u0338","nrarrc":"\u2933\u0338","nrarr":"\u219B","nrArr":"\u21CF","nrarrw":"\u219D\u0338","nrightarrow":"\u219B","nRightarrow":"\u21CF","nrtri":"\u22EB","nrtrie":"\u22ED","nsc":"\u2281","nsccue":"\u22E1","nsce":"\u2AB0\u0338","Nscr":"\uD835\uDCA9","nscr":"\uD835\uDCC3","nshortmid":"\u2224","nshortparallel":"\u2226","nsim":"\u2241","nsime":"\u2244","nsimeq":"\u2244","nsmid":"\u2224","nspar":"\u2226","nsqsube":"\u22E2","nsqsupe":"\u22E3","nsub":"\u2284","nsubE":"\u2AC5\u0338","nsube":"\u2288","nsubset":"\u2282\u20D2","nsubseteq":"\u2288","nsubseteqq":"\u2AC5\u0338","nsucc":"\u2281","nsucceq":"\u2AB0\u0338","nsup":"\u2285","nsupE":"\u2AC6\u0338","nsupe":"\u2289","nsupset":"\u2283\u20D2","nsupseteq":"\u2289","nsupseteqq":"\u2AC6\u0338","ntgl":"\u2279","Ntilde":"\u00D1","ntilde":"\u00F1","ntlg":"\u2278","ntriangleleft":"\u22EA","ntrianglelefteq":"\u22EC","ntriangleright":"\u22EB","ntrianglerighteq":"\u22ED","Nu":"\u039D","nu":"\u03BD","num":"#","numero":"\u2116","numsp":"\u2007","nvap":"\u224D\u20D2","nvdash":"\u22AC","nvDash":"\u22AD","nVdash":"\u22AE","nVDash":"\u22AF","nvge":"\u2265\u20D2","nvgt":">\u20D2","nvHarr":"\u2904","nvinfin":"\u29DE","nvlArr":"\u2902","nvle":"\u2264\u20D2","nvlt":"<\u20D2","nvltrie":"\u22B4\u20D2","nvrArr":"\u2903","nvrtrie":"\u22B5\u20D2","nvsim":"\u223C\u20D2","nwarhk":"\u2923","nwarr":"\u2196","nwArr":"\u21D6","nwarrow":"\u2196","nwnear":"\u2927","Oacute":"\u00D3","oacute":"\u00F3","oast":"\u229B","Ocirc":"\u00D4","ocirc":"\u00F4","ocir":"\u229A","Ocy":"\u041E","ocy":"\u043E","odash":"\u229D","Odblac":"\u0150","odblac":"\u0151","odiv":"\u2A38","odot":"\u2299","odsold":"\u29BC","OElig":"\u0152","oelig":"\u0153","ofcir":"\u29BF","Ofr":"\uD835\uDD12","ofr":"\uD835\uDD2C","ogon":"\u02DB","Ograve":"\u00D2","ograve":"\u00F2","ogt":"\u29C1","ohbar":"\u29B5","ohm":"\u03A9","oint":"\u222E","olarr":"\u21BA","olcir":"\u29BE","olcross":"\u29BB","oline":"\u203E","olt":"\u29C0","Omacr":"\u014C","omacr":"\u014D","Omega":"\u03A9","omega":"\u03C9","Omicron":"\u039F","omicron":"\u03BF","omid":"\u29B6","ominus":"\u2296","Oopf":"\uD835\uDD46","oopf":"\uD835\uDD60","opar":"\u29B7","OpenCurlyDoubleQuote":"\u201C","OpenCurlyQuote":"\u2018","operp":"\u29B9","oplus":"\u2295","orarr":"\u21BB","Or":"\u2A54","or":"\u2228","ord":"\u2A5D","order":"\u2134","orderof":"\u2134","ordf":"\u00AA","ordm":"\u00BA","origof":"\u22B6","oror":"\u2A56","orslope":"\u2A57","orv":"\u2A5B","oS":"\u24C8","Oscr":"\uD835\uDCAA","oscr":"\u2134","Oslash":"\u00D8","oslash":"\u00F8","osol":"\u2298","Otilde":"\u00D5","otilde":"\u00F5","otimesas":"\u2A36","Otimes":"\u2A37","otimes":"\u2297","Ouml":"\u00D6","ouml":"\u00F6","ovbar":"\u233D","OverBar":"\u203E","OverBrace":"\u23DE","OverBracket":"\u23B4","OverParenthesis":"\u23DC","para":"\u00B6","parallel":"\u2225","par":"\u2225","parsim":"\u2AF3","parsl":"\u2AFD","part":"\u2202","PartialD":"\u2202","Pcy":"\u041F","pcy":"\u043F","percnt":"%","period":".","permil":"\u2030","perp":"\u22A5","pertenk":"\u2031","Pfr":"\uD835\uDD13","pfr":"\uD835\uDD2D","Phi":"\u03A6","phi":"\u03C6","phiv":"\u03D5","phmmat":"\u2133","phone":"\u260E","Pi":"\u03A0","pi":"\u03C0","pitchfork":"\u22D4","piv":"\u03D6","planck":"\u210F","planckh":"\u210E","plankv":"\u210F","plusacir":"\u2A23","plusb":"\u229E","pluscir":"\u2A22","plus":"+","plusdo":"\u2214","plusdu":"\u2A25","pluse":"\u2A72","PlusMinus":"\u00B1","plusmn":"\u00B1","plussim":"\u2A26","plustwo":"\u2A27","pm":"\u00B1","Poincareplane":"\u210C","pointint":"\u2A15","popf":"\uD835\uDD61","Popf":"\u2119","pound":"\u00A3","prap":"\u2AB7","Pr":"\u2ABB","pr":"\u227A","prcue":"\u227C","precapprox":"\u2AB7","prec":"\u227A","preccurlyeq":"\u227C","Precedes":"\u227A","PrecedesEqual":"\u2AAF","PrecedesSlantEqual":"\u227C","PrecedesTilde":"\u227E","preceq":"\u2AAF","precnapprox":"\u2AB9","precneqq":"\u2AB5","precnsim":"\u22E8","pre":"\u2AAF","prE":"\u2AB3","precsim":"\u227E","prime":"\u2032","Prime":"\u2033","primes":"\u2119","prnap":"\u2AB9","prnE":"\u2AB5","prnsim":"\u22E8","prod":"\u220F","Product":"\u220F","profalar":"\u232E","profline":"\u2312","profsurf":"\u2313","prop":"\u221D","Proportional":"\u221D","Proportion":"\u2237","propto":"\u221D","prsim":"\u227E","prurel":"\u22B0","Pscr":"\uD835\uDCAB","pscr":"\uD835\uDCC5","Psi":"\u03A8","psi":"\u03C8","puncsp":"\u2008","Qfr":"\uD835\uDD14","qfr":"\uD835\uDD2E","qint":"\u2A0C","qopf":"\uD835\uDD62","Qopf":"\u211A","qprime":"\u2057","Qscr":"\uD835\uDCAC","qscr":"\uD835\uDCC6","quaternions":"\u210D","quatint":"\u2A16","quest":"?","questeq":"\u225F","quot":"\"","QUOT":"\"","rAarr":"\u21DB","race":"\u223D\u0331","Racute":"\u0154","racute":"\u0155","radic":"\u221A","raemptyv":"\u29B3","rang":"\u27E9","Rang":"\u27EB","rangd":"\u2992","range":"\u29A5","rangle":"\u27E9","raquo":"\u00BB","rarrap":"\u2975","rarrb":"\u21E5","rarrbfs":"\u2920","rarrc":"\u2933","rarr":"\u2192","Rarr":"\u21A0","rArr":"\u21D2","rarrfs":"\u291E","rarrhk":"\u21AA","rarrlp":"\u21AC","rarrpl":"\u2945","rarrsim":"\u2974","Rarrtl":"\u2916","rarrtl":"\u21A3","rarrw":"\u219D","ratail":"\u291A","rAtail":"\u291C","ratio":"\u2236","rationals":"\u211A","rbarr":"\u290D","rBarr":"\u290F","RBarr":"\u2910","rbbrk":"\u2773","rbrace":"}","rbrack":"]","rbrke":"\u298C","rbrksld":"\u298E","rbrkslu":"\u2990","Rcaron":"\u0158","rcaron":"\u0159","Rcedil":"\u0156","rcedil":"\u0157","rceil":"\u2309","rcub":"}","Rcy":"\u0420","rcy":"\u0440","rdca":"\u2937","rdldhar":"\u2969","rdquo":"\u201D","rdquor":"\u201D","rdsh":"\u21B3","real":"\u211C","realine":"\u211B","realpart":"\u211C","reals":"\u211D","Re":"\u211C","rect":"\u25AD","reg":"\u00AE","REG":"\u00AE","ReverseElement":"\u220B","ReverseEquilibrium":"\u21CB","ReverseUpEquilibrium":"\u296F","rfisht":"\u297D","rfloor":"\u230B","rfr":"\uD835\uDD2F","Rfr":"\u211C","rHar":"\u2964","rhard":"\u21C1","rharu":"\u21C0","rharul":"\u296C","Rho":"\u03A1","rho":"\u03C1","rhov":"\u03F1","RightAngleBracket":"\u27E9","RightArrowBar":"\u21E5","rightarrow":"\u2192","RightArrow":"\u2192","Rightarrow":"\u21D2","RightArrowLeftArrow":"\u21C4","rightarrowtail":"\u21A3","RightCeiling":"\u2309","RightDoubleBracket":"\u27E7","RightDownTeeVector":"\u295D","RightDownVectorBar":"\u2955","RightDownVector":"\u21C2","RightFloor":"\u230B","rightharpoondown":"\u21C1","rightharpoonup":"\u21C0","rightleftarrows":"\u21C4","rightleftharpoons":"\u21CC","rightrightarrows":"\u21C9","rightsquigarrow":"\u219D","RightTeeArrow":"\u21A6","RightTee":"\u22A2","RightTeeVector":"\u295B","rightthreetimes":"\u22CC","RightTriangleBar":"\u29D0","RightTriangle":"\u22B3","RightTriangleEqual":"\u22B5","RightUpDownVector":"\u294F","RightUpTeeVector":"\u295C","RightUpVectorBar":"\u2954","RightUpVector":"\u21BE","RightVectorBar":"\u2953","RightVector":"\u21C0","ring":"\u02DA","risingdotseq":"\u2253","rlarr":"\u21C4","rlhar":"\u21CC","rlm":"\u200F","rmoustache":"\u23B1","rmoust":"\u23B1","rnmid":"\u2AEE","roang":"\u27ED","roarr":"\u21FE","robrk":"\u27E7","ropar":"\u2986","ropf":"\uD835\uDD63","Ropf":"\u211D","roplus":"\u2A2E","rotimes":"\u2A35","RoundImplies":"\u2970","rpar":")","rpargt":"\u2994","rppolint":"\u2A12","rrarr":"\u21C9","Rrightarrow":"\u21DB","rsaquo":"\u203A","rscr":"\uD835\uDCC7","Rscr":"\u211B","rsh":"\u21B1","Rsh":"\u21B1","rsqb":"]","rsquo":"\u2019","rsquor":"\u2019","rthree":"\u22CC","rtimes":"\u22CA","rtri":"\u25B9","rtrie":"\u22B5","rtrif":"\u25B8","rtriltri":"\u29CE","RuleDelayed":"\u29F4","ruluhar":"\u2968","rx":"\u211E","Sacute":"\u015A","sacute":"\u015B","sbquo":"\u201A","scap":"\u2AB8","Scaron":"\u0160","scaron":"\u0161","Sc":"\u2ABC","sc":"\u227B","sccue":"\u227D","sce":"\u2AB0","scE":"\u2AB4","Scedil":"\u015E","scedil":"\u015F","Scirc":"\u015C","scirc":"\u015D","scnap":"\u2ABA","scnE":"\u2AB6","scnsim":"\u22E9","scpolint":"\u2A13","scsim":"\u227F","Scy":"\u0421","scy":"\u0441","sdotb":"\u22A1","sdot":"\u22C5","sdote":"\u2A66","searhk":"\u2925","searr":"\u2198","seArr":"\u21D8","searrow":"\u2198","sect":"\u00A7","semi":";","seswar":"\u2929","setminus":"\u2216","setmn":"\u2216","sext":"\u2736","Sfr":"\uD835\uDD16","sfr":"\uD835\uDD30","sfrown":"\u2322","sharp":"\u266F","SHCHcy":"\u0429","shchcy":"\u0449","SHcy":"\u0428","shcy":"\u0448","ShortDownArrow":"\u2193","ShortLeftArrow":"\u2190","shortmid":"\u2223","shortparallel":"\u2225","ShortRightArrow":"\u2192","ShortUpArrow":"\u2191","shy":"\u00AD","Sigma":"\u03A3","sigma":"\u03C3","sigmaf":"\u03C2","sigmav":"\u03C2","sim":"\u223C","simdot":"\u2A6A","sime":"\u2243","simeq":"\u2243","simg":"\u2A9E","simgE":"\u2AA0","siml":"\u2A9D","simlE":"\u2A9F","simne":"\u2246","simplus":"\u2A24","simrarr":"\u2972","slarr":"\u2190","SmallCircle":"\u2218","smallsetminus":"\u2216","smashp":"\u2A33","smeparsl":"\u29E4","smid":"\u2223","smile":"\u2323","smt":"\u2AAA","smte":"\u2AAC","smtes":"\u2AAC\uFE00","SOFTcy":"\u042C","softcy":"\u044C","solbar":"\u233F","solb":"\u29C4","sol":"/","Sopf":"\uD835\uDD4A","sopf":"\uD835\uDD64","spades":"\u2660","spadesuit":"\u2660","spar":"\u2225","sqcap":"\u2293","sqcaps":"\u2293\uFE00","sqcup":"\u2294","sqcups":"\u2294\uFE00","Sqrt":"\u221A","sqsub":"\u228F","sqsube":"\u2291","sqsubset":"\u228F","sqsubseteq":"\u2291","sqsup":"\u2290","sqsupe":"\u2292","sqsupset":"\u2290","sqsupseteq":"\u2292","square":"\u25A1","Square":"\u25A1","SquareIntersection":"\u2293","SquareSubset":"\u228F","SquareSubsetEqual":"\u2291","SquareSuperset":"\u2290","SquareSupersetEqual":"\u2292","SquareUnion":"\u2294","squarf":"\u25AA","squ":"\u25A1","squf":"\u25AA","srarr":"\u2192","Sscr":"\uD835\uDCAE","sscr":"\uD835\uDCC8","ssetmn":"\u2216","ssmile":"\u2323","sstarf":"\u22C6","Star":"\u22C6","star":"\u2606","starf":"\u2605","straightepsilon":"\u03F5","straightphi":"\u03D5","strns":"\u00AF","sub":"\u2282","Sub":"\u22D0","subdot":"\u2ABD","subE":"\u2AC5","sube":"\u2286","subedot":"\u2AC3","submult":"\u2AC1","subnE":"\u2ACB","subne":"\u228A","subplus":"\u2ABF","subrarr":"\u2979","subset":"\u2282","Subset":"\u22D0","subseteq":"\u2286","subseteqq":"\u2AC5","SubsetEqual":"\u2286","subsetneq":"\u228A","subsetneqq":"\u2ACB","subsim":"\u2AC7","subsub":"\u2AD5","subsup":"\u2AD3","succapprox":"\u2AB8","succ":"\u227B","succcurlyeq":"\u227D","Succeeds":"\u227B","SucceedsEqual":"\u2AB0","SucceedsSlantEqual":"\u227D","SucceedsTilde":"\u227F","succeq":"\u2AB0","succnapprox":"\u2ABA","succneqq":"\u2AB6","succnsim":"\u22E9","succsim":"\u227F","SuchThat":"\u220B","sum":"\u2211","Sum":"\u2211","sung":"\u266A","sup1":"\u00B9","sup2":"\u00B2","sup3":"\u00B3","sup":"\u2283","Sup":"\u22D1","supdot":"\u2ABE","supdsub":"\u2AD8","supE":"\u2AC6","supe":"\u2287","supedot":"\u2AC4","Superset":"\u2283","SupersetEqual":"\u2287","suphsol":"\u27C9","suphsub":"\u2AD7","suplarr":"\u297B","supmult":"\u2AC2","supnE":"\u2ACC","supne":"\u228B","supplus":"\u2AC0","supset":"\u2283","Supset":"\u22D1","supseteq":"\u2287","supseteqq":"\u2AC6","supsetneq":"\u228B","supsetneqq":"\u2ACC","supsim":"\u2AC8","supsub":"\u2AD4","supsup":"\u2AD6","swarhk":"\u2926","swarr":"\u2199","swArr":"\u21D9","swarrow":"\u2199","swnwar":"\u292A","szlig":"\u00DF","Tab":"\t","target":"\u2316","Tau":"\u03A4","tau":"\u03C4","tbrk":"\u23B4","Tcaron":"\u0164","tcaron":"\u0165","Tcedil":"\u0162","tcedil":"\u0163","Tcy":"\u0422","tcy":"\u0442","tdot":"\u20DB","telrec":"\u2315","Tfr":"\uD835\uDD17","tfr":"\uD835\uDD31","there4":"\u2234","therefore":"\u2234","Therefore":"\u2234","Theta":"\u0398","theta":"\u03B8","thetasym":"\u03D1","thetav":"\u03D1","thickapprox":"\u2248","thicksim":"\u223C","ThickSpace":"\u205F\u200A","ThinSpace":"\u2009","thinsp":"\u2009","thkap":"\u2248","thksim":"\u223C","THORN":"\u00DE","thorn":"\u00FE","tilde":"\u02DC","Tilde":"\u223C","TildeEqual":"\u2243","TildeFullEqual":"\u2245","TildeTilde":"\u2248","timesbar":"\u2A31","timesb":"\u22A0","times":"\u00D7","timesd":"\u2A30","tint":"\u222D","toea":"\u2928","topbot":"\u2336","topcir":"\u2AF1","top":"\u22A4","Topf":"\uD835\uDD4B","topf":"\uD835\uDD65","topfork":"\u2ADA","tosa":"\u2929","tprime":"\u2034","trade":"\u2122","TRADE":"\u2122","triangle":"\u25B5","triangledown":"\u25BF","triangleleft":"\u25C3","trianglelefteq":"\u22B4","triangleq":"\u225C","triangleright":"\u25B9","trianglerighteq":"\u22B5","tridot":"\u25EC","trie":"\u225C","triminus":"\u2A3A","TripleDot":"\u20DB","triplus":"\u2A39","trisb":"\u29CD","tritime":"\u2A3B","trpezium":"\u23E2","Tscr":"\uD835\uDCAF","tscr":"\uD835\uDCC9","TScy":"\u0426","tscy":"\u0446","TSHcy":"\u040B","tshcy":"\u045B","Tstrok":"\u0166","tstrok":"\u0167","twixt":"\u226C","twoheadleftarrow":"\u219E","twoheadrightarrow":"\u21A0","Uacute":"\u00DA","uacute":"\u00FA","uarr":"\u2191","Uarr":"\u219F","uArr":"\u21D1","Uarrocir":"\u2949","Ubrcy":"\u040E","ubrcy":"\u045E","Ubreve":"\u016C","ubreve":"\u016D","Ucirc":"\u00DB","ucirc":"\u00FB","Ucy":"\u0423","ucy":"\u0443","udarr":"\u21C5","Udblac":"\u0170","udblac":"\u0171","udhar":"\u296E","ufisht":"\u297E","Ufr":"\uD835\uDD18","ufr":"\uD835\uDD32","Ugrave":"\u00D9","ugrave":"\u00F9","uHar":"\u2963","uharl":"\u21BF","uharr":"\u21BE","uhblk":"\u2580","ulcorn":"\u231C","ulcorner":"\u231C","ulcrop":"\u230F","ultri":"\u25F8","Umacr":"\u016A","umacr":"\u016B","uml":"\u00A8","UnderBar":"_","UnderBrace":"\u23DF","UnderBracket":"\u23B5","UnderParenthesis":"\u23DD","Union":"\u22C3","UnionPlus":"\u228E","Uogon":"\u0172","uogon":"\u0173","Uopf":"\uD835\uDD4C","uopf":"\uD835\uDD66","UpArrowBar":"\u2912","uparrow":"\u2191","UpArrow":"\u2191","Uparrow":"\u21D1","UpArrowDownArrow":"\u21C5","updownarrow":"\u2195","UpDownArrow":"\u2195","Updownarrow":"\u21D5","UpEquilibrium":"\u296E","upharpoonleft":"\u21BF","upharpoonright":"\u21BE","uplus":"\u228E","UpperLeftArrow":"\u2196","UpperRightArrow":"\u2197","upsi":"\u03C5","Upsi":"\u03D2","upsih":"\u03D2","Upsilon":"\u03A5","upsilon":"\u03C5","UpTeeArrow":"\u21A5","UpTee":"\u22A5","upuparrows":"\u21C8","urcorn":"\u231D","urcorner":"\u231D","urcrop":"\u230E","Uring":"\u016E","uring":"\u016F","urtri":"\u25F9","Uscr":"\uD835\uDCB0","uscr":"\uD835\uDCCA","utdot":"\u22F0","Utilde":"\u0168","utilde":"\u0169","utri":"\u25B5","utrif":"\u25B4","uuarr":"\u21C8","Uuml":"\u00DC","uuml":"\u00FC","uwangle":"\u29A7","vangrt":"\u299C","varepsilon":"\u03F5","varkappa":"\u03F0","varnothing":"\u2205","varphi":"\u03D5","varpi":"\u03D6","varpropto":"\u221D","varr":"\u2195","vArr":"\u21D5","varrho":"\u03F1","varsigma":"\u03C2","varsubsetneq":"\u228A\uFE00","varsubsetneqq":"\u2ACB\uFE00","varsupsetneq":"\u228B\uFE00","varsupsetneqq":"\u2ACC\uFE00","vartheta":"\u03D1","vartriangleleft":"\u22B2","vartriangleright":"\u22B3","vBar":"\u2AE8","Vbar":"\u2AEB","vBarv":"\u2AE9","Vcy":"\u0412","vcy":"\u0432","vdash":"\u22A2","vDash":"\u22A8","Vdash":"\u22A9","VDash":"\u22AB","Vdashl":"\u2AE6","veebar":"\u22BB","vee":"\u2228","Vee":"\u22C1","veeeq":"\u225A","vellip":"\u22EE","verbar":"|","Verbar":"\u2016","vert":"|","Vert":"\u2016","VerticalBar":"\u2223","VerticalLine":"|","VerticalSeparator":"\u2758","VerticalTilde":"\u2240","VeryThinSpace":"\u200A","Vfr":"\uD835\uDD19","vfr":"\uD835\uDD33","vltri":"\u22B2","vnsub":"\u2282\u20D2","vnsup":"\u2283\u20D2","Vopf":"\uD835\uDD4D","vopf":"\uD835\uDD67","vprop":"\u221D","vrtri":"\u22B3","Vscr":"\uD835\uDCB1","vscr":"\uD835\uDCCB","vsubnE":"\u2ACB\uFE00","vsubne":"\u228A\uFE00","vsupnE":"\u2ACC\uFE00","vsupne":"\u228B\uFE00","Vvdash":"\u22AA","vzigzag":"\u299A","Wcirc":"\u0174","wcirc":"\u0175","wedbar":"\u2A5F","wedge":"\u2227","Wedge":"\u22C0","wedgeq":"\u2259","weierp":"\u2118","Wfr":"\uD835\uDD1A","wfr":"\uD835\uDD34","Wopf":"\uD835\uDD4E","wopf":"\uD835\uDD68","wp":"\u2118","wr":"\u2240","wreath":"\u2240","Wscr":"\uD835\uDCB2","wscr":"\uD835\uDCCC","xcap":"\u22C2","xcirc":"\u25EF","xcup":"\u22C3","xdtri":"\u25BD","Xfr":"\uD835\uDD1B","xfr":"\uD835\uDD35","xharr":"\u27F7","xhArr":"\u27FA","Xi":"\u039E","xi":"\u03BE","xlarr":"\u27F5","xlArr":"\u27F8","xmap":"\u27FC","xnis":"\u22FB","xodot":"\u2A00","Xopf":"\uD835\uDD4F","xopf":"\uD835\uDD69","xoplus":"\u2A01","xotime":"\u2A02","xrarr":"\u27F6","xrArr":"\u27F9","Xscr":"\uD835\uDCB3","xscr":"\uD835\uDCCD","xsqcup":"\u2A06","xuplus":"\u2A04","xutri":"\u25B3","xvee":"\u22C1","xwedge":"\u22C0","Yacute":"\u00DD","yacute":"\u00FD","YAcy":"\u042F","yacy":"\u044F","Ycirc":"\u0176","ycirc":"\u0177","Ycy":"\u042B","ycy":"\u044B","yen":"\u00A5","Yfr":"\uD835\uDD1C","yfr":"\uD835\uDD36","YIcy":"\u0407","yicy":"\u0457","Yopf":"\uD835\uDD50","yopf":"\uD835\uDD6A","Yscr":"\uD835\uDCB4","yscr":"\uD835\uDCCE","YUcy":"\u042E","yucy":"\u044E","yuml":"\u00FF","Yuml":"\u0178","Zacute":"\u0179","zacute":"\u017A","Zcaron":"\u017D","zcaron":"\u017E","Zcy":"\u0417","zcy":"\u0437","Zdot":"\u017B","zdot":"\u017C","zeetrf":"\u2128","ZeroWidthSpace":"\u200B","Zeta":"\u0396","zeta":"\u03B6","zfr":"\uD835\uDD37","Zfr":"\u2128","ZHcy":"\u0416","zhcy":"\u0436","zigrarr":"\u21DD","zopf":"\uD835\uDD6B","Zopf":"\u2124","Zscr":"\uD835\uDCB5","zscr":"\uD835\uDCCF","zwj":"\u200D","zwnj":"\u200C"}
-},{}],290:[function(require,module,exports){
+},{}],315:[function(require,module,exports){
 module.exports={"Aacute":"\u00C1","aacute":"\u00E1","Acirc":"\u00C2","acirc":"\u00E2","acute":"\u00B4","AElig":"\u00C6","aelig":"\u00E6","Agrave":"\u00C0","agrave":"\u00E0","amp":"&","AMP":"&","Aring":"\u00C5","aring":"\u00E5","Atilde":"\u00C3","atilde":"\u00E3","Auml":"\u00C4","auml":"\u00E4","brvbar":"\u00A6","Ccedil":"\u00C7","ccedil":"\u00E7","cedil":"\u00B8","cent":"\u00A2","copy":"\u00A9","COPY":"\u00A9","curren":"\u00A4","deg":"\u00B0","divide":"\u00F7","Eacute":"\u00C9","eacute":"\u00E9","Ecirc":"\u00CA","ecirc":"\u00EA","Egrave":"\u00C8","egrave":"\u00E8","ETH":"\u00D0","eth":"\u00F0","Euml":"\u00CB","euml":"\u00EB","frac12":"\u00BD","frac14":"\u00BC","frac34":"\u00BE","gt":">","GT":">","Iacute":"\u00CD","iacute":"\u00ED","Icirc":"\u00CE","icirc":"\u00EE","iexcl":"\u00A1","Igrave":"\u00CC","igrave":"\u00EC","iquest":"\u00BF","Iuml":"\u00CF","iuml":"\u00EF","laquo":"\u00AB","lt":"<","LT":"<","macr":"\u00AF","micro":"\u00B5","middot":"\u00B7","nbsp":"\u00A0","not":"\u00AC","Ntilde":"\u00D1","ntilde":"\u00F1","Oacute":"\u00D3","oacute":"\u00F3","Ocirc":"\u00D4","ocirc":"\u00F4","Ograve":"\u00D2","ograve":"\u00F2","ordf":"\u00AA","ordm":"\u00BA","Oslash":"\u00D8","oslash":"\u00F8","Otilde":"\u00D5","otilde":"\u00F5","Ouml":"\u00D6","ouml":"\u00F6","para":"\u00B6","plusmn":"\u00B1","pound":"\u00A3","quot":"\"","QUOT":"\"","raquo":"\u00BB","reg":"\u00AE","REG":"\u00AE","sect":"\u00A7","shy":"\u00AD","sup1":"\u00B9","sup2":"\u00B2","sup3":"\u00B3","szlig":"\u00DF","THORN":"\u00DE","thorn":"\u00FE","times":"\u00D7","Uacute":"\u00DA","uacute":"\u00FA","Ucirc":"\u00DB","ucirc":"\u00FB","Ugrave":"\u00D9","ugrave":"\u00F9","uml":"\u00A8","Uuml":"\u00DC","uuml":"\u00FC","Yacute":"\u00DD","yacute":"\u00FD","yen":"\u00A5","yuml":"\u00FF"}
-},{}],291:[function(require,module,exports){
+},{}],316:[function(require,module,exports){
 module.exports={"amp":"&","apos":"'","gt":">","lt":"<","quot":"\""}
 
-},{}],292:[function(require,module,exports){
+},{}],317:[function(require,module,exports){
 module.exports = CollectingHandler;
 
 function CollectingHandler(cbs){
@@ -25548,7 +28922,7 @@ CollectingHandler.prototype.restart = function(){
 	}
 };
 
-},{"./":299}],293:[function(require,module,exports){
+},{"./":324}],318:[function(require,module,exports){
 var index = require("./index.js"),
     DomHandler = index.DomHandler,
     DomUtils = index.DomUtils;
@@ -25645,7 +29019,7 @@ FeedHandler.prototype.onend = function(){
 
 module.exports = FeedHandler;
 
-},{"./index.js":299,"inherits":300}],294:[function(require,module,exports){
+},{"./index.js":324,"inherits":325}],319:[function(require,module,exports){
 var Tokenizer = require("./Tokenizer.js");
 
 /*
@@ -26000,7 +29374,7 @@ Parser.prototype.done = Parser.prototype.end;
 
 module.exports = Parser;
 
-},{"./Tokenizer.js":297,"events":6,"inherits":300}],295:[function(require,module,exports){
+},{"./Tokenizer.js":322,"events":6,"inherits":325}],320:[function(require,module,exports){
 module.exports = ProxyHandler;
 
 function ProxyHandler(cbs){
@@ -26028,7 +29402,7 @@ Object.keys(EVENTS).forEach(function(name){
 		throw Error("wrong number of arguments");
 	}
 });
-},{"./":299}],296:[function(require,module,exports){
+},{"./":324}],321:[function(require,module,exports){
 module.exports = Stream;
 
 var Parser = require("./WritableStream.js");
@@ -26064,7 +29438,7 @@ Object.keys(EVENTS).forEach(function(name){
 		throw Error("wrong number of arguments!");
 	}
 });
-},{"../":299,"./WritableStream.js":298,"inherits":300}],297:[function(require,module,exports){
+},{"../":324,"./WritableStream.js":323,"inherits":325}],322:[function(require,module,exports){
 module.exports = Tokenizer;
 
 var decodeCodePoint = require("entities/lib/decode_codepoint.js"),
@@ -26972,7 +30346,7 @@ Tokenizer.prototype._emitPartial = function(value){
 	}
 };
 
-},{"entities/lib/decode_codepoint.js":286,"entities/maps/entities.json":289,"entities/maps/legacy.json":290,"entities/maps/xml.json":291}],298:[function(require,module,exports){
+},{"entities/lib/decode_codepoint.js":311,"entities/maps/entities.json":314,"entities/maps/legacy.json":315,"entities/maps/xml.json":316}],323:[function(require,module,exports){
 module.exports = Stream;
 
 var Parser = require("./Parser.js"),
@@ -26998,7 +30372,7 @@ WritableStream.prototype._write = function(chunk, encoding, cb){
 	this._parser.write(chunk);
 	cb();
 };
-},{"./Parser.js":294,"buffer":4,"inherits":300,"readable-stream":3,"stream":43,"string_decoder":44}],299:[function(require,module,exports){
+},{"./Parser.js":319,"buffer":4,"inherits":325,"readable-stream":3,"stream":43,"string_decoder":44}],324:[function(require,module,exports){
 var Parser = require("./Parser.js"),
     DomHandler = require("domhandler");
 
@@ -27068,9 +30442,9 @@ module.exports = {
 	}
 };
 
-},{"./CollectingHandler.js":292,"./FeedHandler.js":293,"./Parser.js":294,"./ProxyHandler.js":295,"./Stream.js":296,"./Tokenizer.js":297,"./WritableStream.js":298,"domelementtype":273,"domhandler":274,"domutils":277}],300:[function(require,module,exports){
+},{"./CollectingHandler.js":317,"./FeedHandler.js":318,"./Parser.js":319,"./ProxyHandler.js":320,"./Stream.js":321,"./Tokenizer.js":322,"./WritableStream.js":323,"domelementtype":298,"domhandler":299,"domutils":302}],325:[function(require,module,exports){
 arguments[4][8][0].apply(exports,arguments)
-},{"dup":8}],301:[function(require,module,exports){
+},{"dup":8}],326:[function(require,module,exports){
 /**
  * @preserve jed.js https://github.com/SlexAxton/Jed
  */
@@ -28099,7 +31473,7 @@ return parser;
 
 })(this);
 
-},{}],302:[function(require,module,exports){
+},{}],327:[function(require,module,exports){
 var getNative = require('./_getNative'),
     root = require('./_root');
 
@@ -28108,7 +31482,7 @@ var DataView = getNative(root, 'DataView');
 
 module.exports = DataView;
 
-},{"./_getNative":419,"./_root":463}],303:[function(require,module,exports){
+},{"./_getNative":447,"./_root":491}],328:[function(require,module,exports){
 var hashClear = require('./_hashClear'),
     hashDelete = require('./_hashDelete'),
     hashGet = require('./_hashGet'),
@@ -28142,7 +31516,7 @@ Hash.prototype.set = hashSet;
 
 module.exports = Hash;
 
-},{"./_hashClear":427,"./_hashDelete":428,"./_hashGet":429,"./_hashHas":430,"./_hashSet":431}],304:[function(require,module,exports){
+},{"./_hashClear":455,"./_hashDelete":456,"./_hashGet":457,"./_hashHas":458,"./_hashSet":459}],329:[function(require,module,exports){
 var listCacheClear = require('./_listCacheClear'),
     listCacheDelete = require('./_listCacheDelete'),
     listCacheGet = require('./_listCacheGet'),
@@ -28176,7 +31550,7 @@ ListCache.prototype.set = listCacheSet;
 
 module.exports = ListCache;
 
-},{"./_listCacheClear":443,"./_listCacheDelete":444,"./_listCacheGet":445,"./_listCacheHas":446,"./_listCacheSet":447}],305:[function(require,module,exports){
+},{"./_listCacheClear":471,"./_listCacheDelete":472,"./_listCacheGet":473,"./_listCacheHas":474,"./_listCacheSet":475}],330:[function(require,module,exports){
 var getNative = require('./_getNative'),
     root = require('./_root');
 
@@ -28185,7 +31559,7 @@ var Map = getNative(root, 'Map');
 
 module.exports = Map;
 
-},{"./_getNative":419,"./_root":463}],306:[function(require,module,exports){
+},{"./_getNative":447,"./_root":491}],331:[function(require,module,exports){
 var mapCacheClear = require('./_mapCacheClear'),
     mapCacheDelete = require('./_mapCacheDelete'),
     mapCacheGet = require('./_mapCacheGet'),
@@ -28219,7 +31593,7 @@ MapCache.prototype.set = mapCacheSet;
 
 module.exports = MapCache;
 
-},{"./_mapCacheClear":448,"./_mapCacheDelete":449,"./_mapCacheGet":450,"./_mapCacheHas":451,"./_mapCacheSet":452}],307:[function(require,module,exports){
+},{"./_mapCacheClear":476,"./_mapCacheDelete":477,"./_mapCacheGet":478,"./_mapCacheHas":479,"./_mapCacheSet":480}],332:[function(require,module,exports){
 var getNative = require('./_getNative'),
     root = require('./_root');
 
@@ -28228,7 +31602,7 @@ var Promise = getNative(root, 'Promise');
 
 module.exports = Promise;
 
-},{"./_getNative":419,"./_root":463}],308:[function(require,module,exports){
+},{"./_getNative":447,"./_root":491}],333:[function(require,module,exports){
 var getNative = require('./_getNative'),
     root = require('./_root');
 
@@ -28237,7 +31611,7 @@ var Set = getNative(root, 'Set');
 
 module.exports = Set;
 
-},{"./_getNative":419,"./_root":463}],309:[function(require,module,exports){
+},{"./_getNative":447,"./_root":491}],334:[function(require,module,exports){
 var MapCache = require('./_MapCache'),
     setCacheAdd = require('./_setCacheAdd'),
     setCacheHas = require('./_setCacheHas');
@@ -28266,7 +31640,7 @@ SetCache.prototype.has = setCacheHas;
 
 module.exports = SetCache;
 
-},{"./_MapCache":306,"./_setCacheAdd":465,"./_setCacheHas":466}],310:[function(require,module,exports){
+},{"./_MapCache":331,"./_setCacheAdd":492,"./_setCacheHas":493}],335:[function(require,module,exports){
 var ListCache = require('./_ListCache'),
     stackClear = require('./_stackClear'),
     stackDelete = require('./_stackDelete'),
@@ -28295,9 +31669,9 @@ Stack.prototype.set = stackSet;
 
 module.exports = Stack;
 
-},{"./_ListCache":304,"./_stackClear":470,"./_stackDelete":471,"./_stackGet":472,"./_stackHas":473,"./_stackSet":474}],311:[function(require,module,exports){
+},{"./_ListCache":329,"./_stackClear":497,"./_stackDelete":498,"./_stackGet":499,"./_stackHas":500,"./_stackSet":501}],336:[function(require,module,exports){
 arguments[4][11][0].apply(exports,arguments)
-},{"./_root":463,"dup":11}],312:[function(require,module,exports){
+},{"./_root":491,"dup":11}],337:[function(require,module,exports){
 var root = require('./_root');
 
 /** Built-in value references. */
@@ -28305,7 +31679,7 @@ var Uint8Array = root.Uint8Array;
 
 module.exports = Uint8Array;
 
-},{"./_root":463}],313:[function(require,module,exports){
+},{"./_root":491}],338:[function(require,module,exports){
 var getNative = require('./_getNative'),
     root = require('./_root');
 
@@ -28314,7 +31688,41 @@ var WeakMap = getNative(root, 'WeakMap');
 
 module.exports = WeakMap;
 
-},{"./_getNative":419,"./_root":463}],314:[function(require,module,exports){
+},{"./_getNative":447,"./_root":491}],339:[function(require,module,exports){
+/**
+ * Adds the key-value `pair` to `map`.
+ *
+ * @private
+ * @param {Object} map The map to modify.
+ * @param {Array} pair The key-value pair to add.
+ * @returns {Object} Returns `map`.
+ */
+function addMapEntry(map, pair) {
+  // Don't return `map.set` because it's not chainable in IE 11.
+  map.set(pair[0], pair[1]);
+  return map;
+}
+
+module.exports = addMapEntry;
+
+},{}],340:[function(require,module,exports){
+/**
+ * Adds `value` to `set`.
+ *
+ * @private
+ * @param {Object} set The set to modify.
+ * @param {*} value The value to add.
+ * @returns {Object} Returns `set`.
+ */
+function addSetEntry(set, value) {
+  // Don't return `set.add` because it's not chainable in IE 11.
+  set.add(value);
+  return set;
+}
+
+module.exports = addSetEntry;
+
+},{}],341:[function(require,module,exports){
 /**
  * A faster alternative to `Function#apply`, this function invokes `func`
  * with the `this` binding of `thisArg` and the arguments of `args`.
@@ -28337,7 +31745,7 @@ function apply(func, thisArg, args) {
 
 module.exports = apply;
 
-},{}],315:[function(require,module,exports){
+},{}],342:[function(require,module,exports){
 /**
  * A specialized version of `baseAggregator` for arrays.
  *
@@ -28361,7 +31769,7 @@ function arrayAggregator(array, setter, iteratee, accumulator) {
 
 module.exports = arrayAggregator;
 
-},{}],316:[function(require,module,exports){
+},{}],343:[function(require,module,exports){
 /**
  * A specialized version of `_.forEach` for arrays without support for
  * iteratee shorthands.
@@ -28385,7 +31793,7 @@ function arrayEach(array, iteratee) {
 
 module.exports = arrayEach;
 
-},{}],317:[function(require,module,exports){
+},{}],344:[function(require,module,exports){
 /**
  * A specialized version of `_.filter` for arrays without support for
  * iteratee shorthands.
@@ -28412,7 +31820,7 @@ function arrayFilter(array, predicate) {
 
 module.exports = arrayFilter;
 
-},{}],318:[function(require,module,exports){
+},{}],345:[function(require,module,exports){
 var baseIndexOf = require('./_baseIndexOf');
 
 /**
@@ -28431,7 +31839,7 @@ function arrayIncludes(array, value) {
 
 module.exports = arrayIncludes;
 
-},{"./_baseIndexOf":347}],319:[function(require,module,exports){
+},{"./_baseIndexOf":374}],346:[function(require,module,exports){
 /**
  * This function is like `arrayIncludes` except that it accepts a comparator.
  *
@@ -28455,7 +31863,7 @@ function arrayIncludesWith(array, value, comparator) {
 
 module.exports = arrayIncludesWith;
 
-},{}],320:[function(require,module,exports){
+},{}],347:[function(require,module,exports){
 var baseTimes = require('./_baseTimes'),
     isArguments = require('./isArguments'),
     isArray = require('./isArray'),
@@ -28506,7 +31914,7 @@ function arrayLikeKeys(value, inherited) {
 
 module.exports = arrayLikeKeys;
 
-},{"./_baseTimes":379,"./_isIndex":436,"./isArguments":502,"./isArray":503,"./isBuffer":506,"./isTypedArray":520}],321:[function(require,module,exports){
+},{"./_baseTimes":404,"./_isIndex":464,"./isArguments":530,"./isArray":531,"./isBuffer":534,"./isTypedArray":546}],348:[function(require,module,exports){
 /**
  * A specialized version of `_.map` for arrays without support for iteratee
  * shorthands.
@@ -28529,7 +31937,7 @@ function arrayMap(array, iteratee) {
 
 module.exports = arrayMap;
 
-},{}],322:[function(require,module,exports){
+},{}],349:[function(require,module,exports){
 /**
  * Appends the elements of `values` to `array`.
  *
@@ -28551,7 +31959,7 @@ function arrayPush(array, values) {
 
 module.exports = arrayPush;
 
-},{}],323:[function(require,module,exports){
+},{}],350:[function(require,module,exports){
 /**
  * A specialized version of `_.reduce` for arrays without support for
  * iteratee shorthands.
@@ -28579,7 +31987,7 @@ function arrayReduce(array, iteratee, accumulator, initAccum) {
 
 module.exports = arrayReduce;
 
-},{}],324:[function(require,module,exports){
+},{}],351:[function(require,module,exports){
 /**
  * A specialized version of `_.some` for arrays without support for iteratee
  * shorthands.
@@ -28604,7 +32012,7 @@ function arraySome(array, predicate) {
 
 module.exports = arraySome;
 
-},{}],325:[function(require,module,exports){
+},{}],352:[function(require,module,exports){
 var baseAssignValue = require('./_baseAssignValue'),
     eq = require('./eq');
 
@@ -28626,7 +32034,7 @@ function assignMergeValue(object, key, value) {
 
 module.exports = assignMergeValue;
 
-},{"./_baseAssignValue":331,"./eq":485}],326:[function(require,module,exports){
+},{"./_baseAssignValue":358,"./eq":513}],353:[function(require,module,exports){
 var baseAssignValue = require('./_baseAssignValue'),
     eq = require('./eq');
 
@@ -28656,7 +32064,7 @@ function assignValue(object, key, value) {
 
 module.exports = assignValue;
 
-},{"./_baseAssignValue":331,"./eq":485}],327:[function(require,module,exports){
+},{"./_baseAssignValue":358,"./eq":513}],354:[function(require,module,exports){
 var eq = require('./eq');
 
 /**
@@ -28679,7 +32087,7 @@ function assocIndexOf(array, key) {
 
 module.exports = assocIndexOf;
 
-},{"./eq":485}],328:[function(require,module,exports){
+},{"./eq":513}],355:[function(require,module,exports){
 var baseEach = require('./_baseEach');
 
 /**
@@ -28702,7 +32110,7 @@ function baseAggregator(collection, setter, iteratee, accumulator) {
 
 module.exports = baseAggregator;
 
-},{"./_baseEach":335}],329:[function(require,module,exports){
+},{"./_baseEach":362}],356:[function(require,module,exports){
 var copyObject = require('./_copyObject'),
     keys = require('./keys');
 
@@ -28721,7 +32129,7 @@ function baseAssign(object, source) {
 
 module.exports = baseAssign;
 
-},{"./_copyObject":397,"./keys":522}],330:[function(require,module,exports){
+},{"./_copyObject":424,"./keys":548}],357:[function(require,module,exports){
 var copyObject = require('./_copyObject'),
     keysIn = require('./keysIn');
 
@@ -28740,7 +32148,7 @@ function baseAssignIn(object, source) {
 
 module.exports = baseAssignIn;
 
-},{"./_copyObject":397,"./keysIn":523}],331:[function(require,module,exports){
+},{"./_copyObject":424,"./keysIn":549}],358:[function(require,module,exports){
 var defineProperty = require('./_defineProperty');
 
 /**
@@ -28767,7 +32175,7 @@ function baseAssignValue(object, key, value) {
 
 module.exports = baseAssignValue;
 
-},{"./_defineProperty":408}],332:[function(require,module,exports){
+},{"./_defineProperty":436}],359:[function(require,module,exports){
 var Stack = require('./_Stack'),
     arrayEach = require('./_arrayEach'),
     assignValue = require('./_assignValue'),
@@ -28785,9 +32193,7 @@ var Stack = require('./_Stack'),
     initCloneObject = require('./_initCloneObject'),
     isArray = require('./isArray'),
     isBuffer = require('./isBuffer'),
-    isMap = require('./isMap'),
     isObject = require('./isObject'),
-    isSet = require('./isSet'),
     keys = require('./keys');
 
 /** Used to compose bitmasks for cloning. */
@@ -28895,7 +32301,7 @@ function baseClone(value, bitmask, customizer, key, object, stack) {
       if (!cloneableTags[tag]) {
         return object ? value : {};
       }
-      result = initCloneByTag(value, tag, isDeep);
+      result = initCloneByTag(value, tag, baseClone, isDeep);
     }
   }
   // Check for circular references and return its corresponding clone.
@@ -28905,22 +32311,6 @@ function baseClone(value, bitmask, customizer, key, object, stack) {
     return stacked;
   }
   stack.set(value, result);
-
-  if (isSet(value)) {
-    value.forEach(function(subValue) {
-      result.add(baseClone(subValue, bitmask, customizer, subValue, value, stack));
-    });
-
-    return result;
-  }
-
-  if (isMap(value)) {
-    value.forEach(function(subValue, key) {
-      result.set(key, baseClone(subValue, bitmask, customizer, key, value, stack));
-    });
-
-    return result;
-  }
 
   var keysFunc = isFull
     ? (isFlat ? getAllKeysIn : getAllKeys)
@@ -28940,7 +32330,7 @@ function baseClone(value, bitmask, customizer, key, object, stack) {
 
 module.exports = baseClone;
 
-},{"./_Stack":310,"./_arrayEach":316,"./_assignValue":326,"./_baseAssign":329,"./_baseAssignIn":330,"./_cloneBuffer":389,"./_copyArray":396,"./_copySymbols":398,"./_copySymbolsIn":399,"./_getAllKeys":415,"./_getAllKeysIn":416,"./_getTag":424,"./_initCloneArray":432,"./_initCloneByTag":433,"./_initCloneObject":434,"./isArray":503,"./isBuffer":506,"./isMap":511,"./isObject":514,"./isSet":517,"./keys":522}],333:[function(require,module,exports){
+},{"./_Stack":335,"./_arrayEach":343,"./_assignValue":353,"./_baseAssign":356,"./_baseAssignIn":357,"./_cloneBuffer":414,"./_copyArray":423,"./_copySymbols":425,"./_copySymbolsIn":426,"./_getAllKeys":443,"./_getAllKeysIn":444,"./_getTag":452,"./_initCloneArray":460,"./_initCloneByTag":461,"./_initCloneObject":462,"./isArray":531,"./isBuffer":534,"./isObject":541,"./keys":548}],360:[function(require,module,exports){
 var isObject = require('./isObject');
 
 /** Built-in value references. */
@@ -28972,7 +32362,7 @@ var baseCreate = (function() {
 
 module.exports = baseCreate;
 
-},{"./isObject":514}],334:[function(require,module,exports){
+},{"./isObject":541}],361:[function(require,module,exports){
 var SetCache = require('./_SetCache'),
     arrayIncludes = require('./_arrayIncludes'),
     arrayIncludesWith = require('./_arrayIncludesWith'),
@@ -29041,7 +32431,7 @@ function baseDifference(array, values, iteratee, comparator) {
 
 module.exports = baseDifference;
 
-},{"./_SetCache":309,"./_arrayIncludes":318,"./_arrayIncludesWith":319,"./_arrayMap":321,"./_baseUnary":381,"./_cacheHas":384}],335:[function(require,module,exports){
+},{"./_SetCache":334,"./_arrayIncludes":345,"./_arrayIncludesWith":346,"./_arrayMap":348,"./_baseUnary":406,"./_cacheHas":409}],362:[function(require,module,exports){
 var baseForOwn = require('./_baseForOwn'),
     createBaseEach = require('./_createBaseEach');
 
@@ -29057,7 +32447,7 @@ var baseEach = createBaseEach(baseForOwn);
 
 module.exports = baseEach;
 
-},{"./_baseForOwn":340,"./_createBaseEach":403}],336:[function(require,module,exports){
+},{"./_baseForOwn":367,"./_createBaseEach":430}],363:[function(require,module,exports){
 var baseEach = require('./_baseEach');
 
 /**
@@ -29080,7 +32470,7 @@ function baseFilter(collection, predicate) {
 
 module.exports = baseFilter;
 
-},{"./_baseEach":335}],337:[function(require,module,exports){
+},{"./_baseEach":362}],364:[function(require,module,exports){
 /**
  * The base implementation of `_.findIndex` and `_.findLastIndex` without
  * support for iteratee shorthands.
@@ -29106,7 +32496,7 @@ function baseFindIndex(array, predicate, fromIndex, fromRight) {
 
 module.exports = baseFindIndex;
 
-},{}],338:[function(require,module,exports){
+},{}],365:[function(require,module,exports){
 var arrayPush = require('./_arrayPush'),
     isFlattenable = require('./_isFlattenable');
 
@@ -29146,7 +32536,7 @@ function baseFlatten(array, depth, predicate, isStrict, result) {
 
 module.exports = baseFlatten;
 
-},{"./_arrayPush":322,"./_isFlattenable":435}],339:[function(require,module,exports){
+},{"./_arrayPush":349,"./_isFlattenable":463}],366:[function(require,module,exports){
 var createBaseFor = require('./_createBaseFor');
 
 /**
@@ -29164,7 +32554,7 @@ var baseFor = createBaseFor();
 
 module.exports = baseFor;
 
-},{"./_createBaseFor":404}],340:[function(require,module,exports){
+},{"./_createBaseFor":431}],367:[function(require,module,exports){
 var baseFor = require('./_baseFor'),
     keys = require('./keys');
 
@@ -29182,7 +32572,7 @@ function baseForOwn(object, iteratee) {
 
 module.exports = baseForOwn;
 
-},{"./_baseFor":339,"./keys":522}],341:[function(require,module,exports){
+},{"./_baseFor":366,"./keys":548}],368:[function(require,module,exports){
 var castPath = require('./_castPath'),
     toKey = require('./_toKey');
 
@@ -29208,7 +32598,7 @@ function baseGet(object, path) {
 
 module.exports = baseGet;
 
-},{"./_castPath":387,"./_toKey":477}],342:[function(require,module,exports){
+},{"./_castPath":412,"./_toKey":504}],369:[function(require,module,exports){
 var arrayPush = require('./_arrayPush'),
     isArray = require('./isArray');
 
@@ -29230,9 +32620,9 @@ function baseGetAllKeys(object, keysFunc, symbolsFunc) {
 
 module.exports = baseGetAllKeys;
 
-},{"./_arrayPush":322,"./isArray":503}],343:[function(require,module,exports){
+},{"./_arrayPush":349,"./isArray":531}],370:[function(require,module,exports){
 arguments[4][12][0].apply(exports,arguments)
-},{"./_Symbol":311,"./_getRawTag":421,"./_objectToString":460,"dup":12}],344:[function(require,module,exports){
+},{"./_Symbol":336,"./_getRawTag":449,"./_objectToString":488,"dup":12}],371:[function(require,module,exports){
 /** Used for built-in method references. */
 var objectProto = Object.prototype;
 
@@ -29253,7 +32643,7 @@ function baseHas(object, key) {
 
 module.exports = baseHas;
 
-},{}],345:[function(require,module,exports){
+},{}],372:[function(require,module,exports){
 /**
  * The base implementation of `_.hasIn` without support for deep paths.
  *
@@ -29268,7 +32658,7 @@ function baseHasIn(object, key) {
 
 module.exports = baseHasIn;
 
-},{}],346:[function(require,module,exports){
+},{}],373:[function(require,module,exports){
 /* Built-in method references for those with the same name as other `lodash` methods. */
 var nativeMax = Math.max,
     nativeMin = Math.min;
@@ -29288,7 +32678,7 @@ function baseInRange(number, start, end) {
 
 module.exports = baseInRange;
 
-},{}],347:[function(require,module,exports){
+},{}],374:[function(require,module,exports){
 var baseFindIndex = require('./_baseFindIndex'),
     baseIsNaN = require('./_baseIsNaN'),
     strictIndexOf = require('./_strictIndexOf');
@@ -29310,7 +32700,7 @@ function baseIndexOf(array, value, fromIndex) {
 
 module.exports = baseIndexOf;
 
-},{"./_baseFindIndex":337,"./_baseIsNaN":354,"./_strictIndexOf":475}],348:[function(require,module,exports){
+},{"./_baseFindIndex":364,"./_baseIsNaN":380,"./_strictIndexOf":502}],375:[function(require,module,exports){
 var SetCache = require('./_SetCache'),
     arrayIncludes = require('./_arrayIncludes'),
     arrayIncludesWith = require('./_arrayIncludesWith'),
@@ -29386,7 +32776,7 @@ function baseIntersection(arrays, iteratee, comparator) {
 
 module.exports = baseIntersection;
 
-},{"./_SetCache":309,"./_arrayIncludes":318,"./_arrayIncludesWith":319,"./_arrayMap":321,"./_baseUnary":381,"./_cacheHas":384}],349:[function(require,module,exports){
+},{"./_SetCache":334,"./_arrayIncludes":345,"./_arrayIncludesWith":346,"./_arrayMap":348,"./_baseUnary":406,"./_cacheHas":409}],376:[function(require,module,exports){
 var baseGetTag = require('./_baseGetTag'),
     isObjectLike = require('./isObjectLike');
 
@@ -29406,7 +32796,7 @@ function baseIsArguments(value) {
 
 module.exports = baseIsArguments;
 
-},{"./_baseGetTag":343,"./isObjectLike":515}],350:[function(require,module,exports){
+},{"./_baseGetTag":370,"./isObjectLike":542}],377:[function(require,module,exports){
 var baseIsEqualDeep = require('./_baseIsEqualDeep'),
     isObjectLike = require('./isObjectLike');
 
@@ -29436,7 +32826,7 @@ function baseIsEqual(value, other, bitmask, customizer, stack) {
 
 module.exports = baseIsEqual;
 
-},{"./_baseIsEqualDeep":351,"./isObjectLike":515}],351:[function(require,module,exports){
+},{"./_baseIsEqualDeep":378,"./isObjectLike":542}],378:[function(require,module,exports){
 var Stack = require('./_Stack'),
     equalArrays = require('./_equalArrays'),
     equalByTag = require('./_equalByTag'),
@@ -29521,27 +32911,7 @@ function baseIsEqualDeep(object, other, bitmask, customizer, equalFunc, stack) {
 
 module.exports = baseIsEqualDeep;
 
-},{"./_Stack":310,"./_equalArrays":409,"./_equalByTag":410,"./_equalObjects":411,"./_getTag":424,"./isArray":503,"./isBuffer":506,"./isTypedArray":520}],352:[function(require,module,exports){
-var getTag = require('./_getTag'),
-    isObjectLike = require('./isObjectLike');
-
-/** `Object#toString` result references. */
-var mapTag = '[object Map]';
-
-/**
- * The base implementation of `_.isMap` without Node.js optimizations.
- *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a map, else `false`.
- */
-function baseIsMap(value) {
-  return isObjectLike(value) && getTag(value) == mapTag;
-}
-
-module.exports = baseIsMap;
-
-},{"./_getTag":424,"./isObjectLike":515}],353:[function(require,module,exports){
+},{"./_Stack":335,"./_equalArrays":437,"./_equalByTag":438,"./_equalObjects":439,"./_getTag":452,"./isArray":531,"./isBuffer":534,"./isTypedArray":546}],379:[function(require,module,exports){
 var Stack = require('./_Stack'),
     baseIsEqual = require('./_baseIsEqual');
 
@@ -29605,7 +32975,7 @@ function baseIsMatch(object, source, matchData, customizer) {
 
 module.exports = baseIsMatch;
 
-},{"./_Stack":310,"./_baseIsEqual":350}],354:[function(require,module,exports){
+},{"./_Stack":335,"./_baseIsEqual":377}],380:[function(require,module,exports){
 /**
  * The base implementation of `_.isNaN` without support for number objects.
  *
@@ -29619,7 +32989,7 @@ function baseIsNaN(value) {
 
 module.exports = baseIsNaN;
 
-},{}],355:[function(require,module,exports){
+},{}],381:[function(require,module,exports){
 var isFunction = require('./isFunction'),
     isMasked = require('./_isMasked'),
     isObject = require('./isObject'),
@@ -29668,27 +33038,7 @@ function baseIsNative(value) {
 
 module.exports = baseIsNative;
 
-},{"./_isMasked":440,"./_toSource":478,"./isFunction":509,"./isObject":514}],356:[function(require,module,exports){
-var getTag = require('./_getTag'),
-    isObjectLike = require('./isObjectLike');
-
-/** `Object#toString` result references. */
-var setTag = '[object Set]';
-
-/**
- * The base implementation of `_.isSet` without Node.js optimizations.
- *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a set, else `false`.
- */
-function baseIsSet(value) {
-  return isObjectLike(value) && getTag(value) == setTag;
-}
-
-module.exports = baseIsSet;
-
-},{"./_getTag":424,"./isObjectLike":515}],357:[function(require,module,exports){
+},{"./_isMasked":468,"./_toSource":505,"./isFunction":537,"./isObject":541}],382:[function(require,module,exports){
 var baseGetTag = require('./_baseGetTag'),
     isLength = require('./isLength'),
     isObjectLike = require('./isObjectLike');
@@ -29750,7 +33100,7 @@ function baseIsTypedArray(value) {
 
 module.exports = baseIsTypedArray;
 
-},{"./_baseGetTag":343,"./isLength":510,"./isObjectLike":515}],358:[function(require,module,exports){
+},{"./_baseGetTag":370,"./isLength":538,"./isObjectLike":542}],383:[function(require,module,exports){
 var baseMatches = require('./_baseMatches'),
     baseMatchesProperty = require('./_baseMatchesProperty'),
     identity = require('./identity'),
@@ -29783,7 +33133,7 @@ function baseIteratee(value) {
 
 module.exports = baseIteratee;
 
-},{"./_baseMatches":362,"./_baseMatchesProperty":363,"./identity":497,"./isArray":503,"./property":533}],359:[function(require,module,exports){
+},{"./_baseMatches":387,"./_baseMatchesProperty":388,"./identity":525,"./isArray":531,"./property":559}],384:[function(require,module,exports){
 var isPrototype = require('./_isPrototype'),
     nativeKeys = require('./_nativeKeys');
 
@@ -29815,7 +33165,7 @@ function baseKeys(object) {
 
 module.exports = baseKeys;
 
-},{"./_isPrototype":441,"./_nativeKeys":457}],360:[function(require,module,exports){
+},{"./_isPrototype":469,"./_nativeKeys":485}],385:[function(require,module,exports){
 var isObject = require('./isObject'),
     isPrototype = require('./_isPrototype'),
     nativeKeysIn = require('./_nativeKeysIn');
@@ -29850,7 +33200,7 @@ function baseKeysIn(object) {
 
 module.exports = baseKeysIn;
 
-},{"./_isPrototype":441,"./_nativeKeysIn":458,"./isObject":514}],361:[function(require,module,exports){
+},{"./_isPrototype":469,"./_nativeKeysIn":486,"./isObject":541}],386:[function(require,module,exports){
 var baseEach = require('./_baseEach'),
     isArrayLike = require('./isArrayLike');
 
@@ -29874,7 +33224,7 @@ function baseMap(collection, iteratee) {
 
 module.exports = baseMap;
 
-},{"./_baseEach":335,"./isArrayLike":504}],362:[function(require,module,exports){
+},{"./_baseEach":362,"./isArrayLike":532}],387:[function(require,module,exports){
 var baseIsMatch = require('./_baseIsMatch'),
     getMatchData = require('./_getMatchData'),
     matchesStrictComparable = require('./_matchesStrictComparable');
@@ -29898,7 +33248,7 @@ function baseMatches(source) {
 
 module.exports = baseMatches;
 
-},{"./_baseIsMatch":353,"./_getMatchData":418,"./_matchesStrictComparable":454}],363:[function(require,module,exports){
+},{"./_baseIsMatch":379,"./_getMatchData":446,"./_matchesStrictComparable":482}],388:[function(require,module,exports){
 var baseIsEqual = require('./_baseIsEqual'),
     get = require('./get'),
     hasIn = require('./hasIn'),
@@ -29933,14 +33283,13 @@ function baseMatchesProperty(path, srcValue) {
 
 module.exports = baseMatchesProperty;
 
-},{"./_baseIsEqual":350,"./_isKey":438,"./_isStrictComparable":442,"./_matchesStrictComparable":454,"./_toKey":477,"./get":494,"./hasIn":496}],364:[function(require,module,exports){
+},{"./_baseIsEqual":377,"./_isKey":466,"./_isStrictComparable":470,"./_matchesStrictComparable":482,"./_toKey":504,"./get":522,"./hasIn":524}],389:[function(require,module,exports){
 var Stack = require('./_Stack'),
     assignMergeValue = require('./_assignMergeValue'),
     baseFor = require('./_baseFor'),
     baseMergeDeep = require('./_baseMergeDeep'),
     isObject = require('./isObject'),
-    keysIn = require('./keysIn'),
-    safeGet = require('./_safeGet');
+    keysIn = require('./keysIn');
 
 /**
  * The base implementation of `_.merge` without support for multiple sources.
@@ -29964,7 +33313,7 @@ function baseMerge(object, source, srcIndex, customizer, stack) {
     }
     else {
       var newValue = customizer
-        ? customizer(safeGet(object, key), srcValue, (key + ''), object, source, stack)
+        ? customizer(object[key], srcValue, (key + ''), object, source, stack)
         : undefined;
 
       if (newValue === undefined) {
@@ -29977,7 +33326,7 @@ function baseMerge(object, source, srcIndex, customizer, stack) {
 
 module.exports = baseMerge;
 
-},{"./_Stack":310,"./_assignMergeValue":325,"./_baseFor":339,"./_baseMergeDeep":365,"./_safeGet":464,"./isObject":514,"./keysIn":523}],365:[function(require,module,exports){
+},{"./_Stack":335,"./_assignMergeValue":352,"./_baseFor":366,"./_baseMergeDeep":390,"./isObject":541,"./keysIn":549}],390:[function(require,module,exports){
 var assignMergeValue = require('./_assignMergeValue'),
     cloneBuffer = require('./_cloneBuffer'),
     cloneTypedArray = require('./_cloneTypedArray'),
@@ -29991,7 +33340,6 @@ var assignMergeValue = require('./_assignMergeValue'),
     isObject = require('./isObject'),
     isPlainObject = require('./isPlainObject'),
     isTypedArray = require('./isTypedArray'),
-    safeGet = require('./_safeGet'),
     toPlainObject = require('./toPlainObject');
 
 /**
@@ -30010,8 +33358,8 @@ var assignMergeValue = require('./_assignMergeValue'),
  *  counterparts.
  */
 function baseMergeDeep(object, source, key, srcIndex, mergeFunc, customizer, stack) {
-  var objValue = safeGet(object, key),
-      srcValue = safeGet(source, key),
+  var objValue = object[key],
+      srcValue = source[key],
       stacked = stack.get(srcValue);
 
   if (stacked) {
@@ -30073,7 +33421,7 @@ function baseMergeDeep(object, source, key, srcIndex, mergeFunc, customizer, sta
 
 module.exports = baseMergeDeep;
 
-},{"./_assignMergeValue":325,"./_cloneBuffer":389,"./_cloneTypedArray":393,"./_copyArray":396,"./_initCloneObject":434,"./_safeGet":464,"./isArguments":502,"./isArray":503,"./isArrayLikeObject":505,"./isBuffer":506,"./isFunction":509,"./isObject":514,"./isPlainObject":516,"./isTypedArray":520,"./toPlainObject":545}],366:[function(require,module,exports){
+},{"./_assignMergeValue":352,"./_cloneBuffer":414,"./_cloneTypedArray":420,"./_copyArray":423,"./_initCloneObject":462,"./isArguments":530,"./isArray":531,"./isArrayLikeObject":533,"./isBuffer":534,"./isFunction":537,"./isObject":541,"./isPlainObject":543,"./isTypedArray":546,"./toPlainObject":571}],391:[function(require,module,exports){
 var arrayMap = require('./_arrayMap'),
     baseIteratee = require('./_baseIteratee'),
     baseMap = require('./_baseMap'),
@@ -30109,7 +33457,7 @@ function baseOrderBy(collection, iteratees, orders) {
 
 module.exports = baseOrderBy;
 
-},{"./_arrayMap":321,"./_baseIteratee":358,"./_baseMap":361,"./_baseSortBy":377,"./_baseUnary":381,"./_compareMultiple":395,"./identity":497}],367:[function(require,module,exports){
+},{"./_arrayMap":348,"./_baseIteratee":383,"./_baseMap":386,"./_baseSortBy":402,"./_baseUnary":406,"./_compareMultiple":422,"./identity":525}],392:[function(require,module,exports){
 var basePickBy = require('./_basePickBy'),
     hasIn = require('./hasIn');
 
@@ -30130,7 +33478,7 @@ function basePick(object, paths) {
 
 module.exports = basePick;
 
-},{"./_basePickBy":368,"./hasIn":496}],368:[function(require,module,exports){
+},{"./_basePickBy":393,"./hasIn":524}],393:[function(require,module,exports){
 var baseGet = require('./_baseGet'),
     baseSet = require('./_baseSet'),
     castPath = require('./_castPath');
@@ -30162,7 +33510,7 @@ function basePickBy(object, paths, predicate) {
 
 module.exports = basePickBy;
 
-},{"./_baseGet":341,"./_baseSet":374,"./_castPath":387}],369:[function(require,module,exports){
+},{"./_baseGet":368,"./_baseSet":399,"./_castPath":412}],394:[function(require,module,exports){
 /**
  * The base implementation of `_.property` without support for deep paths.
  *
@@ -30178,7 +33526,7 @@ function baseProperty(key) {
 
 module.exports = baseProperty;
 
-},{}],370:[function(require,module,exports){
+},{}],395:[function(require,module,exports){
 var baseGet = require('./_baseGet');
 
 /**
@@ -30196,7 +33544,7 @@ function basePropertyDeep(path) {
 
 module.exports = basePropertyDeep;
 
-},{"./_baseGet":341}],371:[function(require,module,exports){
+},{"./_baseGet":368}],396:[function(require,module,exports){
 /**
  * The base implementation of `_.propertyOf` without support for deep paths.
  *
@@ -30212,7 +33560,7 @@ function basePropertyOf(object) {
 
 module.exports = basePropertyOf;
 
-},{}],372:[function(require,module,exports){
+},{}],397:[function(require,module,exports){
 /**
  * The base implementation of `_.reduce` and `_.reduceRight`, without support
  * for iteratee shorthands, which iterates over `collection` using `eachFunc`.
@@ -30237,7 +33585,7 @@ function baseReduce(collection, iteratee, accumulator, initAccum, eachFunc) {
 
 module.exports = baseReduce;
 
-},{}],373:[function(require,module,exports){
+},{}],398:[function(require,module,exports){
 var identity = require('./identity'),
     overRest = require('./_overRest'),
     setToString = require('./_setToString');
@@ -30256,7 +33604,7 @@ function baseRest(func, start) {
 
 module.exports = baseRest;
 
-},{"./_overRest":462,"./_setToString":468,"./identity":497}],374:[function(require,module,exports){
+},{"./_overRest":490,"./_setToString":495,"./identity":525}],399:[function(require,module,exports){
 var assignValue = require('./_assignValue'),
     castPath = require('./_castPath'),
     isIndex = require('./_isIndex'),
@@ -30305,7 +33653,7 @@ function baseSet(object, path, value, customizer) {
 
 module.exports = baseSet;
 
-},{"./_assignValue":326,"./_castPath":387,"./_isIndex":436,"./_toKey":477,"./isObject":514}],375:[function(require,module,exports){
+},{"./_assignValue":353,"./_castPath":412,"./_isIndex":464,"./_toKey":504,"./isObject":541}],400:[function(require,module,exports){
 var constant = require('./constant'),
     defineProperty = require('./_defineProperty'),
     identity = require('./identity');
@@ -30329,7 +33677,7 @@ var baseSetToString = !defineProperty ? identity : function(func, string) {
 
 module.exports = baseSetToString;
 
-},{"./_defineProperty":408,"./constant":480,"./identity":497}],376:[function(require,module,exports){
+},{"./_defineProperty":436,"./constant":508,"./identity":525}],401:[function(require,module,exports){
 /**
  * The base implementation of `_.slice` without an iteratee call guard.
  *
@@ -30362,7 +33710,7 @@ function baseSlice(array, start, end) {
 
 module.exports = baseSlice;
 
-},{}],377:[function(require,module,exports){
+},{}],402:[function(require,module,exports){
 /**
  * The base implementation of `_.sortBy` which uses `comparer` to define the
  * sort order of `array` and replaces criteria objects with their corresponding
@@ -30385,7 +33733,7 @@ function baseSortBy(array, comparer) {
 
 module.exports = baseSortBy;
 
-},{}],378:[function(require,module,exports){
+},{}],403:[function(require,module,exports){
 /**
  * The base implementation of `_.sum` and `_.sumBy` without support for
  * iteratee shorthands.
@@ -30411,7 +33759,7 @@ function baseSum(array, iteratee) {
 
 module.exports = baseSum;
 
-},{}],379:[function(require,module,exports){
+},{}],404:[function(require,module,exports){
 /**
  * The base implementation of `_.times` without support for iteratee shorthands
  * or max array length checks.
@@ -30433,7 +33781,7 @@ function baseTimes(n, iteratee) {
 
 module.exports = baseTimes;
 
-},{}],380:[function(require,module,exports){
+},{}],405:[function(require,module,exports){
 var Symbol = require('./_Symbol'),
     arrayMap = require('./_arrayMap'),
     isArray = require('./isArray'),
@@ -30472,7 +33820,7 @@ function baseToString(value) {
 
 module.exports = baseToString;
 
-},{"./_Symbol":311,"./_arrayMap":321,"./isArray":503,"./isSymbol":519}],381:[function(require,module,exports){
+},{"./_Symbol":336,"./_arrayMap":348,"./isArray":531,"./isSymbol":545}],406:[function(require,module,exports){
 /**
  * The base implementation of `_.unary` without support for storing metadata.
  *
@@ -30488,7 +33836,7 @@ function baseUnary(func) {
 
 module.exports = baseUnary;
 
-},{}],382:[function(require,module,exports){
+},{}],407:[function(require,module,exports){
 var SetCache = require('./_SetCache'),
     arrayIncludes = require('./_arrayIncludes'),
     arrayIncludesWith = require('./_arrayIncludesWith'),
@@ -30562,7 +33910,7 @@ function baseUniq(array, iteratee, comparator) {
 
 module.exports = baseUniq;
 
-},{"./_SetCache":309,"./_arrayIncludes":318,"./_arrayIncludesWith":319,"./_cacheHas":384,"./_createSet":406,"./_setToArray":467}],383:[function(require,module,exports){
+},{"./_SetCache":334,"./_arrayIncludes":345,"./_arrayIncludesWith":346,"./_cacheHas":409,"./_createSet":433,"./_setToArray":494}],408:[function(require,module,exports){
 var arrayMap = require('./_arrayMap');
 
 /**
@@ -30583,7 +33931,7 @@ function baseValues(object, props) {
 
 module.exports = baseValues;
 
-},{"./_arrayMap":321}],384:[function(require,module,exports){
+},{"./_arrayMap":348}],409:[function(require,module,exports){
 /**
  * Checks if a `cache` value for `key` exists.
  *
@@ -30598,7 +33946,7 @@ function cacheHas(cache, key) {
 
 module.exports = cacheHas;
 
-},{}],385:[function(require,module,exports){
+},{}],410:[function(require,module,exports){
 var isArrayLikeObject = require('./isArrayLikeObject');
 
 /**
@@ -30614,7 +33962,7 @@ function castArrayLikeObject(value) {
 
 module.exports = castArrayLikeObject;
 
-},{"./isArrayLikeObject":505}],386:[function(require,module,exports){
+},{"./isArrayLikeObject":533}],411:[function(require,module,exports){
 var identity = require('./identity');
 
 /**
@@ -30630,7 +33978,7 @@ function castFunction(value) {
 
 module.exports = castFunction;
 
-},{"./identity":497}],387:[function(require,module,exports){
+},{"./identity":525}],412:[function(require,module,exports){
 var isArray = require('./isArray'),
     isKey = require('./_isKey'),
     stringToPath = require('./_stringToPath'),
@@ -30653,7 +34001,7 @@ function castPath(value, object) {
 
 module.exports = castPath;
 
-},{"./_isKey":438,"./_stringToPath":476,"./isArray":503,"./toString":546}],388:[function(require,module,exports){
+},{"./_isKey":466,"./_stringToPath":503,"./isArray":531,"./toString":572}],413:[function(require,module,exports){
 var Uint8Array = require('./_Uint8Array');
 
 /**
@@ -30671,7 +34019,7 @@ function cloneArrayBuffer(arrayBuffer) {
 
 module.exports = cloneArrayBuffer;
 
-},{"./_Uint8Array":312}],389:[function(require,module,exports){
+},{"./_Uint8Array":337}],414:[function(require,module,exports){
 var root = require('./_root');
 
 /** Detect free variable `exports`. */
@@ -30708,7 +34056,7 @@ function cloneBuffer(buffer, isDeep) {
 
 module.exports = cloneBuffer;
 
-},{"./_root":463}],390:[function(require,module,exports){
+},{"./_root":491}],415:[function(require,module,exports){
 var cloneArrayBuffer = require('./_cloneArrayBuffer');
 
 /**
@@ -30726,7 +34074,31 @@ function cloneDataView(dataView, isDeep) {
 
 module.exports = cloneDataView;
 
-},{"./_cloneArrayBuffer":388}],391:[function(require,module,exports){
+},{"./_cloneArrayBuffer":413}],416:[function(require,module,exports){
+var addMapEntry = require('./_addMapEntry'),
+    arrayReduce = require('./_arrayReduce'),
+    mapToArray = require('./_mapToArray');
+
+/** Used to compose bitmasks for cloning. */
+var CLONE_DEEP_FLAG = 1;
+
+/**
+ * Creates a clone of `map`.
+ *
+ * @private
+ * @param {Object} map The map to clone.
+ * @param {Function} cloneFunc The function to clone values.
+ * @param {boolean} [isDeep] Specify a deep clone.
+ * @returns {Object} Returns the cloned map.
+ */
+function cloneMap(map, isDeep, cloneFunc) {
+  var array = isDeep ? cloneFunc(mapToArray(map), CLONE_DEEP_FLAG) : mapToArray(map);
+  return arrayReduce(array, addMapEntry, new map.constructor);
+}
+
+module.exports = cloneMap;
+
+},{"./_addMapEntry":339,"./_arrayReduce":350,"./_mapToArray":481}],417:[function(require,module,exports){
 /** Used to match `RegExp` flags from their coerced string values. */
 var reFlags = /\w*$/;
 
@@ -30745,7 +34117,31 @@ function cloneRegExp(regexp) {
 
 module.exports = cloneRegExp;
 
-},{}],392:[function(require,module,exports){
+},{}],418:[function(require,module,exports){
+var addSetEntry = require('./_addSetEntry'),
+    arrayReduce = require('./_arrayReduce'),
+    setToArray = require('./_setToArray');
+
+/** Used to compose bitmasks for cloning. */
+var CLONE_DEEP_FLAG = 1;
+
+/**
+ * Creates a clone of `set`.
+ *
+ * @private
+ * @param {Object} set The set to clone.
+ * @param {Function} cloneFunc The function to clone values.
+ * @param {boolean} [isDeep] Specify a deep clone.
+ * @returns {Object} Returns the cloned set.
+ */
+function cloneSet(set, isDeep, cloneFunc) {
+  var array = isDeep ? cloneFunc(setToArray(set), CLONE_DEEP_FLAG) : setToArray(set);
+  return arrayReduce(array, addSetEntry, new set.constructor);
+}
+
+module.exports = cloneSet;
+
+},{"./_addSetEntry":340,"./_arrayReduce":350,"./_setToArray":494}],419:[function(require,module,exports){
 var Symbol = require('./_Symbol');
 
 /** Used to convert symbols to primitives and strings. */
@@ -30765,7 +34161,7 @@ function cloneSymbol(symbol) {
 
 module.exports = cloneSymbol;
 
-},{"./_Symbol":311}],393:[function(require,module,exports){
+},{"./_Symbol":336}],420:[function(require,module,exports){
 var cloneArrayBuffer = require('./_cloneArrayBuffer');
 
 /**
@@ -30783,7 +34179,7 @@ function cloneTypedArray(typedArray, isDeep) {
 
 module.exports = cloneTypedArray;
 
-},{"./_cloneArrayBuffer":388}],394:[function(require,module,exports){
+},{"./_cloneArrayBuffer":413}],421:[function(require,module,exports){
 var isSymbol = require('./isSymbol');
 
 /**
@@ -30826,7 +34222,7 @@ function compareAscending(value, other) {
 
 module.exports = compareAscending;
 
-},{"./isSymbol":519}],395:[function(require,module,exports){
+},{"./isSymbol":545}],422:[function(require,module,exports){
 var compareAscending = require('./_compareAscending');
 
 /**
@@ -30872,7 +34268,7 @@ function compareMultiple(object, other, orders) {
 
 module.exports = compareMultiple;
 
-},{"./_compareAscending":394}],396:[function(require,module,exports){
+},{"./_compareAscending":421}],423:[function(require,module,exports){
 /**
  * Copies the values of `source` to `array`.
  *
@@ -30894,7 +34290,7 @@ function copyArray(source, array) {
 
 module.exports = copyArray;
 
-},{}],397:[function(require,module,exports){
+},{}],424:[function(require,module,exports){
 var assignValue = require('./_assignValue'),
     baseAssignValue = require('./_baseAssignValue');
 
@@ -30936,7 +34332,7 @@ function copyObject(source, props, object, customizer) {
 
 module.exports = copyObject;
 
-},{"./_assignValue":326,"./_baseAssignValue":331}],398:[function(require,module,exports){
+},{"./_assignValue":353,"./_baseAssignValue":358}],425:[function(require,module,exports){
 var copyObject = require('./_copyObject'),
     getSymbols = require('./_getSymbols');
 
@@ -30954,7 +34350,7 @@ function copySymbols(source, object) {
 
 module.exports = copySymbols;
 
-},{"./_copyObject":397,"./_getSymbols":422}],399:[function(require,module,exports){
+},{"./_copyObject":424,"./_getSymbols":450}],426:[function(require,module,exports){
 var copyObject = require('./_copyObject'),
     getSymbolsIn = require('./_getSymbolsIn');
 
@@ -30972,7 +34368,7 @@ function copySymbolsIn(source, object) {
 
 module.exports = copySymbolsIn;
 
-},{"./_copyObject":397,"./_getSymbolsIn":423}],400:[function(require,module,exports){
+},{"./_copyObject":424,"./_getSymbolsIn":451}],427:[function(require,module,exports){
 var root = require('./_root');
 
 /** Used to detect overreaching core-js shims. */
@@ -30980,7 +34376,7 @@ var coreJsData = root['__core-js_shared__'];
 
 module.exports = coreJsData;
 
-},{"./_root":463}],401:[function(require,module,exports){
+},{"./_root":491}],428:[function(require,module,exports){
 var arrayAggregator = require('./_arrayAggregator'),
     baseAggregator = require('./_baseAggregator'),
     baseIteratee = require('./_baseIteratee'),
@@ -31005,7 +34401,7 @@ function createAggregator(setter, initializer) {
 
 module.exports = createAggregator;
 
-},{"./_arrayAggregator":315,"./_baseAggregator":328,"./_baseIteratee":358,"./isArray":503}],402:[function(require,module,exports){
+},{"./_arrayAggregator":342,"./_baseAggregator":355,"./_baseIteratee":383,"./isArray":531}],429:[function(require,module,exports){
 var baseRest = require('./_baseRest'),
     isIterateeCall = require('./_isIterateeCall');
 
@@ -31044,7 +34440,7 @@ function createAssigner(assigner) {
 
 module.exports = createAssigner;
 
-},{"./_baseRest":373,"./_isIterateeCall":437}],403:[function(require,module,exports){
+},{"./_baseRest":398,"./_isIterateeCall":465}],430:[function(require,module,exports){
 var isArrayLike = require('./isArrayLike');
 
 /**
@@ -31078,7 +34474,7 @@ function createBaseEach(eachFunc, fromRight) {
 
 module.exports = createBaseEach;
 
-},{"./isArrayLike":504}],404:[function(require,module,exports){
+},{"./isArrayLike":532}],431:[function(require,module,exports){
 /**
  * Creates a base function for methods like `_.forIn` and `_.forOwn`.
  *
@@ -31105,7 +34501,7 @@ function createBaseFor(fromRight) {
 
 module.exports = createBaseFor;
 
-},{}],405:[function(require,module,exports){
+},{}],432:[function(require,module,exports){
 var baseIteratee = require('./_baseIteratee'),
     isArrayLike = require('./isArrayLike'),
     keys = require('./keys');
@@ -31132,7 +34528,7 @@ function createFind(findIndexFunc) {
 
 module.exports = createFind;
 
-},{"./_baseIteratee":358,"./isArrayLike":504,"./keys":522}],406:[function(require,module,exports){
+},{"./_baseIteratee":383,"./isArrayLike":532,"./keys":548}],433:[function(require,module,exports){
 var Set = require('./_Set'),
     noop = require('./noop'),
     setToArray = require('./_setToArray');
@@ -31153,7 +34549,38 @@ var createSet = !(Set && (1 / setToArray(new Set([,-0]))[1]) == INFINITY) ? noop
 
 module.exports = createSet;
 
-},{"./_Set":308,"./_setToArray":467,"./noop":529}],407:[function(require,module,exports){
+},{"./_Set":333,"./_setToArray":494,"./noop":555}],434:[function(require,module,exports){
+var eq = require('./eq');
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * Used by `_.defaults` to customize its `_.assignIn` use to assign properties
+ * of source objects to the destination object for all destination properties
+ * that resolve to `undefined`.
+ *
+ * @private
+ * @param {*} objValue The destination value.
+ * @param {*} srcValue The source value.
+ * @param {string} key The key of the property to assign.
+ * @param {Object} object The parent object of `objValue`.
+ * @returns {*} Returns the value to assign.
+ */
+function customDefaultsAssignIn(objValue, srcValue, key, object) {
+  if (objValue === undefined ||
+      (eq(objValue, objectProto[key]) && !hasOwnProperty.call(object, key))) {
+    return srcValue;
+  }
+  return objValue;
+}
+
+module.exports = customDefaultsAssignIn;
+
+},{"./eq":513}],435:[function(require,module,exports){
 var baseMerge = require('./_baseMerge'),
     isObject = require('./isObject');
 
@@ -31183,7 +34610,7 @@ function customDefaultsMerge(objValue, srcValue, key, object, source, stack) {
 
 module.exports = customDefaultsMerge;
 
-},{"./_baseMerge":364,"./isObject":514}],408:[function(require,module,exports){
+},{"./_baseMerge":389,"./isObject":541}],436:[function(require,module,exports){
 var getNative = require('./_getNative');
 
 var defineProperty = (function() {
@@ -31196,7 +34623,7 @@ var defineProperty = (function() {
 
 module.exports = defineProperty;
 
-},{"./_getNative":419}],409:[function(require,module,exports){
+},{"./_getNative":447}],437:[function(require,module,exports){
 var SetCache = require('./_SetCache'),
     arraySome = require('./_arraySome'),
     cacheHas = require('./_cacheHas');
@@ -31281,7 +34708,7 @@ function equalArrays(array, other, bitmask, customizer, equalFunc, stack) {
 
 module.exports = equalArrays;
 
-},{"./_SetCache":309,"./_arraySome":324,"./_cacheHas":384}],410:[function(require,module,exports){
+},{"./_SetCache":334,"./_arraySome":351,"./_cacheHas":409}],438:[function(require,module,exports){
 var Symbol = require('./_Symbol'),
     Uint8Array = require('./_Uint8Array'),
     eq = require('./eq'),
@@ -31395,7 +34822,7 @@ function equalByTag(object, other, tag, bitmask, customizer, equalFunc, stack) {
 
 module.exports = equalByTag;
 
-},{"./_Symbol":311,"./_Uint8Array":312,"./_equalArrays":409,"./_mapToArray":453,"./_setToArray":467,"./eq":485}],411:[function(require,module,exports){
+},{"./_Symbol":336,"./_Uint8Array":337,"./_equalArrays":437,"./_mapToArray":481,"./_setToArray":494,"./eq":513}],439:[function(require,module,exports){
 var getAllKeys = require('./_getAllKeys');
 
 /** Used to compose bitmasks for value comparisons. */
@@ -31486,7 +34913,7 @@ function equalObjects(object, other, bitmask, customizer, equalFunc, stack) {
 
 module.exports = equalObjects;
 
-},{"./_getAllKeys":415}],412:[function(require,module,exports){
+},{"./_getAllKeys":443}],440:[function(require,module,exports){
 var basePropertyOf = require('./_basePropertyOf');
 
 /** Used to map characters to HTML entities. */
@@ -31509,7 +34936,7 @@ var escapeHtmlChar = basePropertyOf(htmlEscapes);
 
 module.exports = escapeHtmlChar;
 
-},{"./_basePropertyOf":371}],413:[function(require,module,exports){
+},{"./_basePropertyOf":396}],441:[function(require,module,exports){
 var flatten = require('./flatten'),
     overRest = require('./_overRest'),
     setToString = require('./_setToString');
@@ -31527,9 +34954,9 @@ function flatRest(func) {
 
 module.exports = flatRest;
 
-},{"./_overRest":462,"./_setToString":468,"./flatten":492}],414:[function(require,module,exports){
+},{"./_overRest":490,"./_setToString":495,"./flatten":520}],442:[function(require,module,exports){
 arguments[4][13][0].apply(exports,arguments)
-},{"dup":13}],415:[function(require,module,exports){
+},{"dup":13}],443:[function(require,module,exports){
 var baseGetAllKeys = require('./_baseGetAllKeys'),
     getSymbols = require('./_getSymbols'),
     keys = require('./keys');
@@ -31547,7 +34974,7 @@ function getAllKeys(object) {
 
 module.exports = getAllKeys;
 
-},{"./_baseGetAllKeys":342,"./_getSymbols":422,"./keys":522}],416:[function(require,module,exports){
+},{"./_baseGetAllKeys":369,"./_getSymbols":450,"./keys":548}],444:[function(require,module,exports){
 var baseGetAllKeys = require('./_baseGetAllKeys'),
     getSymbolsIn = require('./_getSymbolsIn'),
     keysIn = require('./keysIn');
@@ -31566,7 +34993,7 @@ function getAllKeysIn(object) {
 
 module.exports = getAllKeysIn;
 
-},{"./_baseGetAllKeys":342,"./_getSymbolsIn":423,"./keysIn":523}],417:[function(require,module,exports){
+},{"./_baseGetAllKeys":369,"./_getSymbolsIn":451,"./keysIn":549}],445:[function(require,module,exports){
 var isKeyable = require('./_isKeyable');
 
 /**
@@ -31586,7 +35013,7 @@ function getMapData(map, key) {
 
 module.exports = getMapData;
 
-},{"./_isKeyable":439}],418:[function(require,module,exports){
+},{"./_isKeyable":467}],446:[function(require,module,exports){
 var isStrictComparable = require('./_isStrictComparable'),
     keys = require('./keys');
 
@@ -31612,7 +35039,7 @@ function getMatchData(object) {
 
 module.exports = getMatchData;
 
-},{"./_isStrictComparable":442,"./keys":522}],419:[function(require,module,exports){
+},{"./_isStrictComparable":470,"./keys":548}],447:[function(require,module,exports){
 var baseIsNative = require('./_baseIsNative'),
     getValue = require('./_getValue');
 
@@ -31631,7 +35058,7 @@ function getNative(object, key) {
 
 module.exports = getNative;
 
-},{"./_baseIsNative":355,"./_getValue":425}],420:[function(require,module,exports){
+},{"./_baseIsNative":381,"./_getValue":453}],448:[function(require,module,exports){
 var overArg = require('./_overArg');
 
 /** Built-in value references. */
@@ -31639,9 +35066,9 @@ var getPrototype = overArg(Object.getPrototypeOf, Object);
 
 module.exports = getPrototype;
 
-},{"./_overArg":461}],421:[function(require,module,exports){
+},{"./_overArg":489}],449:[function(require,module,exports){
 arguments[4][14][0].apply(exports,arguments)
-},{"./_Symbol":311,"dup":14}],422:[function(require,module,exports){
+},{"./_Symbol":336,"dup":14}],450:[function(require,module,exports){
 var arrayFilter = require('./_arrayFilter'),
     stubArray = require('./stubArray');
 
@@ -31673,7 +35100,7 @@ var getSymbols = !nativeGetSymbols ? stubArray : function(object) {
 
 module.exports = getSymbols;
 
-},{"./_arrayFilter":317,"./stubArray":537}],423:[function(require,module,exports){
+},{"./_arrayFilter":344,"./stubArray":563}],451:[function(require,module,exports){
 var arrayPush = require('./_arrayPush'),
     getPrototype = require('./_getPrototype'),
     getSymbols = require('./_getSymbols'),
@@ -31700,7 +35127,7 @@ var getSymbolsIn = !nativeGetSymbols ? stubArray : function(object) {
 
 module.exports = getSymbolsIn;
 
-},{"./_arrayPush":322,"./_getPrototype":420,"./_getSymbols":422,"./stubArray":537}],424:[function(require,module,exports){
+},{"./_arrayPush":349,"./_getPrototype":448,"./_getSymbols":450,"./stubArray":563}],452:[function(require,module,exports){
 var DataView = require('./_DataView'),
     Map = require('./_Map'),
     Promise = require('./_Promise'),
@@ -31760,7 +35187,7 @@ if ((DataView && getTag(new DataView(new ArrayBuffer(1))) != dataViewTag) ||
 
 module.exports = getTag;
 
-},{"./_DataView":302,"./_Map":305,"./_Promise":307,"./_Set":308,"./_WeakMap":313,"./_baseGetTag":343,"./_toSource":478}],425:[function(require,module,exports){
+},{"./_DataView":327,"./_Map":330,"./_Promise":332,"./_Set":333,"./_WeakMap":338,"./_baseGetTag":370,"./_toSource":505}],453:[function(require,module,exports){
 /**
  * Gets the value at `key` of `object`.
  *
@@ -31775,7 +35202,7 @@ function getValue(object, key) {
 
 module.exports = getValue;
 
-},{}],426:[function(require,module,exports){
+},{}],454:[function(require,module,exports){
 var castPath = require('./_castPath'),
     isArguments = require('./isArguments'),
     isArray = require('./isArray'),
@@ -31816,7 +35243,7 @@ function hasPath(object, path, hasFunc) {
 
 module.exports = hasPath;
 
-},{"./_castPath":387,"./_isIndex":436,"./_toKey":477,"./isArguments":502,"./isArray":503,"./isLength":510}],427:[function(require,module,exports){
+},{"./_castPath":412,"./_isIndex":464,"./_toKey":504,"./isArguments":530,"./isArray":531,"./isLength":538}],455:[function(require,module,exports){
 var nativeCreate = require('./_nativeCreate');
 
 /**
@@ -31833,7 +35260,7 @@ function hashClear() {
 
 module.exports = hashClear;
 
-},{"./_nativeCreate":456}],428:[function(require,module,exports){
+},{"./_nativeCreate":484}],456:[function(require,module,exports){
 /**
  * Removes `key` and its value from the hash.
  *
@@ -31852,7 +35279,7 @@ function hashDelete(key) {
 
 module.exports = hashDelete;
 
-},{}],429:[function(require,module,exports){
+},{}],457:[function(require,module,exports){
 var nativeCreate = require('./_nativeCreate');
 
 /** Used to stand-in for `undefined` hash values. */
@@ -31884,7 +35311,7 @@ function hashGet(key) {
 
 module.exports = hashGet;
 
-},{"./_nativeCreate":456}],430:[function(require,module,exports){
+},{"./_nativeCreate":484}],458:[function(require,module,exports){
 var nativeCreate = require('./_nativeCreate');
 
 /** Used for built-in method references. */
@@ -31909,7 +35336,7 @@ function hashHas(key) {
 
 module.exports = hashHas;
 
-},{"./_nativeCreate":456}],431:[function(require,module,exports){
+},{"./_nativeCreate":484}],459:[function(require,module,exports){
 var nativeCreate = require('./_nativeCreate');
 
 /** Used to stand-in for `undefined` hash values. */
@@ -31934,7 +35361,7 @@ function hashSet(key, value) {
 
 module.exports = hashSet;
 
-},{"./_nativeCreate":456}],432:[function(require,module,exports){
+},{"./_nativeCreate":484}],460:[function(require,module,exports){
 /** Used for built-in method references. */
 var objectProto = Object.prototype;
 
@@ -31950,7 +35377,7 @@ var hasOwnProperty = objectProto.hasOwnProperty;
  */
 function initCloneArray(array) {
   var length = array.length,
-      result = new array.constructor(length);
+      result = array.constructor(length);
 
   // Add properties assigned by `RegExp#exec`.
   if (length && typeof array[0] == 'string' && hasOwnProperty.call(array, 'index')) {
@@ -31962,10 +35389,12 @@ function initCloneArray(array) {
 
 module.exports = initCloneArray;
 
-},{}],433:[function(require,module,exports){
+},{}],461:[function(require,module,exports){
 var cloneArrayBuffer = require('./_cloneArrayBuffer'),
     cloneDataView = require('./_cloneDataView'),
+    cloneMap = require('./_cloneMap'),
     cloneRegExp = require('./_cloneRegExp'),
+    cloneSet = require('./_cloneSet'),
     cloneSymbol = require('./_cloneSymbol'),
     cloneTypedArray = require('./_cloneTypedArray');
 
@@ -31995,15 +35424,16 @@ var arrayBufferTag = '[object ArrayBuffer]',
  * Initializes an object clone based on its `toStringTag`.
  *
  * **Note:** This function only supports cloning values with tags of
- * `Boolean`, `Date`, `Error`, `Map`, `Number`, `RegExp`, `Set`, or `String`.
+ * `Boolean`, `Date`, `Error`, `Number`, `RegExp`, or `String`.
  *
  * @private
  * @param {Object} object The object to clone.
  * @param {string} tag The `toStringTag` of the object to clone.
+ * @param {Function} cloneFunc The function to clone values.
  * @param {boolean} [isDeep] Specify a deep clone.
  * @returns {Object} Returns the initialized clone.
  */
-function initCloneByTag(object, tag, isDeep) {
+function initCloneByTag(object, tag, cloneFunc, isDeep) {
   var Ctor = object.constructor;
   switch (tag) {
     case arrayBufferTag:
@@ -32022,7 +35452,7 @@ function initCloneByTag(object, tag, isDeep) {
       return cloneTypedArray(object, isDeep);
 
     case mapTag:
-      return new Ctor;
+      return cloneMap(object, isDeep, cloneFunc);
 
     case numberTag:
     case stringTag:
@@ -32032,7 +35462,7 @@ function initCloneByTag(object, tag, isDeep) {
       return cloneRegExp(object);
 
     case setTag:
-      return new Ctor;
+      return cloneSet(object, isDeep, cloneFunc);
 
     case symbolTag:
       return cloneSymbol(object);
@@ -32041,7 +35471,7 @@ function initCloneByTag(object, tag, isDeep) {
 
 module.exports = initCloneByTag;
 
-},{"./_cloneArrayBuffer":388,"./_cloneDataView":390,"./_cloneRegExp":391,"./_cloneSymbol":392,"./_cloneTypedArray":393}],434:[function(require,module,exports){
+},{"./_cloneArrayBuffer":413,"./_cloneDataView":415,"./_cloneMap":416,"./_cloneRegExp":417,"./_cloneSet":418,"./_cloneSymbol":419,"./_cloneTypedArray":420}],462:[function(require,module,exports){
 var baseCreate = require('./_baseCreate'),
     getPrototype = require('./_getPrototype'),
     isPrototype = require('./_isPrototype');
@@ -32061,7 +35491,7 @@ function initCloneObject(object) {
 
 module.exports = initCloneObject;
 
-},{"./_baseCreate":333,"./_getPrototype":420,"./_isPrototype":441}],435:[function(require,module,exports){
+},{"./_baseCreate":360,"./_getPrototype":448,"./_isPrototype":469}],463:[function(require,module,exports){
 var Symbol = require('./_Symbol'),
     isArguments = require('./isArguments'),
     isArray = require('./isArray');
@@ -32083,7 +35513,7 @@ function isFlattenable(value) {
 
 module.exports = isFlattenable;
 
-},{"./_Symbol":311,"./isArguments":502,"./isArray":503}],436:[function(require,module,exports){
+},{"./_Symbol":336,"./isArguments":530,"./isArray":531}],464:[function(require,module,exports){
 /** Used as references for various `Number` constants. */
 var MAX_SAFE_INTEGER = 9007199254740991;
 
@@ -32099,18 +35529,15 @@ var reIsUint = /^(?:0|[1-9]\d*)$/;
  * @returns {boolean} Returns `true` if `value` is a valid index, else `false`.
  */
 function isIndex(value, length) {
-  var type = typeof value;
   length = length == null ? MAX_SAFE_INTEGER : length;
-
   return !!length &&
-    (type == 'number' ||
-      (type != 'symbol' && reIsUint.test(value))) &&
-        (value > -1 && value % 1 == 0 && value < length);
+    (typeof value == 'number' || reIsUint.test(value)) &&
+    (value > -1 && value % 1 == 0 && value < length);
 }
 
 module.exports = isIndex;
 
-},{}],437:[function(require,module,exports){
+},{}],465:[function(require,module,exports){
 var eq = require('./eq'),
     isArrayLike = require('./isArrayLike'),
     isIndex = require('./_isIndex'),
@@ -32142,7 +35569,7 @@ function isIterateeCall(value, index, object) {
 
 module.exports = isIterateeCall;
 
-},{"./_isIndex":436,"./eq":485,"./isArrayLike":504,"./isObject":514}],438:[function(require,module,exports){
+},{"./_isIndex":464,"./eq":513,"./isArrayLike":532,"./isObject":541}],466:[function(require,module,exports){
 var isArray = require('./isArray'),
     isSymbol = require('./isSymbol');
 
@@ -32173,7 +35600,7 @@ function isKey(value, object) {
 
 module.exports = isKey;
 
-},{"./isArray":503,"./isSymbol":519}],439:[function(require,module,exports){
+},{"./isArray":531,"./isSymbol":545}],467:[function(require,module,exports){
 /**
  * Checks if `value` is suitable for use as unique object key.
  *
@@ -32190,7 +35617,7 @@ function isKeyable(value) {
 
 module.exports = isKeyable;
 
-},{}],440:[function(require,module,exports){
+},{}],468:[function(require,module,exports){
 var coreJsData = require('./_coreJsData');
 
 /** Used to detect methods masquerading as native. */
@@ -32212,7 +35639,7 @@ function isMasked(func) {
 
 module.exports = isMasked;
 
-},{"./_coreJsData":400}],441:[function(require,module,exports){
+},{"./_coreJsData":427}],469:[function(require,module,exports){
 /** Used for built-in method references. */
 var objectProto = Object.prototype;
 
@@ -32232,7 +35659,7 @@ function isPrototype(value) {
 
 module.exports = isPrototype;
 
-},{}],442:[function(require,module,exports){
+},{}],470:[function(require,module,exports){
 var isObject = require('./isObject');
 
 /**
@@ -32249,7 +35676,7 @@ function isStrictComparable(value) {
 
 module.exports = isStrictComparable;
 
-},{"./isObject":514}],443:[function(require,module,exports){
+},{"./isObject":541}],471:[function(require,module,exports){
 /**
  * Removes all key-value entries from the list cache.
  *
@@ -32264,7 +35691,7 @@ function listCacheClear() {
 
 module.exports = listCacheClear;
 
-},{}],444:[function(require,module,exports){
+},{}],472:[function(require,module,exports){
 var assocIndexOf = require('./_assocIndexOf');
 
 /** Used for built-in method references. */
@@ -32301,7 +35728,7 @@ function listCacheDelete(key) {
 
 module.exports = listCacheDelete;
 
-},{"./_assocIndexOf":327}],445:[function(require,module,exports){
+},{"./_assocIndexOf":354}],473:[function(require,module,exports){
 var assocIndexOf = require('./_assocIndexOf');
 
 /**
@@ -32322,7 +35749,7 @@ function listCacheGet(key) {
 
 module.exports = listCacheGet;
 
-},{"./_assocIndexOf":327}],446:[function(require,module,exports){
+},{"./_assocIndexOf":354}],474:[function(require,module,exports){
 var assocIndexOf = require('./_assocIndexOf');
 
 /**
@@ -32340,7 +35767,7 @@ function listCacheHas(key) {
 
 module.exports = listCacheHas;
 
-},{"./_assocIndexOf":327}],447:[function(require,module,exports){
+},{"./_assocIndexOf":354}],475:[function(require,module,exports){
 var assocIndexOf = require('./_assocIndexOf');
 
 /**
@@ -32368,7 +35795,7 @@ function listCacheSet(key, value) {
 
 module.exports = listCacheSet;
 
-},{"./_assocIndexOf":327}],448:[function(require,module,exports){
+},{"./_assocIndexOf":354}],476:[function(require,module,exports){
 var Hash = require('./_Hash'),
     ListCache = require('./_ListCache'),
     Map = require('./_Map');
@@ -32391,7 +35818,7 @@ function mapCacheClear() {
 
 module.exports = mapCacheClear;
 
-},{"./_Hash":303,"./_ListCache":304,"./_Map":305}],449:[function(require,module,exports){
+},{"./_Hash":328,"./_ListCache":329,"./_Map":330}],477:[function(require,module,exports){
 var getMapData = require('./_getMapData');
 
 /**
@@ -32411,7 +35838,7 @@ function mapCacheDelete(key) {
 
 module.exports = mapCacheDelete;
 
-},{"./_getMapData":417}],450:[function(require,module,exports){
+},{"./_getMapData":445}],478:[function(require,module,exports){
 var getMapData = require('./_getMapData');
 
 /**
@@ -32429,7 +35856,7 @@ function mapCacheGet(key) {
 
 module.exports = mapCacheGet;
 
-},{"./_getMapData":417}],451:[function(require,module,exports){
+},{"./_getMapData":445}],479:[function(require,module,exports){
 var getMapData = require('./_getMapData');
 
 /**
@@ -32447,7 +35874,7 @@ function mapCacheHas(key) {
 
 module.exports = mapCacheHas;
 
-},{"./_getMapData":417}],452:[function(require,module,exports){
+},{"./_getMapData":445}],480:[function(require,module,exports){
 var getMapData = require('./_getMapData');
 
 /**
@@ -32471,7 +35898,7 @@ function mapCacheSet(key, value) {
 
 module.exports = mapCacheSet;
 
-},{"./_getMapData":417}],453:[function(require,module,exports){
+},{"./_getMapData":445}],481:[function(require,module,exports){
 /**
  * Converts `map` to its key-value pairs.
  *
@@ -32491,7 +35918,7 @@ function mapToArray(map) {
 
 module.exports = mapToArray;
 
-},{}],454:[function(require,module,exports){
+},{}],482:[function(require,module,exports){
 /**
  * A specialized version of `matchesProperty` for source values suitable
  * for strict equality comparisons, i.e. `===`.
@@ -32513,7 +35940,7 @@ function matchesStrictComparable(key, srcValue) {
 
 module.exports = matchesStrictComparable;
 
-},{}],455:[function(require,module,exports){
+},{}],483:[function(require,module,exports){
 var memoize = require('./memoize');
 
 /** Used as the maximum memoize cache size. */
@@ -32541,7 +35968,7 @@ function memoizeCapped(func) {
 
 module.exports = memoizeCapped;
 
-},{"./memoize":525}],456:[function(require,module,exports){
+},{"./memoize":551}],484:[function(require,module,exports){
 var getNative = require('./_getNative');
 
 /* Built-in method references that are verified to be native. */
@@ -32549,7 +35976,7 @@ var nativeCreate = getNative(Object, 'create');
 
 module.exports = nativeCreate;
 
-},{"./_getNative":419}],457:[function(require,module,exports){
+},{"./_getNative":447}],485:[function(require,module,exports){
 var overArg = require('./_overArg');
 
 /* Built-in method references for those with the same name as other `lodash` methods. */
@@ -32557,7 +35984,7 @@ var nativeKeys = overArg(Object.keys, Object);
 
 module.exports = nativeKeys;
 
-},{"./_overArg":461}],458:[function(require,module,exports){
+},{"./_overArg":489}],486:[function(require,module,exports){
 /**
  * This function is like
  * [`Object.keys`](http://ecma-international.org/ecma-262/7.0/#sec-object.keys)
@@ -32579,7 +36006,7 @@ function nativeKeysIn(object) {
 
 module.exports = nativeKeysIn;
 
-},{}],459:[function(require,module,exports){
+},{}],487:[function(require,module,exports){
 var freeGlobal = require('./_freeGlobal');
 
 /** Detect free variable `exports`. */
@@ -32603,9 +36030,9 @@ var nodeUtil = (function() {
 
 module.exports = nodeUtil;
 
-},{"./_freeGlobal":414}],460:[function(require,module,exports){
+},{"./_freeGlobal":442}],488:[function(require,module,exports){
 arguments[4][15][0].apply(exports,arguments)
-},{"dup":15}],461:[function(require,module,exports){
+},{"dup":15}],489:[function(require,module,exports){
 /**
  * Creates a unary function that invokes `func` with its argument transformed.
  *
@@ -32622,7 +36049,7 @@ function overArg(func, transform) {
 
 module.exports = overArg;
 
-},{}],462:[function(require,module,exports){
+},{}],490:[function(require,module,exports){
 var apply = require('./_apply');
 
 /* Built-in method references for those with the same name as other `lodash` methods. */
@@ -32660,26 +36087,9 @@ function overRest(func, start, transform) {
 
 module.exports = overRest;
 
-},{"./_apply":314}],463:[function(require,module,exports){
+},{"./_apply":341}],491:[function(require,module,exports){
 arguments[4][16][0].apply(exports,arguments)
-},{"./_freeGlobal":414,"dup":16}],464:[function(require,module,exports){
-/**
- * Gets the value at `key`, unless `key` is "__proto__".
- *
- * @private
- * @param {Object} object The object to query.
- * @param {string} key The key of the property to get.
- * @returns {*} Returns the property value.
- */
-function safeGet(object, key) {
-  return key == '__proto__'
-    ? undefined
-    : object[key];
-}
-
-module.exports = safeGet;
-
-},{}],465:[function(require,module,exports){
+},{"./_freeGlobal":442,"dup":16}],492:[function(require,module,exports){
 /** Used to stand-in for `undefined` hash values. */
 var HASH_UNDEFINED = '__lodash_hash_undefined__';
 
@@ -32700,7 +36110,7 @@ function setCacheAdd(value) {
 
 module.exports = setCacheAdd;
 
-},{}],466:[function(require,module,exports){
+},{}],493:[function(require,module,exports){
 /**
  * Checks if `value` is in the array cache.
  *
@@ -32716,7 +36126,7 @@ function setCacheHas(value) {
 
 module.exports = setCacheHas;
 
-},{}],467:[function(require,module,exports){
+},{}],494:[function(require,module,exports){
 /**
  * Converts `set` to an array of its values.
  *
@@ -32736,7 +36146,7 @@ function setToArray(set) {
 
 module.exports = setToArray;
 
-},{}],468:[function(require,module,exports){
+},{}],495:[function(require,module,exports){
 var baseSetToString = require('./_baseSetToString'),
     shortOut = require('./_shortOut');
 
@@ -32752,7 +36162,7 @@ var setToString = shortOut(baseSetToString);
 
 module.exports = setToString;
 
-},{"./_baseSetToString":375,"./_shortOut":469}],469:[function(require,module,exports){
+},{"./_baseSetToString":400,"./_shortOut":496}],496:[function(require,module,exports){
 /** Used to detect hot functions by number of calls within a span of milliseconds. */
 var HOT_COUNT = 800,
     HOT_SPAN = 16;
@@ -32791,7 +36201,7 @@ function shortOut(func) {
 
 module.exports = shortOut;
 
-},{}],470:[function(require,module,exports){
+},{}],497:[function(require,module,exports){
 var ListCache = require('./_ListCache');
 
 /**
@@ -32808,7 +36218,7 @@ function stackClear() {
 
 module.exports = stackClear;
 
-},{"./_ListCache":304}],471:[function(require,module,exports){
+},{"./_ListCache":329}],498:[function(require,module,exports){
 /**
  * Removes `key` and its value from the stack.
  *
@@ -32828,7 +36238,7 @@ function stackDelete(key) {
 
 module.exports = stackDelete;
 
-},{}],472:[function(require,module,exports){
+},{}],499:[function(require,module,exports){
 /**
  * Gets the stack value for `key`.
  *
@@ -32844,7 +36254,7 @@ function stackGet(key) {
 
 module.exports = stackGet;
 
-},{}],473:[function(require,module,exports){
+},{}],500:[function(require,module,exports){
 /**
  * Checks if a stack value for `key` exists.
  *
@@ -32860,7 +36270,7 @@ function stackHas(key) {
 
 module.exports = stackHas;
 
-},{}],474:[function(require,module,exports){
+},{}],501:[function(require,module,exports){
 var ListCache = require('./_ListCache'),
     Map = require('./_Map'),
     MapCache = require('./_MapCache');
@@ -32896,7 +36306,7 @@ function stackSet(key, value) {
 
 module.exports = stackSet;
 
-},{"./_ListCache":304,"./_Map":305,"./_MapCache":306}],475:[function(require,module,exports){
+},{"./_ListCache":329,"./_Map":330,"./_MapCache":331}],502:[function(require,module,exports){
 /**
  * A specialized version of `_.indexOf` which performs strict equality
  * comparisons of values, i.e. `===`.
@@ -32921,11 +36331,12 @@ function strictIndexOf(array, value, fromIndex) {
 
 module.exports = strictIndexOf;
 
-},{}],476:[function(require,module,exports){
+},{}],503:[function(require,module,exports){
 var memoizeCapped = require('./_memoizeCapped');
 
 /** Used to match property names within property paths. */
-var rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|$))/g;
+var reLeadingDot = /^\./,
+    rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|$))/g;
 
 /** Used to match backslashes in property paths. */
 var reEscapeChar = /\\(\\)?/g;
@@ -32939,18 +36350,18 @@ var reEscapeChar = /\\(\\)?/g;
  */
 var stringToPath = memoizeCapped(function(string) {
   var result = [];
-  if (string.charCodeAt(0) === 46 /* . */) {
+  if (reLeadingDot.test(string)) {
     result.push('');
   }
-  string.replace(rePropName, function(match, number, quote, subString) {
-    result.push(quote ? subString.replace(reEscapeChar, '$1') : (number || match));
+  string.replace(rePropName, function(match, number, quote, string) {
+    result.push(quote ? string.replace(reEscapeChar, '$1') : (number || match));
   });
   return result;
 });
 
 module.exports = stringToPath;
 
-},{"./_memoizeCapped":455}],477:[function(require,module,exports){
+},{"./_memoizeCapped":483}],504:[function(require,module,exports){
 var isSymbol = require('./isSymbol');
 
 /** Used as references for various `Number` constants. */
@@ -32973,7 +36384,7 @@ function toKey(value) {
 
 module.exports = toKey;
 
-},{"./isSymbol":519}],478:[function(require,module,exports){
+},{"./isSymbol":545}],505:[function(require,module,exports){
 /** Used for built-in method references. */
 var funcProto = Function.prototype;
 
@@ -33001,7 +36412,47 @@ function toSource(func) {
 
 module.exports = toSource;
 
-},{}],479:[function(require,module,exports){
+},{}],506:[function(require,module,exports){
+var copyObject = require('./_copyObject'),
+    createAssigner = require('./_createAssigner'),
+    keysIn = require('./keysIn');
+
+/**
+ * This method is like `_.assignIn` except that it accepts `customizer`
+ * which is invoked to produce the assigned values. If `customizer` returns
+ * `undefined`, assignment is handled by the method instead. The `customizer`
+ * is invoked with five arguments: (objValue, srcValue, key, object, source).
+ *
+ * **Note:** This method mutates `object`.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @alias extendWith
+ * @category Object
+ * @param {Object} object The destination object.
+ * @param {...Object} sources The source objects.
+ * @param {Function} [customizer] The function to customize assigned values.
+ * @returns {Object} Returns `object`.
+ * @see _.assignWith
+ * @example
+ *
+ * function customizer(objValue, srcValue) {
+ *   return _.isUndefined(objValue) ? srcValue : objValue;
+ * }
+ *
+ * var defaults = _.partialRight(_.assignInWith, customizer);
+ *
+ * defaults({ 'a': 1 }, { 'b': 2 }, { 'a': 3 });
+ * // => { 'a': 1, 'b': 2 }
+ */
+var assignInWith = createAssigner(function(object, source, srcIndex, customizer) {
+  copyObject(source, keysIn(source), object, customizer);
+});
+
+module.exports = assignInWith;
+
+},{"./_copyObject":424,"./_createAssigner":429,"./keysIn":549}],507:[function(require,module,exports){
 var baseClone = require('./_baseClone');
 
 /** Used to compose bitmasks for cloning. */
@@ -33039,7 +36490,7 @@ function clone(value) {
 
 module.exports = clone;
 
-},{"./_baseClone":332}],480:[function(require,module,exports){
+},{"./_baseClone":359}],508:[function(require,module,exports){
 /**
  * Creates a function that returns `value`.
  *
@@ -33067,19 +36518,201 @@ function constant(value) {
 
 module.exports = constant;
 
-},{}],481:[function(require,module,exports){
-arguments[4][17][0].apply(exports,arguments)
-},{"./isObject":514,"./now":530,"./toNumber":544,"dup":17}],482:[function(require,module,exports){
-var baseRest = require('./_baseRest'),
-    eq = require('./eq'),
-    isIterateeCall = require('./_isIterateeCall'),
-    keysIn = require('./keysIn');
+},{}],509:[function(require,module,exports){
+var isObject = require('./isObject'),
+    now = require('./now'),
+    toNumber = require('./toNumber');
 
-/** Used for built-in method references. */
-var objectProto = Object.prototype;
+/** Error message constants. */
+var FUNC_ERROR_TEXT = 'Expected a function';
 
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
+/* Built-in method references for those with the same name as other `lodash` methods. */
+var nativeMax = Math.max,
+    nativeMin = Math.min;
+
+/**
+ * Creates a debounced function that delays invoking `func` until after `wait`
+ * milliseconds have elapsed since the last time the debounced function was
+ * invoked. The debounced function comes with a `cancel` method to cancel
+ * delayed `func` invocations and a `flush` method to immediately invoke them.
+ * Provide `options` to indicate whether `func` should be invoked on the
+ * leading and/or trailing edge of the `wait` timeout. The `func` is invoked
+ * with the last arguments provided to the debounced function. Subsequent
+ * calls to the debounced function return the result of the last `func`
+ * invocation.
+ *
+ * **Note:** If `leading` and `trailing` options are `true`, `func` is
+ * invoked on the trailing edge of the timeout only if the debounced function
+ * is invoked more than once during the `wait` timeout.
+ *
+ * If `wait` is `0` and `leading` is `false`, `func` invocation is deferred
+ * until to the next tick, similar to `setTimeout` with a timeout of `0`.
+ *
+ * See [David Corbacho's article](https://css-tricks.com/debouncing-throttling-explained-examples/)
+ * for details over the differences between `_.debounce` and `_.throttle`.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Function
+ * @param {Function} func The function to debounce.
+ * @param {number} [wait=0] The number of milliseconds to delay.
+ * @param {Object} [options={}] The options object.
+ * @param {boolean} [options.leading=false]
+ *  Specify invoking on the leading edge of the timeout.
+ * @param {number} [options.maxWait]
+ *  The maximum time `func` is allowed to be delayed before it's invoked.
+ * @param {boolean} [options.trailing=true]
+ *  Specify invoking on the trailing edge of the timeout.
+ * @returns {Function} Returns the new debounced function.
+ * @example
+ *
+ * // Avoid costly calculations while the window size is in flux.
+ * jQuery(window).on('resize', _.debounce(calculateLayout, 150));
+ *
+ * // Invoke `sendMail` when clicked, debouncing subsequent calls.
+ * jQuery(element).on('click', _.debounce(sendMail, 300, {
+ *   'leading': true,
+ *   'trailing': false
+ * }));
+ *
+ * // Ensure `batchLog` is invoked once after 1 second of debounced calls.
+ * var debounced = _.debounce(batchLog, 250, { 'maxWait': 1000 });
+ * var source = new EventSource('/stream');
+ * jQuery(source).on('message', debounced);
+ *
+ * // Cancel the trailing debounced invocation.
+ * jQuery(window).on('popstate', debounced.cancel);
+ */
+function debounce(func, wait, options) {
+  var lastArgs,
+      lastThis,
+      maxWait,
+      result,
+      timerId,
+      lastCallTime,
+      lastInvokeTime = 0,
+      leading = false,
+      maxing = false,
+      trailing = true;
+
+  if (typeof func != 'function') {
+    throw new TypeError(FUNC_ERROR_TEXT);
+  }
+  wait = toNumber(wait) || 0;
+  if (isObject(options)) {
+    leading = !!options.leading;
+    maxing = 'maxWait' in options;
+    maxWait = maxing ? nativeMax(toNumber(options.maxWait) || 0, wait) : maxWait;
+    trailing = 'trailing' in options ? !!options.trailing : trailing;
+  }
+
+  function invokeFunc(time) {
+    var args = lastArgs,
+        thisArg = lastThis;
+
+    lastArgs = lastThis = undefined;
+    lastInvokeTime = time;
+    result = func.apply(thisArg, args);
+    return result;
+  }
+
+  function leadingEdge(time) {
+    // Reset any `maxWait` timer.
+    lastInvokeTime = time;
+    // Start the timer for the trailing edge.
+    timerId = setTimeout(timerExpired, wait);
+    // Invoke the leading edge.
+    return leading ? invokeFunc(time) : result;
+  }
+
+  function remainingWait(time) {
+    var timeSinceLastCall = time - lastCallTime,
+        timeSinceLastInvoke = time - lastInvokeTime,
+        result = wait - timeSinceLastCall;
+
+    return maxing ? nativeMin(result, maxWait - timeSinceLastInvoke) : result;
+  }
+
+  function shouldInvoke(time) {
+    var timeSinceLastCall = time - lastCallTime,
+        timeSinceLastInvoke = time - lastInvokeTime;
+
+    // Either this is the first call, activity has stopped and we're at the
+    // trailing edge, the system time has gone backwards and we're treating
+    // it as the trailing edge, or we've hit the `maxWait` limit.
+    return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+      (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait));
+  }
+
+  function timerExpired() {
+    var time = now();
+    if (shouldInvoke(time)) {
+      return trailingEdge(time);
+    }
+    // Restart the timer.
+    timerId = setTimeout(timerExpired, remainingWait(time));
+  }
+
+  function trailingEdge(time) {
+    timerId = undefined;
+
+    // Only invoke if we have `lastArgs` which means `func` has been
+    // debounced at least once.
+    if (trailing && lastArgs) {
+      return invokeFunc(time);
+    }
+    lastArgs = lastThis = undefined;
+    return result;
+  }
+
+  function cancel() {
+    if (timerId !== undefined) {
+      clearTimeout(timerId);
+    }
+    lastInvokeTime = 0;
+    lastArgs = lastCallTime = lastThis = timerId = undefined;
+  }
+
+  function flush() {
+    return timerId === undefined ? result : trailingEdge(now());
+  }
+
+  function debounced() {
+    var time = now(),
+        isInvoking = shouldInvoke(time);
+
+    lastArgs = arguments;
+    lastThis = this;
+    lastCallTime = time;
+
+    if (isInvoking) {
+      if (timerId === undefined) {
+        return leadingEdge(lastCallTime);
+      }
+      if (maxing) {
+        // Handle invocations in a tight loop.
+        timerId = setTimeout(timerExpired, wait);
+        return invokeFunc(lastCallTime);
+      }
+    }
+    if (timerId === undefined) {
+      timerId = setTimeout(timerExpired, wait);
+    }
+    return result;
+  }
+  debounced.cancel = cancel;
+  debounced.flush = flush;
+  return debounced;
+}
+
+module.exports = debounce;
+
+},{"./isObject":541,"./now":556,"./toNumber":570}],510:[function(require,module,exports){
+var apply = require('./_apply'),
+    assignInWith = require('./assignInWith'),
+    baseRest = require('./_baseRest'),
+    customDefaultsAssignIn = require('./_customDefaultsAssignIn');
 
 /**
  * Assigns own and inherited enumerable string keyed properties of source
@@ -33102,40 +36735,14 @@ var hasOwnProperty = objectProto.hasOwnProperty;
  * _.defaults({ 'a': 1 }, { 'b': 2 }, { 'a': 3 });
  * // => { 'a': 1, 'b': 2 }
  */
-var defaults = baseRest(function(object, sources) {
-  object = Object(object);
-
-  var index = -1;
-  var length = sources.length;
-  var guard = length > 2 ? sources[2] : undefined;
-
-  if (guard && isIterateeCall(sources[0], sources[1], guard)) {
-    length = 1;
-  }
-
-  while (++index < length) {
-    var source = sources[index];
-    var props = keysIn(source);
-    var propsIndex = -1;
-    var propsLength = props.length;
-
-    while (++propsIndex < propsLength) {
-      var key = props[propsIndex];
-      var value = object[key];
-
-      if (value === undefined ||
-          (eq(value, objectProto[key]) && !hasOwnProperty.call(object, key))) {
-        object[key] = source[key];
-      }
-    }
-  }
-
-  return object;
+var defaults = baseRest(function(args) {
+  args.push(undefined, customDefaultsAssignIn);
+  return apply(assignInWith, undefined, args);
 });
 
 module.exports = defaults;
 
-},{"./_baseRest":373,"./_isIterateeCall":437,"./eq":485,"./keysIn":523}],483:[function(require,module,exports){
+},{"./_apply":341,"./_baseRest":398,"./_customDefaultsAssignIn":434,"./assignInWith":506}],511:[function(require,module,exports){
 var apply = require('./_apply'),
     baseRest = require('./_baseRest'),
     customDefaultsMerge = require('./_customDefaultsMerge'),
@@ -33167,7 +36774,7 @@ var defaultsDeep = baseRest(function(args) {
 
 module.exports = defaultsDeep;
 
-},{"./_apply":314,"./_baseRest":373,"./_customDefaultsMerge":407,"./mergeWith":527}],484:[function(require,module,exports){
+},{"./_apply":341,"./_baseRest":398,"./_customDefaultsMerge":435,"./mergeWith":553}],512:[function(require,module,exports){
 var baseDifference = require('./_baseDifference'),
     baseFlatten = require('./_baseFlatten'),
     baseRest = require('./_baseRest'),
@@ -33202,7 +36809,7 @@ var difference = baseRest(function(array, values) {
 
 module.exports = difference;
 
-},{"./_baseDifference":334,"./_baseFlatten":338,"./_baseRest":373,"./isArrayLikeObject":505}],485:[function(require,module,exports){
+},{"./_baseDifference":361,"./_baseFlatten":365,"./_baseRest":398,"./isArrayLikeObject":533}],513:[function(require,module,exports){
 /**
  * Performs a
  * [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
@@ -33241,7 +36848,7 @@ function eq(value, other) {
 
 module.exports = eq;
 
-},{}],486:[function(require,module,exports){
+},{}],514:[function(require,module,exports){
 var escapeHtmlChar = require('./_escapeHtmlChar'),
     toString = require('./toString');
 
@@ -33286,7 +36893,7 @@ function escape(string) {
 
 module.exports = escape;
 
-},{"./_escapeHtmlChar":412,"./toString":546}],487:[function(require,module,exports){
+},{"./_escapeHtmlChar":440,"./toString":572}],515:[function(require,module,exports){
 var toString = require('./toString');
 
 /**
@@ -33320,7 +36927,7 @@ function escapeRegExp(string) {
 
 module.exports = escapeRegExp;
 
-},{"./toString":546}],488:[function(require,module,exports){
+},{"./toString":572}],516:[function(require,module,exports){
 var arrayFilter = require('./_arrayFilter'),
     baseFilter = require('./_baseFilter'),
     baseIteratee = require('./_baseIteratee'),
@@ -33370,7 +36977,7 @@ function filter(collection, predicate) {
 
 module.exports = filter;
 
-},{"./_arrayFilter":317,"./_baseFilter":336,"./_baseIteratee":358,"./isArray":503}],489:[function(require,module,exports){
+},{"./_arrayFilter":344,"./_baseFilter":363,"./_baseIteratee":383,"./isArray":531}],517:[function(require,module,exports){
 var createFind = require('./_createFind'),
     findIndex = require('./findIndex');
 
@@ -33414,7 +37021,7 @@ var find = createFind(findIndex);
 
 module.exports = find;
 
-},{"./_createFind":405,"./findIndex":490}],490:[function(require,module,exports){
+},{"./_createFind":432,"./findIndex":518}],518:[function(require,module,exports){
 var baseFindIndex = require('./_baseFindIndex'),
     baseIteratee = require('./_baseIteratee'),
     toInteger = require('./toInteger');
@@ -33471,7 +37078,7 @@ function findIndex(array, predicate, fromIndex) {
 
 module.exports = findIndex;
 
-},{"./_baseFindIndex":337,"./_baseIteratee":358,"./toInteger":543}],491:[function(require,module,exports){
+},{"./_baseFindIndex":364,"./_baseIteratee":383,"./toInteger":569}],519:[function(require,module,exports){
 var baseFlatten = require('./_baseFlatten'),
     map = require('./map');
 
@@ -33502,7 +37109,7 @@ function flatMap(collection, iteratee) {
 
 module.exports = flatMap;
 
-},{"./_baseFlatten":338,"./map":524}],492:[function(require,module,exports){
+},{"./_baseFlatten":365,"./map":550}],520:[function(require,module,exports){
 var baseFlatten = require('./_baseFlatten');
 
 /**
@@ -33526,7 +37133,7 @@ function flatten(array) {
 
 module.exports = flatten;
 
-},{"./_baseFlatten":338}],493:[function(require,module,exports){
+},{"./_baseFlatten":365}],521:[function(require,module,exports){
 var arrayEach = require('./_arrayEach'),
     baseEach = require('./_baseEach'),
     castFunction = require('./_castFunction'),
@@ -33569,7 +37176,7 @@ function forEach(collection, iteratee) {
 
 module.exports = forEach;
 
-},{"./_arrayEach":316,"./_baseEach":335,"./_castFunction":386,"./isArray":503}],494:[function(require,module,exports){
+},{"./_arrayEach":343,"./_baseEach":362,"./_castFunction":411,"./isArray":531}],522:[function(require,module,exports){
 var baseGet = require('./_baseGet');
 
 /**
@@ -33604,7 +37211,7 @@ function get(object, path, defaultValue) {
 
 module.exports = get;
 
-},{"./_baseGet":341}],495:[function(require,module,exports){
+},{"./_baseGet":368}],523:[function(require,module,exports){
 var baseHas = require('./_baseHas'),
     hasPath = require('./_hasPath');
 
@@ -33641,7 +37248,7 @@ function has(object, path) {
 
 module.exports = has;
 
-},{"./_baseHas":344,"./_hasPath":426}],496:[function(require,module,exports){
+},{"./_baseHas":371,"./_hasPath":454}],524:[function(require,module,exports){
 var baseHasIn = require('./_baseHasIn'),
     hasPath = require('./_hasPath');
 
@@ -33677,7 +37284,7 @@ function hasIn(object, path) {
 
 module.exports = hasIn;
 
-},{"./_baseHasIn":345,"./_hasPath":426}],497:[function(require,module,exports){
+},{"./_baseHasIn":372,"./_hasPath":454}],525:[function(require,module,exports){
 /**
  * This method returns the first argument it receives.
  *
@@ -33700,7 +37307,7 @@ function identity(value) {
 
 module.exports = identity;
 
-},{}],498:[function(require,module,exports){
+},{}],526:[function(require,module,exports){
 var baseInRange = require('./_baseInRange'),
     toFinite = require('./toFinite'),
     toNumber = require('./toNumber');
@@ -33757,7 +37364,7 @@ function inRange(number, start, end) {
 
 module.exports = inRange;
 
-},{"./_baseInRange":346,"./toFinite":542,"./toNumber":544}],499:[function(require,module,exports){
+},{"./_baseInRange":373,"./toFinite":568,"./toNumber":570}],527:[function(require,module,exports){
 var baseIndexOf = require('./_baseIndexOf'),
     isArrayLike = require('./isArrayLike'),
     isString = require('./isString'),
@@ -33812,7 +37419,7 @@ function includes(collection, value, fromIndex, guard) {
 
 module.exports = includes;
 
-},{"./_baseIndexOf":347,"./isArrayLike":504,"./isString":518,"./toInteger":543,"./values":548}],500:[function(require,module,exports){
+},{"./_baseIndexOf":374,"./isArrayLike":532,"./isString":544,"./toInteger":569,"./values":575}],528:[function(require,module,exports){
 var baseIndexOf = require('./_baseIndexOf'),
     toInteger = require('./toInteger');
 
@@ -33856,7 +37463,7 @@ function indexOf(array, value, fromIndex) {
 
 module.exports = indexOf;
 
-},{"./_baseIndexOf":347,"./toInteger":543}],501:[function(require,module,exports){
+},{"./_baseIndexOf":374,"./toInteger":569}],529:[function(require,module,exports){
 var arrayMap = require('./_arrayMap'),
     baseIntersection = require('./_baseIntersection'),
     baseRest = require('./_baseRest'),
@@ -33888,7 +37495,7 @@ var intersection = baseRest(function(arrays) {
 
 module.exports = intersection;
 
-},{"./_arrayMap":321,"./_baseIntersection":348,"./_baseRest":373,"./_castArrayLikeObject":385}],502:[function(require,module,exports){
+},{"./_arrayMap":348,"./_baseIntersection":375,"./_baseRest":398,"./_castArrayLikeObject":410}],530:[function(require,module,exports){
 var baseIsArguments = require('./_baseIsArguments'),
     isObjectLike = require('./isObjectLike');
 
@@ -33926,7 +37533,7 @@ var isArguments = baseIsArguments(function() { return arguments; }()) ? baseIsAr
 
 module.exports = isArguments;
 
-},{"./_baseIsArguments":349,"./isObjectLike":515}],503:[function(require,module,exports){
+},{"./_baseIsArguments":376,"./isObjectLike":542}],531:[function(require,module,exports){
 /**
  * Checks if `value` is classified as an `Array` object.
  *
@@ -33954,7 +37561,7 @@ var isArray = Array.isArray;
 
 module.exports = isArray;
 
-},{}],504:[function(require,module,exports){
+},{}],532:[function(require,module,exports){
 var isFunction = require('./isFunction'),
     isLength = require('./isLength');
 
@@ -33989,7 +37596,7 @@ function isArrayLike(value) {
 
 module.exports = isArrayLike;
 
-},{"./isFunction":509,"./isLength":510}],505:[function(require,module,exports){
+},{"./isFunction":537,"./isLength":538}],533:[function(require,module,exports){
 var isArrayLike = require('./isArrayLike'),
     isObjectLike = require('./isObjectLike');
 
@@ -34024,7 +37631,7 @@ function isArrayLikeObject(value) {
 
 module.exports = isArrayLikeObject;
 
-},{"./isArrayLike":504,"./isObjectLike":515}],506:[function(require,module,exports){
+},{"./isArrayLike":532,"./isObjectLike":542}],534:[function(require,module,exports){
 var root = require('./_root'),
     stubFalse = require('./stubFalse');
 
@@ -34064,7 +37671,7 @@ var isBuffer = nativeIsBuffer || stubFalse;
 
 module.exports = isBuffer;
 
-},{"./_root":463,"./stubFalse":538}],507:[function(require,module,exports){
+},{"./_root":491,"./stubFalse":564}],535:[function(require,module,exports){
 var isObjectLike = require('./isObjectLike'),
     isPlainObject = require('./isPlainObject');
 
@@ -34091,7 +37698,7 @@ function isElement(value) {
 
 module.exports = isElement;
 
-},{"./isObjectLike":515,"./isPlainObject":516}],508:[function(require,module,exports){
+},{"./isObjectLike":542,"./isPlainObject":543}],536:[function(require,module,exports){
 var baseKeys = require('./_baseKeys'),
     getTag = require('./_getTag'),
     isArguments = require('./isArguments'),
@@ -34170,7 +37777,7 @@ function isEmpty(value) {
 
 module.exports = isEmpty;
 
-},{"./_baseKeys":359,"./_getTag":424,"./_isPrototype":441,"./isArguments":502,"./isArray":503,"./isArrayLike":504,"./isBuffer":506,"./isTypedArray":520}],509:[function(require,module,exports){
+},{"./_baseKeys":384,"./_getTag":452,"./_isPrototype":469,"./isArguments":530,"./isArray":531,"./isArrayLike":532,"./isBuffer":534,"./isTypedArray":546}],537:[function(require,module,exports){
 var baseGetTag = require('./_baseGetTag'),
     isObject = require('./isObject');
 
@@ -34209,7 +37816,7 @@ function isFunction(value) {
 
 module.exports = isFunction;
 
-},{"./_baseGetTag":343,"./isObject":514}],510:[function(require,module,exports){
+},{"./_baseGetTag":370,"./isObject":541}],538:[function(require,module,exports){
 /** Used as references for various `Number` constants. */
 var MAX_SAFE_INTEGER = 9007199254740991;
 
@@ -34246,36 +37853,7 @@ function isLength(value) {
 
 module.exports = isLength;
 
-},{}],511:[function(require,module,exports){
-var baseIsMap = require('./_baseIsMap'),
-    baseUnary = require('./_baseUnary'),
-    nodeUtil = require('./_nodeUtil');
-
-/* Node.js helper references. */
-var nodeIsMap = nodeUtil && nodeUtil.isMap;
-
-/**
- * Checks if `value` is classified as a `Map` object.
- *
- * @static
- * @memberOf _
- * @since 4.3.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a map, else `false`.
- * @example
- *
- * _.isMap(new Map);
- * // => true
- *
- * _.isMap(new WeakMap);
- * // => false
- */
-var isMap = nodeIsMap ? baseUnary(nodeIsMap) : baseIsMap;
-
-module.exports = isMap;
-
-},{"./_baseIsMap":352,"./_baseUnary":381,"./_nodeUtil":459}],512:[function(require,module,exports){
+},{}],539:[function(require,module,exports){
 var isNumber = require('./isNumber');
 
 /**
@@ -34315,7 +37893,7 @@ function isNaN(value) {
 
 module.exports = isNaN;
 
-},{"./isNumber":513}],513:[function(require,module,exports){
+},{"./isNumber":540}],540:[function(require,module,exports){
 var baseGetTag = require('./_baseGetTag'),
     isObjectLike = require('./isObjectLike');
 
@@ -34355,11 +37933,11 @@ function isNumber(value) {
 
 module.exports = isNumber;
 
-},{"./_baseGetTag":343,"./isObjectLike":515}],514:[function(require,module,exports){
+},{"./_baseGetTag":370,"./isObjectLike":542}],541:[function(require,module,exports){
 arguments[4][18][0].apply(exports,arguments)
-},{"dup":18}],515:[function(require,module,exports){
+},{"dup":18}],542:[function(require,module,exports){
 arguments[4][19][0].apply(exports,arguments)
-},{"dup":19}],516:[function(require,module,exports){
+},{"dup":19}],543:[function(require,module,exports){
 var baseGetTag = require('./_baseGetTag'),
     getPrototype = require('./_getPrototype'),
     isObjectLike = require('./isObjectLike');
@@ -34423,36 +38001,7 @@ function isPlainObject(value) {
 
 module.exports = isPlainObject;
 
-},{"./_baseGetTag":343,"./_getPrototype":420,"./isObjectLike":515}],517:[function(require,module,exports){
-var baseIsSet = require('./_baseIsSet'),
-    baseUnary = require('./_baseUnary'),
-    nodeUtil = require('./_nodeUtil');
-
-/* Node.js helper references. */
-var nodeIsSet = nodeUtil && nodeUtil.isSet;
-
-/**
- * Checks if `value` is classified as a `Set` object.
- *
- * @static
- * @memberOf _
- * @since 4.3.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a set, else `false`.
- * @example
- *
- * _.isSet(new Set);
- * // => true
- *
- * _.isSet(new WeakSet);
- * // => false
- */
-var isSet = nodeIsSet ? baseUnary(nodeIsSet) : baseIsSet;
-
-module.exports = isSet;
-
-},{"./_baseIsSet":356,"./_baseUnary":381,"./_nodeUtil":459}],518:[function(require,module,exports){
+},{"./_baseGetTag":370,"./_getPrototype":448,"./isObjectLike":542}],544:[function(require,module,exports){
 var baseGetTag = require('./_baseGetTag'),
     isArray = require('./isArray'),
     isObjectLike = require('./isObjectLike');
@@ -34484,9 +38033,9 @@ function isString(value) {
 
 module.exports = isString;
 
-},{"./_baseGetTag":343,"./isArray":503,"./isObjectLike":515}],519:[function(require,module,exports){
+},{"./_baseGetTag":370,"./isArray":531,"./isObjectLike":542}],545:[function(require,module,exports){
 arguments[4][20][0].apply(exports,arguments)
-},{"./_baseGetTag":343,"./isObjectLike":515,"dup":20}],520:[function(require,module,exports){
+},{"./_baseGetTag":370,"./isObjectLike":542,"dup":20}],546:[function(require,module,exports){
 var baseIsTypedArray = require('./_baseIsTypedArray'),
     baseUnary = require('./_baseUnary'),
     nodeUtil = require('./_nodeUtil');
@@ -34515,7 +38064,7 @@ var isTypedArray = nodeIsTypedArray ? baseUnary(nodeIsTypedArray) : baseIsTypedA
 
 module.exports = isTypedArray;
 
-},{"./_baseIsTypedArray":357,"./_baseUnary":381,"./_nodeUtil":459}],521:[function(require,module,exports){
+},{"./_baseIsTypedArray":382,"./_baseUnary":406,"./_nodeUtil":487}],547:[function(require,module,exports){
 /**
  * Checks if `value` is `undefined`.
  *
@@ -34539,7 +38088,7 @@ function isUndefined(value) {
 
 module.exports = isUndefined;
 
-},{}],522:[function(require,module,exports){
+},{}],548:[function(require,module,exports){
 var arrayLikeKeys = require('./_arrayLikeKeys'),
     baseKeys = require('./_baseKeys'),
     isArrayLike = require('./isArrayLike');
@@ -34578,7 +38127,7 @@ function keys(object) {
 
 module.exports = keys;
 
-},{"./_arrayLikeKeys":320,"./_baseKeys":359,"./isArrayLike":504}],523:[function(require,module,exports){
+},{"./_arrayLikeKeys":347,"./_baseKeys":384,"./isArrayLike":532}],549:[function(require,module,exports){
 var arrayLikeKeys = require('./_arrayLikeKeys'),
     baseKeysIn = require('./_baseKeysIn'),
     isArrayLike = require('./isArrayLike');
@@ -34612,7 +38161,7 @@ function keysIn(object) {
 
 module.exports = keysIn;
 
-},{"./_arrayLikeKeys":320,"./_baseKeysIn":360,"./isArrayLike":504}],524:[function(require,module,exports){
+},{"./_arrayLikeKeys":347,"./_baseKeysIn":385,"./isArrayLike":532}],550:[function(require,module,exports){
 var arrayMap = require('./_arrayMap'),
     baseIteratee = require('./_baseIteratee'),
     baseMap = require('./_baseMap'),
@@ -34667,7 +38216,7 @@ function map(collection, iteratee) {
 
 module.exports = map;
 
-},{"./_arrayMap":321,"./_baseIteratee":358,"./_baseMap":361,"./isArray":503}],525:[function(require,module,exports){
+},{"./_arrayMap":348,"./_baseIteratee":383,"./_baseMap":386,"./isArray":531}],551:[function(require,module,exports){
 var MapCache = require('./_MapCache');
 
 /** Error message constants. */
@@ -34742,7 +38291,7 @@ memoize.Cache = MapCache;
 
 module.exports = memoize;
 
-},{"./_MapCache":306}],526:[function(require,module,exports){
+},{"./_MapCache":331}],552:[function(require,module,exports){
 var baseMerge = require('./_baseMerge'),
     createAssigner = require('./_createAssigner');
 
@@ -34783,7 +38332,7 @@ var merge = createAssigner(function(object, source, srcIndex) {
 
 module.exports = merge;
 
-},{"./_baseMerge":364,"./_createAssigner":402}],527:[function(require,module,exports){
+},{"./_baseMerge":389,"./_createAssigner":429}],553:[function(require,module,exports){
 var baseMerge = require('./_baseMerge'),
     createAssigner = require('./_createAssigner');
 
@@ -34824,7 +38373,7 @@ var mergeWith = createAssigner(function(object, source, srcIndex, customizer) {
 
 module.exports = mergeWith;
 
-},{"./_baseMerge":364,"./_createAssigner":402}],528:[function(require,module,exports){
+},{"./_baseMerge":389,"./_createAssigner":429}],554:[function(require,module,exports){
 /** Error message constants. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -34866,7 +38415,7 @@ function negate(predicate) {
 
 module.exports = negate;
 
-},{}],529:[function(require,module,exports){
+},{}],555:[function(require,module,exports){
 /**
  * This method returns `undefined`.
  *
@@ -34885,9 +38434,9 @@ function noop() {
 
 module.exports = noop;
 
-},{}],530:[function(require,module,exports){
+},{}],556:[function(require,module,exports){
 arguments[4][21][0].apply(exports,arguments)
-},{"./_root":463,"dup":21}],531:[function(require,module,exports){
+},{"./_root":491,"dup":21}],557:[function(require,module,exports){
 var createAggregator = require('./_createAggregator');
 
 /**
@@ -34932,7 +38481,7 @@ var partition = createAggregator(function(result, value, key) {
 
 module.exports = partition;
 
-},{"./_createAggregator":401}],532:[function(require,module,exports){
+},{"./_createAggregator":428}],558:[function(require,module,exports){
 var basePick = require('./_basePick'),
     flatRest = require('./_flatRest');
 
@@ -34959,7 +38508,7 @@ var pick = flatRest(function(object, paths) {
 
 module.exports = pick;
 
-},{"./_basePick":367,"./_flatRest":413}],533:[function(require,module,exports){
+},{"./_basePick":392,"./_flatRest":441}],559:[function(require,module,exports){
 var baseProperty = require('./_baseProperty'),
     basePropertyDeep = require('./_basePropertyDeep'),
     isKey = require('./_isKey'),
@@ -34993,7 +38542,7 @@ function property(path) {
 
 module.exports = property;
 
-},{"./_baseProperty":369,"./_basePropertyDeep":370,"./_isKey":438,"./_toKey":477}],534:[function(require,module,exports){
+},{"./_baseProperty":394,"./_basePropertyDeep":395,"./_isKey":466,"./_toKey":504}],560:[function(require,module,exports){
 var arrayReduce = require('./_arrayReduce'),
     baseEach = require('./_baseEach'),
     baseIteratee = require('./_baseIteratee'),
@@ -35046,7 +38595,7 @@ function reduce(collection, iteratee, accumulator) {
 
 module.exports = reduce;
 
-},{"./_arrayReduce":323,"./_baseEach":335,"./_baseIteratee":358,"./_baseReduce":372,"./isArray":503}],535:[function(require,module,exports){
+},{"./_arrayReduce":350,"./_baseEach":362,"./_baseIteratee":383,"./_baseReduce":397,"./isArray":531}],561:[function(require,module,exports){
 var arrayFilter = require('./_arrayFilter'),
     baseFilter = require('./_baseFilter'),
     baseIteratee = require('./_baseIteratee'),
@@ -35094,7 +38643,7 @@ function reject(collection, predicate) {
 
 module.exports = reject;
 
-},{"./_arrayFilter":317,"./_baseFilter":336,"./_baseIteratee":358,"./isArray":503,"./negate":528}],536:[function(require,module,exports){
+},{"./_arrayFilter":344,"./_baseFilter":363,"./_baseIteratee":383,"./isArray":531,"./negate":554}],562:[function(require,module,exports){
 var baseFlatten = require('./_baseFlatten'),
     baseOrderBy = require('./_baseOrderBy'),
     baseRest = require('./_baseRest'),
@@ -35144,7 +38693,7 @@ var sortBy = baseRest(function(collection, iteratees) {
 
 module.exports = sortBy;
 
-},{"./_baseFlatten":338,"./_baseOrderBy":366,"./_baseRest":373,"./_isIterateeCall":437}],537:[function(require,module,exports){
+},{"./_baseFlatten":365,"./_baseOrderBy":391,"./_baseRest":398,"./_isIterateeCall":465}],563:[function(require,module,exports){
 /**
  * This method returns a new empty array.
  *
@@ -35169,7 +38718,7 @@ function stubArray() {
 
 module.exports = stubArray;
 
-},{}],538:[function(require,module,exports){
+},{}],564:[function(require,module,exports){
 /**
  * This method returns `false`.
  *
@@ -35189,7 +38738,7 @@ function stubFalse() {
 
 module.exports = stubFalse;
 
-},{}],539:[function(require,module,exports){
+},{}],565:[function(require,module,exports){
 var baseSum = require('./_baseSum'),
     identity = require('./identity');
 
@@ -35215,7 +38764,7 @@ function sum(array) {
 
 module.exports = sum;
 
-},{"./_baseSum":378,"./identity":497}],540:[function(require,module,exports){
+},{"./_baseSum":403,"./identity":525}],566:[function(require,module,exports){
 var baseSlice = require('./_baseSlice'),
     toInteger = require('./toInteger');
 
@@ -35254,7 +38803,7 @@ function take(array, n, guard) {
 
 module.exports = take;
 
-},{"./_baseSlice":376,"./toInteger":543}],541:[function(require,module,exports){
+},{"./_baseSlice":401,"./toInteger":569}],567:[function(require,module,exports){
 var debounce = require('./debounce'),
     isObject = require('./isObject');
 
@@ -35325,7 +38874,7 @@ function throttle(func, wait, options) {
 
 module.exports = throttle;
 
-},{"./debounce":481,"./isObject":514}],542:[function(require,module,exports){
+},{"./debounce":509,"./isObject":541}],568:[function(require,module,exports){
 var toNumber = require('./toNumber');
 
 /** Used as references for various `Number` constants. */
@@ -35369,7 +38918,7 @@ function toFinite(value) {
 
 module.exports = toFinite;
 
-},{"./toNumber":544}],543:[function(require,module,exports){
+},{"./toNumber":570}],569:[function(require,module,exports){
 var toFinite = require('./toFinite');
 
 /**
@@ -35407,9 +38956,9 @@ function toInteger(value) {
 
 module.exports = toInteger;
 
-},{"./toFinite":542}],544:[function(require,module,exports){
+},{"./toFinite":568}],570:[function(require,module,exports){
 arguments[4][22][0].apply(exports,arguments)
-},{"./isObject":514,"./isSymbol":519,"dup":22}],545:[function(require,module,exports){
+},{"./isObject":541,"./isSymbol":545,"dup":22}],571:[function(require,module,exports){
 var copyObject = require('./_copyObject'),
     keysIn = require('./keysIn');
 
@@ -35443,7 +38992,7 @@ function toPlainObject(value) {
 
 module.exports = toPlainObject;
 
-},{"./_copyObject":397,"./keysIn":523}],546:[function(require,module,exports){
+},{"./_copyObject":424,"./keysIn":549}],572:[function(require,module,exports){
 var baseToString = require('./_baseToString');
 
 /**
@@ -35473,7 +39022,34 @@ function toString(value) {
 
 module.exports = toString;
 
-},{"./_baseToString":380}],547:[function(require,module,exports){
+},{"./_baseToString":405}],573:[function(require,module,exports){
+var baseUniq = require('./_baseUniq');
+
+/**
+ * Creates a duplicate-free version of an array, using
+ * [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
+ * for equality comparisons, in which only the first occurrence of each element
+ * is kept. The order of result values is determined by the order they occur
+ * in the array.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Array
+ * @param {Array} array The array to inspect.
+ * @returns {Array} Returns the new duplicate free array.
+ * @example
+ *
+ * _.uniq([2, 1, 2]);
+ * // => [2, 1]
+ */
+function uniq(array) {
+  return (array && array.length) ? baseUniq(array) : [];
+}
+
+module.exports = uniq;
+
+},{"./_baseUniq":407}],574:[function(require,module,exports){
 var baseIteratee = require('./_baseIteratee'),
     baseUniq = require('./_baseUniq');
 
@@ -35506,7 +39082,7 @@ function uniqBy(array, iteratee) {
 
 module.exports = uniqBy;
 
-},{"./_baseIteratee":358,"./_baseUniq":382}],548:[function(require,module,exports){
+},{"./_baseIteratee":383,"./_baseUniq":407}],575:[function(require,module,exports){
 var baseValues = require('./_baseValues'),
     keys = require('./keys');
 
@@ -35542,7 +39118,7 @@ function values(object) {
 
 module.exports = values;
 
-},{"./_baseValues":383,"./keys":522}],549:[function(require,module,exports){
+},{"./_baseValues":408,"./keys":548}],576:[function(require,module,exports){
 var findMatchingRule = function(rules, text){
   var i;
   for(i=0; i<rules.length; i++)
