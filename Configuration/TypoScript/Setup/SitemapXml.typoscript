@@ -1,0 +1,36 @@
+plugin.tx_yoastseo.sitemap {
+    view {
+        partialRootPaths {
+            0 = EXT:yoast_seo/Resources/Private/Partials/SitemapXml
+        }
+    }
+    config {
+        pages {
+            partialName = Pages
+            table = pages
+            additionalWhere = AND doktype IN (1, 6)
+        }
+    }
+}
+
+yoast_seo_sitemap = PAGE
+yoast_seo_sitemap {
+    typeNum = {$config.yoast_seo.sitemap_xml_type}
+
+    config {
+        disableAllHeaderCode = 1
+        admPanel = 0
+        removeDefaultJS = 1
+        xhtml_cleaning = 0
+        removeDefaultCss = 1
+        removePageCss = 1
+        additionalHeaders = Content-Type:application/xml;charset=utf-8
+        additionalHeaders.10 {
+            header = Content-Type:application/xml;charset=utf-8
+            replace = 1
+        }
+    }
+
+    10 = USER_INT
+    10.userFunc = YoastSeoForTypo3\YoastSeo\UserFunc\SitemapXml->render
+}

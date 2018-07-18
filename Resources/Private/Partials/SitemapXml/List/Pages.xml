@@ -1,0 +1,4 @@
+<url>
+    <loc><f:uri.page pageUid="{doc.uid}" absolute="true" noCacheHash="true" /></loc>
+    <lastmod>{doc.tstamp -> f:format.date(format: 'c')}</lastmod>
+</url>
