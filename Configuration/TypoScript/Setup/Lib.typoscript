@@ -253,14 +253,12 @@ lib.yoastSEO {
     lib.yoastSEO {
         og {
             images.references.table = pages_language_overlay
-            images.references.uid >
-            images.references.pid.data = page:uid
+            images.references.uid.data = page:_PAGES_OVERLAY_UID
         }
 
         twitter {
             images.references.table = pages_language_overlay
-            images.references.uid >
-            images.references.pid.data = page:uid
+            images.references.uid.data = page:_PAGES_OVERLAY_UID
         }
     }
 
