@@ -33,14 +33,14 @@ class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataPr
         $language = (int)$this->callerParams['language'];
 
         $fields = '*';
-        $where = 'seo_title = "" AND doktype IN (' . $doktypes . ') AND tx_yoastseo_dont_use=0 AND tx_yoastseo_hide_snippet_preview=0 AND deleted=0';
+        $where = '(description = "" OR description IS NULL) AND doktype IN (' . $doktypes . ') AND tx_yoastseo_dont_use=0 AND tx_yoastseo_hide_snippet_preview=0 AND deleted=0';
         $table = 'pages';
         $order = 'title';
 
         if ($language > 0) {
             $fields = 'l.*';
             $table = 'pages_language_overlay l inner join pages p on l.pid = p.uid';
-            $where = 'l.seo_title = "" AND l.doktype IN (' . $doktypes . ') AND p.tx_yoastseo_dont_use=0 AND p.tx_yoastseo_hide_snippet_preview=0 AND p.deleted=0';
+            $where = '(l.description = "" OR l.description IS NULL) AND l.doktype IN (' . $doktypes . ') AND p.tx_yoastseo_dont_use=0 AND p.tx_yoastseo_hide_snippet_preview=0 AND p.deleted=0';
             $where .= ' AND l.deleted = 0 AND l.sys_language_uid = ' . $language;
             $order = 'l.title';
         }
