@@ -19,6 +19,9 @@ CREATE TABLE pages (
 	tx_yoastseo_cornerstone tinyint(3) DEFAULT '0' NOT NULL,
 	tx_yoastseo_score_readability varchar(50) DEFAULT '' NOT NULL,
 	tx_yoastseo_score_seo varchar(50) DEFAULT '' NOT NULL,
+	tx_yoastseo_snippetpreview tinyint(3) DEFAULT '0' NOT NULL,
+	tx_yoastseo_focuskeyword_analysis tinyint(3) DEFAULT '0' NOT NULL,
+	tx_yoastseo_readability_analysis tinyint(3) DEFAULT '0' NOT NULL,
 	KEY tx_yoastseo_cornerstone (tx_yoastseo_cornerstone),
 );
 
@@ -41,5 +44,8 @@ CREATE TABLE pages_language_overlay (
 	tx_yoastseo_score_seo varchar(50) DEFAULT '' NOT NULL,
 	no_index tinyint(3) DEFAULT '0' NOT NULL,
 	no_follow tinyint(3) DEFAULT '0' NOT NULL,
+	tx_yoastseo_snippetpreview tinyint(3) DEFAULT '0' NOT NULL,
+	tx_yoastseo_focuskeyword_analysis tinyint(3) DEFAULT '0' NOT NULL,
+	tx_yoastseo_readability_analysis tinyint(3) DEFAULT '0' NOT NULL,
 	KEY tx_yoastseo_cornerstone (tx_yoastseo_cornerstone),
 );
