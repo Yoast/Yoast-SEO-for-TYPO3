@@ -4,5 +4,3 @@
 <INCLUDE_TYPOSCRIPT: source="FILE:EXT:yoast_seo/Configuration/TypoScript/Setup/Module.typoscript">
 <INCLUDE_TYPOSCRIPT: source="FILE:EXT:yoast_seo/Configuration/TypoScript/Setup/Preview.typoscript">
 <INCLUDE_TYPOSCRIPT: source="FILE:EXT:yoast_seo/Configuration/TypoScript/Setup/SitemapXml.typoscript">
-
-<INCLUDE_TYPOSCRIPT: source="DIR:EXT:yoast_seo/Configuration/TypoScript/Setup/Plugins">
