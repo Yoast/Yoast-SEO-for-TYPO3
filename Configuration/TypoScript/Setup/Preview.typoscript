@@ -80,10 +80,20 @@ yoast_seo_preview {
                 20.replace =
                 30.search = ]]>
                 30.replace =
+
+                # remove script tags and content
+                40.search = #<script\b[^>]*>(.*?)<\/script>#is
+                40.replace =
+                40.useRegExp = 1
+
+                # remove style tags and content
+                50.search = #<style\b[^>]*>(.*?)<\/style>#is
+                50.replace =
+                50.useRegExp = 1
             }
             required = 1
-        }
 
+        }
         wrap = <content>|</content>
     }
 }
