@@ -293,7 +293,6 @@ $GLOBALS['TCA']['pages']['palettes']['metatags']['showitem'] =
 $dokTypes = '1';
 try {
     $dokTypes = \YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::getAllowedDoktypes(null, true);
-
 } catch (\Doctrine\DBAL\Exception\TableNotFoundException $e) {
     $dokTypes = '1,6';
 }
