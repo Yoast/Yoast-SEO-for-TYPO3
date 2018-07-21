@@ -290,6 +290,14 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
 $GLOBALS['TCA']['pages']['palettes']['metatags']['showitem'] =
     preg_replace('/description(.*,|.*$)/', '', $GLOBALS['TCA']['pages']['palettes']['metatags']['showitem']);
 
+$dokTypes = '1';
+try {
+    $dokTypes = \YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::getAllowedDoktypes(null, true);
+
+} catch (\Doctrine\DBAL\Exception\TableNotFoundException $e) {
+    $dokTypes = '1,6';
+}
+
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
     'pages',
     '
@@ -302,6 +310,6 @@ $GLOBALS['TCA']['pages']['palettes']['metatags']['showitem'] =
         --palette--;' . $llPrefix . 'pages.palettes.robot;yoast-robot,
         --palette--;' . $llPrefix . 'pages.palettes.advanced;yoast-advanced,
     ',
-    \YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::getAllowedDoktypes(null, true),
+    $dokTypes,
     'after:subtitle'
 );
