@@ -5,6 +5,32 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## 3.0.0 July 25, 2018
+### Breaking changes
+* We removed the configuration for EXT:news and EXT:cal. It worked for people with these extension installed, but for
+several other people it was giving errors and warnings. If you are using EXT:news or EXT:cal, please see our manual to
+get info on how to configure EXT:news or EXT:cal to use Yoast SEO for TYPO3.
+
+### Added
+* A feature a lot of people been waiting for: a sitemap.xml feature. Please check the manual how to configure it for your situation.
+* For older TYPO3 versions, we added a PNG icon for the extension.
+* We filter out script and style tags in the content for the snippet preview so you won't see any inline JavaScript or CSS anymore in your snippet preview.
+
+### Changed
+* Updated YoastSEO.js to version 1.35.5
+* We did some cleanups in the TypoScript configuration
+* Added some template for issue and pull request creation on GitHub
+* Updated license with additional terms
+
+### Fixed
+* It is now possible to have quotes in your title or description without getting warnings.
+* When you have a multi language site, the preview URL of your translation will now be determined correctly.
+* When you configure Yoast SEO for TYPO3 on your own records, it is now possible (but not recommended) to have the title field on another tab as the snippet preview.
+* A stupid mistake: the overview of pages without description was actually checking if a SEO title was filled. We fixed that!
+* We added some database fields to prevent errors in the database migration tool.
+* Also for translated pages the og:image and twitter:image is working correctly now.
+* The module icons are now also working correctly in Internet Explorer
+
 ## 2.1.0 March 9, 2018
 ### Added
 * You can now mark a page as cornerstone content. Cornerstone content have more strict analysis because it are the most important pages on your website.
