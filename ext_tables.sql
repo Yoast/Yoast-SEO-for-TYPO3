@@ -3,7 +3,7 @@
 #
 CREATE TABLE pages (
 	seo_title varchar(255) DEFAULT '' NOT NULL,
-	tx_yoastseo_focuskeyword varchar(32) DEFAULT '' NOT NULL,
+	tx_yoastseo_focuskeyword varchar(100) DEFAULT '' NOT NULL,
 	canonical_url varchar(255) DEFAULT '' NOT NULL,
 	tx_yoastseo_robot_instructions int(11) DEFAULT '0' NOT NULL,
 	og_title varchar(255) DEFAULT '' NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE pages (
 #
 CREATE TABLE pages_language_overlay (
 	seo_title varchar(255) DEFAULT '' NOT NULL,
-	tx_yoastseo_focuskeyword varchar(32) DEFAULT '' NOT NULL,
+	tx_yoastseo_focuskeyword varchar(100) DEFAULT '' NOT NULL,
 	canonical_url varchar(255) DEFAULT '' NOT NULL,
 	tx_yoastseo_robot_instructions int(11) DEFAULT '0' NOT NULL,
 	og_title varchar(255) DEFAULT '' NOT NULL,
