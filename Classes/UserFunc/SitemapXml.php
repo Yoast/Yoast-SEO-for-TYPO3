@@ -66,7 +66,6 @@ class SitemapXml
         $this->privateResourcesPath = ExtensionManagementUtility::extPath('yoast_seo') . 'Resources/Private/';
         $this->publicResourcesPath = ExtensionManagementUtility::siteRelPath('yoast_seo') . 'Resources/Public/';
         $this->templateFile = $this->privateResourcesPath . 'Templates/SitemapXml/Index.xml';
-//        $this->partialRootPaths[] = $this->privateResourcesPath . 'Partials/SitemapXml/List';
         $this->partialRootPaths = $this->getPartialRootPaths();
 
         $this->variables = [
@@ -135,13 +134,18 @@ class SitemapXml
 
                 $cObject = GeneralUtility::makeInstance(ContentObjectRenderer::class);
                 $typoLinkConf = [
-                    'parameter' => $sitemapSettings['detailPid'],
+                    'parameter' => (int)$sitemapSettings['detailPid'],
                     'forceAbsoluteUrl' => 1,
-                    'useCacheHash' => !empty($sitemapSettings['useCacheHash'])
+                    'useCacheHash' => !empty((bool)$sitemapSettings['useCacheHash'])
                 ];
 
                 foreach ($docs as $k => $record) {
-                    $typoLinkConf['additionalParams'] = '&' . $sitemapSettings['additionalParams'] . '=' . $record['uid'];
+                    if ($sitemapSettings['additionalParams']) {
+                        $typoLinkConf['additionalParams'] = '&' . $sitemapSettings['additionalParams'] . '=' . $record['uid'];
+                    } else {
+                        $typoLinkConf['additionalParams'] = '';
+                    }
+
 
                     $docs[$k]['loc'] = $cObject->typoLink_URL($typoLinkConf);
                 }

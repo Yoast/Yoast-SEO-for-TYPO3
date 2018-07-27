@@ -8,7 +8,7 @@ plugin.tx_yoastseo.sitemap {
         pages {
             partialName = Pages
             table = pages
-            additionalWhere = AND doktype IN (1, 6)
+            additionalWhere = AND doktype IN (1)
         }
     }
 }
