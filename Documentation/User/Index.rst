@@ -8,8 +8,8 @@
 
 .. _user-manual:
 
-User Manual
-===========
+How to use
+==========
 
 Usage
 -----

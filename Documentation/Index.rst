@@ -57,5 +57,5 @@ Yoast SEO for TYPO3
 
     Introduction/Index
     User/Index
-    Integrator/Index
-    Administrator/Index
+    Installation/Index
+    Configuration/Index

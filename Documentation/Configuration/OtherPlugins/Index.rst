@@ -3,19 +3,18 @@
 .. --------------------------------------------------
 .. -*- coding: utf-8 -*- with BOM.
 
-.. include:: ../Includes.txt
+.. include:: ../../Includes.txt
 
 
-.. _integrator-manual:
+.. _otherplugins:
 
-Integrator Manual
-=================
+Other plugins
+=============
 
 How to integrate in other plugins
 ---------------------------------
-From version 2.0 of Yoast SEO for TYPO3, the snippet preview and content- and SEO-analysis are TCA fields. The plugin
-already integrated the preview and analysis within page records but also in EXT:news records. If you want more type of
-records to use the SEO functions from Yoast SEO you have to add some fields to the TCA.
+From version 2.0 of Yoast SEO for TYPO3, the snippet preview and content- and SEO-analysis are TCA fields. By default the
+SEO analysis is only done on pages. If you want more type of records to use the SEO functions from Yoast SEO you have to add some fields to the TCA.
 
 .. code-block:: php
 
@@ -86,7 +85,7 @@ How to use the snippet preview in other plugins
 -----------------------------------------------
 One important thing to know is that the snippet preview of records other than pages, only works when you have set a
 proper preview link. The only thing you need to do is set some PageTsconfig. More information about the configuration of
-the preview links can be found in the `documentation <https://docs.typo3.org/typo3cms/TSconfigReference/PageTsconfig/TceMain.html#preview>`__.\
+the preview links can be found in the `documentation <https://docs.typo3.org/typo3cms/TSconfigReference/PageTsconfig/TceMain.html#preview>`__.
 
 An example configuration of the preview links for EXT:news records is:
 
