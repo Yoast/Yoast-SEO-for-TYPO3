@@ -24,4 +24,5 @@ However, a few things can still be configured using an extension that overwrites
     	SnippetPreview/Index
     	Social/Index
     	TCA/Index
+    	Sitemap/Index
     	OtherPlugins/Index

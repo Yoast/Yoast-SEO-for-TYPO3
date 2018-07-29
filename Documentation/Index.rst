@@ -59,3 +59,4 @@ Yoast SEO for TYPO3
     User/Index
     Installation/Index
     Configuration/Index
+    OtherPlugins/Index
