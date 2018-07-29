@@ -5,6 +5,17 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## 3.0.2 July 29, 2018
+### Fixed
+* Fixed missing links in documentation to Sitemap XML documentation
+
+## 3.0.1 July 27, 2018
+### Added
+* Added documentation for Sitemap XML feature
+
+### Changed
+* Updated YoastSEO.js to version 1.36.0
+
 ## 3.0.0 July 25, 2018
 ### Breaking changes
 * We removed the configuration for EXT:news and EXT:cal. It worked for people with these extension installed, but for
