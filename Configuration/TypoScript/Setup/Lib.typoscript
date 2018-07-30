@@ -114,11 +114,6 @@ lib.yoastSEO {
         htmlSpecialChars = 1
     }
 
-    pathOverride = TEXT
-    pathOverride {
-        field = tx_realurl_pathsegment
-    }
-
     og {
         siteName = TEXT
         siteName.value < sitetitle

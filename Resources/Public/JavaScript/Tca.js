@@ -31,16 +31,18 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 pageContent += element.textContent;
             });
 
+            var slug = $metaSection.find('slug').text().replace(/^\/|\/$/g, '');
+
             var snippetPreview = new YoastSEO.SnippetPreview({
                 data: {
                     title: $metaSection.find('title').text(),
                     metaDesc: $metaSection.find('description').text(),
-                    urlPath: $metaSection.find('pathOverride').text()
+                    urlPath: slug
                 },
                 baseURL: $metaSection.find('url').text().replace($metaSection.find('slug').text(), '/'),
                 placeholder: {
                     title: $metaSection.find('pageTitle').text(),
-                    urlPath: $metaSection.find('slug').text().replace(/^\/|\/$/g, '')
+                    urlPath: slug
                 },
                 targetElement: $snippetPreviewElement.get(0),
                 previewMode: 'desktop'
