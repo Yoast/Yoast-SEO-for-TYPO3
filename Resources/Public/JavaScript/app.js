@@ -64,15 +64,17 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
             var $focusKeywordElement = $('#' + tx_yoast_seo.settings.targetElementId + '_focusKeyword');
 
+            var slug = $metaSection.find('slug').text().replace(/^\/|\/$/g, '');
+
             var snippetPreview = new YoastSEO.SnippetPreview({
                 data: {
                     title: $metaSection.find('title').text(),
                     metaDesc: $metaSection.find('description').text(),
-                    urlPath: $metaSection.find('pathOverride').text(),
+                    urlPath: slug
                 },
                 baseURL: $metaSection.find('url').text().replace($metaSection.find('slug').text(), '/'),
                 placeholder: {
-                    urlPath: $metaSection.find('slug').text().replace(/^\/|\/$/g, '')
+                    urlPath: slug
                 },
                 targetElement: $snippetPreview.get(0),
                 callbacks: {

@@ -6,7 +6,7 @@
 .. include:: ../Includes.txt
 
 
-.. _otherplugins:
+.. _otherplugins-index:
 
 Integration in other plugins
 ============================

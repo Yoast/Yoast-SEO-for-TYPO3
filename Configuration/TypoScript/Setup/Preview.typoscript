@@ -54,9 +54,6 @@ yoast_seo_preview {
         60 =< lib.yoastSEO.slug
         60.wrap = <slug>|</slug>
 
-        70 =< lib.yoastSEO.pathOverride
-        70.wrap = <pathOverride>|</pathOverride>
-
         wrap = <meta>|</meta>
     }
 
