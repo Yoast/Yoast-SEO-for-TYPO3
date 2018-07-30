@@ -70,7 +70,6 @@ class UpdateLastMod
         }
     }
 
-
     /**
      * @return DatabaseConnection
      */
