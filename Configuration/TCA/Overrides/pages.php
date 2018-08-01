@@ -212,13 +212,17 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
             ]
         ],
         'tx_yoastseo_score_readability' => [
+            'label' => '',
+            'exclude' => false,
             'config' => [
-                'type' => 'passthrough'
+                'type' => 'hidden'
             ]
         ],
         'tx_yoastseo_score_seo' => [
+            'label' => '',
+            'exclude' => false,
             'config' => [
-                'type' => 'passthrough'
+                'type' => 'hidden'
             ]
         ],
     ]
@@ -228,7 +232,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     'pages',
     'yoast-metadata',
     '
-    --linebreak--, tx_yoastseo_snippetpreview,
+    --linebreak--, tx_yoastseo_snippetpreview, tx_yoastseo_score_readability, tx_yoastseo_score_seo,
     --linebreak--, seo_title,
     --linebreak--, description,
     --linebreak--, tx_yoastseo_cornerstone
