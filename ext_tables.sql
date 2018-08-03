@@ -12,6 +12,7 @@ CREATE TABLE pages (
 	twitter_title varchar(255) DEFAULT '' NOT NULL,
 	twitter_description varchar(255) DEFAULT '' NOT NULL,
 	twitter_image int(11) DEFAULT '0' NOT NULL,
+	last_mod int(11) DEFAULT '0' NOT NULL,
 	tx_yoastseo_dont_use tinyint(3) DEFAULT '0' NOT NULL,
 	tx_yoastseo_hide_snippet_preview tinyint(3) DEFAULT '0' NOT NULL,
 	no_index tinyint(3) DEFAULT '0' NOT NULL,

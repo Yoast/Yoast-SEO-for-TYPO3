@@ -120,6 +120,9 @@
 			<trans-unit id="focusKeyword">
 				<source>Focus keyword</source>
 			</trans-unit>
+			<trans-unit id="last_mod">
+				<source>Last modified</source>
+			</trans-unit>
 			<trans-unit id="saved.title">
 				<source>Saved</source>
 			</trans-unit>

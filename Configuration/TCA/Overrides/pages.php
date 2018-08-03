@@ -36,6 +36,17 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
                 'renderType' => 'readabilityAnalysis'
             ]
         ],
+        'last_mod' => [
+            'exclude' => 1,
+            'label' => $llPrefix . 'last_mod',
+            'config' => [
+                'type' => 'input',
+                'size' => '13',
+                'eval' => 'datetime',
+                'default' => '0',
+                'readOnly' => true,
+            ],
+        ],
         'tx_yoastseo_dont_use' => [
             'label' => $llPrefix . 'hideYoastInFrontend',
             'exclude' => true,
@@ -265,7 +276,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     'yoast-advanced',
     '
     --linebreak--, canonical_url,
-    --linebreak--, tx_yoastseo_hide_snippet_preview, tx_yoastseo_dont_use
+    --linebreak--, tx_yoastseo_hide_snippet_preview, tx_yoastseo_dont_use, last_mod
     '
 );
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
