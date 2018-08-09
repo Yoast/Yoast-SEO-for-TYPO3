@@ -162,9 +162,9 @@ class SnippetPreview extends AbstractNode
      */
     protected function getFieldSelector($field)
     {
-        $uid = $this->data['vanillaUid'];
+        $element = 'data' . str_replace('tx_yoastseo_snippetpreview', $field, $this->data['elementBaseName']);
 
-        return 'data[' . $this->table . '][' . $uid . '][' . $field . ']';
+        return $element;
     }
 
     /**
