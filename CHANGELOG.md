@@ -5,6 +5,14 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## 3.0.3 August 23, 2018
+### Fixed
+* Error when creating a page via the context menu is fixed now
+* Fixed the last_mod date for page records of the sitemap.xml 
+
+### Changed
+* Updated YoastSEO.js to version 1.38.1
+
 ## 3.0.2 July 29, 2018
 ### Fixed
 * Fixed missing links in documentation to Sitemap XML documentation
