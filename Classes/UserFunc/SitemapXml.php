@@ -112,8 +112,7 @@ class SitemapXml
         $this->templateFile = ExtensionManagementUtility::extPath('yoast_seo') . 'Resources/Private/Templates/SitemapXml/List.xml';
         $docs = [];
         $sitemapSettings = $this->settings[$sitemapConfig . '.'];
-        if (
-            is_array($sitemapSettings) &&
+        if (is_array($sitemapSettings) &&
             array_key_exists('table', $sitemapSettings)
         ) {
             if ($sitemapSettings['table'] === 'pages') {
@@ -202,8 +201,7 @@ class SitemapXml
     {
         $tsfe = $this->getTSFE();
 
-        if (
-            !empty($tsfe->tmpl->setup['plugin.']['tx_yoastseo.']['sitemap.']['config.']) &&
+        if (!empty($tsfe->tmpl->setup['plugin.']['tx_yoastseo.']['sitemap.']['config.']) &&
             is_array($tsfe->tmpl->setup['plugin.']['tx_yoastseo.']['sitemap.']['config.'])
         ) {
             return $tsfe->tmpl->setup['plugin.']['tx_yoastseo.']['sitemap.']['config.'];
@@ -219,8 +217,7 @@ class SitemapXml
     {
         $tsfe = $this->getTSFE();
 
-        if (
-            !empty($tsfe->tmpl->setup['plugin.']['tx_yoastseo.']['sitemap.']['view.']['partialRootPaths.']) &&
+        if (!empty($tsfe->tmpl->setup['plugin.']['tx_yoastseo.']['sitemap.']['view.']['partialRootPaths.']) &&
             is_array($tsfe->tmpl->setup['plugin.']['tx_yoastseo.']['sitemap.']['view.']['partialRootPaths.'])
         ) {
             return $tsfe->tmpl->setup['plugin.']['tx_yoastseo.']['sitemap.']['view.']['partialRootPaths.'];
