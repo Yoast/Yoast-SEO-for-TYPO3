@@ -5,6 +5,11 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## 3.0.4 August 24, 2018
+### Fixed
+* The update of YoastSEO.js caused some errors that needs to be investigated more. For now we reverted the update of YoastSEO.js
+* Fixed error about wrong value hidden when saving a page 
+
 ## 3.0.3 August 23, 2018
 ### Fixed
 * Error when creating a page via the context menu is fixed now
