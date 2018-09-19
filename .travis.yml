@@ -9,7 +9,7 @@ matrix:
       - SNIFF=1
 before_script:
 - if php -i | grep -q xdebug; then phpenv config-rm xdebug.ini; fi
-- travis_wait composer require typo3/cms=$TYPO3_VERSION -vvv
+- travis_wait composer require typo3/minimal=$TYPO3_VERSION -vvv
 - export TYPO3_PATH_WEB=$PWD/.Build/Web
 script:
 - |
