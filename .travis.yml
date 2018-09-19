@@ -3,17 +3,9 @@ sudo: false
 matrix:
   fast_finish: true
   include:
-  - php: 5.5
-    env: TYPO3_VERSION=^7.6
-  - php: 7.0
-    env: TYPO3_VERSION=^7.6
-  - php: 7.1
-    env: TYPO3_VERSION=^7.6
-  - php: 7.0
-    env: TYPO3_VERSION=^8
-  - php: 7.1
+  - php: 7.2
     env:
-      - TYPO3_VERSION=^8
+      - TYPO3_VERSION=^9
       - SNIFF=1
 before_script:
 - if php -i | grep -q xdebug; then phpenv config-rm xdebug.ini; fi
@@ -24,8 +16,3 @@ script:
   if [[ "$SNIFF" == "1" ]]; then echo; echo "Running PHP Coding Standards Fixer checks"; .Build/bin/php-cs-fixer fix --config=.Build/.php_cs -v --dry-run --using-cache=no; fi
 - |
   echo; echo "Running Unittests"; .Build/bin/phpunit -c .Build/vendor/nimut/testing-framework/res/Configuration/UnitTests.xml ./Tests/Unit/
-notifications:
-  slack:
-    secure: FjE9CdZ5Oknc9L5HBj1RYrn3+5277Eut0BkAUhJmhZHD8blXZ4K+oVbmfiJKqA1bMkBnasUy7mKJ0IvpqEytDdDRKlnRZrH4zKLCTJ6SlISxwOxUhcmW1+q/jfdB9NVTMpmQErJUbWs7836bQHG7KskaZT7xv29OMsPfPc3TfgR9iUwygJd8/pxIvCD+1ku+Z8zShfYMSwJexu0FHnCC69SjWuWJVXxJ3Xllg9ERvFJ4LPC5Q3g4xP93CE72KdmTw7GhV93IH692IX+eDF3lZP0tZ2ugQPrsU5YiEdPmWm767stP6/oHUJH298O6MzJMKZFCDXtqTPEM8eMwD6zP7G8sFEx6DLAT/1Xe07gQZ7e8gUgvbTzlMmfkXa8KQxRKAMUVvY2LALVJgR1WKNseH2qsnGQH07NOOlLReXBUdlwFdgqVI+caTM3JRuNw5DWaxAvypOPNVIfnhQx7wDYzEWm9p9zdT6H0xGBslSxB1IC0foAZvc2Wz83ifeYxAXb3DYqTQy2ZqBaToolrabQD5dVn4U+SQLnlCCNZCaCtBQnBrbpJ5n+uzJvCaadmrQRdUjekTp1DkOiUSERfaIdWNAWdSmglgAN4yNOLydIw26UE4aTlwR0tiJt4diZcfkONJh4V0dfu0JbGtpk+TPEV/xYAy0Lcv1me2jSFMdq/1i8=
-    on_success: change
-    on_failure: always
