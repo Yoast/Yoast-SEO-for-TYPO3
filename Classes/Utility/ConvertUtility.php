@@ -46,36 +46,36 @@ class ConvertUtility
      */
     public static function convert($dryRun = false)
     {
-        // Update images
-        foreach (self::$imageFieldsToUpdate as $oldValue => $newValue) {
-            if (self::imagesNeedsUpdate($oldValue)) {
-                if ($dryRun) {
-                    return true;
-                }
-
-                self::updateImageRecords($oldValue, $newValue);
-            }
-        }
-
-        // Rename fields
-        foreach (self::$fieldsToRename as $srcField => $dstField) {
-            if (self::fieldNeedsUpdate($dstField, $srcField)) {
-                if ($dryRun) {
-                    return true;
-                }
-
-                self::updateRecords($dstField, $srcField);
-            }
-        }
-
-        // Special fields
-        if (self::robotsNeedsUpdate()) {
-            if ($dryRun) {
-                return true;
-            }
-
-            self::updateRobotInstructions();
-        }
+//        // Update images
+//        foreach (self::$imageFieldsToUpdate as $oldValue => $newValue) {
+//            if (self::imagesNeedsUpdate($oldValue)) {
+//                if ($dryRun) {
+//                    return true;
+//                }
+//
+//                self::updateImageRecords($oldValue, $newValue);
+//            }
+//        }
+//
+//        // Rename fields
+//        foreach (self::$fieldsToRename as $srcField => $dstField) {
+//            if (self::fieldNeedsUpdate($dstField, $srcField)) {
+//                if ($dryRun) {
+//                    return true;
+//                }
+//
+//                self::updateRecords($dstField, $srcField);
+//            }
+//        }
+//
+//        // Special fields
+//        if (self::robotsNeedsUpdate()) {
+//            if ($dryRun) {
+//                return true;
+//            }
+//
+//            self::updateRobotInstructions();
+//        }
     }
 
     /**
@@ -271,17 +271,18 @@ class ConvertUtility
      */
     protected static function imagesNeedsUpdate($oldValue)
     {
-        $numberOfPageRecords = 0;
-
-        $table = 'sys_file_reference';
-
-        $numberOfPageRecords += $GLOBALS['TYPO3_DB']->exec_SELECTcountRows(
-            'uid',
-            $table,
-            'deleted=0 AND fieldname="' . $oldValue . '"'
-        );
-
-        return (bool)$numberOfPageRecords;
+        return false;
+//        $numberOfPageRecords = 0;
+//
+//        $table = 'sys_file_reference';
+//
+//        $numberOfPageRecords += $GLOBALS['TYPO3_DB']->exec_SELECTcountRows(
+//            'uid',
+//            $table,
+//            'deleted=0 AND fieldname="' . $oldValue . '"'
+//        );
+//
+//        return (bool)$numberOfPageRecords;
     }
 
     /**

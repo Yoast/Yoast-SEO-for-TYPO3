@@ -59,7 +59,7 @@ class SnippetPreview extends AbstractNode
     /**
      * @var string
      */
-    protected $viewScript = '/index.php?id=';
+    protected $viewScript = '/?id=';
 
     /**
      * @var Locales

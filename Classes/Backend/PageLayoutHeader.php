@@ -85,8 +85,10 @@ class PageLayoutHeader
         $recordId = 0;
         $tableName = 'pages';
         $targetElementId = uniqid('_YoastSEO_panel_');
-        $publicResourcesPath = CMS\Core\Utility\ExtensionManagementUtility::extRelPath('yoast_seo')
-            . 'Resources/Public/';
+//        $publicResourcesPath = CMS\Core\Utility\PathUtility::stripPathSitePrefix(
+//            CMS\Core\Utility\ExtensionManagementUtility::extPath('yoast_seo') . 'Resources/Public/'
+//        );
+        $publicResourcesPath = 'EXT:yoast_seo/Resources/Public/';
 
         if ($pageLayoutController instanceof CMS\Backend\Controller\PageLayoutController
             && (int)$pageLayoutController->id > 0
