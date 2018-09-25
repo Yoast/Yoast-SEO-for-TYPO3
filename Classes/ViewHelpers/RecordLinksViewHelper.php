@@ -15,30 +15,32 @@ namespace YoastSeoForTypo3\YoastSeo\ViewHelpers;
  */
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 
 class RecordLinksViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper
 {
 
-    /**
-     * @param string $table
-     * @param string $command
-     * @param int $uid
-     * @param string $module
-     * @return string
-     */
-    public function render($table, $command, $uid, $module)
+    public function initializeArguments()
+    {
+        $this->registerArgument('uid', 'int', 'uid of record to be edited', true);
+        $this->registerArgument('table', 'string', 'target database table', true);
+        $this->registerArgument('command', 'string', '', true, '');
+        $this->registerArgument('module', 'string', '', true, '');
+    }
+
+    public static function renderStatic(array $arguments, \Closure $renderChildrenClosure, RenderingContextInterface $renderingContext): string
     {
         $returnUrl = BackendUtility::getModuleUrl(
-            $module,
+            $arguments['module'],
             $_GET
         );
 
-        switch ($command) {
+        switch ($arguments['command']) {
             case 'edit':
                 $urlParameters = [
                     'edit' => [
-                        $table => [
-                            $uid => $command
+                        $arguments['table'] => [
+                            $arguments['uid'] => $arguments['command']
                         ]
                     ],
                     'returnUrl' => $returnUrl
@@ -47,7 +49,7 @@ class RecordLinksViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractVie
                 break;
             case 'delete':
                 $urlParameters = [
-                    'cmd[' . $table . '][' . $uid . '][delete]' => 1,
+                    'cmd[' . $arguments['table'] . '][' . $arguments['uid'] . '][delete]' => 1,
                     'redirect' => $returnUrl,
                 ];
                 $module = 'tce_db';

@@ -14,8 +14,6 @@ namespace YoastSeoForTypo3\YoastSeo\DataProviders;
  * The TYPO3 project - inspiring people to share!
  */
 
-use TYPO3\CMS\Core\Database\DatabaseConnection;
-
 /**
  * Class CornerstoneOverviewDataProvider
  * @package YoastSeoForTypo3\YoastSeo\DataProviders
@@ -50,13 +48,5 @@ abstract class AbstractOverviewDataProvider implements OverviewDataProviderInter
         $this->callerParams = $params;
 
         return $this->getData(true);
-    }
-
-    /**
-     * @return DatabaseConnection
-     */
-    protected function getDatabaseConnection()
-    {
-        return $GLOBALS['TYPO3_DB'];
     }
 }

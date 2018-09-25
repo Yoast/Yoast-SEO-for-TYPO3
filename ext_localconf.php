@@ -5,9 +5,7 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['cms/layout/db_layout.php']['drawHeade
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScriptConstants(
     'config.yoast_seo.fe_preview_type = '
-        . \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::FE_PREVIEW_TYPE . PHP_EOL .
-    'config.yoast_seo.sitemap_xml_type = '
-        . \YoastSeoForTypo3\YoastSeo\UserFunc\SitemapXml::DOKTYPE
+        . \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::FE_PREVIEW_TYPE . PHP_EOL
 );
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
@@ -116,14 +114,14 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = [
             'dataProvider' => \YoastSeoForTypo3\YoastSeo\DataProviders\CornerstoneOverviewDataProvider::class . '->process',
             'countProvider' => \YoastSeoForTypo3\YoastSeo\DataProviders\CornerstoneOverviewDataProvider::class . '->numberOfItems'
         ],
-        '20' => [
-            'key' => 'withoutDescription',
-            'label' => $llFolder . 'BackendModuleOverview.xlf:withoutDescription',
-            'description' => $llFolder . 'BackendModuleOverview.xlf:withoutDescription.description',
-            'link' => 'https://yoa.st/typo3-meta-description',
-            'dataProvider' => YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutDescriptionOverviewDataProvider::class . '->process',
-            'countProvider' => YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutDescriptionOverviewDataProvider::class . '->numberOfItems'
-        ],
+//        '20' => [
+//            'key' => 'withoutDescription',
+//            'label' => $llFolder . 'BackendModuleOverview.xlf:withoutDescription',
+//            'description' => $llFolder . 'BackendModuleOverview.xlf:withoutDescription.description',
+//            'link' => 'https://yoa.st/typo3-meta-description',
+//            'dataProvider' => YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutDescriptionOverviewDataProvider::class . '->process',
+//            'countProvider' => YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutDescriptionOverviewDataProvider::class . '->numberOfItems'
+//        ],
     ]
 ];
 

@@ -14,14 +14,21 @@ namespace YoastSeoForTypo3\YoastSeo\Controller;
  * The TYPO3 project - inspiring people to share!
  */
 
+use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Backend\View\BackendTemplateView;
+use TYPO3\CMS\Core\Context\LanguageAspect;
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Page\PageRenderer;
+use TYPO3\CMS\Core\Site\Entity\SiteInterface;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
 /**
  * Class OverviewController
@@ -107,7 +114,7 @@ class OverviewController extends ActionController
 
         $this->currentFilter = $this->filters[$this->activeFilter];
 
-        $publicResourcesPath = ExtensionManagementUtility::extRelPath('yoast_seo') . 'Resources/Public/';
+        $publicResourcesPath = PathUtility::getAbsoluteWebPath(ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
 
         $this->pageRenderer->addCssFile(
             $publicResourcesPath . 'CSS/yoast-seo-backend.min.css'
@@ -183,35 +190,35 @@ class OverviewController extends ActionController
     }
 
     /**
-     * Make the LanguageMenu
-     *
-     * @return void
+     * @param ServerRequestInterface|null $request
+     * @throws \TYPO3\CMS\Extbase\Mvc\Exception\NoSuchArgumentException
      */
-    protected function makeLanguageMenu()
+    protected function makeLanguageMenu(ServerRequestInterface $request = null)
     {
+        $request = $request ?: $GLOBALS['TYPO3_REQUEST'];
+        $parsedBody = $request->getParsedBody();
+        $queryParams = $request->getQueryParams();
         $lang = $this->getLanguageService();
-        $pageId = 0;
-        if ($this->request->hasArgument('id')) {
-            $pageId = $this->request->getArgument('id');
-        } elseif ((int)GeneralUtility::_GET('id')) {
-            $pageId = (int)GeneralUtility::_GET('id');
-        }
+
+        $pageId = (int)($parsedBody['id'] ?? $queryParams['id'] ?? 0);
+
+        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_language');
+        $qb->getRestrictions()->removeAll()->add(GeneralUtility::makeInstance(HiddenRestriction::class));
+
+        $rows = $qb->select('uid', 'title')
+            ->from('sys_language')
+            ->execute()
+            ->fetchAll();
+
         $this->MOD_MENU = [
             'language' => [
                 0 => $lang->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:defaultLanguage')
             ]
         ];
 
-        $rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
-            'uid, title',
-            'sys_language',
-            'hidden=0',
-            '',
-            ''
-        );
-        foreach ($rows as $lRow) {
-            if ($this->getBackendUser()->checkLanguageAccess($lRow['uid'])) {
-                $this->MOD_MENU['language'][$lRow['uid']] = $lRow['title'];
+        foreach ($rows as $language) {
+            if ($this->getBackendUser()->checkLanguageAccess($language['uid'])) {
+                $this->MOD_MENU['language'][$language['uid']] = $language['title'];
             }
         }
         if (count($this->MOD_MENU['language']) > 1) {
@@ -258,7 +265,7 @@ class OverviewController extends ActionController
     protected function getParams()
     {
         $language = $this->request->hasArgument('language') ? (int)$this->request->getArgument('language') : 0;
-        $table = $language ? 'pages_language_overlay' : 'pages';
+        $table = 'pages';
 
         return [
             'language' => $language,
