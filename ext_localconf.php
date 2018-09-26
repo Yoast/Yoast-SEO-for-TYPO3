@@ -1,6 +1,4 @@
 <?php
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][] = \YoastSeoForTypo3\YoastSeo\Frontend\PageRenderer\PageMetaRenderer::class . '->render';
-
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['cms/layout/db_layout.php']['drawHeaderHook'][] = \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::class . '->render';
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScriptConstants(
@@ -41,6 +39,12 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1520291507] = a
     'nodeName' => 'cornerstone',
     'priority' => 40,
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\Cornerstone::class,
+);
+
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1537991862] = array(
+    'nodeName' => 'hiddenField',
+    'priority' => 40,
+    'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\HiddenField::class
 );
 
 $llFolder = 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/';
@@ -96,15 +100,14 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = [
     ],
     'menuActions' => [
         ['action' => 'dashboard', 'label' => 'dashboard'],
-        ['action' => 'update', 'label' => 'update'],
-        ['action' => 'settings', 'label' => 'settings']
+        ['action' => 'update', 'label' => 'update']
     ],
     'viewSettings' => [
         'showAnalysisTab' => true,
         'showSocialTab' => true,
         'showAdvancedTab' => true
     ],
-    'previewUrlTemplate' => '/index.php?id=%d&type=%d&L=%d',
+    'previewUrlTemplate' => '/?id=%d&type=%d&L=%d',
     'overview_filters' => [
         '10' => [
             'key' => 'cornerstone',
@@ -114,14 +117,14 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = [
             'dataProvider' => \YoastSeoForTypo3\YoastSeo\DataProviders\CornerstoneOverviewDataProvider::class . '->process',
             'countProvider' => \YoastSeoForTypo3\YoastSeo\DataProviders\CornerstoneOverviewDataProvider::class . '->numberOfItems'
         ],
-//        '20' => [
-//            'key' => 'withoutDescription',
-//            'label' => $llFolder . 'BackendModuleOverview.xlf:withoutDescription',
-//            'description' => $llFolder . 'BackendModuleOverview.xlf:withoutDescription.description',
-//            'link' => 'https://yoa.st/typo3-meta-description',
-//            'dataProvider' => YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutDescriptionOverviewDataProvider::class . '->process',
-//            'countProvider' => YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutDescriptionOverviewDataProvider::class . '->numberOfItems'
-//        ],
+        '20' => [
+            'key' => 'withoutDescription',
+            'label' => $llFolder . 'BackendModuleOverview.xlf:withoutDescription',
+            'description' => $llFolder . 'BackendModuleOverview.xlf:withoutDescription.description',
+            'link' => 'https://yoa.st/typo3-meta-description',
+            'dataProvider' => YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutDescriptionOverviewDataProvider::class . '->process',
+            'countProvider' => YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutDescriptionOverviewDataProvider::class . '->numberOfItems'
+        ],
     ]
 ];
 

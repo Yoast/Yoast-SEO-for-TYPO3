@@ -16,7 +16,6 @@ namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
 /**
  * Class CornerstoneOverviewDataProvider

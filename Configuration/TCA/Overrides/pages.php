@@ -92,14 +92,16 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
             'label' => '',
             'exclude' => false,
             'config' => [
-                'type' => 'passthrough'
+                'type' => 'input',
+                'renderType' => 'hiddenField'
             ]
         ],
         'tx_yoastseo_score_seo' => [
             'label' => '',
             'exclude' => false,
             'config' => [
-                'type' => 'passthrough'
+                'type' => 'input',
+                'renderType' => 'hiddenField'
             ]
         ],
     ]
@@ -109,7 +111,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     'pages',
     'seo',
     '
-    --linebreak--, tx_yoastseo_snippetpreview, tx_yoastseo_score_readability, tx_yoastseo_score_seo, --linebreak--
+    --linebreak--, tx_yoastseo_snippetpreview, --linebreak--
     ',
     'before: seo_title'
 );
@@ -143,7 +145,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     'pages',
     'yoast-advanced',
     '
-    --linebreak--, tx_yoastseo_hide_snippet_preview, tx_yoastseo_dont_use
+    --linebreak--, tx_yoastseo_hide_snippet_preview, tx_yoastseo_dont_use, --linebreak--, tx_yoastseo_score_readability, tx_yoastseo_score_seo
     '
 );
 

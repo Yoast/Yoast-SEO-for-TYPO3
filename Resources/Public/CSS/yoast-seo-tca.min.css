@@ -800,3 +800,6 @@ button.yoast-tooltip {
   font-weight: normal; }
   .cornerstone_label a {
     font-weight: bold; }
+
+.yoastHiddenTcaField {
+  display: none; }

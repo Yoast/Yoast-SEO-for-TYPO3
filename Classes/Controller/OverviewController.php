@@ -14,21 +14,17 @@ namespace YoastSeoForTypo3\YoastSeo\Controller;
  * The TYPO3 project - inspiring people to share!
  */
 
-use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Backend\View\BackendTemplateView;
-use TYPO3\CMS\Core\Context\LanguageAspect;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Page\PageRenderer;
-use TYPO3\CMS\Core\Site\Entity\SiteInterface;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
 /**
  * Class OverviewController
@@ -190,17 +186,11 @@ class OverviewController extends ActionController
     }
 
     /**
-     * @param ServerRequestInterface|null $request
      * @throws \TYPO3\CMS\Extbase\Mvc\Exception\NoSuchArgumentException
      */
-    protected function makeLanguageMenu(ServerRequestInterface $request = null)
+    protected function makeLanguageMenu()
     {
-        $request = $request ?: $GLOBALS['TYPO3_REQUEST'];
-        $parsedBody = $request->getParsedBody();
-        $queryParams = $request->getQueryParams();
         $lang = $this->getLanguageService();
-
-        $pageId = (int)($parsedBody['id'] ?? $queryParams['id'] ?? 0);
 
         $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_language');
         $qb->getRestrictions()->removeAll()->add(GeneralUtility::makeInstance(HiddenRestriction::class));

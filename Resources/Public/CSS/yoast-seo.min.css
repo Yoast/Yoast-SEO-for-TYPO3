@@ -751,6 +751,9 @@ button.yoast-tooltip {
 .yoastSeo--small #snippet_preview h3, .yoastSeo--small .snippet-editor__preview button {
   display: none; }
 
+td.t3-page-column-lang-name {
+  padding-top: 20px; }
+
 .yoastPanel {
   position: relative;
   border: 1px solid #cccccc;

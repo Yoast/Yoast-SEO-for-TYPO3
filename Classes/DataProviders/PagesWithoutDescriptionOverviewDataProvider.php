@@ -14,6 +14,8 @@ namespace YoastSeoForTypo3\YoastSeo\DataProviders;
  * The TYPO3 project - inspiring people to share!
  */
 
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 /**
@@ -30,35 +32,29 @@ class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataPr
     public function getData($returnOnlyCount = false)
     {
         $doktypes = implode(',', YoastUtility::getAllowedDoktypes()) ?: '-1';
-        $language = (int)$this->callerParams['language'];
 
-        $fields = '*';
-        $where = '(description = "" OR description IS NULL) AND doktype IN (' . $doktypes . ') AND tx_yoastseo_dont_use=0 AND tx_yoastseo_hide_snippet_preview=0 AND deleted=0';
-        $table = 'pages';
-        $order = 'title';
+        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('pages');
 
-        if ($language > 0) {
-            $fields = 'l.*';
-            $table = 'pages_language_overlay l inner join pages p on l.pid = p.uid';
-            $where = '(l.description = "" OR l.description IS NULL) AND l.doktype IN (' . $doktypes . ') AND p.tx_yoastseo_dont_use=0 AND p.tx_yoastseo_hide_snippet_preview=0 AND p.deleted=0';
-            $where .= ' AND l.deleted = 0 AND l.sys_language_uid = ' . $language;
-            $order = 'l.title';
-        }
+        $constraints = [
+            $qb->expr()->orX(
+                $qb->expr()->eq('description', $qb->createNamedParameter('')),
+                $qb->expr()->isNull('description')
+            ),
+            $qb->expr()->in('doktype', $doktypes),
+            $qb->expr()->eq('sys_language_uid', (int)$this->callerParams['language']),
+            $qb->expr()->eq('tx_yoastseo_dont_use', 0),
+            $qb->expr()->eq('tx_yoastseo_hide_snippet_preview', 0)
+        ];
+
+        $query = $qb->select('*')
+            ->from('pages')
+            ->where(...$constraints)
+            ->execute();
 
         if ($returnOnlyCount === false) {
-            return $this->getDatabaseConnection()->exec_SELECTgetRows(
-                $fields,
-                $table,
-                $where,
-                '',
-                $order
-            );
+            return $query->fetchAll();
         }
 
-        return $this->getDatabaseConnection()->exec_SELECTcountRows(
-            '*',
-            $table,
-            $where
-        );
+        return $query->rowCount();
     }
 }

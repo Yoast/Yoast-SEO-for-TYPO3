@@ -14,8 +14,11 @@ namespace YoastSeoForTypo3\YoastSeo\Utility;
  * The TYPO3 project - inspiring people to share!
  */
 
+use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Exception;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
 /**
  * Class ConvertUtility
@@ -271,18 +274,18 @@ class ConvertUtility
      */
     protected static function imagesNeedsUpdate($oldValue)
     {
-        return false;
-//        $numberOfPageRecords = 0;
-//
-//        $table = 'sys_file_reference';
-//
-//        $numberOfPageRecords += $GLOBALS['TYPO3_DB']->exec_SELECTcountRows(
-//            'uid',
-//            $table,
-//            'deleted=0 AND fieldname="' . $oldValue . '"'
-//        );
-//
-//        return (bool)$numberOfPageRecords;
+        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_file_reference');
+
+        $constraints = [
+            $qb->expr()->eq('fieldname', $qb->createNamedParameter($oldValue)),
+        ];
+
+        $query = $qb->select('uid')
+            ->from('sys_file_reference')
+            ->where(...$constraints)
+            ->execute();
+
+        return (bool)$query->rowCount();
     }
 
     /**
@@ -333,6 +336,19 @@ class ConvertUtility
      */
     protected static function fieldExistsInDb($table, $field)
     {
+        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($table);
+
+        $qb->
+        $constraints = [
+            $qb->expr()->eq('fieldname', $qb->createNamedParameter($oldValue)),
+        ];
+
+        $query = $qb->select('uid')
+            ->from('sys_file_reference')
+            ->where(...$constraints)
+            ->execute();
+
+
         /** @var \mysqli_result $test */
         $test = $GLOBALS['TYPO3_DB']->sql_query('SHOW COLUMNS FROM `' . $table . '` LIKE \'' . $field . '\';');
         if ($test->num_rows) {

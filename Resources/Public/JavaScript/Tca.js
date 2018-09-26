@@ -6,6 +6,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
     var previewRequest = $.get(tx_yoast_seo.previewUrl);
 
     $(function () {
+      $('.yoastHiddenTcaField').parents('.form-group').hide();
         var $targetElement = $('#' + tx_yoast_seo.previewTargetId);
         var $formEngineTitle = $("*[data-formengine-input-name='" + $titleTcaSelector + "']");
         var $formEngineDescription = $("*[data-formengine-input-name='" + $descriptionTcaSelector + "']");

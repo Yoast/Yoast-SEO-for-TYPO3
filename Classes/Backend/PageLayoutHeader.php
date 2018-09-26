@@ -85,11 +85,7 @@ class PageLayoutHeader
         $recordId = 0;
         $tableName = 'pages';
         $targetElementId = uniqid('_YoastSEO_panel_');
-//        $publicResourcesPath = CMS\Core\Utility\PathUtility::stripPathSitePrefix(
-//            CMS\Core\Utility\ExtensionManagementUtility::extPath('yoast_seo') . 'Resources/Public/'
-//        );
-        $publicResourcesPath = 'EXT:yoast_seo/Resources/Public/';
-
+        $publicResourcesPath = CMS\Core\Utility\PathUtility::getAbsoluteWebPath(CMS\Core\Utility\ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
         if ($pageLayoutController instanceof CMS\Backend\Controller\PageLayoutController
             && (int)$pageLayoutController->id > 0
             && (int)$pageLayoutController->current_sys_language === 0
@@ -230,8 +226,13 @@ class PageLayoutHeader
 
             $urlParameters = [
                 'edit' => [
-                    $tableName => [
+                    'pages' => [
                         $recordId => 'edit'
+                    ]
+                ],
+                'overrideVals' => [
+                    'pages' => [
+                        'sys_language_uid' => $pageLayoutController->current_sys_language
                     ]
                 ],
                 'switchToYoast' => 1,
