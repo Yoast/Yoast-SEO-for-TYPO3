@@ -723,14 +723,14 @@ button.yoast-tooltip {
 .snippet-editor__form {
   display: none; }
 
-.yoast-progressbars[value] {
+.snippet-editor__progress[value] {
   appearance: none;
   -webkit-appearance: none;
   margin-top: 2px;
   width: 100%; }
-  .yoast-progressbars[value]::-webkit-progress-bar {
+  .snippet-editor__progress[value]::-webkit-progress-bar {
     background-color: #f7f7f7; }
-  .yoast-progressbars[value]--fallback {
+  .snippet-editor__progress[value]--fallback {
     background-color: #f7f7f7; }
 
 .yoastSeo-analysis ul {

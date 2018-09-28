@@ -12,12 +12,12 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
         var $formEngineDescription = $("*[data-formengine-input-name='" + $descriptionTcaSelector + "']");
 
         if ($formEngineTitle.parents('.form-wizards-element').length) {
-            $formEngineTitle.parents('.form-wizards-element').append("<div class='yoast-progressbars-container'><progress id='yoast-progress-title' class='yoast-progressbars'></progress></div>");
+            $formEngineTitle.parents('.form-wizards-element').append("<div class='yoast-progressbars-container' id='yoast-progress-title'></div>");
         } else {
-            $formEngineTitle.parents('.form-control-wrap').append("<div class='yoast-progressbars-container'><progress id='yoast-progress-title' class='yoast-progressbars'></progress></div>");
+            $formEngineTitle.parents('.form-control-wrap').append("<div class='yoast-progressbars-container' id='yoast-progress-title'></div>");
         }
 
-        $formEngineDescription.after("<div class='yoast-progressbars-container'><progress id='yoast-progress-description' class='yoast-progressbars'></progress></div>");
+        $formEngineDescription.after("<div class='yoast-progressbars-container' id='yoast-progress-description'></div>");
 
         previewRequest.done(function (previewDocument) {
             var $snippetPreviewElement = $targetElement.append('<div class="snippetPreview yoastPanel" />').find('.snippetPreview');
@@ -173,7 +173,10 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
             initApps();
 
-            $('*[data-yoast-trigger="true"]').trigger('dataReceived', [pageContent, $metaSection.find('locale').text()]);
+          $('progress.snippet-editor__progress-title').appendTo('#yoast-progress-title');
+          $('progress.snippet-editor__progress-meta-description').appendTo('#yoast-progress-description');
+
+          $('*[data-yoast-trigger="true"]').trigger('dataReceived', [pageContent, $metaSection.find('locale').text()]);
 
             var $focusKeywordPremiumPanel = $('div[id*="tx_yoastseo_focuskeyword_premium"]').find('.panel');
 
@@ -224,20 +227,6 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 });
             }
 
-            $formEngineTitle.on('focus', updateProgressBars(snippetPreview));
-            $formEngineDescription.on('focus', updateProgressBars(snippetPreview));
-
-            $("a[role='tab']").on('click', function() {
-                setTimeout(function() {
-                    updateProgressBars(snippetPreview);
-                }, 1000);
-            });
-
-            $('.snippet-editor__view-toggle').on('click', function() {
-                updateProgressBars(snippetPreview);
-            });
-
-            updateProgressBars(snippetPreview);
         });
 
         function updateApp(app, snippetPreview) {
@@ -254,30 +243,12 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
             app.getData();
             app.runAnalyzer();
-            updateProgressBars(snippetPreview);
         }
 
         function updateAllApps(apps, snippetPreview) {
             for (var i=apps.length; i>0; i--) {
                 updateApp(apps[(i - 1)], snippetPreview);
             }
-        }
-
-        function updateProgressBars(snippetPreview) {
-            snippetPreview.changedInput();
-
-            updateProgressBar('#yoast-progress-title', 'progress.snippet-editor__progress-title', 'snippet-editor__progress-title');
-            updateProgressBar('#yoast-progress-description', 'progress.snippet-editor__progress-meta-description', 'snippet-editor__progress-meta-description');
-        }
-
-        function updateProgressBar(tcaProgressField, yoastProgressField, removeClass) {
-            var $tcaProgressField = $(tcaProgressField);
-            var $yoastProgressField = $(yoastProgressField);
-
-            $tcaProgressField.attr('max', $yoastProgressField.attr('max'));
-            $tcaProgressField.attr('class', $yoastProgressField.attr('class'));
-            $tcaProgressField.removeClass(removeClass).addClass('yoast-progressbars');
-            $tcaProgressField.val($yoastProgressField.val());
         }
 
         function switchToYoast() {

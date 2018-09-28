@@ -14,6 +14,7 @@ namespace YoastSeoForTypo3\YoastSeo\Controller;
  * The TYPO3 project - inspiring people to share!
  */
 
+use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Backend\View\BackendTemplateView;
 use TYPO3\CMS\Core\Database\ConnectionPool;
@@ -216,7 +217,7 @@ class OverviewController extends ActionController
             $lang = $this->getLanguageService();
             $languageMenu = $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->makeMenu();
             $languageMenu->setIdentifier('languageMenu');
-            $languageMenu->setLabel($lang->sL('LLL:EXT:lang/locallang_general.xlf:LGL.language', true));
+            $languageMenu->setLabel($lang->sL('LLL:EXT:lang/locallang_general.xlf:LGL.language'));
             $returnUrl = ($this->request->hasArgument('returnUrl')) ? $this->request->getArgument('returnUrl') : '';
             foreach ($this->MOD_MENU['language'] as $key => $language) {
                 $parameters = array(
@@ -224,7 +225,10 @@ class OverviewController extends ActionController
                     'tx_yoastseo_yoast_yoastseooverview[language]' => $key,
                     'tx_yoastseo_yoast_yoastseooverview[returnUrl]' => $returnUrl
                 );
-                $url = BackendUtility::getModuleUrl('yoast_YoastSeoOverview', $parameters);
+
+                $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
+                $url = $uriBuilder->buildUriFromRoute('yoast_YoastSeoOverview', $parameters);
+
                 $menuItem = $languageMenu
                     ->makeMenuItem()
                     ->setTitle($language)
