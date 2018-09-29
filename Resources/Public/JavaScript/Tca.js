@@ -173,13 +173,18 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
             initApps();
 
-          $('progress.snippet-editor__progress-title').appendTo('#yoast-progress-title');
-          $('progress.snippet-editor__progress-meta-description').appendTo('#yoast-progress-description');
+            $('progress.snippet-editor__progress-title').appendTo('#yoast-progress-title');
+            $('progress.snippet-editor__progress-meta-description').appendTo('#yoast-progress-description');
 
-          $('*[data-yoast-trigger="true"]').trigger('dataReceived', [pageContent, $metaSection.find('locale').text()]);
+            $('*[data-yoast-trigger="true"]').trigger('dataReceived', [pageContent, $metaSection.find('locale').text()]);
 
             var $focusKeywordPremiumPanel = $('div[id*="tx_yoastseo_focuskeyword_premium"]').find('.panel');
 
+            $('.t3js-tabmenu-item').on('click', function() {
+                setTimeout(function() {
+                    initApps();
+                }, 500);
+            });
             $focusKeywordPremiumPanel.on('click', function () {
                 setTimeout(function() {
                     initApps();
