@@ -1,11 +1,9 @@
 <?php
 namespace YoastSeoForTypo3\YoastSeo\Backend;
 
-use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS;
-use YoastSeoForTypo3\YoastSeo\Utility\ConvertUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class PageLayoutHeader
@@ -213,15 +211,6 @@ class PageLayoutHeader
             ];
             $url = $uriBuilder->buildUriFromRoute('record_edit', $urlParameters);
 
-            $needUpdateText = '';
-            if (ConvertUtility::convert(true)) {
-                $updateUrl = $uriBuilder->buildUriFromRoute('yoast_YoastSeoUpdate', []);
-                $needUpdateText = '<a href="' . $updateUrl . '" style="margin-left: 10px; color: #f00">';
-                $needUpdateText .= $GLOBALS['LANG']->sL(
-                    'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:data.needUpdate'
-                );
-                $needUpdateText .= '</a>';
-            }
             return '
                 <div class="yoast-snippet-header">
                     <div class="yoast-snippet-header-icons btn-group btn-group-sm">
@@ -242,7 +231,7 @@ class PageLayoutHeader
                             </span>
                         </a>
                     </div>
-                    <div class="yoast-snippet-header-label">Yoast SEO ' . $needUpdateText . '</div>
+                    <div class="yoast-snippet-header-label">Yoast SEO</div>
                 </div>
                 <input id="focusKeyword" style="display: none" />
                 <div id="' . $targetElementId . '" class="t3-grid-cell yoastSeo yoastSeo--small">

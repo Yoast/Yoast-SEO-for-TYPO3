@@ -4,19 +4,15 @@ namespace YoastSeoForTypo3\YoastSeo\Controller;
 use TYPO3\CMS\Backend\Template\Components\ButtonBar;
 use TYPO3\CMS\Backend\View\BackendTemplateView;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
-use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Localization\Locales;
-use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Page\PageRenderer;
-use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
-use YoastSeoForTypo3\YoastSeo\Utility\ConvertUtility;
 
 class ModuleController extends ActionController
 {
@@ -136,29 +132,6 @@ class ModuleController extends ActionController
      */
     public function updateAction()
     {
-    }
-
-    /**
-     *
-     */
-    public function doConvertAction()
-    {
-        ConvertUtility::convert();
-
-        $flashMessageService = $this->objectManager->get(\TYPO3\CMS\Core\Messaging\FlashMessageService::class);
-        $messageQueue = $flashMessageService->getMessageQueueByIdentifier();
-        $lang = $this->getLanguageService();
-        $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
-
-        $messageFileUpload = GeneralUtility::makeInstance(
-            FlashMessage::class,
-            $lang->sL($llPrefix . 'update.data.convert.success.description'),
-            $lang->sL($llPrefix . 'update.data.convert.success'),
-            FlashMessage::OK,
-            true
-        );
-        $messageQueue->addMessage($messageFileUpload);
-        $this->redirect('update');
     }
 
     public function premiumAction()
