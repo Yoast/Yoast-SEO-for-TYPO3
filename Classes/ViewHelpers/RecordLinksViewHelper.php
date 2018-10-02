@@ -15,14 +15,11 @@ namespace YoastSeoForTypo3\YoastSeo\ViewHelpers;
  */
 
 use TYPO3\CMS\Backend\Routing\UriBuilder;
-use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 
 class RecordLinksViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper
 {
-
     public function initializeArguments()
     {
         $this->registerArgument('uid', 'int', 'uid of record to be edited', true);

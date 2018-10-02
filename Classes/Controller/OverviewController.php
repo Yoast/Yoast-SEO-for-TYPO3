@@ -15,7 +15,6 @@ namespace YoastSeoForTypo3\YoastSeo\Controller;
  */
 
 use TYPO3\CMS\Backend\Routing\UriBuilder;
-use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Backend\View\BackendTemplateView;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;

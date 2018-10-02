@@ -12,7 +12,6 @@ use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use TYPO3\CMS\Frontend\Page\CacheHashCalculator;
 use TYPO3\CMS\Frontend\Page\PageRepository;
@@ -400,7 +399,6 @@ class SnippetPreview extends AbstractNode
         }
         return '#';
     }
-
 
     /**
      * @return BackendUserAuthentication

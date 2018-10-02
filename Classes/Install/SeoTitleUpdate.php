@@ -98,5 +98,4 @@ class SeoTitleUpdate implements UpgradeWizardInterface
             DatabaseUpdatedPrerequisite::class
         ];
     }
-
 }
