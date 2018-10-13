@@ -21,8 +21,11 @@ class SnippetPreview
         if ($bodyFound) {
             $body = $matchesBody[1];
 
-            preg_match_all('/<!--\s*?TYPO3SEARCH_begin\s*?-->.*?<!--\s*?TYPO3SEARCH_end\s*?-->/mis',
-                $body, $indexableContents);
+            preg_match_all(
+                '/<!--\s*?TYPO3SEARCH_begin\s*?-->.*?<!--\s*?TYPO3SEARCH_end\s*?-->/mis',
+                $body,
+                $indexableContents
+            );
 
             if (is_array($indexableContents[0]) && !empty($indexableContents[0])) {
                 $body = implode($indexableContents[0], '');
