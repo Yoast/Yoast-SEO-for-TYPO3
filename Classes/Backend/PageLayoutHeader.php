@@ -310,9 +310,8 @@ class PageLayoutHeader
             $rootLine = CMS\Backend\Utility\BackendUtility::BEgetRootLine($pageId);
             // Mount point overlay: Set new target page id and mp parameter
             $pageRepository = GeneralUtility::makeInstance(CMS\Frontend\Page\PageRepository::class);
-            $additionalGetVars = '&type=' . self::FE_PREVIEW_TYPE;
-            $siteMatcher = GeneralUtility::makeInstance(CMS\Core\Routing\SiteMatcher::class);
-            $site = $siteMatcher->matchByPageId($pageId, $rootLine);
+            $siteFinder = GeneralUtility::makeInstance(CMS\Core\Site\SiteFinder::class);
+            $site = $siteFinder->getSiteByPageId($pageId, $rootLine);
             $finalPageIdToShow = $pageId;
             $mountPointInformation = $pageRepository->getMountPointInfo($pageId);
             if ($mountPointInformation && $mountPointInformation['overlay']) {
@@ -324,6 +323,10 @@ class PageLayoutHeader
                 $additionalQueryParams = [];
                 parse_str($additionalGetVars, $additionalQueryParams);
                 $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
+                $uriToCheck = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
+
+                $additionalQueryParams['type'] = self::FE_PREVIEW_TYPE;
+                $additionalQueryParams['uriToCheck'] = urlencode($uriToCheck);
                 $uri = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
             } else {
                 $uri = CMS\Backend\Utility\BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);

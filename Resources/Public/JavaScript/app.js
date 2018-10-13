@@ -51,35 +51,23 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
             // the CSS selector #snippet adds some margin to the panel
             $snippetPreview.attr('id', 'snippet');
 
-            // the preview is an XML document, for easy traversal convert it to a jQuery object
-            var $previewDocument = $(previewDocument);
-            var $metaSection = $previewDocument.find('meta');
-            var $contentElements = $previewDocument.find('content>element');
-
-            var pageContent = '';
-
-            $contentElements.each(function (index, element) {
-                pageContent += element.textContent;
-            });
+            var pageContent = previewDocument.body;
 
             var $focusKeywordElement = $('#' + tx_yoast_seo.settings.targetElementId + '_focusKeyword');
 
-            var slug = $metaSection.find('slug').text().replace(/^\/|\/$/g, '');
-
             var snippetPreview = new YoastSEO.SnippetPreview({
-                data: {
-                    title: $metaSection.find('title').text(),
-                    metaDesc: $metaSection.find('description').text(),
-                    urlPath: slug
-                },
-                baseURL: $metaSection.find('url').text().replace($metaSection.find('slug').text(), '/'),
-                placeholder: {
-                    urlPath: slug
-                },
-                targetElement: $snippetPreview.get(0),
-                callbacks: {
-                },
-                previewMode: 'desktop'
+              data: {
+                title: previewDocument.title,
+                metaDesc: previewDocument.description,
+                urlPath: previewDocument.slug
+              },
+              baseURL: previewDocument.baseUrl,
+              placeholder: {
+                title: previewDocument.title,
+                urlPath: previewDocument.slug
+              },
+              targetElement: $snippetPreview.get(0),
+              previewMode: 'desktop'
             });
 
             $focusKeywordElement.on('input', snippetPreview.changedInput.bind( snippetPreview ) );
@@ -95,7 +83,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 callbacks: {
                     getData: function () {
                         return {
-                            title: $metaSection.find('title').text(),
+                            title: previewDocument.title,
                             keyword: tx_yoast_seo.settings.focusKeyword,
                             text: pageContent
                         };
@@ -129,7 +117,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                         $('#yoastSeo-score-bar-readability').find('.wpseo-score-textual').first().html(scoreTextual);
                     }
                 },
-                locale: $metaSection.find('locale').text(),
+                locale: previewDocument.locale,
                 translations: (window.tx_yoast_seo !== undefined && window.tx_yoast_seo !== null && window.tx_yoast_seo.translations !== undefined ? window.tx_yoast_seo.translations : null)
             });
 

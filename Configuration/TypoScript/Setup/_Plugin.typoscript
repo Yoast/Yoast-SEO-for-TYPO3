@@ -1,0 +1,14 @@
+plugin.tx_yoastseo {
+    settings {
+        og.image.width = {$plugin.tx_yoastseo.og.imageWidth}
+        og.image.height = {$plugin.tx_yoastseo.og.imageHeight}
+        twitter.image.width = {$plugin.tx_yoastseo.twitter.imageWidth}
+        twitter.image.height = {$plugin.tx_yoastseo.twitter.imageHeight}
+
+        titleFieldName = {$plugin.tx_yoastseo.titleField}
+        descriptionFieldName = {$plugin.tx_yoastseo.descriptionField}
+        canonicalTagFieldName = {$plugin.tx_yoastseo.canonicalTagField}
+        titlePrepend = {$plugin.tx_yoastseo.titlePrepend}
+        titleAppend = {$plugin.tx_yoastseo.titleAppend}
+    }
+}

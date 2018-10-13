@@ -24,7 +24,8 @@
   "homepage": "https://yoast.com",
   "require": {
     "typo3/cms-core": "^9.5",
-    "typo3/cms-seo": "^9.5"
+    "typo3/cms-seo": "^9.5",
+    "ext-curl": "*"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^2.0",

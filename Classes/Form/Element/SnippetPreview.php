@@ -6,8 +6,8 @@ use TYPO3\CMS\Backend\Form\NodeFactory;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Localization\Locales;
-use TYPO3\CMS\Core\Routing\SiteMatcher;
 use TYPO3\CMS\Core\Site\Entity\Site;
+use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -377,9 +377,8 @@ class SnippetPreview extends AbstractNode
             $rootLine = BackendUtility::BEgetRootLine($pageId);
             // Mount point overlay: Set new target page id and mp parameter
             $pageRepository = GeneralUtility::makeInstance(PageRepository::class);
-            $additionalGetVars .= '&type=' . self::FE_PREVIEW_TYPE;
-            $siteMatcher = GeneralUtility::makeInstance(SiteMatcher::class);
-            $site = $siteMatcher->matchByPageId($pageId, $rootLine);
+            $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
+            $site = $siteFinder->getSiteByPageId($pageId, $rootLine);
             $finalPageIdToShow = $pageId;
             $mountPointInformation = $pageRepository->getMountPointInfo($pageId);
             if ($mountPointInformation && $mountPointInformation['overlay']) {
@@ -390,6 +389,11 @@ class SnippetPreview extends AbstractNode
             if ($site instanceof Site) {
                 $additionalQueryParams = [];
                 parse_str($additionalGetVars, $additionalQueryParams);
+                $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
+                $uriToCheck = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
+
+                $additionalQueryParams['type'] = self::FE_PREVIEW_TYPE;
+                $additionalQueryParams['uriToCheck'] = urlencode($uriToCheck);
                 $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
                 $uri = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
             } else {
