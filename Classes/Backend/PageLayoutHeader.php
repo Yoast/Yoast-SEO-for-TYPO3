@@ -66,7 +66,8 @@ class PageLayoutHeader
      */
     public function render()
     {
-        $pageId = (int)($GLOBALS['TYPO3_REQUEST']->getParsedBody()['id'] ?? $GLOBALS['TYPO3_REQUEST']->getQueryParams()['id'] ?? 0);
+        $moduleData = CMS\Backend\Utility\BackendUtility::getModuleData(['language'], [], 'web_layout');
+        $pageId = (int)$_GET['id'];
 
         if (!$GLOBALS['BE_USER'] instanceof CMS\Core\Authentication\BackendUserAuthentication ||
             !$GLOBALS['BE_USER']->check('modules', 'yoast_YoastSeoDashboard')) {
@@ -89,7 +90,7 @@ class PageLayoutHeader
         $publicResourcesPath = CMS\Core\Utility\PathUtility::getAbsoluteWebPath(CMS\Core\Utility\ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
         if ($pageLayoutController instanceof CMS\Backend\Controller\PageLayoutController
             && $pageId > 0
-            && (int)$pageLayoutController->current_sys_language === 0
+            && (int)$moduleData['language'] === 0
         ) {
             $currentPage = CMS\Backend\Utility\BackendUtility::getRecord(
                 'pages',
@@ -97,12 +98,12 @@ class PageLayoutHeader
             );
         } elseif ($pageLayoutController instanceof CMS\Backend\Controller\PageLayoutController
             && $pageId > 0
-            && (int)$pageLayoutController->current_sys_language > 0
+            && (int)$moduleData['language'] > 0
         ) {
             $overlayRecords = CMS\Backend\Utility\BackendUtility::getRecordLocalization(
                 'pages',
                 $pageId,
-                (int)$pageLayoutController->current_sys_language
+                (int)$moduleData['language']
             );
 
             if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
@@ -122,7 +123,7 @@ class PageLayoutHeader
         if (\is_array($currentPage)) {
             $focusKeyword = YoastUtility::getFocusKeywordOfPage($recordId, $tableName);
 
-            $previewDataUrl = $this->getTargetUrl($pageId, $pageLayoutController->current_sys_language);
+            $previewDataUrl = $this->getTargetUrl($pageId, (int)$moduleData['language']);
         }
 
         $allowedDoktypes = YoastUtility::getAllowedDoktypes();
@@ -203,7 +204,7 @@ class PageLayoutHeader
                 ],
                 'overrideVals' => [
                     'pages' => [
-                        'sys_language_uid' => $pageLayoutController->current_sys_language
+                        'sys_language_uid' => (int)$moduleData['language']
                     ]
                 ],
                 'switchToYoast' => 1,
