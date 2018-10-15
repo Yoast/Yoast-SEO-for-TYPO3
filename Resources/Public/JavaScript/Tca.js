@@ -172,12 +172,12 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
             $('.t3js-tabmenu-item').on('click', function() {
                 setTimeout(function() {
                     initApps();
-                }, 500);
+                }, 1500);
             });
             $focusKeywordPremiumPanel.on('click', function () {
                 setTimeout(function() {
                     initApps();
-                }, 500);
+                }, 1500);
             });
 
             $focusKeywordPremiumPanel.each(function () {

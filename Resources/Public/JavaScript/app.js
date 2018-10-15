@@ -127,7 +127,9 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 app.switchAssessors(false);
             }
 
-            $('h1.t3js-title-inlineedit').after('' +
+          $('*[data-yoast-trigger="true"]').trigger('dataReceived', [pageContent, previewDocument.locale]);
+
+          $('h1.t3js-title-inlineedit').after('' +
                 '<div class="yoastSeo-score-bar">' +
                 '   <div class="yoastSeo-score-bar-item" id="yoastSeo-score-bar-readability">' +
                 '       <span class="wpseo-score-icon"></span> <span class="yoastSeo-score-bar-item--title">' + (app.i18n.dgettext('js-text-analysis', 'Readability')) + '</span>: <span class="wpseo-score-textual">-</span>' +
