@@ -14,10 +14,14 @@ namespace YoastSeoForTypo3\YoastSeo\UserFunc;
  * The TYPO3 project - inspiring people to share!
  */
 
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\QueryHelper;
+use TYPO3\CMS\Core\Database\QueryGenerator;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
+use TYPO3\CMS\Frontend\Page\PageRepository;
 
 /**
  * Class SitemapXml
@@ -119,9 +123,8 @@ class SitemapXml
                 $rootPid = $sitemapSettings['rootPid'] ?: $tsfe->id;
                 $where = $sitemapSettings['additionalWhere'] ?: '';
 
-                $docs[] = $tsfe->sys_page->getPage($rootPid);
                 $docs = array_filter(
-                    $this->getSubPages($rootPid, $docs, $where),
+                    $this->getSubPages($rootPid, $where),
                     '\YoastSeoForTypo3\YoastSeo\UserFunc\SitemapXml::filterNoIndexPages'
                 );
             } else {
@@ -161,26 +164,43 @@ class SitemapXml
     }
 
     /**
-     * @param $parentPageId
-     * @param array $pages
+     * @param $rootPageId
      * @param string $additionalWhereClause
      * @param string $fields
      * @param string $sortField
-     * @param bool $checkShortcuts
      * @return array
      */
-    protected function getSubPages($parentPageId, array $pages = [], $additionalWhereClause = '', $fields = '*', $sortField = 'sorting', $checkShortcuts = false)
+    protected function getSubPages($rootPageId, $additionalWhereClause = '', $fields = '*', $sortField = 'uid')
     {
-        $subPages = $this->getTSFE()->sys_page->getMenu($parentPageId, $fields, $sortField, $additionalWhereClause, $checkShortcuts);
-        $pages = array_merge($pages, $subPages);
+        /** @var QueryGenerator $queryGenerator*/
+        $queryGenerator = GeneralUtility::makeInstance(QueryGenerator::class);
+        $treeList = $queryGenerator->getTreeList($rootPageId, 99, 0, '');
 
-        foreach ($subPages as $subPage) {
-            $pages = $this->getSubPages($subPage['uid'], $pages, $additionalWhereClause, $fields, $sortField, $checkShortcuts);
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('pages');
+
+        $constraints = [
+            $queryBuilder->expr()->in('uid', $treeList)
+        ];
+
+        if ($additionalWhereClause !== '') {
+            $constraints[] = QueryHelper::stripLogicalOperatorPrefix($additionalWhereClause);
         }
 
-        return $pages;
+        $pages = $queryBuilder->select($fields)
+            ->from('pages')
+            ->where(...$constraints)
+            ->orderBy($sortField, 'ASC')
+            ->execute()
+            ->fetchAll();
+
+        $pageRepository = GeneralUtility::makeInstance(PageRepository::class);
+        return $pageRepository->getPagesOverlay($pages);
     }
 
+    /**
+     * @return array
+     */
     protected function getSitemaps()
     {
         $sitemaps = [];
