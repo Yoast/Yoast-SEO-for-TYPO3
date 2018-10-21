@@ -7,11 +7,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
         'tx_yoastseo_snippetpreview' => [
             'label' => $llPrefix . 'snippetPreview',
             'exclude' => true,
-            'displayCond' => [
-                'AND' => [
-                    'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false'
-                ]
-            ],
+            'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
             'config' => [
                 'type' => 'text',
                 'renderType' => 'snippetPreview',
@@ -24,11 +20,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
         'tx_yoastseo_readability_analysis' => [
             'label' => $llPrefix . 'analysis',
             'exclude' => true,
-            'displayCond' => [
-                'AND' => [
-                    'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false'
-                ]
-            ],
+            'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
             'config' => [
                 'type' => 'text',
                 'renderType' => 'readabilityAnalysis'
@@ -44,11 +36,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
         'tx_yoastseo_focuskeyword' => [
             'label' => $llPrefix . 'seoFocusKeyword',
             'exclude' => true,
-            'displayCond' => [
-                'AND' => [
-                    'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false'
-                ]
-            ],
+            'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
             'config' => [
                 'type' => 'input',
             ]
@@ -56,11 +44,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
         'tx_yoastseo_focuskeyword_analysis' => [
             'label' => $llPrefix . 'analysis',
             'exclude' => true,
-            'displayCond' => [
-                'AND' => [
-                    'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false'
-                ]
-            ],
+            'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
             'config' => [
                 'type' => 'input',
                 'renderType' => 'focusKeywordAnalysis',
