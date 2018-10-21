@@ -4,28 +4,4 @@ plugin.tx_yoastseo {
 	canonicalTagField = canonical_url
 	noIndexField = no_index
 	noFollowField = no_follow
-	titlePrepend =
-	titleAppend =
-
-	og {
-		titleField = og_title
-		descriptionField = og_description
-		imageField = og_image
-		imageWidth = 1200c
-		imageHeight = 628c
-
-		fbAdmins =
-		fbAppId =
-	}
-
-	twitter {
-		titleField = twitter_title
-		descriptionField = twitter_description
-		imageField = twitter_image
-		imageWidth = 1200c
-		imageHeight = 628c
-
-		imageMaxWidth =
-		site =
-	}
 }
