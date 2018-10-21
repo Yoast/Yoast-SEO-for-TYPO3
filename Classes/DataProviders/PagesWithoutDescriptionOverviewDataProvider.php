@@ -42,7 +42,6 @@ class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataPr
             ),
             $qb->expr()->in('doktype', $doktypes),
             $qb->expr()->eq('sys_language_uid', (int)$this->callerParams['language']),
-            $qb->expr()->eq('tx_yoastseo_dont_use', 0),
             $qb->expr()->eq('tx_yoastseo_hide_snippet_preview', 0)
         ];
 

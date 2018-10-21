@@ -9,7 +9,6 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
             'exclude' => true,
             'displayCond' => [
                 'AND' => [
-                    'FIELD:tx_yoastseo_dont_use:REQ:false',
                     'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false'
                 ]
             ],
@@ -27,20 +26,12 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
             'exclude' => true,
             'displayCond' => [
                 'AND' => [
-                    'FIELD:tx_yoastseo_dont_use:REQ:false',
                     'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false'
                 ]
             ],
             'config' => [
                 'type' => 'text',
                 'renderType' => 'readabilityAnalysis'
-            ]
-        ],
-        'tx_yoastseo_dont_use' => [
-            'label' => $llPrefix . 'hideYoastInFrontend',
-            'exclude' => true,
-            'config' => [
-                'type' => 'check'
             ]
         ],
         'tx_yoastseo_hide_snippet_preview' => [
@@ -55,7 +46,6 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
             'exclude' => true,
             'displayCond' => [
                 'AND' => [
-                    'FIELD:tx_yoastseo_dont_use:REQ:false',
                     'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false'
                 ]
             ],
@@ -68,7 +58,6 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
             'exclude' => true,
             'displayCond' => [
                 'AND' => [
-                    'FIELD:tx_yoastseo_dont_use:REQ:false',
                     'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false'
                 ]
             ],
@@ -145,7 +134,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     'pages',
     'yoast-advanced',
     '
-    --linebreak--, tx_yoastseo_hide_snippet_preview, tx_yoastseo_dont_use, --linebreak--, tx_yoastseo_score_readability, tx_yoastseo_score_seo
+    --linebreak--, tx_yoastseo_hide_snippet_preview, --linebreak--, tx_yoastseo_score_readability, tx_yoastseo_score_seo
     '
 );
 

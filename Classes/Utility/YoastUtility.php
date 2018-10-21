@@ -78,7 +78,7 @@ class YoastUtility
      */
     public static function snippetPreviewEnabled($pageId, array $pageRecord, $pageTs = null)
     {
-        $showPreview = (!$pageRecord['tx_yoastseo_dont_use'] && !$pageRecord['tx_yoastseo_hide_snippet_preview']);
+        $showPreview = !$pageRecord['tx_yoastseo_hide_snippet_preview'];
 
         if ($pageTs === null) {
             $pageTs = CMS\Backend\Utility\BackendUtility::getPagesTSconfig($pageId);
