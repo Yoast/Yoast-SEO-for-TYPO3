@@ -4,18 +4,15 @@ namespace YoastSeoForTypo3\YoastSeo\Controller;
 use TYPO3\CMS\Backend\Template\Components\ButtonBar;
 use TYPO3\CMS\Backend\View\BackendTemplateView;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
-use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Localization\Locales;
-use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Page\PageRenderer;
-use TYPO3\CMS\Core\Resource\ResourceStorage;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
-use YoastSeoForTypo3\YoastSeo\Utility\ConvertUtility;
 
 class ModuleController extends ActionController
 {
@@ -116,7 +113,7 @@ class ModuleController extends ActionController
             $this->pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
         }
 
-        $publicResourcesPath = ExtensionManagementUtility::extRelPath('yoast_seo') . 'Resources/Public/';
+        $publicResourcesPath = PathUtility::getAbsoluteWebPath(ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
 
         $this->pageRenderer->addCssFile(
             $publicResourcesPath . 'CSS/yoast-seo-backend.min.css'
@@ -137,147 +134,8 @@ class ModuleController extends ActionController
     {
     }
 
-    /**
-     *
-     */
-    public function doConvertAction()
-    {
-        ConvertUtility::convert();
-
-        $flashMessageService = $this->objectManager->get(\TYPO3\CMS\Core\Messaging\FlashMessageService::class);
-        $messageQueue = $flashMessageService->getMessageQueueByIdentifier();
-        $lang = $this->getLanguageService();
-        $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
-
-        $messageFileUpload = GeneralUtility::makeInstance(
-            FlashMessage::class,
-            $lang->sL($llPrefix . 'update.data.convert.success.description'),
-            $lang->sL($llPrefix . 'update.data.convert.success'),
-            FlashMessage::OK,
-            true
-        );
-        $messageQueue->addMessage($messageFileUpload);
-        $this->redirect('update');
-    }
-
-    /**
-     * @return void
-     */
-    public function settingsAction()
-    {
-        $tmp = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow('uid', 'pages', 'deleted=0 AND hidden=0 AND is_siteroot=1');
-        $pageId = (int)$tmp['uid'];
-
-        $this->view->assign('pageId', $pageId);
-    }
-
     public function premiumAction()
     {
-    }
-
-    public function saveSettingsAction()
-    {
-        $tmp = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow('uid', 'pages', 'deleted=0 AND hidden=0 AND is_siteroot=1');
-        $pageId = (int)$tmp['uid'];
-
-        $languageId = (int)$this->request->getArgument('language');
-        $lang = $this->getLanguageService();
-
-        $extraTableRecords = [];
-
-        if ($this->request->hasArgument('twitterImage')) {
-            $twitterImage = $this->request->getArgument('twitterImage');
-
-            if (($this->request->hasArgument('twitterDeleteImage') && !empty($this->request->getArgument('twitterDeleteImage'))) ||
-                (array_key_exists('tmp_name', $twitterImage) && !empty($twitterImage['tmp_name']))) {
-                $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
-                    'sys_file_reference',
-                    'fieldname="tx_yoastseo_settings_twitter_image" AND uid_foreign=' . $pageId,
-                    ['deleted' => 1]
-                );
-            }
-            if (array_key_exists('tmp_name', $twitterImage) && !empty($twitterImage['tmp_name'])) {
-                $resourceFactory = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
-                $storage = $resourceFactory->getDefaultStorage();
-
-                if ($storage instanceof ResourceStorage) {
-                    $newFile = $storage->addFile(
-                        $twitterImage['tmp_name'],
-                        $storage->getDefaultFolder(),
-                        $twitterImage['name']
-                    );
-
-                    $newId = 'NEW12345';
-                    $extraTableRecords['sys_file_reference'][$newId] = [
-                        'table_local' => 'sys_file',
-                        'uid_local' => $newFile->getUid(),
-                        'tablenames' => 'pages',
-                        'uid_foreign' => $pageId,
-                        'fieldname' => 'tx_yoastseo_settings_twitter_image',
-                        'pid' => $pageId
-                    ];
-                }
-            }
-        }
-
-        if ($this->request->hasArgument('facebookImage')) {
-            $facebookImage = $this->request->getArgument('facebookImage');
-            if (($this->request->hasArgument('facebookDeleteImage') && !empty($this->request->getArgument('facebookDeleteImage'))) ||
-                (array_key_exists('tmp_name', $facebookImage) && !empty($facebookImage['tmp_name']))) {
-                $GLOBALS['TYPO3_DB']->exec_UPDATEquery(
-                    'sys_file_reference',
-                    'fieldname="tx_yoastseo_settings_facebook_image" AND uid_foreign=' . $pageId,
-                    ['deleted' => 1]
-                );
-            }
-            if (array_key_exists('tmp_name', $facebookImage) && !empty($facebookImage['tmp_name'])) {
-                $resourceFactory = \TYPO3\CMS\Core\Resource\ResourceFactory::getInstance();
-                $storage = $resourceFactory->getDefaultStorage();
-
-                if ($storage instanceof ResourceStorage) {
-                    $newFile = $storage->addFile(
-                        $facebookImage['tmp_name'],
-                        $storage->getDefaultFolder(),
-                        $facebookImage['name']
-                    );
-
-                    $newId = 'NEW54321';
-                    $extraTableRecords['sys_file_reference'][$newId] = [
-                        'table_local' => 'sys_file',
-                        'uid_local' => $newFile->getUid(),
-                        'tablenames' => 'pages',
-                        'uid_foreign' => $pageId,
-                        'fieldname' => 'tx_yoastseo_settings_facebook_image',
-                        'pid' => $pageId
-                    ];
-                }
-            }
-        }
-
-        $tce = GeneralUtility::makeInstance(DataHandler::class);
-        $tce->reverseOrder = 1;
-        $tce->start($extraTableRecords, array());
-        $tce->process_datamap();
-        $tce->clear_cacheCmd('pages');
-
-        $message = GeneralUtility::makeInstance(
-            FlashMessage::class,
-            $lang->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:saved.description'),
-            $lang->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:saved.title'),
-            FlashMessage::OK,
-            true
-        );
-
-        $flashMessageService = $this->objectManager->get(\TYPO3\CMS\Core\Messaging\FlashMessageService::class);
-        $messageQueue = $flashMessageService->getMessageQueueByIdentifier();
-        $messageQueue->addMessage($message);
-
-        $returnUrl = '';
-        if ($this->request->hasArgument('returnUrl')) {
-            $returnUrl = $this->request->getArgument('returnUrl');
-        }
-
-        $this->redirect('settings', null, null, array('id' => $pageId, 'language' => $languageId));
     }
 
     /**
@@ -341,22 +199,7 @@ class ModuleController extends ActionController
 
                 // SAVE button:
                 $saveButton = $buttonBar->makeInputButton()
-                    ->setTitle($lang->sL('LLL:EXT:lang/locallang_core.xlf:rm.saveDoc'))
-                    ->setName($modulePrefix . '[submit]')
-                    ->setValue('Save')
-                    ->setForm('editYoastSettings')
-                    ->setIcon($this->view->getModuleTemplate()->getIconFactory()->getIcon(
-                        'actions-document-save',
-                        Icon::SIZE_SMALL
-                    ))
-                    ->setShowLabelText(true);
-
-                $buttonBar->addButton($saveButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
-            }
-            if ($currentRequest->getControllerActionName() === 'settings') {
-                // SAVE button:
-                $saveButton = $buttonBar->makeInputButton()
-                    ->setTitle($lang->sL('LLL:EXT:lang/locallang_core.xlf:rm.saveDoc'))
+                    ->setTitle($lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:rm.saveDoc'))
                     ->setName($modulePrefix . '[submit]')
                     ->setValue('Save')
                     ->setForm('editYoastSettings')

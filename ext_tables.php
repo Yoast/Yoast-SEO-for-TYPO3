@@ -65,36 +65,6 @@ if (TYPO3_MODE === 'BE') {
         )
     );
 
-    \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
-        'YoastSeoForTypo3.' . $_EXTKEY,
-        'yoast',
-        'update',
-        '',
-        array(
-            'Module' => 'update, doConvert',
-        ),
-        array(
-            'access' => 'user,group',
-            'icon' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Yoast-module-update.svg',
-            'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/BackendModuleUpdate.xlf',
-        )
-    );
-
-    \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
-        'YoastSeoForTypo3.' . $_EXTKEY,
-        'yoast',
-        'settings',
-        '',
-        array(
-            'Module' => 'settings, saveSettings',
-        ),
-        array(
-            'access' => 'user,group',
-            'icon' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Yoast-module-settings.svg',
-            'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/BackendModuleSettings.xlf',
-        )
-    );
-
     // Extend user settings
     $GLOBALS['TYPO3_USER_SETTINGS']['columns']['hideYoastInPageModule'] = [
         'label' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:usersettings.hideYoastInPageModule',

@@ -51,35 +51,23 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
             // the CSS selector #snippet adds some margin to the panel
             $snippetPreview.attr('id', 'snippet');
 
-            // the preview is an XML document, for easy traversal convert it to a jQuery object
-            var $previewDocument = $(previewDocument);
-            var $metaSection = $previewDocument.find('meta');
-            var $contentElements = $previewDocument.find('content>element');
-
-            var pageContent = '';
-
-            $contentElements.each(function (index, element) {
-                pageContent += element.textContent;
-            });
+            var pageContent = previewDocument.body;
 
             var $focusKeywordElement = $('#' + tx_yoast_seo.settings.targetElementId + '_focusKeyword');
 
-            var slug = $metaSection.find('slug').text().replace(/^\/|\/$/g, '');
-
             var snippetPreview = new YoastSEO.SnippetPreview({
-                data: {
-                    title: $metaSection.find('title').text(),
-                    metaDesc: $metaSection.find('description').text(),
-                    urlPath: slug
-                },
-                baseURL: $metaSection.find('url').text().replace($metaSection.find('slug').text(), '/'),
-                placeholder: {
-                    urlPath: slug
-                },
-                targetElement: $snippetPreview.get(0),
-                callbacks: {
-                },
-                previewMode: 'desktop'
+              data: {
+                title: previewDocument.title,
+                metaDesc: previewDocument.description,
+                urlPath: previewDocument.slug
+              },
+              baseURL: previewDocument.baseUrl,
+              placeholder: {
+                title: previewDocument.title,
+                urlPath: previewDocument.slug
+              },
+              targetElement: $snippetPreview.get(0),
+              previewMode: 'desktop'
             });
 
             $focusKeywordElement.on('input', snippetPreview.changedInput.bind( snippetPreview ) );
@@ -95,7 +83,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 callbacks: {
                     getData: function () {
                         return {
-                            title: $metaSection.find('title').text(),
+                            title: previewDocument.title,
                             keyword: tx_yoast_seo.settings.focusKeyword,
                             text: pageContent
                         };
@@ -129,7 +117,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                         $('#yoastSeo-score-bar-readability').find('.wpseo-score-textual').first().html(scoreTextual);
                     }
                 },
-                locale: $metaSection.find('locale').text(),
+                locale: previewDocument.locale,
                 translations: (window.tx_yoast_seo !== undefined && window.tx_yoast_seo !== null && window.tx_yoast_seo.translations !== undefined ? window.tx_yoast_seo.translations : null)
             });
 
@@ -139,7 +127,9 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 app.switchAssessors(false);
             }
 
-            $('h1.t3js-title-inlineedit').after('' +
+          $('*[data-yoast-trigger="true"]').trigger('dataReceived', [pageContent, previewDocument.locale]);
+
+          $('h1.t3js-title-inlineedit').after('' +
                 '<div class="yoastSeo-score-bar">' +
                 '   <div class="yoastSeo-score-bar-item" id="yoastSeo-score-bar-readability">' +
                 '       <span class="wpseo-score-icon"></span> <span class="yoastSeo-score-bar-item--title">' + (app.i18n.dgettext('js-text-analysis', 'Readability')) + '</span>: <span class="wpseo-score-textual">-</span>' +
@@ -213,26 +203,6 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                     }
                 }
             }
-            // due to the wacky workaround in typo3_src-7.6.11/typo3/sysext/backend/Resources/Public/JavaScript/PageActions.js:143
-            // and the prevention of event propagation forces us to observe EVERY click event
-            // depending on the target the actual method is invoked
-            $('#PageLayoutController').on('click', function (e) {
-                var $trigger = $(e.target);
-                var currentPageTitle = PageActions.elements.$pageTitle.text();
-
-                if ($trigger.hasClass('btn')
-                    && $trigger.parentsUntil('form').find('input').val() !== currentPageTitle
-                ) {
-                    // wait a short period of time to give the application chance to update the title indication
-                    window.setTimeout(function () {
-                        if (PageActions.elements.$pageTitle.text() !== currentPageTitle) {
-                            snippetPreview.data.title = PageActions.elements.$pageTitle.text();
-
-                            app.refresh();
-                        }
-                    }, 200);
-                }
-            });
         });
 
         $('div#snippet_title.snippet_container.snippet-editor__container').off('click');

@@ -18,6 +18,7 @@ use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper;
+use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 
 /**
  * Class RecordIconViewHelper
@@ -27,17 +28,19 @@ class RecordIconViewHelper extends AbstractViewHelper
 {
     protected $escapeOutput = false;
 
+    public function initializeArguments()
+    {
+        $this->registerArgument('table', 'string', '', true);
+        $this->registerArgument('row', 'array', '', true, []);
+        $this->registerArgument('size', 'string', '', false, Icon::SIZE_DEFAULT);
+    }
     /**
-     * @param string $table
-     * @param array $row
-     * @param string $size
-     *
      * @return string
      */
-    public function render($table, $row, $size = Icon::SIZE_DEFAULT)
+    public static function renderStatic(array $arguments, \Closure $renderChildrenClosure, RenderingContextInterface $renderingContext): string
     {
         $iconFactory = GeneralUtility::makeInstance(IconFactory::class);
-        $icon = $iconFactory->getIconForRecord($table, $row, $size);
+        $icon = $iconFactory->getIconForRecord($arguments['table'], $arguments['row'], $arguments['size']);
 
         return $icon->render();
     }

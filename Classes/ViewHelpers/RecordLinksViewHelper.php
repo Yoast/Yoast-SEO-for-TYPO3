@@ -14,46 +14,46 @@ namespace YoastSeoForTypo3\YoastSeo\ViewHelpers;
  * The TYPO3 project - inspiring people to share!
  */
 
-use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Backend\Routing\UriBuilder;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 
 class RecordLinksViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper
 {
-
-    /**
-     * @param string $table
-     * @param string $command
-     * @param int $uid
-     * @param string $module
-     * @return string
-     */
-    public function render($table, $command, $uid, $module)
+    public function initializeArguments()
     {
-        $returnUrl = BackendUtility::getModuleUrl(
-            $module,
-            $_GET
-        );
+        $this->registerArgument('uid', 'int', 'uid of record to be edited', true);
+        $this->registerArgument('table', 'string', 'target database table', true);
+        $this->registerArgument('command', 'string', '', true, '');
+        $this->registerArgument('module', 'string', '', true, '');
+    }
 
-        switch ($command) {
+    public static function renderStatic(array $arguments, \Closure $renderChildrenClosure, RenderingContextInterface $renderingContext): string
+    {
+        $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
+        $returnUri = $uriBuilder->buildUriFromRoute($arguments['module'], $_GET);
+
+        switch ($arguments['command']) {
             case 'edit':
                 $urlParameters = [
                     'edit' => [
-                        $table => [
-                            $uid => $command
+                        $arguments['table'] => [
+                            $arguments['uid'] => $arguments['command']
                         ]
                     ],
-                    'returnUrl' => $returnUrl
+                    'returnUrl' => (string)$returnUri
                 ];
                 $module = 'record_edit';
                 break;
             case 'delete':
                 $urlParameters = [
-                    'cmd[' . $table . '][' . $uid . '][delete]' => 1,
-                    'redirect' => $returnUrl,
+                    'cmd[' . $arguments['table'] . '][' . $arguments['uid'] . '][delete]' => 1,
+                    'redirect' => (string)$returnUri,
                 ];
                 $module = 'tce_db';
                 break;
         }
 
-        return BackendUtility::getModuleUrl($module, $urlParameters);
+        return $uriBuilder->buildUriFromRoute($module, $urlParameters);
     }
 }

@@ -4,7 +4,6 @@ namespace YoastSeoForTypo3\YoastSeo\Backend;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS;
-use YoastSeoForTypo3\YoastSeo\Utility\ConvertUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class PageLayoutHeader
@@ -67,6 +66,9 @@ class PageLayoutHeader
      */
     public function render()
     {
+        $moduleData = CMS\Backend\Utility\BackendUtility::getModuleData(['language'], [], 'web_layout');
+        $pageId = (int)$_GET['id'];
+
         if (!$GLOBALS['BE_USER'] instanceof CMS\Core\Authentication\BackendUserAuthentication ||
             !$GLOBALS['BE_USER']->check('modules', 'yoast_YoastSeoDashboard')) {
             return '';
@@ -82,39 +84,36 @@ class PageLayoutHeader
         $currentPage = null;
         $focusKeyword = '';
         $previewDataUrl = '';
-        $recordId = 0;
+        $recordId = $pageId;
         $tableName = 'pages';
         $targetElementId = uniqid('_YoastSEO_panel_');
-        $publicResourcesPath = CMS\Core\Utility\ExtensionManagementUtility::extRelPath('yoast_seo')
-            . 'Resources/Public/';
-
+        $publicResourcesPath = CMS\Core\Utility\PathUtility::getAbsoluteWebPath(CMS\Core\Utility\ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
         if ($pageLayoutController instanceof CMS\Backend\Controller\PageLayoutController
-            && (int)$pageLayoutController->id > 0
-            && (int)$pageLayoutController->current_sys_language === 0
+            && $pageId > 0
+            && (int)$moduleData['language'] === 0
         ) {
             $currentPage = CMS\Backend\Utility\BackendUtility::getRecord(
                 'pages',
-                (int)$pageLayoutController->id
+                $pageId
             );
         } elseif ($pageLayoutController instanceof CMS\Backend\Controller\PageLayoutController
-            && (int)$pageLayoutController->id > 0
-            && (int)$pageLayoutController->current_sys_language > 0
+            && $pageId > 0
+            && (int)$moduleData['language'] > 0
         ) {
             $overlayRecords = CMS\Backend\Utility\BackendUtility::getRecordLocalization(
                 'pages',
-                (int)$pageLayoutController->id,
-                (int)$pageLayoutController->current_sys_language
+                $pageId,
+                (int)$moduleData['language']
             );
 
             if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
+                $recordId = $overlayRecords[0]['uid'];
                 $currentPage = $overlayRecords[0];
-
-                $tableName = 'pages_language_overlay';
             }
         }
 
         if (!YoastUtility::snippetPreviewEnabled(
-            (int)$pageLayoutController->current_sys_language === 0 ? $currentPage['uid'] : $currentPage['pid'],
+            $pageId,
             $currentPage
         )
         ) {
@@ -122,36 +121,9 @@ class PageLayoutHeader
         }
 
         if (\is_array($currentPage)) {
-            $recordId = $currentPage['uid'];
-
             $focusKeyword = YoastUtility::getFocusKeywordOfPage($recordId, $tableName);
 
-            $domain = CMS\Backend\Utility\BackendUtility::getViewDomain((int)$pageLayoutController->id);
-
-            // Allow Overwrite of the domain via ExtConf
-            if (array_key_exists('previewDomain', $this->configuration) && $this->configuration['previewDomain']) {
-                try {
-                    $protocol = GeneralUtility::getIndpEnv('TYPO3_SSL') ? 'https' : 'http';
-                } catch (\UnexpectedValueException $e) {
-                    $protocol = 'http';
-                }
-
-                if (strpos($this->configuration['previewDomain'], '://') !== false) {
-                    list($protocol, $domainName) = explode('://', $this->configuration['previewDomain']);
-                } else {
-                    $domainName = $this->configuration['previewDomain'];
-                }
-                $domain = $protocol . '://' . $domainName;
-            }
-
-            $previewDataUrl = vsprintf(
-                $domain . $this->configuration['previewUrlTemplate'],
-                array(
-                    $pageLayoutController->id,
-                    static::FE_PREVIEW_TYPE,
-                    $pageLayoutController->current_sys_language
-                )
-            );
+            $previewDataUrl = $this->getTargetUrl($pageId, (int)$moduleData['language']);
         }
 
         $allowedDoktypes = YoastUtility::getAllowedDoktypes();
@@ -221,34 +193,25 @@ class PageLayoutHeader
                 $publicResourcesPath . 'CSS/yoast-seo.min.css'
             );
 
-            $returnUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl(
-                'web_layout',
-                ['id' => (int)$pageLayoutController->id]
-            );
+            $uriBuilder = GeneralUtility::makeInstance(CMS\Backend\Routing\UriBuilder::class);
+            $returnUrl = $uriBuilder->buildUriFromRoute('web_layout', ['id' => (int)$pageLayoutController->id]);
 
             $urlParameters = [
                 'edit' => [
-                    $tableName => [
+                    'pages' => [
                         $recordId => 'edit'
+                    ]
+                ],
+                'overrideVals' => [
+                    'pages' => [
+                        'sys_language_uid' => (int)$moduleData['language']
                     ]
                 ],
                 'switchToYoast' => 1,
                 'returnUrl' => $returnUrl
             ];
-            $url = CMS\Backend\Utility\BackendUtility::getModuleUrl('record_edit', $urlParameters);
+            $url = $uriBuilder->buildUriFromRoute('record_edit', $urlParameters);
 
-            $needUpdateText = '';
-            if (ConvertUtility::convert(true)) {
-                $updateUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl(
-                    'yoast_YoastSeoUpdate',
-                    []
-                );
-                $needUpdateText = '<a href="' . $updateUrl . '" style="margin-left: 10px; color: #f00">';
-                $needUpdateText .= $GLOBALS['LANG']->sL(
-                    'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:data.needUpdate'
-                );
-                $needUpdateText .= '</a>';
-            }
             return '
                 <div class="yoast-snippet-header">
                     <div class="yoast-snippet-header-icons btn-group btn-group-sm">
@@ -269,7 +232,7 @@ class PageLayoutHeader
                             </span>
                         </a>
                     </div>
-                    <div class="yoast-snippet-header-label">Yoast SEO ' . $needUpdateText . '</div>
+                    <div class="yoast-snippet-header-label">Yoast SEO</div>
                 </div>
                 <input id="focusKeyword" style="display: none" />
                 <div id="' . $targetElementId . '" class="t3-grid-cell yoastSeo yoastSeo--small">
@@ -338,5 +301,47 @@ class PageLayoutHeader
         }
 
         return $locale;
+    }
+
+    protected function getTargetUrl(int $pageId, int $languageId): string
+    {
+        $permissionClause = $this->getBackendUser()->getPagePermsClause(CMS\Core\Type\Bitmask\Permission::PAGE_SHOW);
+        $pageRecord = CMS\Backend\Utility\BackendUtility::readPageAccess($pageId, $permissionClause);
+        if ($pageRecord) {
+            $rootLine = CMS\Backend\Utility\BackendUtility::BEgetRootLine($pageId);
+            // Mount point overlay: Set new target page id and mp parameter
+            $pageRepository = GeneralUtility::makeInstance(CMS\Frontend\Page\PageRepository::class);
+            $siteFinder = GeneralUtility::makeInstance(CMS\Core\Site\SiteFinder::class);
+            $site = $siteFinder->getSiteByPageId($pageId, $rootLine);
+            $finalPageIdToShow = $pageId;
+            $mountPointInformation = $pageRepository->getMountPointInfo($pageId);
+            if ($mountPointInformation && $mountPointInformation['overlay']) {
+                // New page id
+                $finalPageIdToShow = $mountPointInformation['mount_pid'];
+                $additionalGetVars .= '&MP=' . $mountPointInformation['MPvar'];
+            }
+            if ($site instanceof CMS\Core\Site\Entity\Site) {
+                $additionalQueryParams = [];
+                parse_str($additionalGetVars, $additionalQueryParams);
+                $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
+                $uriToCheck = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
+
+                $additionalQueryParams['type'] = self::FE_PREVIEW_TYPE;
+                $additionalQueryParams['uriToCheck'] = urlencode($uriToCheck);
+                $uri = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
+            } else {
+                $uri = CMS\Backend\Utility\BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
+            }
+            return $uri;
+        }
+        return '#';
+    }
+
+    /**
+     * @return CMS\Core\Authentication\BackendUserAuthentication
+     */
+    protected function getBackendUser(): CMS\Core\Authentication\BackendUserAuthentication
+    {
+        return $GLOBALS['BE_USER'];
     }
 }

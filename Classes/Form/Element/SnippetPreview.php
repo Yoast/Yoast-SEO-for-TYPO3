@@ -6,6 +6,9 @@ use TYPO3\CMS\Backend\Form\NodeFactory;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Localization\Locales;
+use TYPO3\CMS\Core\Site\Entity\Site;
+use TYPO3\CMS\Core\Site\SiteFinder;
+use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
@@ -59,7 +62,7 @@ class SnippetPreview extends AbstractNode
     /**
      * @var string
      */
-    protected $viewScript = '/index.php?id=';
+    protected $viewScript = '/?id=';
 
     /**
      * @var Locales
@@ -195,6 +198,7 @@ class SnippetPreview extends AbstractNode
     {
         $currentPageId = $this->data['effectivePid'];
         $recordId = $this->data['vanillaUid'];
+
         $recordArray = BackendUtility::getRecord($this->table, $recordId);
 
         $pageTsConfig = BackendUtility::getPagesTSconfig($currentPageId);
@@ -232,26 +236,23 @@ class SnippetPreview extends AbstractNode
             }
         }
 
-        $linkParameters = [
-            'type' => self::FE_PREVIEW_TYPE
-        ];
-
+        $linkParameters = [];
+        $languageId = 0;
         // language handling
-        $languageField = isset($GLOBALS['TCA'][$this->table]['ctrl']['languageField'])
-            ? $GLOBALS['TCA'][$this->table]['ctrl']['languageField']
-            : '';
+        $languageField = $GLOBALS['TCA'][$this->table]['ctrl']['languageField'] ?? '';
+
         if ($languageField && !empty($recordArray[$languageField])) {
-            $l18nPointer = isset($GLOBALS['TCA'][$this->table]['ctrl']['transOrigPointerField'])
-                ? $GLOBALS['TCA'][$this->table]['ctrl']['transOrigPointerField']
-                : '';
-            if ($l18nPointer && !empty($recordArray[$l18nPointer])
-                && isset($previewConfiguration['useDefaultLanguageRecord'])
-                && !$previewConfiguration['useDefaultLanguageRecord']
-            ) {
-                // use parent record
-                $recordId = $recordArray[$l18nPointer];
+            $l18nPointer = $GLOBALS['TCA'][$this->table]['ctrl']['transOrigPointerField'] ?? '';
+            if ($l18nPointer && !empty($recordArray[$l18nPointer])) {
+                if (isset($previewConfiguration['useDefaultLanguageRecord'])
+                    && !$previewConfiguration['useDefaultLanguageRecord']) {
+                    // use parent record
+                    $recordId = $recordArray[$l18nPointer];
+                }
+
+                $previewPageId = $recordArray[$l18nPointer];
             }
-            $linkParameters['L'] = $recordArray[$languageField];
+            $languageId = $recordArray[$languageField];
         }
 
         // map record data to GET parameters
@@ -284,14 +285,11 @@ class SnippetPreview extends AbstractNode
             );
             $cacheHashParameters = $cacheHashCalculator->getRelevantParameters($fullLinkParameters);
             $linkParameters['cHash'] = $cacheHashCalculator->calculateCacheHash($cacheHashParameters);
-        } else {
-            $linkParameters['no_cache'] = 1;
         }
 
-        $previewDomain = BackendUtility::getViewDomain($previewPageId);
         $additionalParamsForUrl = GeneralUtility::implodeArrayForUrl('', $linkParameters, '', false, true);
 
-        return $previewDomain . $this->viewScript . $previewPageId . $additionalParamsForUrl;
+        return $this->getTargetUrl($previewPageId, $languageId, $additionalParamsForUrl);
     }
 
     /**
@@ -369,5 +367,48 @@ class SnippetPreview extends AbstractNode
         }
 
         return $locale;
+    }
+
+    protected function getTargetUrl(int $pageId, int $languageId, string $additionalGetVars = ''): string
+    {
+        $permissionClause = $this->getBackendUser()->getPagePermsClause(Permission::PAGE_SHOW);
+        $pageRecord = BackendUtility::readPageAccess($pageId, $permissionClause);
+        if ($pageRecord) {
+            $rootLine = BackendUtility::BEgetRootLine($pageId);
+            // Mount point overlay: Set new target page id and mp parameter
+            $pageRepository = GeneralUtility::makeInstance(PageRepository::class);
+            $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
+            $site = $siteFinder->getSiteByPageId($pageId, $rootLine);
+            $finalPageIdToShow = $pageId;
+            $mountPointInformation = $pageRepository->getMountPointInfo($pageId);
+            if ($mountPointInformation && $mountPointInformation['overlay']) {
+                // New page id
+                $finalPageIdToShow = $mountPointInformation['mount_pid'];
+                $additionalGetVars .= '&MP=' . $mountPointInformation['MPvar'];
+            }
+            if ($site instanceof Site) {
+                $additionalQueryParams = [];
+                parse_str($additionalGetVars, $additionalQueryParams);
+                $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
+                $uriToCheck = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
+
+                $additionalQueryParams['type'] = self::FE_PREVIEW_TYPE;
+                $additionalQueryParams['uriToCheck'] = urlencode($uriToCheck);
+                $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
+                $uri = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
+            } else {
+                $uri = BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
+            }
+            return $uri;
+        }
+        return '#';
+    }
+
+    /**
+     * @return BackendUserAuthentication
+     */
+    protected function getBackendUser(): BackendUserAuthentication
+    {
+        return $GLOBALS['BE_USER'];
     }
 }

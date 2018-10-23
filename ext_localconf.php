@@ -1,13 +1,9 @@
 <?php
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][] = \YoastSeoForTypo3\YoastSeo\Frontend\PageRenderer\PageMetaRenderer::class . '->render';
-
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['cms/layout/db_layout.php']['drawHeaderHook'][] = \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::class . '->render';
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScriptConstants(
     'config.yoast_seo.fe_preview_type = '
-        . \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::FE_PREVIEW_TYPE . PHP_EOL .
-    'config.yoast_seo.sitemap_xml_type = '
-        . \YoastSeoForTypo3\YoastSeo\UserFunc\SitemapXml::DOKTYPE
+        . \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::FE_PREVIEW_TYPE . PHP_EOL
 );
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
@@ -43,6 +39,12 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1520291507] = a
     'nodeName' => 'cornerstone',
     'priority' => 40,
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\Cornerstone::class,
+);
+
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1537991862] = array(
+    'nodeName' => 'hiddenField',
+    'priority' => 40,
+    'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\HiddenField::class
 );
 
 $llFolder = 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/';
@@ -98,15 +100,14 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = [
     ],
     'menuActions' => [
         ['action' => 'dashboard', 'label' => 'dashboard'],
-        ['action' => 'update', 'label' => 'update'],
-        ['action' => 'settings', 'label' => 'settings']
+        ['action' => 'update', 'label' => 'update']
     ],
     'viewSettings' => [
         'showAnalysisTab' => true,
         'showSocialTab' => true,
         'showAdvancedTab' => true
     ],
-    'previewUrlTemplate' => '/index.php?id=%d&type=%d&L=%d',
+    'previewUrlTemplate' => '/?id=%d&type=%d&L=%d',
     'overview_filters' => [
         '10' => [
             'key' => 'cornerstone',
@@ -144,10 +145,5 @@ $iconRegistry->registerIcon(
     ['source' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Yoast-module-container.svg']
 );
 
-if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('realurl')) {
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/realurl/class.tx_realurl_autoconfgen.php']['extensionConfiguration']['yoast_seo_sitemap'] =
-        \YoastSeoForTypo3\YoastSeo\Hooks\RealUrlAutoConfiguration::class . '->addSitemapConfiguration';
-}
-
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processDatamapClass']['yoast_lastmod'] =
-    \YoastSeoForTypo3\YoastSeo\Hooks\UpdateLastMod::class;
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['seoTitleUpdate']
+    = \YoastSeoForTypo3\YoastSeo\Install\SeoTitleUpdate::class;

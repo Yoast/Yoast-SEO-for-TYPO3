@@ -54,7 +54,7 @@ class YoastUtilityTest extends UnitTestCase
      */
     public function isSnippetPreviewEnabledCorrectlyBasedOnPageTsConfiguration($pageId, $config, $expected)
     {
-        $actual = YoastUtility::snippetPreviewEnabled($pageId, ['tx_yoastseo_dont_use' => false], $config);
+        $actual = YoastUtility::snippetPreviewEnabled($pageId, ['tx_yoastseo_hide_snippet_preview' => false], $config);
 
         $this->assertEquals($expected, $actual);
     }
@@ -168,22 +168,22 @@ class YoastUtilityTest extends UnitTestCase
             ],
             [
                 1,
-                ['tx_yoastseo_dont_use' => '0'],
+                ['tx_yoastseo_hide_snippet_preview' => '0'],
                 true
             ],
             [
                 1,
-                ['tx_yoastseo_dont_use' => false],
+                ['tx_yoastseo_hide_snippet_preview' => false],
                 true
             ],
             [
                 1,
-                ['tx_yoastseo_dont_use' => '1'],
+                ['tx_yoastseo_hide_snippet_preview' => '1'],
                 false
             ],
             [
                 1,
-                ['tx_yoastseo_dont_use' => true],
+                ['tx_yoastseo_hide_snippet_preview' => true],
                 false
             ],
         ];

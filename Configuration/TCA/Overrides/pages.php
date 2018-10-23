@@ -7,12 +7,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
         'tx_yoastseo_snippetpreview' => [
             'label' => $llPrefix . 'snippetPreview',
             'exclude' => true,
-            'displayCond' => [
-                'AND' => [
-                    'FIELD:tx_yoastseo_dont_use:REQ:false',
-                    'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false'
-                ]
-            ],
+            'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
             'config' => [
                 'type' => 'text',
                 'renderType' => 'snippetPreview',
@@ -25,33 +20,10 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
         'tx_yoastseo_readability_analysis' => [
             'label' => $llPrefix . 'analysis',
             'exclude' => true,
-            'displayCond' => [
-                'AND' => [
-                    'FIELD:tx_yoastseo_dont_use:REQ:false',
-                    'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false'
-                ]
-            ],
+            'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
             'config' => [
                 'type' => 'text',
                 'renderType' => 'readabilityAnalysis'
-            ]
-        ],
-        'last_mod' => [
-            'exclude' => 1,
-            'label' => $llPrefix . 'last_mod',
-            'config' => [
-                'type' => 'input',
-                'size' => '13',
-                'eval' => 'datetime',
-                'default' => '0',
-                'readOnly' => true,
-            ],
-        ],
-        'tx_yoastseo_dont_use' => [
-            'label' => $llPrefix . 'hideYoastInFrontend',
-            'exclude' => true,
-            'config' => [
-                'type' => 'check'
             ]
         ],
         'tx_yoastseo_hide_snippet_preview' => [
@@ -64,12 +36,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
         'tx_yoastseo_focuskeyword' => [
             'label' => $llPrefix . 'seoFocusKeyword',
             'exclude' => true,
-            'displayCond' => [
-                'AND' => [
-                    'FIELD:tx_yoastseo_dont_use:REQ:false',
-                    'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false'
-                ]
-            ],
+            'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
             'config' => [
                 'type' => 'input',
             ]
@@ -77,12 +44,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
         'tx_yoastseo_focuskeyword_analysis' => [
             'label' => $llPrefix . 'analysis',
             'exclude' => true,
-            'displayCond' => [
-                'AND' => [
-                    'FIELD:tx_yoastseo_dont_use:REQ:false',
-                    'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false'
-                ]
-            ],
+            'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
             'config' => [
                 'type' => 'input',
                 'renderType' => 'focusKeywordAnalysis',
@@ -90,129 +52,6 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
                     'focusKeywordField' => 'tx_yoastseo_focuskeyword',
                 ]
             ]
-        ],
-        'seo_title' => [
-            'label' => $llPrefix . 'seoTitle',
-            'exclude' => true,
-            'config' => [
-                'type' => 'input'
-            ]
-        ],
-        'canonical_url' => [
-            'label' => $llPrefix . 'canonical',
-            'exclude' => true,
-            'config' => [
-                'type' => 'input',
-                'size' => 50,
-                'max' => 1024,
-                'eval' => 'trim',
-                'wizards' => [
-                    'link' => [
-                        'type' => 'popup',
-                        'title' => $llPrefix . 'canonical',
-                        'icon' => 'actions-wizard-link',
-                        'module' => [
-                            'name' => 'wizard_link',
-                        ],
-                        'params' => [
-                            'blindLinkOptions' => 'file, folder, mail, spec',
-                            'blindLinkFields' => '',
-                        ],
-                        'JSopenParams' => 'height=300,width=500,status=0,menubar=0,scrollbars=1'
-                    ]
-                ],
-                'softref' => 'typolink'
-            ]
-        ],
-        'no_index' => [
-            'label' => $llPrefix . 'noIndex',
-            'exclude' => true,
-            'config' => [
-                'type' => 'check'
-            ]
-        ],
-        'no_follow' => [
-            'label' => $llPrefix . 'noFollow',
-            'exclude' => true,
-            'config' => [
-                'type' => 'check'
-            ]
-        ],
-        'og_title' => [
-            'label' => $llPrefix . 'og.title',
-            'exclude' => true,
-            'config' => [
-                'type' => 'input'
-            ]
-        ],
-        'og_description' => [
-            'label' => $llPrefix . 'og.description',
-            'exclude' => true,
-            'config' => [
-                'type' => 'input'
-            ]
-        ],
-        'og_image' => [
-            'label' => $llPrefix . 'og.image',
-            'exclude' => true,
-            'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig(
-                'og_image',
-                [
-                    // Use the imageoverlayPalette instead of the basicoverlayPalette
-                    'foreign_types' => [
-                        '0' => [
-                            'showitem' => '
-                                --palette--;LLL:EXT:lang/locallang_tca.xlf:sys_file_reference.imageoverlayPalette;imageoverlayPalette,
-                                --palette--;;filePalette'
-                        ],
-                        \TYPO3\CMS\Core\Resource\File::FILETYPE_IMAGE => [
-                            'showitem' => '
-                                --palette--;LLL:EXT:lang/locallang_tca.xlf:sys_file_reference.imageoverlayPalette;imageoverlayPalette,
-                                --palette--;;filePalette'
-                        ]
-                    ]
-                ],
-                $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']
-            )
-        ],
-        'twitter_title' => [
-            'label' => $llPrefix . 'twitter.title',
-            'exclude' => true,
-            'config' => [
-                'max' => 70,
-                'type' => 'input'
-            ]
-        ],
-        'twitter_description' => [
-            'label' => $llPrefix . 'twitter.description',
-            'exclude' => true,
-            'config' => [
-                'max' => 200,
-                'type' => 'input'
-            ]
-        ],
-        'twitter_image' => [
-            'label' => $llPrefix . 'twitter.image',
-            'exclude' => true,
-            'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig(
-                'twitter_image',
-                [
-                    // Use the imageoverlayPalette instead of the basicoverlayPalette
-                    'foreign_types' => [
-                        '0' => [
-                            'showitem' => '
-                                --palette--;LLL:EXT:lang/locallang_tca.xlf:sys_file_reference.imageoverlayPalette;imageoverlayPalette,
-                                --palette--;;filePalette'
-                        ],
-                        \TYPO3\CMS\Core\Resource\File::FILETYPE_IMAGE => [
-                            'showitem' => '
-                                --palette--;LLL:EXT:lang/locallang_tca.xlf:sys_file_reference.imageoverlayPalette;imageoverlayPalette,
-                                --palette--;;filePalette'
-                        ]
-                    ]
-                ],
-                $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']
-            )
         ],
         'tx_yoastseo_cornerstone' => [
             'label' => '',
@@ -226,14 +65,16 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
             'label' => '',
             'exclude' => false,
             'config' => [
-                'type' => 'passthrough'
+                'type' => 'input',
+                'renderType' => 'hiddenField'
             ]
         ],
         'tx_yoastseo_score_seo' => [
             'label' => '',
             'exclude' => false,
             'config' => [
-                'type' => 'passthrough'
+                'type' => 'input',
+                'renderType' => 'hiddenField'
             ]
         ],
     ]
@@ -241,13 +82,20 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
     'pages',
-    'yoast-metadata',
+    'seo',
     '
-    --linebreak--, tx_yoastseo_snippetpreview, tx_yoastseo_score_readability, tx_yoastseo_score_seo,
-    --linebreak--, seo_title,
-    --linebreak--, description,
-    --linebreak--, tx_yoastseo_cornerstone
+    --linebreak--, tx_yoastseo_snippetpreview, --linebreak--
+    ',
+    'before: seo_title'
+);
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+    'pages',
+    'seo',
     '
+    --linebreak--, description, --linebreak--, tx_yoastseo_cornerstone
+    ',
+    'after: seo_title'
 );
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
@@ -266,39 +114,11 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     --linebreak--, tx_yoastseo_focuskeyword_analysis
     '
 );
-
-\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
-    'pages',
-    'yoast-robot',
-    '
-    --linebreak--, no_index, no_follow
-    '
-);
-
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
     'pages',
     'yoast-advanced',
     '
-    --linebreak--, canonical_url,
-    --linebreak--, tx_yoastseo_hide_snippet_preview, tx_yoastseo_dont_use, last_mod
-    '
-);
-\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
-    'pages',
-    'yoast-social-og',
-    '
-    --linebreak--, og_title, 
-    --linebreak--, og_description, 
-    --linebreak--, og_image 
-    '
-);
-\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
-    'pages',
-    'yoast-social-twitter',
-    '
-    --linebreak--, twitter_title, 
-    --linebreak--, twitter_description, 
-    --linebreak--, twitter_image 
+    --linebreak--, tx_yoastseo_hide_snippet_preview, --linebreak--, tx_yoastseo_score_readability, tx_yoastseo_score_seo
     '
 );
 
@@ -315,15 +135,27 @@ try {
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
     'pages',
     '
-    --div--;' . $llPrefix . 'pages.tabs.seo,
-        --palette--;' . $llPrefix . 'pages.palettes.metadata;yoast-metadata,
-        --palette--;' . $llPrefix . 'pages.palettes.readability;yoast-readability,
-        --palette--;' . $llPrefix . 'pages.palettes.seo;yoast-focuskeyword,
-        --palette--;' . $llPrefix . 'pages.palettes.og;yoast-social-og,
-        --palette--;' . $llPrefix . 'pages.palettes.twitter;yoast-social-twitter,
-        --palette--;' . $llPrefix . 'pages.palettes.robot;yoast-robot,
-        --palette--;' . $llPrefix . 'pages.palettes.advanced;yoast-advanced,
+        --palette--;Label;yoast-snippetpreview,
     ',
     $dokTypes,
-    'after:subtitle'
+    'before:seo_title'
+);
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
+    'pages',
+    '
+        --palette--;' . $llPrefix . 'pages.palettes.readability;yoast-readability,
+        --palette--;' . $llPrefix . 'pages.palettes.seo;yoast-focuskeyword,
+    ',
+    $dokTypes,
+    'after: tx_yoastseo_cornerstone'
+);
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
+    'pages',
+    '
+        --palette--;' . $llPrefix . 'pages.palettes.advances;yoast-advanced,
+    ',
+    $dokTypes,
+    'after: twitter_image'
 );

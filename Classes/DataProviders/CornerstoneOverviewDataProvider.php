@@ -14,6 +14,9 @@ namespace YoastSeoForTypo3\YoastSeo\DataProviders;
  * The TYPO3 project - inspiring people to share!
  */
 
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+
 /**
  * Class CornerstoneOverviewDataProvider
  * @package YoastSeoForTypo3\YoastSeo\DataProviders
@@ -27,29 +30,22 @@ class CornerstoneOverviewDataProvider extends AbstractOverviewDataProvider
      */
     public function getData($returnOnlyCount = false)
     {
-        $where = 'tx_yoastseo_cornerstone = 1';
+        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('pages');
 
-        $language = (int)$this->callerParams['language'];
-        $table = 'pages';
-        if ($language > 0) {
-            $table = 'pages_language_overlay';
-            $where .= ' AND sys_language_uid = ' . $language;
-        }
+        $constraints = [
+            $qb->expr()->eq('tx_yoastseo_cornerstone', 1),
+            $qb->expr()->eq('sys_language_uid', (int)$this->callerParams['language'])
+        ];
+
+        $query = $qb->select('*')
+            ->from('pages')
+            ->where(...$constraints)
+            ->execute();
 
         if ($returnOnlyCount === false) {
-            return $this->getDatabaseConnection()->exec_SELECTgetRows(
-                '*',
-                $table,
-                $where,
-                '',
-                'title'
-            );
+            return $query->fetchAll();
         }
 
-        return $this->getDatabaseConnection()->exec_SELECTcountRows(
-            '*',
-            $table,
-            $where
-        );
+        return $query->rowCount();
     }
 }

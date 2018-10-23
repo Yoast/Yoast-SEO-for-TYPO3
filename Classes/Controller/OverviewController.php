@@ -14,12 +14,15 @@ namespace YoastSeoForTypo3\YoastSeo\Controller;
  * The TYPO3 project - inspiring people to share!
  */
 
-use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Backend\View\BackendTemplateView;
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
 
@@ -107,7 +110,7 @@ class OverviewController extends ActionController
 
         $this->currentFilter = $this->filters[$this->activeFilter];
 
-        $publicResourcesPath = ExtensionManagementUtility::extRelPath('yoast_seo') . 'Resources/Public/';
+        $publicResourcesPath = PathUtility::getAbsoluteWebPath(ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
 
         $this->pageRenderer->addCssFile(
             $publicResourcesPath . 'CSS/yoast-seo-backend.min.css'
@@ -183,35 +186,29 @@ class OverviewController extends ActionController
     }
 
     /**
-     * Make the LanguageMenu
-     *
-     * @return void
+     * @throws \TYPO3\CMS\Extbase\Mvc\Exception\NoSuchArgumentException
      */
     protected function makeLanguageMenu()
     {
         $lang = $this->getLanguageService();
-        $pageId = 0;
-        if ($this->request->hasArgument('id')) {
-            $pageId = $this->request->getArgument('id');
-        } elseif ((int)GeneralUtility::_GET('id')) {
-            $pageId = (int)GeneralUtility::_GET('id');
-        }
+
+        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_language');
+        $qb->getRestrictions()->removeAll()->add(GeneralUtility::makeInstance(HiddenRestriction::class));
+
+        $rows = $qb->select('uid', 'title')
+            ->from('sys_language')
+            ->execute()
+            ->fetchAll();
+
         $this->MOD_MENU = [
             'language' => [
                 0 => $lang->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:defaultLanguage')
             ]
         ];
 
-        $rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
-            'uid, title',
-            'sys_language',
-            'hidden=0',
-            '',
-            ''
-        );
-        foreach ($rows as $lRow) {
-            if ($this->getBackendUser()->checkLanguageAccess($lRow['uid'])) {
-                $this->MOD_MENU['language'][$lRow['uid']] = $lRow['title'];
+        foreach ($rows as $language) {
+            if ($this->getBackendUser()->checkLanguageAccess($language['uid'])) {
+                $this->MOD_MENU['language'][$language['uid']] = $language['title'];
             }
         }
         if (count($this->MOD_MENU['language']) > 1) {
@@ -219,7 +216,7 @@ class OverviewController extends ActionController
             $lang = $this->getLanguageService();
             $languageMenu = $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->makeMenu();
             $languageMenu->setIdentifier('languageMenu');
-            $languageMenu->setLabel($lang->sL('LLL:EXT:lang/locallang_general.xlf:LGL.language', true));
+            $languageMenu->setLabel($lang->sL('LLL:EXT:lang/locallang_general.xlf:LGL.language'));
             $returnUrl = ($this->request->hasArgument('returnUrl')) ? $this->request->getArgument('returnUrl') : '';
             foreach ($this->MOD_MENU['language'] as $key => $language) {
                 $parameters = array(
@@ -227,7 +224,10 @@ class OverviewController extends ActionController
                     'tx_yoastseo_yoast_yoastseooverview[language]' => $key,
                     'tx_yoastseo_yoast_yoastseooverview[returnUrl]' => $returnUrl
                 );
-                $url = BackendUtility::getModuleUrl('yoast_YoastSeoOverview', $parameters);
+
+                $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
+                $url = $uriBuilder->buildUriFromRoute('yoast_YoastSeoOverview', $parameters);
+
                 $menuItem = $languageMenu
                     ->makeMenuItem()
                     ->setTitle($language)
@@ -258,7 +258,7 @@ class OverviewController extends ActionController
     protected function getParams()
     {
         $language = $this->request->hasArgument('language') ? (int)$this->request->getArgument('language') : 0;
-        $table = $language ? 'pages_language_overlay' : 'pages';
+        $table = 'pages';
 
         return [
             'language' => $language,
