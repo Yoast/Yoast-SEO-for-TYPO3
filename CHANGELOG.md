@@ -5,6 +5,11 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## 4.0.0 November 23, 2018
+### Changed
+* Added support for TYPO3 CMS 9LTS
+* In the v4.x branch, we dropped support for 7LTS and 8LTS. The v3.x will still support 7LTS and 8LTS   
+
 ## 3.0.4 August 24, 2018
 ### Fixed
 * The update of YoastSEO.js caused some errors that needs to be investigated more. For now we reverted the update of YoastSEO.js
