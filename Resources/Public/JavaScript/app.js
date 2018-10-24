@@ -35,6 +35,10 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
     $(function () {
         var $targetElement = $('#' + tx_yoast_seo.settings.targetElementId);
 
+        if ($targetElement.length === 0) {
+            return;
+        }
+
         previewRequest.done(function (previewDocument) {
             // wait with UI markup until the preview is loaded
             var $snippetPreview = $targetElement.append('<div class="snippetPreview yoastPanel" />').find('.snippetPreview');
