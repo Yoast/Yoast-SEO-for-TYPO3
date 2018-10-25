@@ -30,6 +30,11 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
         }
     };
 
+    var showJsError = function(targetElement, text) {
+        targetElement.find('.spinner').hide();
+        targetElement.html('<div class="callout callout-warning">' + text + '</div>');
+    };
+
     // make sure the document is ready before we interact with the DOM
     // use the jQuery (ready) callback
     $(function () {
@@ -40,6 +45,10 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
         }
 
         previewRequest.done(function (previewDocument) {
+            if (!previewDocument.id) {
+                showJsError($targetElement, 'We got an error when requesting <a href="' + tx_yoast_seo.settings.preview + '">' + tx_yoast_seo.settings.preview + '</a>. The JSON returned is not valid, please check the URL.');
+                return;
+            }
             // wait with UI markup until the preview is loaded
             var $snippetPreview = $targetElement.append('<div class="snippetPreview yoastPanel" />').find('.snippetPreview');
             $targetElement.find('.spinner').hide();
@@ -212,10 +221,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
         $('div#snippet_title.snippet_container.snippet-editor__container').off('click');
 
         previewRequest.fail(function (jqXHR) {
-            var text = 'We got an error ' + jqXHR.status + ' (' + jqXHR.statusText + ') when requesting <a href="' + tx_yoast_seo.settings.preview + '" target="_blank">' + tx_yoast_seo.settings.preview + '</a> to analyse your content. Please check your javascript console for more information.';
-
-            $targetElement.find('.spinner').hide();
-            $targetElement.html('<div class="callout callout-warning">' + text + '</div>');
+            showJsError($targetElement, 'We got an error ' + jqXHR.status + ' (' + jqXHR.statusText + ') when requesting <a href="' + tx_yoast_seo.settings.preview + '" target="_blank">' + tx_yoast_seo.settings.preview + '</a> to analyse your content. Please check your javascript console for more information.');
         });
     });
 });
