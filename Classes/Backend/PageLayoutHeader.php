@@ -257,7 +257,7 @@ class PageLayoutHeader
                 $returnHtml .= '
                 <div class="t3-grid-cell yoast yoastSeo yoastSeo--small">
                     <div class="callout callout-warning callout-body">
-                        It seems that you have configured routeEnhancers for this site with type pageType. When you do this, it is necessary that you also add the yoast pageType.<br />
+                        It seems that you have configured routeEnhancers for this site with type pageType. When you do this, it is necessary that you also add the pageType for the Yoast Snippetpreview.<br />
                         Please add a mapping for type ' . self::FE_PREVIEW_TYPE . ' and map it for example to \'yoast-snippetpreview.json\'.<br />
                         <strong><a href="https://docs.typo3.org/typo3cms/extensions/core/Changelog/9.5/Feature-86160-PageTypeEnhancerForMappingTypeParameter.html" target="_blank">You can find an example configuration here.</a></strong>
                     </div>
