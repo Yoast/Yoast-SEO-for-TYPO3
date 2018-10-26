@@ -44,6 +44,13 @@ class PageLayoutHeader
     protected $pageRenderer;
 
     /**
+     * Route enhancer error
+     *
+     * @var bool
+     */
+    protected $routeEnhancerError = false;
+
+    /**
      * Initialize the page renderer
      */
     public function __construct()
@@ -212,7 +219,7 @@ class PageLayoutHeader
             ];
             $url = $uriBuilder->buildUriFromRoute('record_edit', $urlParameters);
 
-            return '
+            $returnHtml = '
                 <div class="yoast-snippet-header">
                     <div class="yoast-snippet-header-icons btn-group btn-group-sm">
                         <a href="#" class="yoast-collapse" data-collapse-target="' . $targetElementId . '">
@@ -233,7 +240,10 @@ class PageLayoutHeader
                         </a>
                     </div>
                     <div class="yoast-snippet-header-label">Yoast SEO</div>
-                </div>
+                </div>';
+
+            if ($this->routeEnhancerError === false) {
+                $returnHtml .= '
                 <input id="focusKeyword" style="display: none" />
                 <div id="' . $targetElementId . '" class="t3-grid-cell yoastSeo yoastSeo--small">
                     <!-- ' . $targetElementId . ' -->
@@ -243,9 +253,19 @@ class PageLayoutHeader
                       <div class="bounce3"></div>
                     </div>
                 </div>';
-        } else {
-            return '';
+            } else {
+                $returnHtml .= '
+                <div class="t3-grid-cell yoast yoastSeo yoastSeo--small">
+                    <div class="callout callout-warning callout-body">
+                        It seems that you have configured routeEnhancers for this site with type pageType. When you do this, it is necessary that you also add the pageType for the Yoast Snippetpreview.<br />
+                        Please add a mapping for type ' . self::FE_PREVIEW_TYPE . ' and map it for example to \'yoast-snippetpreview.json\'.<br />
+                        <strong><a href="https://docs.typo3.org/typo3cms/extensions/core/Changelog/9.5/Feature-86160-PageTypeEnhancerForMappingTypeParameter.html" target="_blank">You can find an example configuration here.</a></strong>
+                    </div>
+                </div>';
+            }
+            return $returnHtml;
         }
+        return '';
     }
 
     /**
@@ -321,6 +341,8 @@ class PageLayoutHeader
                 $additionalGetVars .= '&MP=' . $mountPointInformation['MPvar'];
             }
             if ($site instanceof CMS\Core\Site\Entity\Site) {
+                $this->checkRouteEnhancers($site);
+
                 $additionalQueryParams = [];
                 parse_str($additionalGetVars, $additionalQueryParams);
                 $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
@@ -335,6 +357,31 @@ class PageLayoutHeader
             return $uri;
         }
         return '#';
+    }
+
+    /**
+     * Check the route enhancers
+     *
+     * @param \TYPO3\CMS\Core\Site\Entity\Site $site
+     */
+    protected function checkRouteEnhancers(CMS\Core\Site\Entity\Site $site)
+    {
+        if (isset($site->getConfiguration()['routeEnhancers'])) {
+            $typeEnhancer = $yoastTypeEnhancer = false;
+            foreach ($site->getConfiguration()['routeEnhancers'] as $routeEnhancer) {
+                if ($routeEnhancer['type'] === 'PageType') {
+                    $typeEnhancer = true;
+                    foreach ($routeEnhancer['map'] as $pageType) {
+                        if ($pageType === self::FE_PREVIEW_TYPE) {
+                            $yoastTypeEnhancer = true;
+                        }
+                    }
+                }
+            }
+            if ($typeEnhancer === true && $yoastTypeEnhancer === false) {
+                $this->routeEnhancerError = true;
+            }
+        }
     }
 
     /**
