@@ -1,21 +1,22 @@
 <?php
 namespace YoastSeoForTypo3\YoastSeo\UserFunctions;
 
+use TYPO3\CMS\Core\Exception;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 
 class SnippetPreview
 {
     public function render()
     {
-        $title = $body = '';
+        $title = $body = $metaDescription = '';
         $uriToCheck = urldecode($GLOBALS['TYPO3_REQUEST']->getQueryParams()['uriToCheck']);
 
         /** @var SiteLanguage $siteLanguage */
         $siteLanguage = $GLOBALS['TYPO3_REQUEST']->getAttribute('language');
         $content = $this->getContentFromUrl($uriToCheck);
-        $metaTags = get_meta_tags($uriToCheck);
 
         $titleFound = preg_match("/<title[^>]*>(.*?)<\/title>/is", $content, $matchesTitle);
+        $descriptionFound = preg_match("/<title[^>]*>(.*?)<\/title>/is", $content, $matchesDescription);
         $bodyFound = preg_match("/<body[^>]*>(.*?)<\/body>/is", $content, $matchesBody);
 
         if ($bodyFound) {
@@ -36,7 +37,10 @@ class SnippetPreview
             $title = $matchesTitle[1];
         }
 
-        $metaDescription = (string)$metaTags['description'];
+        if ($descriptionFound) {
+            $metaDescription = $matchesDescription[1];
+        }
+
         $url = preg_replace('/\/$/', '', $uriToCheck);
 
         $titlePrependAppend = $this->getPageTitlePrependAppend();
@@ -54,7 +58,7 @@ class SnippetPreview
                 'pageTitleAppend' => $titlePrependAppend['append'],
             ];
         } else {
-            $data = ['error' => 'Kon niet lezen'];
+            $data = ['error' => 'Could not read the url ' . $uriToCheck];
         }
 
         return json_encode($data);
@@ -69,13 +73,16 @@ class SnippetPreview
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $uriToCheck);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         $result = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
 
         if ($httpCode === 200) {
+            curl_close($ch);
             return (string)$result;
         } else {
+            throw new Exception(curl_error($ch));
+            curl_close($ch);
             return null;
         }
     }
