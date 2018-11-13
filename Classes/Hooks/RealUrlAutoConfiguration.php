@@ -24,7 +24,7 @@ class RealUrlAutoConfiguration
 {
     public function addSitemapConfiguration($params)
     {
-        return array_merge(
+        return array_merge_recursive(
             $params['config'],
             [
                 'fileName' => [
