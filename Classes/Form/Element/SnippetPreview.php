@@ -395,7 +395,7 @@ class SnippetPreview extends AbstractNode
                 $additionalQueryParams['type'] = self::FE_PREVIEW_TYPE;
                 $additionalQueryParams['uriToCheck'] = urlencode($uriToCheck);
                 $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
-                $uri = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
+                $uri = (string)$site->getRouter()->generateUri($site->getRootPageId(), $additionalQueryParams);
             } else {
                 $uri = BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
             }

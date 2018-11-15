@@ -350,7 +350,7 @@ class PageLayoutHeader
 
                 $additionalQueryParams['type'] = self::FE_PREVIEW_TYPE;
                 $additionalQueryParams['uriToCheck'] = urlencode($uriToCheck);
-                $uri = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
+                $uri = (string)$site->getRouter()->generateUri($site->getRootPageId(), $additionalQueryParams);
             } else {
                 $uri = CMS\Backend\Utility\BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
             }
