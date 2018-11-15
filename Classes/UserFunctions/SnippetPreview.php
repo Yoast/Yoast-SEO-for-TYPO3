@@ -16,7 +16,11 @@ class SnippetPreview
         $content = $this->getContentFromUrl($uriToCheck);
 
         $titleFound = preg_match("/<title[^>]*>(.*?)<\/title>/is", $content, $matchesTitle);
-        $descriptionFound = preg_match("/<title[^>]*>(.*?)<\/title>/is", $content, $matchesDescription);
+        $descriptionFound = preg_match(
+            "/<meta[^>]*name=[\" | \']description[\"|\'][^>]*content=[\"]([^\"]*)[\"][^>]*>/i",
+            $content,
+            $matchesDescription
+        );
         $bodyFound = preg_match("/<body[^>]*>(.*?)<\/body>/is", $content, $matchesBody);
 
         if ($bodyFound) {
