@@ -145,7 +145,12 @@ class SitemapXml
                         $typoLinkConf['additionalParams'] = '';
                     }
 
-                    $docs[$k]['loc'] = $cObject->typoLink_URL($typoLinkConf);
+                    $url = $cObject->typoLink_URL($typoLinkConf);
+                    if (empty($url)) {
+                        unset($docs[$k]);
+                    } else {
+                        $docs[$k]['loc'] = $url;
+                    }
                 }
             }
         }
