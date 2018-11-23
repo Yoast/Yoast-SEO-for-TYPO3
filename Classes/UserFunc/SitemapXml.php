@@ -1,4 +1,5 @@
 <?php
+
 namespace YoastSeoForTypo3\YoastSeo\UserFunc;
 
 /*
@@ -116,16 +117,22 @@ class SitemapXml
             array_key_exists('table', $sitemapSettings)
         ) {
             if ($sitemapSettings['table'] === 'pages') {
-                $rootPid = $sitemapSettings['rootPid'] ?: $tsfe->id;
+                $rootPids = $sitemapSettings['rootPid'] ? explode(',', $sitemapSettings['rootPid']) : [$tsfe->id];
                 $where = $sitemapSettings['additionalWhere'] ?: '';
 
-                $docs[] = $tsfe->sys_page->getPage($rootPid);
-                $docs = array_filter(
-                    $this->getSubPages($rootPid, $docs, $where),
-                    '\YoastSeoForTypo3\YoastSeo\UserFunc\SitemapXml::filterNoIndexPages'
-                );
+                foreach ($rootPids as $rootPid) {
+                    $docs[] = $tsfe->sys_page->getPage($rootPid);
+                    $docs = array_filter(
+                        $this->getSubPages($rootPid, $docs, $where),
+                        '\YoastSeoForTypo3\YoastSeo\UserFunc\SitemapXml::filterNoIndexPages'
+                    );
+                }
             } else {
                 $where[] = $sitemapSettings['additionalWhere'] ?: '1=1';
+                $rootPids = $sitemapSettings['rootPid'] ? explode(',', $sitemapSettings['rootPid']) : [];
+                if (!empty($rootPids)) {
+                    $where[] = ' AND pid IN (' . implode(',', $rootPids) . ')';
+                }
                 $where[] = $tsfe->sys_page->enableFields($sitemapSettings['table']);
                 $sortField = $sitemapSettings['sortField'] ?: 'tstamp DESC';
 
@@ -231,7 +238,7 @@ class SitemapXml
      */
     protected function getTSFE()
     {
-        return  $GLOBALS['TSFE'];
+        return $GLOBALS['TSFE'];
     }
 
     /**
