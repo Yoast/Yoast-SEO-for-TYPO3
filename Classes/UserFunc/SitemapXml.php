@@ -119,7 +119,11 @@ class SitemapXml
                 $rootPid = $sitemapSettings['rootPid'] ?: $tsfe->id;
                 $where = $sitemapSettings['additionalWhere'] ?: '';
 
-                $docs[] = $tsfe->sys_page->getPage($rootPid);
+                $rootPage = reset($this->getTSFE()->sys_page->getMenuForPages([$rootPid], '*', 'sorting', $where));
+                if ($rootPage) {
+                    $docs[] = $rootPage;
+                }
+
                 $docs = array_filter(
                     $this->getSubPages($rootPid, $docs, $where),
                     '\YoastSeoForTypo3\YoastSeo\UserFunc\SitemapXml::filterNoIndexPages'
