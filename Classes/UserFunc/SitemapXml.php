@@ -117,7 +117,7 @@ class SitemapXml
             array_key_exists('table', $sitemapSettings)
         ) {
             if ($sitemapSettings['table'] === 'pages') {
-                $rootPids = $sitemapSettings['rootPid'] ? explode(',', $sitemapSettings['rootPid']) : [$tsfe->id];
+                $rootPids = $sitemapSettings['rootPid'] ? GeneralUtility::intExplode(',', $sitemapSettings['rootPid'], true) : [$tsfe->id];
                 $where = $sitemapSettings['additionalWhere'] ?: '';
 
                 foreach ($rootPids as $rootPid) {
@@ -129,7 +129,7 @@ class SitemapXml
                 }
             } else {
                 $where[] = $sitemapSettings['additionalWhere'] ?: '1=1';
-                $rootPids = $sitemapSettings['rootPid'] ? explode(',', $sitemapSettings['rootPid']) : [];
+                $rootPids = $sitemapSettings['rootPid'] ? GeneralUtility::intExplode(',', $sitemapSettings['rootPid'], true) : [];
                 if (!empty($rootPids)) {
                     $where[] = ' AND pid IN (' . implode(',', $rootPids) . ')';
                 }
