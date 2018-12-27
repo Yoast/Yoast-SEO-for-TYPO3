@@ -3,17 +3,46 @@ namespace YoastSeoForTypo3\YoastSeo\UserFunctions;
 
 use TYPO3\CMS\Core\Exception;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
+/**
+ * Class SnippetPreview
+ * @package YoastSeoForTypo3\YoastSeo\UserFunctions
+ */
 class SnippetPreview
 {
-    public function render()
+    /**
+     * Render function
+     *
+     * @return string
+     */
+    public function render(): string
+    {
+        $uriToCheck = urldecode($GLOBALS['TYPO3_REQUEST']->getQueryParams()['uriToCheck']);
+
+        try {
+            $content = $this->getContentFromUrl($uriToCheck);
+            $data = $this->getDataFromContent($content, $uriToCheck);
+        } catch (Exception $e) {
+            $data = ['error' => 'Could not read the url ' . $uriToCheck . ': ' . $e->getMessage()];
+        }
+
+        return json_encode($data);
+    }
+
+    /**
+     * Get data from content
+     *
+     * @param string $content
+     * @param string $uriToCheck
+     * @return array
+     */
+    protected function getDataFromContent($content, $uriToCheck): array
     {
         $title = $body = $metaDescription = '';
-        $uriToCheck = urldecode($GLOBALS['TYPO3_REQUEST']->getQueryParams()['uriToCheck']);
 
         /** @var SiteLanguage $siteLanguage */
         $siteLanguage = $GLOBALS['TYPO3_REQUEST']->getAttribute('language');
-        $content = $this->getContentFromUrl($uriToCheck);
 
         $titleFound = preg_match("/<title[^>]*>(.*?)<\/title>/is", $content, $matchesTitle);
         $descriptionFound = preg_match(
@@ -49,7 +78,7 @@ class SnippetPreview
 
         $titlePrependAppend = $this->getPageTitlePrependAppend();
         if ($content !== null) {
-            $data = [
+            return [
                 'id' => $GLOBALS['TSFE']->id,
                 'url' => $url,
                 'baseUrl' => preg_replace('/' . preg_quote($GLOBALS['TSFE']->page['slug'], '/') . '$/', '', $url),
@@ -61,36 +90,31 @@ class SnippetPreview
                 'pageTitlePrepend' => $titlePrependAppend['prepend'],
                 'pageTitleAppend' => $titlePrependAppend['append'],
             ];
-        } else {
-            $data = ['error' => 'Could not read the url ' . $uriToCheck];
         }
-
-        return json_encode($data);
+        return ['error' => 'Could not read the url ' . $uriToCheck];
     }
 
     /**
      * @param $uriToCheck
      * @return null|string
+     * @throws \TYPO3\CMS\Core\Exception
      */
-    protected function getContentFromUrl($uriToCheck)
+    protected function getContentFromUrl($uriToCheck): ?string
     {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $uriToCheck);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        $result = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        if ($httpCode === 200) {
-            curl_close($ch);
-            return (string)$result;
-        } else {
-            throw new Exception(curl_error($ch));
-            curl_close($ch);
-            return null;
+        $GLOBALS['TYPO3_CONF_VARS']['HTTP']['verify'] = false;
+        $report = [];
+        $content = GeneralUtility::getUrl($uriToCheck, 1, [], $report);
+        if ($report['http_code'] === 200) {
+            return $content;
         }
+        throw new Exception($report['message']);
     }
 
+    /**
+     * Get page title prepend append
+     *
+     * @return array
+     */
     protected function getPageTitlePrependAppend(): array
     {
         $prependAppend = ['prepend' => '', 'append' => ''];
@@ -114,15 +138,25 @@ class SnippetPreview
         return $prependAppend;
     }
 
-    protected function getPageTitleSeparator()
+    /**
+     * Get page title separator
+     *
+     * @return string
+     */
+    protected function getPageTitleSeparator(): string
     {
         $pageTitleSeparator = '';
         // Check for a custom pageTitleSeparator, and perform stdWrap on it
-        if (isset($GLOBALS['TSFE']->config['config']['pageTitleSeparator']) && $GLOBALS['TSFE']->config['config']['pageTitleSeparator'] !== '') {
+        if (isset($GLOBALS['TSFE']->config['config']['pageTitleSeparator'])
+            && $GLOBALS['TSFE']->config['config']['pageTitleSeparator'] !== '') {
             $pageTitleSeparator = $GLOBALS['TSFE']->config['config']['pageTitleSeparator'];
 
-            if (isset($GLOBALS['TSFE']->config['config']['pageTitleSeparator.']) && is_array($GLOBALS['TSFE']->config['config']['pageTitleSeparator.'])) {
-                $pageTitleSeparator = $GLOBALS['TSFE']->cObj->stdWrap($pageTitleSeparator, $GLOBALS['TSFE']->config['config']['pageTitleSeparator.']);
+            if (isset($GLOBALS['TSFE']->config['config']['pageTitleSeparator.'])
+                && is_array($GLOBALS['TSFE']->config['config']['pageTitleSeparator.'])) {
+                $pageTitleSeparator = $GLOBALS['TSFE']->cObj->stdWrap(
+                    $pageTitleSeparator,
+                    $GLOBALS['TSFE']->config['config']['pageTitleSeparator.']
+                );
             } else {
                 $pageTitleSeparator .= ' ';
             }
