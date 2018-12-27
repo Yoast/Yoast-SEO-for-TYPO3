@@ -225,7 +225,8 @@ class SitemapXml
         return $this->getDb()->exec_SELECTgetRows(
             '*',
             'pages',
-            'uid IN(' . implode(',', $treeListArray) . ') ' . ($sitemapSettings['additionalWhere'] ?: ''),
+            'uid IN(' . implode(',', $treeListArray) . ') AND no_index=0 '
+            . ($sitemapSettings['additionalWhere'] ?: ''),
             '',
             'uid ASC'
         );
