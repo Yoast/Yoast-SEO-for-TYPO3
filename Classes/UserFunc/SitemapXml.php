@@ -14,10 +14,13 @@ namespace YoastSeoForTypo3\YoastSeo\UserFunc;
  * The TYPO3 project - inspiring people to share!
  */
 
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\QueryHelper;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
+use TYPO3\CMS\Frontend\Page\PageRepository;
 
 /**
  * Class SitemapXml
@@ -52,13 +55,36 @@ class SitemapXml
      */
     protected $partialRootPaths = [];
 
+    /**
+     * @var string
+     */
     protected $privateResourcesPath;
+
+    /**
+     * @var string
+     */
     protected $publicResourcesPath;
 
     /**
-     *
+     * Render function
      */
     public function render()
+    {
+        $this->initialize();
+
+        if (empty($sitemapConfig = GeneralUtility::_GP('tx_yoastseo_sitemap'))) {
+            $this->getIndex();
+        } else {
+            $this->getSitemap($sitemapConfig);
+        }
+
+        return $this->renderView();
+    }
+
+    /**
+     * Initialize
+     */
+    protected function initialize()
     {
         $this->view = GeneralUtility::makeInstance(StandaloneView::class);
         $this->view->setFormat('xml');
@@ -74,13 +100,15 @@ class SitemapXml
         ];
 
         $this->settings = $this->getSettings();
+    }
 
-        if (empty($sitemapConfig = GeneralUtility::_GP('tx_yoastseo_sitemap'))) {
-            $this->getIndex();
-        } else {
-            $this->getSitemap($sitemapConfig);
-        }
-
+    /**
+     * Render view
+     *
+     * @return string
+     */
+    protected function renderView()
+    {
         $this->view->assignMultiple($this->variables);
         $this->view->setPartialRootPaths($this->partialRootPaths);
         $this->view->setTemplatePathAndFilename($this->templateFile);
@@ -88,9 +116,12 @@ class SitemapXml
         return $this->view->render();
     }
 
+    /**
+     * Get index
+     */
     protected function getIndex()
     {
-        $this->templateFile = ExtensionManagementUtility::extPath('yoast_seo') . 'Resources/Private/Templates/SitemapXml/Index.xml';
+        $this->templateFile = $this->privateResourcesPath . 'Templates/SitemapXml/Index.xml';
         $sitemaps = $this->getSitemaps();
 
         $this->variables = array_merge(
@@ -102,51 +133,21 @@ class SitemapXml
     }
 
     /**
+     * Get sitemap
+     *
      * @param string $sitemapConfig
      */
     protected function getSitemap($sitemapConfig)
     {
-        $tsfe = $this->getTSFE();
-        $db = $this->getDb();
+        $this->templateFile = $this->privateResourcesPath . 'Templates/SitemapXml/List.xml';
 
-        $this->templateFile = ExtensionManagementUtility::extPath('yoast_seo') . 'Resources/Private/Templates/SitemapXml/List.xml';
         $docs = [];
         $sitemapSettings = $this->settings[$sitemapConfig . '.'];
-        if (is_array($sitemapSettings) &&
-            array_key_exists('table', $sitemapSettings)
-        ) {
+        if (is_array($sitemapSettings) && array_key_exists('table', $sitemapSettings)) {
             if ($sitemapSettings['table'] === 'pages') {
-                $rootPid = $sitemapSettings['rootPid'] ?: $tsfe->id;
-                $where = $sitemapSettings['additionalWhere'] ?: '';
-
-                $docs[] = $tsfe->sys_page->getPage($rootPid);
-                $docs = array_filter(
-                    $this->getSubPages($rootPid, $docs, $where),
-                    '\YoastSeoForTypo3\YoastSeo\UserFunc\SitemapXml::filterNoIndexPages'
-                );
+                $docs = $this->getPages($sitemapSettings);
             } else {
-                $where[] = $sitemapSettings['additionalWhere'] ?: '1=1';
-                $where[] = $tsfe->sys_page->enableFields($sitemapSettings['table']);
-                $sortField = $sitemapSettings['sortField'] ?: 'tstamp DESC';
-
-                $docs = $db->exec_SELECTgetRows('*', $sitemapSettings['table'], implode('', $where), '', $sortField);
-
-                $cObject = GeneralUtility::makeInstance(ContentObjectRenderer::class);
-                $typoLinkConf = [
-                    'parameter' => (int)$sitemapSettings['detailPid'],
-                    'forceAbsoluteUrl' => 1,
-                    'useCacheHash' => !empty((bool)$sitemapSettings['useCacheHash'])
-                ];
-
-                foreach ($docs as $k => $record) {
-                    if ($sitemapSettings['additionalParams']) {
-                        $typoLinkConf['additionalParams'] = '&' . $sitemapSettings['additionalParams'] . '=' . $record['uid'];
-                    } else {
-                        $typoLinkConf['additionalParams'] = '';
-                    }
-
-                    $docs[$k]['loc'] = $cObject->typoLink_URL($typoLinkConf);
-                }
+                $docs = $this->getRecords($sitemapSettings);
             }
         }
 
@@ -161,26 +162,123 @@ class SitemapXml
     }
 
     /**
-     * @param $parentPageId
-     * @param array $pages
-     * @param string $additionalWhereClause
-     * @param string $fields
-     * @param string $sortField
-     * @param bool $checkShortcuts
-     * @return array
+     * Get pages
+     *
+     * @param array $sitemapSettings
+     * @return mixed
      */
-    protected function getSubPages($parentPageId, array $pages = [], $additionalWhereClause = '', $fields = '*', $sortField = 'sorting', $checkShortcuts = false)
+    protected function getPages($sitemapSettings)
     {
-        $subPages = $this->getTSFE()->sys_page->getMenu($parentPageId, $fields, $sortField, $additionalWhereClause, $checkShortcuts);
-        $pages = array_merge($pages, $subPages);
+        $rootPid = $sitemapSettings['rootPid'] ?: $this->getTSFE()->id;
 
-        foreach ($subPages as $subPage) {
-            $pages = $this->getSubPages($subPage['uid'], $pages, $additionalWhereClause, $fields, $sortField, $checkShortcuts);
+        $cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
+        $treeList = $cObj->getTreeList(-$rootPid, 99);
+        $treeListArray = GeneralUtility::intExplode(',', $treeList);
+
+        if (class_exists(ConnectionPool::class)) {
+            $pages = $this->queryBuilderPages($treeListArray, $sitemapSettings);
+        } else {
+            $pages = $this->databaseConnectionPages($treeListArray, $sitemapSettings);
         }
 
-        return $pages;
+        $pageRepository = GeneralUtility::makeInstance(PageRepository::class);
+        return $pageRepository->getPagesOverlay($pages);
     }
 
+    /**
+     * Get pages with queryBuilder
+     *
+     * @param array $treeListArray
+     * @param array $sitemapSettings
+     * @return array
+     */
+    protected function queryBuilderPages($treeListArray, $sitemapSettings)
+    {
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('pages');
+
+        $constraints = [
+            $queryBuilder->expr()->in('uid', $treeListArray),
+            $queryBuilder->expr()->neq('no_index', 1)
+        ];
+
+        if (!empty($sitemapSettings['additionalWhere'])) {
+            $constraints[] = QueryHelper::stripLogicalOperatorPrefix($sitemapSettings['additionalWhere']);
+        }
+        return $queryBuilder->select('*')
+            ->from('pages')
+            ->where(...$constraints)
+            ->orderBy('uid', 'ASC')
+            ->execute()
+            ->fetchAll();
+    }
+
+    /**
+     * Get pages with (old) DatabaseConnection
+     *
+     * @param array $treeListArray
+     * @param array $sitemapSettings
+     * @return array
+     */
+    protected function databaseConnectionPages($treeListArray, $sitemapSettings)
+    {
+        return $this->getDb()->exec_SELECTgetRows(
+            '*',
+            'pages',
+            'uid IN(' . implode(',', $treeListArray) . ') ' . ($sitemapSettings['additionalWhere'] ?: ''),
+            '',
+            'uid ASC'
+        );
+    }
+
+    /**
+     * Get records
+     *
+     * @param array $sitemapSettings
+     * @return array
+     */
+    protected function getRecords($sitemapSettings)
+    {
+        $where = $sitemapSettings['additionalWhere'] ?: '1=1';
+        $where .= $this->getTSFE()->sys_page->enableFields($sitemapSettings['table']);
+        $sortField = $sitemapSettings['sortField'] ?: 'tstamp DESC';
+
+        $records = $this->getDb()->exec_SELECTgetRows(
+            '*',
+            $sitemapSettings['table'],
+            $where,
+            '',
+            $sortField
+        );
+
+        $cObject = GeneralUtility::makeInstance(ContentObjectRenderer::class);
+        $typoLinkConf = [
+            'parameter' => (int)$sitemapSettings['detailPid'],
+            'forceAbsoluteUrl' => 1,
+            'useCacheHash' => !empty((bool)$sitemapSettings['useCacheHash'])
+        ];
+
+        $docs = [];
+        foreach ($records as $record) {
+            if ($sitemapSettings['additionalParams']) {
+                $typoLinkConf['additionalParams'] = '&' . $sitemapSettings['additionalParams'] . '=' . $record['uid'];
+            } else {
+                $typoLinkConf['additionalParams'] = '';
+            }
+            $recordUrl = $cObject->typoLink_URL($typoLinkConf);
+            if (!empty($recordUrl)) {
+                $record['loc'] = $recordUrl;
+                $docs[] = $record;
+            }
+        }
+        return $docs;
+    }
+
+    /**
+     * Get sitemaps
+     *
+     * @return array
+     */
     protected function getSitemaps()
     {
         $sitemaps = [];
@@ -195,7 +293,9 @@ class SitemapXml
     }
 
     /**
-     * @return void
+     * Get settings
+     *
+     * @return array
      */
     protected function getSettings()
     {
@@ -211,7 +311,9 @@ class SitemapXml
     }
 
     /**
-     * @return void
+     * Get partial root paths
+     *
+     * @return array
      */
     protected function getPartialRootPaths()
     {
@@ -227,26 +329,22 @@ class SitemapXml
     }
 
     /**
+     * Get typoscript frontend controller
+     *
      * @return \TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController
      */
     protected function getTSFE()
     {
-        return  $GLOBALS['TSFE'];
+        return $GLOBALS['TSFE'];
     }
 
     /**
+     * Get database connection
+     *
      * @return \TYPO3\CMS\Core\Database\DatabaseConnection
      */
     protected function getDb()
     {
         return $GLOBALS['TYPO3_DB'];
-    }
-
-    public function filterNoIndexPages($var)
-    {
-        if ((int)$var['no_index'] === 1) {
-            return false;
-        }
-        return true;
     }
 }
