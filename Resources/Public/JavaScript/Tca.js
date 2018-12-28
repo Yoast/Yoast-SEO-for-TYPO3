@@ -19,7 +19,6 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
         $formEngineDescription.after("<div class='yoast-progressbars-container'><progress id='yoast-progress-description' class='yoast-progressbars'></progress></div>");
 
         previewRequest.done(function (previewDocument) {
-            console.log(previewDocument);
             var $snippetPreviewElement = $targetElement.append('<div class="snippetPreview yoastPanel" />').find('.snippetPreview');
 
             var pageContent = previewDocument.body;
