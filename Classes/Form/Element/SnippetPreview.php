@@ -232,9 +232,7 @@ class SnippetPreview extends AbstractNode
             }
         }
 
-        $linkParameters = [
-            'type' => self::FE_PREVIEW_TYPE
-        ];
+        $linkParameters = [];
 
         // language handling
         $languageField = isset($GLOBALS['TCA'][$this->table]['ctrl']['languageField'])
@@ -291,7 +289,8 @@ class SnippetPreview extends AbstractNode
         $previewDomain = BackendUtility::getViewDomain($previewPageId);
         $additionalParamsForUrl = GeneralUtility::implodeArrayForUrl('', $linkParameters, '', false, true);
 
-        return $previewDomain . $this->viewScript . $previewPageId . $additionalParamsForUrl;
+        return $previewDomain . '/?type=' . self::FE_PREVIEW_TYPE .
+            '&pageId=' . $previewPageId . '&additionalParams=' . urlencode($additionalParamsForUrl);
     }
 
     /**

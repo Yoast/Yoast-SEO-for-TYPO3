@@ -144,14 +144,8 @@ class PageLayoutHeader
                 $domain = $protocol . '://' . $domainName;
             }
 
-            $previewDataUrl = vsprintf(
-                $domain . $this->configuration['previewUrlTemplate'],
-                array(
-                    $pageLayoutController->id,
-                    static::FE_PREVIEW_TYPE,
-                    $pageLayoutController->current_sys_language
-                )
-            );
+            $previewDataUrl = $domain . '/?type=' . static::FE_PREVIEW_TYPE . '&pageId=' . $pageLayoutController->id
+                . '&additionalParams=' . urlencode('&L=' . $pageLayoutController->current_sys_language);
         }
 
         $allowedDoktypes = YoastUtility::getAllowedDoktypes();

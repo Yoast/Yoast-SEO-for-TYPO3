@@ -19,36 +19,27 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
         $formEngineDescription.after("<div class='yoast-progressbars-container'><progress id='yoast-progress-description' class='yoast-progressbars'></progress></div>");
 
         previewRequest.done(function (previewDocument) {
+            console.log(previewDocument);
             var $snippetPreviewElement = $targetElement.append('<div class="snippetPreview yoastPanel" />').find('.snippetPreview');
 
-            // the preview is an XML document, for easy traversal convert it to a jQuery object
-            var $previewDocument = $(previewDocument);
-            var $metaSection = $previewDocument.find('meta');
-            var $contentElements = $previewDocument.find('content>element');
-
-            var pageContent = '';
-            $contentElements.each(function (index, element) {
-                pageContent += element.textContent;
-            });
-
-            var slug = $metaSection.find('slug').text().replace(/^\/|\/$/g, '');
+            var pageContent = previewDocument.body;
 
             var snippetPreview = new YoastSEO.SnippetPreview({
                 data: {
-                    title: $metaSection.find('title').text(),
-                    metaDesc: $metaSection.find('description').text(),
-                    urlPath: slug
+                    title: previewDocument.title,
+                    metaDesc: previewDocument.description,
+                    urlPath: previewDocument.slug
                 },
-                baseURL: $metaSection.find('url').text().replace($metaSection.find('slug').text(), '/'),
+                baseURL: previewDocument.baseUrl,
                 placeholder: {
-                    title: $metaSection.find('pageTitle').text(),
-                    urlPath: slug
+                    title: previewDocument.title,
+                    urlPath: previewDocument.slug
                 },
                 targetElement: $snippetPreviewElement.get(0),
                 previewMode: 'desktop'
             });
 
-            $formEngineTitle.attr('placeholder', $metaSection.find('pageTitle').text());
+            $formEngineTitle.attr('placeholder', previewDocument.title);
 
             var apps = [];
             var cnt = 0;
@@ -74,7 +65,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                         callbacks: {
                             getData: function () {
                                 return {
-                                    title: $metaSection.find('title').text(),
+                                    title: previewDocument.title,
                                     text: pageContent,
                                     keyword: focusKeywordElement.val()
                                 };
@@ -107,7 +98,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                                 $yoastSeoScoreBarReadability.find('.wpseo-score-textual').first().html(scoreTextual);
                             }
                         },
-                        locale: $metaSection.find('locale').text(),
+                        locale: previewDocument.locale,
                         translations: (window.tx_yoast_seo !== undefined && window.tx_yoast_seo !== null && window.tx_yoast_seo.translations !== undefined ? window.tx_yoast_seo.translations : null)
                     });
 
@@ -129,7 +120,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                         callbacks: {
                             getData: function () {
                                 return {
-                                    title: $metaSection.find('title').text(),
+                                    title: previewDocument.title,
                                     text: pageContent,
                                     keyword: tx_yoast_seo.firstFocusKeyword
                                 };
@@ -157,7 +148,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                                 $yoastSeoScoreBarReadability.find('.wpseo-score-textual').first().html(scoreTextual);
                             }
                         },
-                        locale: $metaSection.find('locale').text(),
+                        locale: previewDocument.locale,
                         translations: (window.tx_yoast_seo !== undefined && window.tx_yoast_seo !== null && window.tx_yoast_seo.translations !== undefined ? window.tx_yoast_seo.translations : null)
                     });
 
@@ -172,7 +163,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
             initApps();
 
-            $('*[data-yoast-trigger="true"]').trigger('dataReceived', [pageContent, $metaSection.find('locale').text()]);
+            $('*[data-yoast-trigger="true"]').trigger('dataReceived', [pageContent, previewDocument.locale]);
 
             var $focusKeywordPremiumPanel = $('div[id*="tx_yoastseo_focuskeyword_premium"]').find('.panel');
 
@@ -197,7 +188,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
 
             $formEngineTitle.on('input', function() {
                 var $titleElement = $targetElement.find('#snippet-editor-title');
-                var $newTitle = $metaSection.find('pageTitlePrepend').text() + $(this).val() + $metaSection.find('pageTitleAppend').text()
+                var $newTitle = previewDocument.pageTitlePrepend + $(this).val() + previewDocument.pageTitleAppend;
                 $titleElement.val($newTitle.trim());
 
                 snippetPreview.changedInput();
