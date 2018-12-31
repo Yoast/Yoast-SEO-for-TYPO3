@@ -40,10 +40,8 @@ class PageRequestMiddleware implements MiddlewareInterface
      */
     protected function getRequestHash(): string
     {
-        return md5(
-            serialize([
-                $GLOBALS['TYPO3_CONF_VARS']['SYS']['encryptionKey']
-            ])
+        return GeneralUtility::hmac(
+            GeneralUtility::getIndpEnv('TYPO3_REQUEST_URL')
         );
     }
 }

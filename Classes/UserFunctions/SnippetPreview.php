@@ -109,10 +109,8 @@ class SnippetPreview
             $uriToCheck,
             1,
             [
-                'X-Yoast-Page-Request' => md5(
-                    serialize([
-                        $GLOBALS['TYPO3_CONF_VARS']['SYS']['encryptionKey']
-                    ])
+                'X-Yoast-Page-Request' => GeneralUtility::hmac(
+                    $uriToCheck
                 )
             ],
             $report
