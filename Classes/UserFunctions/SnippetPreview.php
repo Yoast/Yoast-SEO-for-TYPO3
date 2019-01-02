@@ -95,6 +95,8 @@ class SnippetPreview
     }
 
     /**
+     * Get content from url
+     *
      * @param $uriToCheck
      * @return null|string
      * @throws \TYPO3\CMS\Core\Exception
@@ -103,7 +105,16 @@ class SnippetPreview
     {
         $GLOBALS['TYPO3_CONF_VARS']['HTTP']['verify'] = false;
         $report = [];
-        $content = GeneralUtility::getUrl($uriToCheck, 1, [], $report);
+        $content = GeneralUtility::getUrl(
+            $uriToCheck,
+            1,
+            [
+                'X-Yoast-Page-Request' => GeneralUtility::hmac(
+                    $uriToCheck
+                )
+            ],
+            $report
+        );
         if ($report['http_code'] === 200) {
             return $content;
         }
