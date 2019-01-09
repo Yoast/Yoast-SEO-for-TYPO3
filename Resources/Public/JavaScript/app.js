@@ -116,7 +116,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                             }
 
                             var title = $(this).find('.yoastSeo-score-bar-item--title').text();
-                            var content = cssFile + preContent + $(this).find('.yoastSeo-score-bar-item--content').html();
+                            var content = $(cssFile + preContent + $(this).find('.yoastSeo-score-bar-item--content').html());
 
                             Modal.show(title, content);
                         });
