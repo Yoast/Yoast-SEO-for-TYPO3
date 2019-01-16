@@ -5,6 +5,11 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## 3.0.5 January 16, 2019
+### Fixed
+* The sitemap will now also show mountpoints and other expected pages and will not show pages that are not available. 
+* Fixed problem with RealURL auto configuration that might override earlier set configuration.
+
 ## 3.0.4 August 24, 2018
 ### Fixed
 * The update of YoastSEO.js caused some errors that needs to be investigated more. For now we reverted the update of YoastSEO.js
