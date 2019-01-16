@@ -5,6 +5,22 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## 4.1.0 January 16, 2019
+### Added
+* Added possibility to view snippet preview on disabled pages.
+
+### Changed
+* Add check if route-enhancers are configured.
+ 
+### Fixed
+* We fixed some multi-domain and SSL related bugs.
+* Fixed HTML markup in modals in the page view. 
+
+## 3.0.5 January 16, 2019
+### Fixed
+* The sitemap will now also show mountpoints and other expected pages and will not show pages that are not available. 
+* Fixed problem with RealURL auto configuration that might override earlier set configuration.
+
 ## 4.0.0 November 23, 2018
 ### Changed
 * Added support for TYPO3 CMS 9LTS
