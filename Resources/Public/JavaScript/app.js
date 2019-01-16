@@ -140,9 +140,7 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 app.switchAssessors(false);
             }
 
-          $('*[data-yoast-trigger="true"]').trigger('dataReceived', [pageContent, previewDocument.locale]);
-
-          $('h1.t3js-title-inlineedit').after('' +
+            $('h1.t3js-title-inlineedit').after('' +
                 '<div class="yoastSeo-score-bar">' +
                 '   <div class="yoastSeo-score-bar-item" id="yoastSeo-score-bar-readability">' +
                 '       <span class="wpseo-score-icon"></span> <span class="yoastSeo-score-bar-item--title">' + (app.i18n.dgettext('js-text-analysis', 'Readability')) + '</span>: <span class="wpseo-score-textual">-</span>' +
@@ -153,6 +151,8 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 '       <div class="yoastSeo-score-bar-item--content" id="yoastSeo-score-bar-focuskeyword-content"></div>' +
                 '   </div>' +
                 '</div>');
+
+            $('*[data-yoast-trigger="true"]').trigger('dataReceived', [pageContent, previewDocument.locale]);
 
             // after bootstrapping the app (with possible translations) update the title of both panels
             $readabilityPanel.find('[data-panel-title]').text((app.i18n.dgettext('js-text-analysis', 'Readability')));
@@ -217,7 +217,6 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                 }
             }
         });
-
         $('div#snippet_title.snippet_container.snippet-editor__container').off('click');
 
         previewRequest.fail(function (jqXHR) {

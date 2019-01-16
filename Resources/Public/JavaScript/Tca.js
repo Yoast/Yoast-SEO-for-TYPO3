@@ -165,6 +165,8 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
             $('progress.snippet-editor__progress-title').appendTo('#yoast-progress-title');
             $('progress.snippet-editor__progress-meta-description').appendTo('#yoast-progress-description');
 
+            $('form[name="editform"]').find('h1').after('<div class="yoastSeo-score-bar"><div class="yoastSeo-score-bar--item" id="yoastSeo-score-bar-readability"><span class="wpseo-score-icon"></span> ' + (apps[0].i18n.dgettext('js-text-analysis', 'Readability')) + ': <span class="wpseo-score-textual">-</span></div><div class="yoastSeo-score-bar--item" id="yoastSeo-score-bar-focuskeyword"><span class="wpseo-score-icon"></span> ' + (apps[0].i18n.dgettext('js-text-analysis', 'SEO')) + ': <span class="wpseo-score-textual">-</span></div></div>');
+
             $('*[data-yoast-trigger="true"]').trigger('dataReceived', [pageContent, previewDocument.locale]);
 
             var $focusKeywordPremiumPanel = $('div[id*="tx_yoastseo_focuskeyword_premium"]').find('.panel');
@@ -187,8 +189,6 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
             $('input[data-yoast-keyword="true"].form-control').on('input', function() {
                 updateApp(apps[$(this).attr('data-yoast-app-iterator')], snippetPreview);
             });
-
-            $('form[name="editform"]').find('h1').after('<div class="yoastSeo-score-bar"><div class="yoastSeo-score-bar--item" id="yoastSeo-score-bar-readability"><span class="wpseo-score-icon"></span> ' + (apps[0].i18n.dgettext('js-text-analysis', 'Readability')) + ': <span class="wpseo-score-textual">-</span></div><div class="yoastSeo-score-bar--item" id="yoastSeo-score-bar-focuskeyword"><span class="wpseo-score-icon"></span> ' + (apps[0].i18n.dgettext('js-text-analysis', 'SEO')) + ': <span class="wpseo-score-textual">-</span></div></div>');
 
             $('#yoastseo-analysis-focuskeyword').parents('.form-section').find('h4').prepend('<span class="wpseo-score-icon" id="yoastSeo-score-headline-focuskeyword"></span>');
             $('#yoastseo-analysis-readability').parents('.form-section').find('h4').prepend('<span class="wpseo-score-icon" id="yoastSeo-score-headline-readability"></span>');
