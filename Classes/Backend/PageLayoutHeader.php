@@ -219,6 +219,16 @@ class PageLayoutHeader
             ];
             $url = $uriBuilder->buildUriFromRoute('record_edit', $urlParameters);
 
+            $premiumText = '';
+            if (!YoastUtility::isPremiumInstalled()) {
+                $premiumText = '
+                <div class="yoast-snippet-header-premium">
+                    <a target="_blank" rel="noopener noreferrer" href="' . YoastUtility::getYoastLink('Go premium', 'pagemodule-snippetpreview') . '">
+                        <i class="fa fa-star"></i>' . $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:goPremium') . '
+                    </a>
+                </div>';
+            }
+
             $returnHtml = '
                 <div class="yoast-snippet-header">
                     <div class="yoast-snippet-header-icons btn-group btn-group-sm">
@@ -239,6 +249,7 @@ class PageLayoutHeader
                             </span>
                         </a>
                     </div>
+                    ' . $premiumText . '
                     <div class="yoast-snippet-header-label">Yoast SEO</div>
                 </div>';
 

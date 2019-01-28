@@ -137,6 +137,16 @@ class SnippetPreview extends AbstractNode
         $publicResourcesPath = PathUtility::getAbsoluteWebPath('../typo3conf/ext/yoast_seo/Resources/Public/');
         $resultArray['stylesheetFiles'][] = $publicResourcesPath . 'CSS/yoast-seo-tca.min.css';
 
+        $premiumText = '';
+        if (!YoastUtility::isPremiumInstalled()) {
+            $premiumText = '
+                <div class="yoast-snippet-preview-premium">
+                    <a target="_blank" rel="noopener noreferrer" href="' . YoastUtility::getYoastLink('Go premium', 'page-properties-snippetpreview') . '">
+                        <i class="fa fa-star"></i>' . $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:goPremium') . '
+                    </a>
+                </div>';
+        }
+
         if ($this->data['tableName'] != 'pages' || in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
             $firstFocusKeyword = YoastUtility::getFocusKeywordOfPage((int)$this->data['databaseRow']['uid'], $this->data['tableName']);
 
@@ -149,6 +159,7 @@ class SnippetPreview extends AbstractNode
             $this->templateView->assign('databaseRow', $this->data['databaseRow']);
             $this->templateView->assign('scoreSeoFieldSelector', $this->getFieldSelector('tx_yoastseo_score_seo'));
             $this->templateView->assign('focusKeyword', $firstFocusKeyword);
+            $this->templateView->assign('previewContent', $premiumText);
 
             $resultArray['requireJsModules'] = ['TYPO3/CMS/YoastSeo/Tca'];
         } else {

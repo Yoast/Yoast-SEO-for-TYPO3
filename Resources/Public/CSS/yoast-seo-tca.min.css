@@ -803,3 +803,10 @@ button.yoast-tooltip {
 
 .yoastHiddenTcaField {
   display: none; }
+
+.yoast-snippet-preview-premium {
+  margin-top: 5px;
+  text-decoration: underline; }
+  .yoast-snippet-preview-premium i {
+    color: #a4286a;
+    margin-right: 5px; }

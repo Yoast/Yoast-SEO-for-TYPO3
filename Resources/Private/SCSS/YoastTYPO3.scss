@@ -323,3 +323,17 @@ progress {
 		margin-left: 5px;
 	}
 }
+
+.yoast-snippet-header-premium {
+	float: right;
+
+	a {
+		margin-left: 5px;
+		text-decoration: underline;
+
+		i {
+			color: $yoast_color_headings;
+			margin-right: 5px;
+		}
+	}
+}

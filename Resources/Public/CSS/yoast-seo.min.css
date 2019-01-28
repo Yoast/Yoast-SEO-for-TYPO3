@@ -932,3 +932,12 @@ progress {
   float: right; }
   .yoast-snippet-header-icons a {
     margin-left: 5px; }
+
+.yoast-snippet-header-premium {
+  float: right; }
+  .yoast-snippet-header-premium a {
+    margin-left: 5px;
+    text-decoration: underline; }
+    .yoast-snippet-header-premium a i {
+      color: #a4286a;
+      margin-right: 5px; }

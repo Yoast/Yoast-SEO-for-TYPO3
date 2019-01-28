@@ -133,4 +133,39 @@ class YoastUtility
 
         return $params['keyword'];
     }
+
+    /**
+     * @return bool
+     */
+    public static function isPremiumInstalled()
+    {
+        return (bool)CMS\Core\Utility\ExtensionManagementUtility::isLoaded('yoast_seo_premium');
+    }
+
+    /**
+     * @param string $utm_term
+     * @param string $utm_content
+     * @param string $utm_source
+     * @return string
+     * @throws CMS\Core\Package\Exception
+     */
+    public static function getYoastLink($utm_term = 'Go premium', $utm_content = '', $utm_source = 'yoast-seo-for-typo3')
+    {
+        preg_match('/^(\d+\.\d+\.\d+).*/', phpversion(), $php_version);
+        $parameters = [
+            'utm_source' => $utm_source,
+            'utm_medium' => 'software',
+            'utm_term' => $utm_term,
+            'utm_content' => $utm_content,
+            'utm_campaign' => 'typo3-ad',
+            'php_version' => $php_version[1] ?: 'unknown',
+            'platform' => 'TYPO3',
+            'platform_version' => CMS\Core\Utility\VersionNumberUtility::getNumericTypo3Version(),
+            'software' => YoastUtility::isPremiumInstalled() ? 'premium' : 'free',
+            'software_version' => CMS\Core\Utility\ExtensionManagementUtility::getExtensionVersion('yoast_seo'),
+            'role' => ''
+        ];
+
+        return 'https://yoast.com/typo3-extensions-seo/?' . http_build_query($parameters);
+    }
 }

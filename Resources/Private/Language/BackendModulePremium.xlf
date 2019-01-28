@@ -25,10 +25,10 @@
 				<source>create and manage redirects from within your TYPO3 installation</source>
 			</trans-unit>
 			<trans-unit id="mod_premium_multiple_focus_keywords">
-				<source>Multiple focus keywords</source>
+				<source>Multiple focus keyphrases</source>
 			</trans-unit>
 			<trans-unit id="mod_premium_multiple_focus_keywords_descr">
-				<source>optimize a single post for up to 5 keywords</source>
+				<source>optimize a single post for up to 5 keyphrases</source>
 			</trans-unit>
 			<trans-unit id="mod_premium_support">
 				<source>Premium support</source>
