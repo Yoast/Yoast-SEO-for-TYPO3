@@ -161,7 +161,7 @@ class YoastUtility
             'php_version' => $php_version[1] ?: 'unknown',
             'platform' => 'TYPO3',
             'platform_version' => CMS\Core\Utility\VersionNumberUtility::getNumericTypo3Version(),
-            'software' => YoastUtility::isPremiumInstalled() ? 'premium' : 'free',
+            'software' => self::isPremiumInstalled() ? 'premium' : 'free',
             'software_version' => CMS\Core\Utility\ExtensionManagementUtility::getExtensionVersion('yoast_seo'),
             'role' => ''
         ];
