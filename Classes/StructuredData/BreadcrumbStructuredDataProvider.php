@@ -42,7 +42,7 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
     {
         $data = [];
 
-        $rootLine = $this->tsfe->rootLine;
+        $rootLine = $this->tsfe->rootLine ?: [];
         ksort($rootLine);
 
         $breadcrumbs = []; $iterator = 1;
