@@ -35,7 +35,7 @@ With this TypoScript you can also add more constraints to which pages you want t
 
 Use your own url builder (detailPid not exists)
 -----------------------------
-If you would like to build your own urls (e.g. sitemap for downloads/files), you has the possibility to switch off the check for empty url generation by the SitemapXml class with the config flag ignoreEmptyLinks:
+If you would like to build your own urls (e.g. sitemap for downloads/files), you have the possibility to switch off the check for empty url generation by the SitemapXml class with the config flag ignoreEmptyLinks:
 
 .. code-block:: typoscript
 
