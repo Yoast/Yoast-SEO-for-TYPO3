@@ -33,6 +33,24 @@ by default only normal pages, you can use the following TypoScript setup.
 
 With this TypoScript you can also add more constraints to which pages you want to show.
 
+Use your own url builder (detailPid not exists)
+-----------------------------
+If you would like to build your own urls (e.g. sitemap for downloads/files), you has the possibility to switch off the check for empty url generation by the SitemapXml class with the config flag ignoreEmptyLinks:
+
+.. code-block:: typoscript
+
+    plugin.tx_yoastseo {
+        sitemap {
+            config {
+                your_sitemap_type {
+                    ...
+                    ignoreEmptyLinks = 1
+                    ...
+                }
+            }
+        }
+    }
+
 
 How to configure EXT:realurl
 ----------------------------
