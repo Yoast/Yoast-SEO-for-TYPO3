@@ -243,6 +243,7 @@ class SitemapXml
         $where = $sitemapSettings['additionalWhere'] ?: '1=1';
         $where .= $this->getTSFE()->sys_page->enableFields($sitemapSettings['table']);
         $sortField = $sitemapSettings['sortField'] ?: 'tstamp DESC';
+        $ignoreEmptyLinks = isset($sitemapSettings['ignoreEmptyLinks']) ? (bool) $sitemapSettings['ignoreEmptyLinks'] : false;
 
         $records = $this->getDb()->exec_SELECTgetRows(
             '*',
@@ -267,7 +268,7 @@ class SitemapXml
                 $typoLinkConf['additionalParams'] = '';
             }
             $recordUrl = $cObject->typoLink_URL($typoLinkConf);
-            if (!empty($recordUrl)) {
+            if (!empty($recordUrl) || $ignoreEmptyLinks) {
                 $record['loc'] = $recordUrl;
                 $docs[] = $record;
             }
