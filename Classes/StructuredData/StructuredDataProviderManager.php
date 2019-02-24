@@ -1,0 +1,184 @@
+<?php
+declare(strict_types = 1);
+
+namespace YoastSeoForTypo3\YoastSeo\StructuredData;
+
+/*
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ */
+
+use TYPO3\CMS\Core\Cache\CacheManager;
+use TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException;
+use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
+use TYPO3\CMS\Core\Service\DependencyOrderingService;
+use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Core\TypoScript\TypoScriptService;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
+use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
+
+/**
+ * This class will take care of the different providers and returns the title with the highest priority
+ */
+class StructuredDataProviderManager implements SingletonInterface
+{
+    /**
+     * @var FrontendInterface
+     */
+    protected $pageCache;
+
+    /**
+     * @var string
+     */
+    protected $sourceComment = '';
+
+    public function __construct()
+    {
+        $this->initCaches();
+
+        if (YoastUtility::isPremiumInstalled()) {
+            $this->sourceComment = '<!-- This site is optimized with the Yoast SEO Premium for TYPO3 plugin - https://yoast.com/typo3-extensions-seo/ -->';
+        } else {
+            $this->sourceComment = '<!-- This site is optimized with the Yoast SEO for TYPO3 plugin - https://yoast.com/typo3-extensions-seo/ -->';
+        }
+    }
+
+    /**
+     * @param array $params
+     * @param object $pObj
+     */
+    public function render(&$params, $pObj): void
+    {
+        if (TYPO3_MODE === 'FE') {
+            $data = $this->getStructuredData();
+
+            $params['headerData']['StructuredDataManager'] = $this->sourceComment . PHP_EOL . $this->buildJsonLdBlob($data);
+        }
+    }
+
+    /**
+     * @param string $src
+     *
+     * @return string
+     */
+    protected function buildJsonLdBlob($src): string
+    {
+        return '<script type="application/ld+json">' . json_encode($src) . '</script>';
+    }
+
+    public function getStructuredData(): array
+    {
+        $structuredData = [];
+
+        $structuredDataProviders = $this->getStructuredDataProviderConfiguration();
+        $structuredDataProviders = $this->setProviderOrder($structuredDataProviders);
+
+        $orderedStructuredDataProviders = GeneralUtility::makeInstance(DependencyOrderingService::class)
+            ->orderByDependencies($structuredDataProviders);
+
+        foreach ($orderedStructuredDataProviders as $provider => $configuration) {
+            $cacheIdentifier =  $this->getTypoScriptFrontendController()->newHash . '-structured-data-' . $provider;
+            if ($this->pageCache instanceof FrontendInterface &&
+                $data = $this->pageCache->get($cacheIdentifier)
+            ) {
+                if (!empty($data)) {
+                    $structuredData[] = $data;
+                }
+                break;
+            }
+            if (class_exists($configuration['provider']) && is_subclass_of($configuration['provider'], StructuredDataProviderInterface::class)) {
+                /** @var StructuredDataProviderInterface $structuredDataProviderObject */
+                $structuredDataProviderObject = GeneralUtility::makeInstance($configuration['provider']);
+                if ($data = $structuredDataProviderObject->getData()) {
+                    $this->pageCache->set(
+                        $cacheIdentifier,
+                        $data,
+                        ['pageId_' . $this->getTypoScriptFrontendController()->page['uid']],
+                        $this->getTypoScriptFrontendController()->get_cache_timeout()
+                    );
+                }
+
+                if (!empty($data)) {
+                    $structuredData[] = $data;
+                }
+            }
+        }
+
+        return $structuredData;
+    }
+
+    /**
+     * @return \TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController
+     */
+    private function getTypoScriptFrontendController(): TypoScriptFrontendController
+    {
+        return $GLOBALS['TSFE'];
+    }
+
+    /**
+     * Get the TypoScript configuration for pageTitleProviders
+     * @return array
+     */
+    private function getStructuredDataProviderConfiguration(): array
+    {
+        $typoscriptService = GeneralUtility::makeInstance(TypoScriptService::class);
+        $config = $typoscriptService->convertTypoScriptArrayToPlainArray(
+            $this->getTypoScriptFrontendController()->config['config'] ?? []
+        );
+
+        return $config['structuredDataProviders'] ?? [];
+    }
+
+    /**
+     * Initializes the caching system.
+     */
+    protected function initCaches(): void
+    {
+        try {
+            $this->pageCache = GeneralUtility::makeInstance(CacheManager::class)->getCache('cache_pages');
+        } catch (NoSuchCacheException $e) {
+            // Intended fall-through
+        }
+    }
+
+    /**
+     * @param array $orderInformation
+     * @return string[]
+     * @throws \UnexpectedValueException
+     */
+    protected function setProviderOrder(array $orderInformation): array
+    {
+        foreach ($orderInformation as $provider => &$configuration) {
+            if (isset($configuration['before'])) {
+                if (is_string($configuration['before'])) {
+                    $configuration['before'] = GeneralUtility::trimExplode(',', $configuration['before'], true);
+                } elseif (!is_array($configuration['before'])) {
+                    throw new \UnexpectedValueException(
+                        'The specified "before" order configuration for provider "' . $provider . '" is invalid.',
+                        1551014599
+                    );
+                }
+            }
+            if (isset($configuration['after'])) {
+                if (is_string($configuration['after'])) {
+                    $configuration['after'] = GeneralUtility::trimExplode(',', $configuration['after'], true);
+                } elseif (!is_array($configuration['after'])) {
+                    throw new \UnexpectedValueException(
+                        'The specified "after" order configuration for provider "' . $provider . '" is invalid.',
+                        1551014604
+                    );
+                }
+            }
+        }
+        return $orderInformation;
+    }
+}

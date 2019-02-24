@@ -3,6 +3,7 @@ declare(strict_types = 1);
 
 namespace YoastSeoForTypo3\YoastSeo\StructuredData;
 
+use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
@@ -45,7 +46,8 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         $rootLine = $this->tsfe->rootLine ?: [];
         ksort($rootLine);
 
-        $breadcrumbs = []; $iterator = 1;
+        $breadcrumbs = [];
+        $iterator = 1;
         foreach ($rootLine as $k => $page) {
             $breadcrumbs[] = [
                 '@type' => 'ListItem',
@@ -92,7 +94,7 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         if (class_exists(SiteFinder::class)) {
             $site = $this->siteFinder->getSiteByPageId($pageId);
 
-            return (string)$site->getRouter()->generateUri($pageId, []);
+            return (string)$site->getRouter()->generateUri($pageId, ['_language' => $this->getLanguage()]);
         }
 
         return '';
@@ -108,5 +110,16 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         } else {
             $this->siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
         }
+    }
+
+    /**
+     * @return int
+     * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
+     */
+    protected function getLanguage(): int
+    {
+        $context = GeneralUtility::makeInstance(Context::class);
+
+        return (int)$context->getPropertyFromAspect('language', 'id');
     }
 }

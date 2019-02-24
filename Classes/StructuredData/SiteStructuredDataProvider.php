@@ -20,6 +20,9 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
      */
     protected $pageRepository;
 
+    /**
+     * @var SiteFinder
+     */
     protected $siteFinder;
 
     /**
