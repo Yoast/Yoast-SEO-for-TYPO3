@@ -57,7 +57,8 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
             'label' => '',
             'exclude' => true,
             'config' => [
-                'type' => 'text',
+                'type' => 'input',
+                'default' => 0,
                 'renderType' => 'cornerstone'
             ]
         ],
