@@ -1,5 +1,5 @@
 <?php
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\StructuredData;
 
@@ -28,6 +28,8 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
     /**
      * SiteStructuredDataProvider constructor.
      * @param TypoScriptFrontendController|null $tsfe
+     * @param PageRepository|null $pageRepository
+     * @param SiteFinder|null $siteFinder
      */
     public function __construct($tsfe = null, $pageRepository = null, $siteFinder = null)
     {
@@ -106,6 +108,9 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
         }
     }
 
+    /**
+     * @param PageRepository|null $pageRepository
+     */
     protected function setPageRepository($pageRepository = null): void
     {
         if ($pageRepository instanceof PageRepository) {
@@ -115,7 +120,10 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
         }
     }
 
-    protected function setSiteFinder($siteFinder): void
+    /**
+     * @param SiteFinder|null $siteFinder
+     */
+    protected function setSiteFinder($siteFinder = null): void
     {
         if ($siteFinder instanceof SiteFinder) {
             $this->siteFinder = $siteFinder;

@@ -1,5 +1,5 @@
 <?php
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\StructuredData;
 
@@ -38,6 +38,7 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
      * @return array
      * @throws \TYPO3\CMS\Core\Exception\SiteNotFoundException
      * @throws \TYPO3\CMS\Core\Routing\InvalidRouteArgumentsException
+     * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
      */
     public function getData(): array
     {
@@ -88,6 +89,7 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
      * @return string
      * @throws \TYPO3\CMS\Core\Exception\SiteNotFoundException
      * @throws \TYPO3\CMS\Core\Routing\InvalidRouteArgumentsException
+     * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
      */
     protected function getUrlForPage($pageId): string
     {

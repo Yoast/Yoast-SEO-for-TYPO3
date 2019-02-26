@@ -1,5 +1,5 @@
 <?php
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\StructuredData;
 
@@ -27,7 +27,8 @@ use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 /**
- * This class will take care of the different providers and returns the title with the highest priority
+ * This class will take care of the different providers and returns the title with
+ * the highest priority
  */
 class StructuredDataProviderManager implements SingletonInterface
 {
@@ -75,6 +76,11 @@ class StructuredDataProviderManager implements SingletonInterface
         return '<script type="application/ld+json">' . json_encode($src) . '</script>';
     }
 
+    /**
+     * Get structured data
+     *
+     * @return array
+     */
     public function getStructuredData(): array
     {
         $structuredData = [];
@@ -86,7 +92,7 @@ class StructuredDataProviderManager implements SingletonInterface
             ->orderByDependencies($structuredDataProviders);
 
         foreach ($orderedStructuredDataProviders as $provider => $configuration) {
-            $cacheIdentifier =  $this->getTypoScriptFrontendController()->newHash . '-structured-data-' . $provider;
+            $cacheIdentifier = $this->getTypoScriptFrontendController()->newHash . '-structured-data-' . $provider;
             if ($this->pageCache instanceof FrontendInterface &&
                 $data = $this->pageCache->get($cacheIdentifier)
             ) {
@@ -95,7 +101,8 @@ class StructuredDataProviderManager implements SingletonInterface
                 }
                 break;
             }
-            if (class_exists($configuration['provider']) && is_subclass_of($configuration['provider'], StructuredDataProviderInterface::class)) {
+            if (class_exists($configuration['provider'])
+                && is_subclass_of($configuration['provider'], StructuredDataProviderInterface::class)) {
                 /** @var StructuredDataProviderInterface $structuredDataProviderObject */
                 $structuredDataProviderObject = GeneralUtility::makeInstance($configuration['provider']);
                 if ($data = $structuredDataProviderObject->getData()) {
