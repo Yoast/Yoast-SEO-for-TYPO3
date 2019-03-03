@@ -62,7 +62,7 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         }
 
         if (!empty($breadcrumbs)) {
-            $data = [
+            $data[] = [
                 '@context' => 'https://www.schema.org',
                 '@type' => 'BreadcrumbList',
                 'itemListElement' => $breadcrumbs,

@@ -67,13 +67,20 @@ class StructuredDataProviderManager implements SingletonInterface
     }
 
     /**
-     * @param string $src
+     * @param array $src
      *
      * @return string
      */
     protected function buildJsonLdBlob($src): string
     {
-        return '<script type="application/ld+json">' . json_encode($src) . '</script>';
+        $data = [];
+        foreach ($src as $provider => $dataItems) {
+            foreach ($dataItems as $item) {
+                $data[] = $item;
+            }
+        }
+
+        return '<script type="application/ld+json">' . json_encode($data, JSON_UNESCAPED_SLASHES) . '</script>';
     }
 
     /**
@@ -97,7 +104,7 @@ class StructuredDataProviderManager implements SingletonInterface
                 $data = $this->pageCache->get($cacheIdentifier)
             ) {
                 if (!empty($data)) {
-                    $structuredData[] = $data;
+                    $structuredData[$provider] = $data;
                 }
                 break;
             }
@@ -115,7 +122,7 @@ class StructuredDataProviderManager implements SingletonInterface
                 }
 
                 if (!empty($data)) {
-                    $structuredData[] = $data;
+                    $structuredData[$provider] = $data;
                 }
             }
         }
