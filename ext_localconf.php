@@ -152,7 +152,7 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['seoTitleUpda
     = \YoastSeoForTypo3\YoastSeo\Install\SeoTitleUpdate::class;
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScriptSetup(trim('
-    config.structuredDataProviders {
+    config.structuredData.providers {
         breadcrumb {
             provider = YoastSeoForTypo3\YoastSeo\StructuredData\BreadcrumbStructuredDataProvider
             after = site

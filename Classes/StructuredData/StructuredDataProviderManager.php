@@ -142,7 +142,7 @@ class StructuredDataProviderManager implements SingletonInterface
             $this->getTypoScriptFrontendController()->config['config'] ?? []
         );
 
-        return $config['structuredDataProviders'] ?? [];
+        return $config['structuredData']['providers'] ?? [];
     }
 
     /**
