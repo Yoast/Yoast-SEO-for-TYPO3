@@ -4,10 +4,17 @@
   "description": "Yoast SEO for TYPO3",
   "main": "plugin.js",
   "devDependencies": {
-    "webpack": "^4.28.4",
-    "webpack-cli": "^3.2.1"
+    "@babel/core": "^7.2.2",
+    "@babel/preset-env": "^7.3.1",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.5",
+    "react-intl": "^2.8.0",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.2.3",
+    "webpack-dev-server": "^3.2.1"
   },
   "scripts": {
+    "dev": "webpack-dev-server",
     "build": "webpack --config webpack.config.js"
   },
   "plugin": {
@@ -20,7 +27,9 @@
     "lasttranslator": "Yoast Translate Team <translations@yoast.com>"
   },
   "dependencies": {
+    "@babel/polyfill": "^7.2.5",
     "lodash": "^4.17.11",
+    "yoast-components": "git+https://github.com/Yoast/yoast-components.git#develop",
     "yoastseo": "git+https://github.com/Yoast/YoastSEO.js.git#develop"
   },
   "repository": {

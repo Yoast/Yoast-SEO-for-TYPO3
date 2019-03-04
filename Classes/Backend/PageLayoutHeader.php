@@ -194,7 +194,16 @@ class PageLayoutHeader
                 )
             );
 
-            $this->pageRenderer->loadRequireJsModule('YoastSEO/app');
+//            $this->pageRenderer->loadRequireJsModule('YoastSEO/dist/plugin');
+            $this->pageRenderer->addJsInlineCode(
+                'yoastseo-webpack-plugin',
+                '(function () {
+                            var s = document.createElement("script");
+                            s.async=true;
+                            s.src="https://localhost:3333/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/plugin.js";
+                            document.querySelector("head").appendChild(s);
+                        }());'
+            );
 
             $this->pageRenderer->addCssFile(
                 $publicResourcesPath . 'CSS/yoast-seo.min.css'
@@ -245,7 +254,7 @@ class PageLayoutHeader
             if ($this->routeEnhancerError === false) {
                 $returnHtml .= '
                 <input id="focusKeyword" style="display: none" />
-                <div id="' . $targetElementId . '" class="t3-grid-cell yoastSeo yoastSeo--small">
+                <div id="' . $targetElementId . '" class="t3-grid-cell yoastSeo yoastSeo--small" data-yoast-snippetpreview>
                     <!-- ' . $targetElementId . ' -->
                     <div class="spinner">
                       <div class="bounce1"></div>
