@@ -26,8 +26,16 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+
 import SnippetPreview from './Components/SnippetPreview';
+import store from './redux/store';
+import {getPreview} from './redux/actions/preview';
+
+let keyword = tx_yoast_seo.settings.focusKeyword;
+
+store.dispatch(getPreview());
 
 document.querySelectorAll('[data-yoast-snippetpreview]').forEach(container => {
-    ReactDOM.render(<SnippetPreview/>, container);
+    ReactDOM.render(<Provider store={store}><SnippetPreview keyword={keyword} /></Provider>, container);
 });

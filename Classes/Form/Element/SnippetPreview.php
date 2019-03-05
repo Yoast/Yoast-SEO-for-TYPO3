@@ -149,8 +149,6 @@ class SnippetPreview extends AbstractNode
             $this->templateView->assign('databaseRow', $this->data['databaseRow']);
             $this->templateView->assign('scoreSeoFieldSelector', $this->getFieldSelector('tx_yoastseo_score_seo'));
             $this->templateView->assign('focusKeyword', $firstFocusKeyword);
-
-            $resultArray['requireJsModules'] = ['TYPO3/CMS/YoastSeo/Tca'];
         } else {
             $this->templateView->assign('wrongDoktype', true);
         }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { connect } from 'react-redux';
 
 import LoadingIndicator from './LoadingIndicator';
 
@@ -6,50 +7,23 @@ import YoastSnippetPreview from 'yoast-components/composites/Plugin/SnippetPrevi
 import ModeSwitcher from 'yoast-components/composites/Plugin/SnippetEditor/components/ModeSwitcher';
 import {DEFAULT_MODE} from 'yoast-components/composites/Plugin/SnippetPreview/constants';
 
-export default class SnippetPreview extends React.Component {
+class SnippetPreview extends React.Component {
+
     constructor(props) {
         super(props);
 
         this.state = {
-            isLoading: true,
-            mode: DEFAULT_MODE,
-            title: props.title || '',
-            description: props.description || '',
-            url: props.url || '',
-            keyword: tx_yoast_seo.settings.focusKeyword
-        };
-
-        fetch(tx_yoast_seo.settings.preview)
-            .then(response => {
-                return response.json();
-            })
-            .then(data => {
-                const bodyText = document.createElement('div');
-                bodyText.innerHTML = data.body;
-
-                this.setState({
-                    isLoading: false,
-                    title: data.title,
-                    description: data.description || bodyText.innerText,
-                    url: data.url
-                });
-            });
+            mode: DEFAULT_MODE
+        }
     }
 
     render() {
-        const config = {
-            ...this.state,
-            /*mode: mode,*/
-            onMouseUp: () => {
-            }
-        }
-
         let element;
-        if (this.state.isLoading === false) {
+        if (this.props.isFetching === false) {
             element = (
                 <React.Fragment>
-                    <YoastSnippetPreview {...config} />
-                    <ModeSwitcher onChange={(newMode) => this.setState({mode: newMode})} active={config.mode}/>
+                    <YoastSnippetPreview {...this.props} mode={this.state.mode} onMouseUp={() => {}} />
+                    <ModeSwitcher onChange={(newMode) => this.setState({mode: newMode})} active={this.state.mode}/>
                 </React.Fragment>
             );
         } else {
@@ -63,3 +37,12 @@ export default class SnippetPreview extends React.Component {
         );
     }
 }
+
+function mapStateToProps (state) {
+
+    return {
+        ...state.preview
+    }
+}
+
+export default connect(mapStateToProps)(SnippetPreview);

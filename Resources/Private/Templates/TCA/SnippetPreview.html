@@ -4,11 +4,12 @@
 			<script>
                 <f:format.raw>
                 var tx_yoast_seo = tx_yoast_seo || {};
-                tx_yoast_seo.previewUrl = '{previewUrl}';
-                tx_yoast_seo.previewTargetId = '{previewTargetId}';
-                tx_yoast_seo.titlePrepend = '{titlePrepend}';
-                tx_yoast_seo.titleAppend = '{titleAppend}';
-                tx_yoast_seo.firstFocusKeyword = '{focusKeyword}';
+                tx_yoast_seo.settings = tx_yoast_seo.settings || {};
+                tx_yoast_seo.settings.preview = '{previewUrl}';
+                tx_yoast_seo.settings.previewTargetId = '{previewTargetId}';
+                tx_yoast_seo.settings.titlePrepend = '{titlePrepend}';
+                tx_yoast_seo.settings.titleAppend = '{titleAppend}';
+                tx_yoast_seo.settings.focusKeyword = '{focusKeyword}';
 
                 var tx_yoast_scores = new Array();
                 tx_yoast_scores["bad"] = "{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelBad' )}";
@@ -25,8 +26,15 @@
                 $scoreSeoFieldSelector = '{scoreSeoFieldSelector}';
                 </f:format.raw>
 			</script>
+			<script type="text/javascript" src="https://localhost:3333/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/plugin.js" async></script>
 
-			<div id="{previewTargetId}"></div>
+			<div id="{previewTargetId}" data-yoast-snippetpreview>
+				<div class="spinner">
+					<div class="bounce1"></div>
+					<div class="bounce2"></div>
+					<div class="bounce3"></div>
+				</div>
+			</div>
 		</f:then>
 		<f:else>
 			<f:if condition="{wrongDoktype}">
