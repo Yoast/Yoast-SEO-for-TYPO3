@@ -41,7 +41,8 @@ class SnippetPreview extends React.Component {
 function mapStateToProps (state) {
 
     return {
-        ...state.preview
+        ...state.preview,
+        keyword: state.focusKeyword
     }
 }
 

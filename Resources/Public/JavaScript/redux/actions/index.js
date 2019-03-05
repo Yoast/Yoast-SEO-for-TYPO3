@@ -1,5 +1,7 @@
 import {getPreview} from './preview';
+import {setFocusKeyword} from './focusKeyword';
 
 export default {
-    getPreview
+    getPreview,
+    setFocusKeyword
 };
