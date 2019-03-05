@@ -115,7 +115,13 @@
 				<source>Advanced</source>
 			</trans-unit>
 			<trans-unit id="seoFocusKeyword">
-				<source>Focus keyword</source>
+				<source>Focus keyphrase</source>
+			</trans-unit>
+			<trans-unit id="seoRelatedKeywords">
+				<source>Related keyphrases</source>
+			</trans-unit>
+			<trans-unit id="synonyms">
+				<source>Synonyms (PREMIUM)</source>
 			</trans-unit>
 			<trans-unit id="focusKeyword">
 				<source>Focus keyword</source>
@@ -222,14 +228,17 @@
 			<trans-unit id="pages.palettes.twitter">
 				<source>Twitter Cards</source>
 			</trans-unit>
-			<trans-unit id="pages.palettes.seo">
-				<source>SEO</source>
+			<trans-unit id="pages.palettes.focusKeyphrase">
+				<source>Focus keyphrase</source>
+			</trans-unit>
+			<trans-unit id="pages.palettes.focusRelatedKeyphrases">
+				<source>Related keyphrases (PREMIUM)</source>
 			</trans-unit>
 			<trans-unit id="pages.palettes.robot">
 				<source>Robot instructions</source>
 			</trans-unit>
 			<trans-unit id="pages.palettes.readability">
-				<source>Readability</source>
+				<source>Readability analysis</source>
 			</trans-unit>
 			<trans-unit id="pages.palettes.advanced">
 				<source>Advanced settings</source>
@@ -238,7 +247,7 @@
 				<source>Snippet preview</source>
 			</trans-unit>
 			<trans-unit id="analysis">
-				<source>Analysis</source>
+				<source>Analysis results</source>
 			</trans-unit>
 			<trans-unit id="wrongDoktype.title">
 				<source>No analysis available</source>
@@ -297,6 +306,20 @@
 			<trans-unit id="thisPageIsCornerstoneContent">
 				<source><![CDATA[This page is <a href="%s" target="_blank">cornerstone content</a>]]></source>
 			</trans-unit>
+
+			<trans-unit id="tx_yoast_seo_premium_focus_keywords.title">
+				<source>Yoast SEO Focus keywords</source>
+			</trans-unit>
+			<trans-unit id="tx_yoast_seo_premium_focus_keywords.fields.keyword">
+				<source>SEO Focus keyword</source>
+			</trans-unit>
+			<trans-unit id="tx_yoast_seo_premium_focus_keywords.fields.analysis">
+				<source>Analysis results</source>
+			</trans-unit>
+			<trans-unit id="tx_yoast_seo_premium_focus_keywords.fields.synonyms">
+				<source>Synonyms</source>
+			</trans-unit>
+
 		</body>
 	</file>
 </xliff>
