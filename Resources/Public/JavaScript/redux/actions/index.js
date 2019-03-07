@@ -1,7 +1,9 @@
-import {getPreview} from './preview';
+import {getContent} from './content';
 import {setFocusKeyword} from './focusKeyword';
+import {analyzeData} from "./analysis";
 
 export default {
-    getPreview,
-    setFocusKeyword
+    getContent,
+    setFocusKeyword,
+    analyzeData
 };

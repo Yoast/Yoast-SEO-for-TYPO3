@@ -18,6 +18,7 @@ class SnippetPreview extends React.Component {
     }
 
     render() {
+
         let element;
         if (this.props.isFetching === false) {
             element = (
@@ -41,7 +42,8 @@ class SnippetPreview extends React.Component {
 function mapStateToProps (state) {
 
     return {
-        ...state.preview,
+        ...state.content,
+        ...state.analysis,
         keyword: state.focusKeyword
     }
 }

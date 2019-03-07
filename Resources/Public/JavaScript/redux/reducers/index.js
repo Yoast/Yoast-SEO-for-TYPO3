@@ -1,7 +1,9 @@
-import preview from './preview';
+import content from './content';
 import focusKeyword from './focusKeyword';
+import analysis from './analysis';
 
 export default {
-    preview,
-    focusKeyword
+    content,
+    focusKeyword,
+    analysis
 }
