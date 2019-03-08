@@ -4,8 +4,10 @@ import { connect } from 'react-redux';
 import LoadingIndicator from './LoadingIndicator';
 
 import YoastContentAnalysis from 'yoast-components/composites/Plugin/ContentAnalysis/components/ContentAnalysis';
+import SvgIcon from 'yoast-components/composites/Plugin/Shared/components/SvgIcon'
 
-import mapResults from "../mapResults";
+import { getIconForScore, mapResults } from "../mapResults";
+import { helpers } from "yoastseo";
 
 class ReadabilityAnalysis extends React.Component {
 
@@ -42,7 +44,7 @@ class ReadabilityAnalysis extends React.Component {
     }
 
     render() {
-
+        const { scoreToRating } = helpers;
         const { mappedResults } = this.state;
         const {
             errorsResults,
@@ -51,14 +53,17 @@ class ReadabilityAnalysis extends React.Component {
             considerationsResults,
             problemsResults,
         } = mappedResults;
-
         const marksButtonStatus = 'disabled';
 
         let element;
 
         if (this.props.isFetching === false && this.props.isAnalyzing === false) {
+            let score = this.props.result.readability.score / 10;
+            let iconForScore = getIconForScore(scoreToRating(score));
+
             element = (
                 <React.Fragment>
+                    <SvgIcon icon={ iconForScore.icon } color={ iconForScore.color } />
                     <YoastContentAnalysis
                         problemsResults={ problemsResults }
                         improvementsResults={ improvementsResults }
