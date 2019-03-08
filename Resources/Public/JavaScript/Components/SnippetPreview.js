@@ -44,7 +44,7 @@ function mapStateToProps (state) {
     return {
         ...state.content,
         ...state.analysis,
-        keyword: state.focusKeyword
+        wordsToHighlight: [state.focusKeyword]
     }
 }
 

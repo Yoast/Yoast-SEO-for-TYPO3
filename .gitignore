@@ -5,7 +5,6 @@ node_modules
 vendor
 composer.lock
 .php_cs.cache
-package-lock.json
 yarn.lock
 .Build
 !.Build/.php_cs
