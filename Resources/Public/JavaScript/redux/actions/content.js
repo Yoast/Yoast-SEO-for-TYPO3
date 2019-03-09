@@ -20,8 +20,9 @@ export function getContent(keyword) {
                     data.description = bodyText.innerText;
                 }
 
+                const workerUrl = "https://richardhaeser.ddev.local/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/worker.js";
                 dispatch({type: GET_CONTENT_SUCCESS, payload: data});
-                store.dispatch(analyzeData(data.body, keyword, data.title, data.description));
+                store.dispatch(analyzeData(data, keyword, '', workerUrl));
             })
             .catch(error => {
                 dispatch({type: GET_CONTENT_ERROR, payload: error, error: true});
