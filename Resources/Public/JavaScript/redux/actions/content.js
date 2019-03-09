@@ -21,7 +21,7 @@ export function getContent(keyword) {
                 }
 
                 dispatch({type: GET_CONTENT_SUCCESS, payload: data});
-                store.dispatch(analyzeData(data.body, keyword));
+                store.dispatch(analyzeData(data.body, keyword, data.title, data.description));
             })
             .catch(error => {
                 dispatch({type: GET_CONTENT_ERROR, payload: error, error: true});

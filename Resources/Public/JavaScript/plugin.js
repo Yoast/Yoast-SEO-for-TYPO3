@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 
 import SnippetPreview from './Components/SnippetPreview';
 import ReadabilityAnalysis from './Components/ReadabilityAnalysis';
+import SeoAnalysis from './Components/SeoAnalysis';
 import store from './redux/store';
 import {getContent} from './redux/actions/content';
 import {setFocusKeyword} from './redux/actions/focusKeyword';
@@ -19,4 +20,8 @@ document.querySelectorAll('[data-yoast-snippetpreview]').forEach(container => {
 
 document.querySelectorAll('[data-yoast-readability-analysis]').forEach(container => {
     ReactDOM.render(<Provider store={store}><ReadabilityAnalysis /></Provider>, container);
+});
+
+document.querySelectorAll('[data-yoast-seo-analysis]').forEach(container => {
+    ReactDOM.render(<Provider store={store}><SeoAnalysis /></Provider>, container);
 });

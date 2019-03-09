@@ -1,9 +1,12 @@
-import {ANALYZE_DATA_REQUEST, ANALYZE_DATA_SUCCESS, analyzeData} from '../actions/analysis';
+import {ANALYZE_DATA_REQUEST, ANALYZE_DATA_SUCCESS} from '../actions/analysis';
 
 const initialState = {
     isAnalyzing: false,
     result: {
         readability: {
+            results: []
+        },
+        seo: {
             results: []
         }
     }

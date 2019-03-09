@@ -1,9 +1,10 @@
 import {AnalysisWorkerWrapper, createWorker, Paper} from "yoastseo";
+import measureTextWidth from "../../helpers/measureTextWidth";
 
 export const ANALYZE_DATA_REQUEST = 'ANALYZE_DATA_REQUEST';
 export const ANALYZE_DATA_SUCCESS = 'ANALYZE_DATA_SUCCESS';
 
-export function analyzeData(body, keyword) {
+export function analyzeData(body, keyword, title, description) {
     return dispatch => {
         dispatch({type: ANALYZE_DATA_REQUEST});
 
@@ -16,9 +17,11 @@ export function analyzeData(body, keyword) {
             keywordAnalysisActive: true,
             logLevel: "ERROR",
         } ).then( () => {
-            // The worker has been configured, we can now analyze a Paper.
             const paper = new Paper( body, {
                 keyword: keyword,
+                title: title,
+                description: description,
+                titleWidth: measureTextWidth(title)
             } );
 
             return worker.analyze( paper );
