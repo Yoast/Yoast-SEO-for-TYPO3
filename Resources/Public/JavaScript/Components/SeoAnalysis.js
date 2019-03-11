@@ -90,6 +90,8 @@ function mapStateToProps (state) {
     return {
         ...state.content,
         ...state.analysis,
+        ...state.relevantWords,
+        cornerstoneContent: state.cornerstoneContent,
         keyword: state.focusKeyword
 
     }

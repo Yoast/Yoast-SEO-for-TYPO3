@@ -96,6 +96,14 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
                 'renderType' => 'hiddenField'
             ]
         ],
+        'tx_yoastseo_insights' => [
+            'label' => 'Insights',
+            'exclude' => true,
+            'config' => [
+                'type' => 'text',
+                'renderType' => 'insights'
+            ]
+        ],
     ]
 );
 
@@ -138,7 +146,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     'pages',
     'yoast-relatedkeywords',
     '
-    --linebreak--, tx_yoastseo_focuskeyword_premium
+    --linebreak--, tx_yoastseo_focuskeyword_premium, --linebreak--, tx_yoastseo_insights 
     '
 );
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(

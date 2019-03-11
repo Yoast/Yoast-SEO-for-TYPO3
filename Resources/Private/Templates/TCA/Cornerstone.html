@@ -2,6 +2,7 @@
 <div>
 	<script>
         $cornerstoneFieldSelector = 'data{data.elementBaseName}';
+		tx_yoast_seo.settings.cornerstone = {f:if(condition: data.databaseRow.tx_yoastseo_cornerstone, then: 'true', else: 'false')};
 	</script>
 	<input id="{data.elementBaseName}" type="checkbox" data-formengine-input-name="data{data.elementBaseName}" value="1"
 			{f:if(condition: data.databaseRow.tx_yoastseo_cornerstone, then: 'checked="checked"')}

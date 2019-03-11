@@ -35,9 +35,9 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514830899] = a
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\FocusKeywordAnalysis::class,
 );
 
-$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1520291507] = array(
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1552342645] = array(
     'nodeName' => 'cornerstone',
-    'priority' => 40,
+    'priority' => 43,
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\Cornerstone::class,
 );
 
@@ -45,6 +45,12 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1537991862] = a
     'nodeName' => 'hiddenField',
     'priority' => 40,
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\HiddenField::class
+);
+
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1519937113] = array(
+    'nodeName' => 'insights',
+    'priority' => 40,
+    'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\Insights::class
 );
 
 $llFolder = 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/';
