@@ -9,7 +9,17 @@ import SvgIcon from 'yoast-components/composites/Plugin/Shared/components/SvgIco
 import { getIconForScore, mapResults } from "../mapResults";
 import { helpers } from "yoastseo";
 
-class SeoAnalysis extends React.Component {
+function getResults(props) {
+    const {analysis, resultType, resultSubtype} = props;
+
+    if (resultSubtype !== undefined) {
+        return analysis.result[resultType][resultSubtype].results;
+    } else {
+        return analysis.result[resultType].results;
+    }
+}
+
+class Analysis extends React.Component {
 
     constructor(props) {
         super(props);
@@ -18,9 +28,9 @@ class SeoAnalysis extends React.Component {
             mappedResults: {}
         };
 
-        if (this.props.result.seo) {
+        if (this.props.analysis.result[this.props.resultType]) {
             this.state = {
-                mappedResults: mapResults( this.props.result.seo.results, this.props.keyword ),
+                mappedResults: mapResults( getResults(this.props), this.props.keyword ),
             };
         }
     }
@@ -36,9 +46,9 @@ class SeoAnalysis extends React.Component {
      * @returns {void}
      */
     componentDidUpdate( prevProps ) {
-        if ( this.props.result.seo !== null && this.props.result.seo !== prevProps.result.seo ) {
+        if ( this.props.analysis.result[this.props.resultType] !== null && this.props.analysis.result[this.props.resultType] !== prevProps.analysis.result[this.props.resultType] ) {
             this.setState( {
-                mappedResults: mapResults( this.props.result.seo[""].results, this.props.keyword ),
+                mappedResults: mapResults( getResults(this.props), this.props.keyword ),
             } );
         }
     }
@@ -57,8 +67,8 @@ class SeoAnalysis extends React.Component {
 
         let element;
 
-        if (this.props.isFetching === false && this.props.isAnalyzing === false && this.props.result.seo[""]) {
-            let score = this.props.result.seo[""].score / 10;
+        if (this.props.content.isFetching === false && this.props.analysis.isAnalyzing === false && getResults(this.props)) {
+            let score = getResults(this.props).score / 10;
             let iconForScore = getIconForScore(scoreToRating(score));
             element = (
                 <React.Fragment>
@@ -88,11 +98,10 @@ class SeoAnalysis extends React.Component {
 function mapStateToProps (state) {
 
     return {
-        ...state.content,
-        ...state.analysis,
+        content: state.content,
+        analysis: state.analysis,
         keyword: state.focusKeyword
-
     }
 }
 
-export default connect(mapStateToProps)(SeoAnalysis);
+export default connect(mapStateToProps)(Analysis);

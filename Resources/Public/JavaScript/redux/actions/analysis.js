@@ -10,7 +10,7 @@ export function analyzeData(data, keyword, synonyms, url) {
 
         const worker = new AnalysisWorkerWrapper( createWorker( url ) );
 
-        worker.initialize( {
+        return worker.initialize( {
             locale: "en_US",
             contentAnalysisActive: true,
             keywordAnalysisActive: true,
