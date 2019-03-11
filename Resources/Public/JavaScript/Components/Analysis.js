@@ -70,6 +70,7 @@ class Analysis extends React.Component {
         if (this.props.content.isFetching === false && this.props.analysis.isAnalyzing === false && getResults(this.props)) {
             let score = getResults(this.props).score / 10;
             let iconForScore = getIconForScore(scoreToRating(score));
+
             element = (
                 <React.Fragment>
                     <SvgIcon icon={ iconForScore.icon } color={ iconForScore.color } />
@@ -100,6 +101,7 @@ function mapStateToProps (state) {
     return {
         content: state.content,
         analysis: state.analysis,
+        cornerstoneContent: state.cornerstoneContent,
         keyword: state.focusKeyword
     }
 }

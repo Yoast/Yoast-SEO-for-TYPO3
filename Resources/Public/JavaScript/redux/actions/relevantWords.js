@@ -1,16 +1,16 @@
 import {AnalysisWorkerWrapper, createWorker, Paper} from "yoastseo";
 import measureTextWidth from "../../helpers/measureTextWidth";
 
-export const ANALYZE_DATA_REQUEST = 'ANALYZE_DATA_REQUEST';
-export const ANALYZE_DATA_SUCCESS = 'ANALYZE_DATA_SUCCESS';
+export const GET_RELEVANTWORDS_REQUEST = 'GET_RELEVANTWORDS_REQUEST';
+export const GET_RELEVANTWORDS_SUCCESS = 'GET_RELEVANTWORDS_SUCCESS';
 
-export function analyzeData(data, keyword, synonyms, url, useCornerstone) {
+export function getRelevantWords(data, keyword, synonyms, url, useCornerstone) {
     return dispatch => {
-        dispatch({type: ANALYZE_DATA_REQUEST});
+        dispatch({type: GET_RELEVANTWORDS_REQUEST});
 
         const worker = new AnalysisWorkerWrapper( createWorker( url ) );
 
-        return worker.initialize( {
+        worker.initialize( {
             locale: "en_US",
             contentAnalysisActive: true,
             keywordAnalysisActive: true,
@@ -26,9 +26,9 @@ export function analyzeData(data, keyword, synonyms, url, useCornerstone) {
                 titleWidth: measureTextWidth(data.title)
             } );
 
-            return worker.analyze( paper );
+            return worker.runResearch('relevantWords', paper);
         } ).then( ( results ) => {
-            dispatch({type: ANALYZE_DATA_SUCCESS, payload: results});
+            dispatch({type: GET_RELEVANTWORDS_SUCCESS, payload: results});
         } ).catch( ( error ) => {
             console.error( 'An error occured while analyzing the text:' );
             console.error( error );

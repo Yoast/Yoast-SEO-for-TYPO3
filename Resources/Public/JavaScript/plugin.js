@@ -8,8 +8,12 @@ import store from './redux/store';
 import {getContent} from './redux/actions/content';
 import {setFocusKeyword} from './redux/actions/focusKeyword';
 import {analyzeData} from './redux/actions/analysis';
+import {setCornerstoneContent} from './redux/actions/cornerstoneContent';
+import RelevantWords from "./Components/RelevantWords";
 
 const keyword = tx_yoast_seo.settings.focusKeyword;
+const synonyms = '';
+const useCornerstone = tx_yoast_seo.settings.cornerstone;
 
 const workerUrl = '/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/worker.js';
 
@@ -38,3 +42,13 @@ store
 document.querySelectorAll('[data-yoast-snippetpreview]').forEach(container => {
     ReactDOM.render(<Provider store={store}><SnippetPreview /></Provider>, container);
 });
+
+document.querySelectorAll('[data-yoast-insights]').forEach(container => {
+    ReactDOM.render(<Provider store={store}><RelevantWords /></Provider>, container);
+});
+
+if (typeof $cornerstoneFieldSelector !== 'undefined') {
+    document.querySelector('[data-formengine-input-name="' + $cornerstoneFieldSelector + '"]').addEventListener('change', function() {
+        store.dispatch(setCornerstoneContent(this.checked));
+    });
+}
