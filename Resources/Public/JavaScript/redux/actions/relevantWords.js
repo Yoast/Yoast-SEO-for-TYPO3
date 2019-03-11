@@ -10,7 +10,7 @@ export function getRelevantWords(data, keyword, synonyms, url, useCornerstone) {
 
         const worker = new AnalysisWorkerWrapper( createWorker( url ) );
 
-        worker.initialize( {
+        return worker.initialize( {
             locale: "en_US",
             contentAnalysisActive: true,
             keywordAnalysisActive: true,

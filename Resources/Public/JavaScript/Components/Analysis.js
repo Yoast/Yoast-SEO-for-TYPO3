@@ -9,13 +9,13 @@ import SvgIcon from 'yoast-components/composites/Plugin/Shared/components/SvgIco
 import { getIconForScore, mapResults } from "../mapResults";
 import { helpers } from "yoastseo";
 
-function getResults(props) {
+function getResult(props) {
     const {analysis, resultType, resultSubtype} = props;
 
     if (resultSubtype !== undefined) {
-        return analysis.result[resultType][resultSubtype].results;
+        return analysis.result[resultType][resultSubtype];
     } else {
-        return analysis.result[resultType].results;
+        return analysis.result[resultType];
     }
 }
 
@@ -30,7 +30,7 @@ class Analysis extends React.Component {
 
         if (this.props.analysis.result[this.props.resultType]) {
             this.state = {
-                mappedResults: mapResults( getResults(this.props), this.props.keyword ),
+                mappedResults: mapResults( getResult(this.props).results, this.props.keyword ),
             };
         }
     }
@@ -48,7 +48,7 @@ class Analysis extends React.Component {
     componentDidUpdate( prevProps ) {
         if ( this.props.analysis.result[this.props.resultType] !== null && this.props.analysis.result[this.props.resultType] !== prevProps.analysis.result[this.props.resultType] ) {
             this.setState( {
-                mappedResults: mapResults( getResults(this.props), this.props.keyword ),
+                mappedResults: mapResults( getResult(this.props).results, this.props.keyword ),
             } );
         }
     }
@@ -67,8 +67,8 @@ class Analysis extends React.Component {
 
         let element;
 
-        if (this.props.content.isFetching === false && this.props.analysis.isAnalyzing === false && getResults(this.props)) {
-            let score = getResults(this.props).score / 10;
+        if (this.props.content.isFetching === false && this.props.analysis.isAnalyzing === false && getResult(this.props)) {
+            let score = getResult(this.props).score / 10;
             let iconForScore = getIconForScore(scoreToRating(score));
 
             element = (

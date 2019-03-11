@@ -10,6 +10,7 @@ import {setFocusKeyword} from './redux/actions/focusKeyword';
 import {analyzeData} from './redux/actions/analysis';
 import {setCornerstoneContent} from './redux/actions/cornerstoneContent';
 import RelevantWords from "./Components/RelevantWords";
+import {getRelevantWords} from './redux/actions/relevantWords';
 
 const keyword = tx_yoast_seo.settings.focusKeyword;
 const synonyms = '';
@@ -22,9 +23,10 @@ store.dispatch(setFocusKeyword(keyword));
 store
     .dispatch(getContent(keyword))
     .then(data => {
-        return store.dispatch(
-            analyzeData(store.getState().content, keyword, 'bla', workerUrl)
-        );
+        return Promise.all([
+            store.dispatch(analyzeData(store.getState().content, keyword, synonyms, workerUrl, useCornerstone)),
+            store.dispatch(getRelevantWords(store.getState().content, keyword, synonyms, workerUrl, useCornerstone))
+        ]);
     })
     .then(_ => {
         document.querySelectorAll('[data-yoast-analysis]').forEach(container => {
