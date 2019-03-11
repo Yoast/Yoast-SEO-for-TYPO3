@@ -5,7 +5,7 @@ export const GET_CONTENT_REQUEST = 'GET_CONTENT_REQUEST';
 export const GET_CONTENT_SUCCESS = 'GET_CONTENT_SUCCESS';
 export const GET_CONTENT_ERROR = 'GET_CONTENT_ERROR';
 
-export function getContent(keyword) {
+export function getContent(keyword, synonyms, useCornerstone) {
     return dispatch => {
         dispatch({type: GET_CONTENT_REQUEST});
 
@@ -22,7 +22,7 @@ export function getContent(keyword) {
 
                 const workerUrl = '/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/worker.js';
                 dispatch({type: GET_CONTENT_SUCCESS, payload: data});
-                store.dispatch(analyzeData(data, keyword, '', workerUrl));
+                store.dispatch(analyzeData(data, keyword, synonyms, workerUrl, useCornerstone));
             })
             .catch(error => {
                 dispatch({type: GET_CONTENT_ERROR, payload: error, error: true});

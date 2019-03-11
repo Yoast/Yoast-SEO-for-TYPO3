@@ -4,7 +4,7 @@ import measureTextWidth from "../../helpers/measureTextWidth";
 export const ANALYZE_DATA_REQUEST = 'ANALYZE_DATA_REQUEST';
 export const ANALYZE_DATA_SUCCESS = 'ANALYZE_DATA_SUCCESS';
 
-export function analyzeData(data, keyword, synonyms, url) {
+export function analyzeData(data, keyword, synonyms, url, useCornerstone) {
     return dispatch => {
         dispatch({type: ANALYZE_DATA_REQUEST});
 
@@ -14,6 +14,8 @@ export function analyzeData(data, keyword, synonyms, url) {
             locale: "en_US",
             contentAnalysisActive: true,
             keywordAnalysisActive: true,
+            useKeywordDistribution: true,
+            useCornerstone: useCornerstone,
             logLevel: "ERROR",
         } ).then( () => {
             const paper = new Paper( data.body, {
