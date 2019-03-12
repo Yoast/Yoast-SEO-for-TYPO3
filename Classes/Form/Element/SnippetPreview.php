@@ -149,6 +149,9 @@ class SnippetPreview extends AbstractNode
             $this->templateView->assign('databaseRow', $this->data['databaseRow']);
             $this->templateView->assign('scoreSeoFieldSelector', $this->getFieldSelector('tx_yoastseo_score_seo'));
             $this->templateView->assign('focusKeyword', $firstFocusKeyword);
+            $this->templateView->assign('vanillaUid', $this->data['vanillaUid']);
+            $this->templateView->assign('tableName', $this->data['tableName']);
+            $this->templateView->assign('languageId', $this->languageId);
         } else {
             $this->templateView->assign('wrongDoktype', true);
         }

@@ -22,3 +22,16 @@ CREATE TABLE tx_yoast_seo_premium_focus_keywords (
 	parentid int(11) DEFAULT '0' NOT NULL,
 	parenttable varchar(255) DEFAULT '' NOT NULL,
 );
+
+
+CREATE TABLE tx_yoast_seo_premium_prominent_words (
+	uid int(11) NOT NULL auto_increment,
+	pid int(11),
+	sys_language_uid int(11) DEFAULT '0' NOT NULL,
+	table varchar(100) DEFAULT 'pages' NOT NULL,
+	word tinytext,
+	occurrences int(11),
+
+	PRIMARY KEY (uid),
+	KEY parent (pid),
+);

@@ -180,7 +180,10 @@ class PageLayoutHeader
                         'cornerstone' => $currentPage['tx_yoastseo_cornerstone'],
                         'targetElementId' => $targetElementId,
                         'editable' => 0,
-                        'disableSlug' => 1
+                        'disableSlug' => 1,
+                        'tableName' => 'pages',
+                        'vanillaUid' => $pageId,
+                        'languageId' => (int)$moduleData['language']
                     )
                 )
                 . ';'

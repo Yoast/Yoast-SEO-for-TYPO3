@@ -11,12 +11,14 @@ import {analyzeData} from './redux/actions/analysis';
 import {setCornerstoneContent} from './redux/actions/cornerstoneContent';
 import RelevantWords from "./Components/RelevantWords";
 import {getRelevantWords} from './redux/actions/relevantWords';
+import {saveRelevantWords} from './redux/actions/relevantWords';
 
 const keyword = tx_yoast_seo.settings.focusKeyword;
 const synonyms = '';
 const useCornerstone = tx_yoast_seo.settings.cornerstone;
 
 const workerUrl = '/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/worker.js';
+const prominentWordsSaveUrl = '/?type=1539541406';
 
 store.dispatch(setFocusKeyword(keyword));
 
@@ -39,6 +41,8 @@ store
 
             ReactDOM.render(<Provider store={store}><Analysis {...config} /></Provider>, container);
         });
+
+        store.dispatch(saveRelevantWords(store.getState().relevantWords, tx_yoast_seo.settings.vanillaUid, tx_yoast_seo.settings.languageId, prominentWordsSaveUrl));
     })
 
 document.querySelectorAll('[data-yoast-snippetpreview]').forEach(container => {
