@@ -319,6 +319,15 @@
 			<trans-unit id="tx_yoast_seo_premium_focus_keywords.fields.synonyms">
 				<source>Synonyms</source>
 			</trans-unit>
+			<trans-unit id="pages.fields.tx_yoastseo_insights">
+				<source>Most relevant words</source>
+			</trans-unit>
+			<trans-unit id="pages.fields.tx_yoastseo_insights.intro">
+				<source>The following words and word combinations occur the most in the content. These give an indication of what your content focuses on. If the words differ a lot from your topic, you might want to rewrite your content accordingly.</source>
+			</trans-unit>
+			<trans-unit id="pages.fields.tx_yoastseo_insights.more_information">
+				<source><![CDATA[Read our <a href="%s" target="_blank">ultimate guide to keyword research</a> to learn more about keyword research and keyword strategy.]]></source>
+			</trans-unit>
 
 		</body>
 	</file>
