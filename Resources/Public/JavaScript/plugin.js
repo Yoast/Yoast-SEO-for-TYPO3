@@ -51,6 +51,6 @@ document.querySelectorAll('[data-yoast-insights]').forEach(container => {
 
 if (typeof $cornerstoneFieldSelector !== 'undefined') {
     document.querySelector('[data-formengine-input-name="' + $cornerstoneFieldSelector + '"]').addEventListener('change', function() {
-        store.dispatch(setCornerstoneContent(this.checked));
+        store.dispatch(setCornerstoneContent(this.checked, workerUrl));
     });
 }

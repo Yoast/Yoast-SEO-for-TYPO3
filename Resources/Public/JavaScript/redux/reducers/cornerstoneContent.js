@@ -5,7 +5,7 @@ const initialState = false;
 export default (state = initialState, action) => {
     switch(action.type) {
         case SET_CORNERSTONE_CONTENT:
-            return action.isCornerstoneContent;
+            return action.useCornerstone;
         default:
             return state;
     }

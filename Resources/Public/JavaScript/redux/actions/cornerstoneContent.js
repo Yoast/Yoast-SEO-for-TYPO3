@@ -1,11 +1,12 @@
 import store from "../store";
-import {getContent} from "./content";
+import {analyzeData} from "./analysis";
 
 export const SET_CORNERSTONE_CONTENT = 'SET_CORNERSTONE_CONTENT';
 
-export function setCornerstoneContent(isCornerstoneContent) {
+export function setCornerstoneContent(useCornerstone, workerUrl) {
     let state = store.getState();
 
-    store.dispatch(getContent(state.focusKeyword, '', isCornerstoneContent));
-    return {type: SET_CORNERSTONE_CONTENT, isCornerstoneContent};
+    store.dispatch(analyzeData(state.content, state.focusKeyword, '', workerUrl, useCornerstone));
+
+    return {type: SET_CORNERSTONE_CONTENT, useCornerstone};
 }
