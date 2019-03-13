@@ -7,27 +7,20 @@ import Analysis from './Components/Analysis';
 import store from './redux/store';
 import {getContent} from './redux/actions/content';
 import {setFocusKeyword} from './redux/actions/focusKeyword';
-import {analyzeData} from './redux/actions/analysis';
 import {setCornerstoneContent} from './redux/actions/cornerstoneContent';
 import RelevantWords from "./Components/RelevantWords";
-import {getRelevantWords} from './redux/actions/relevantWords';
+
+import worker from './analysis/worker';
+import refreshAnalysis from './analysis/refreshAnalysis';
 
 const keyword = tx_yoast_seo.settings.focusKeyword;
-const synonyms = '';
 const useCornerstone = tx_yoast_seo.settings.cornerstone;
-
-const workerUrl = '/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/worker.js';
 
 store.dispatch(setFocusKeyword(keyword));
 
 store
     .dispatch(getContent(keyword))
-    .then(data => {
-        return Promise.all([
-            store.dispatch(analyzeData(store.getState().content, keyword, synonyms, workerUrl, useCornerstone)),
-            store.dispatch(getRelevantWords(store.getState().content, keyword, synonyms, workerUrl, useCornerstone))
-        ]);
-    })
+    .then(_ => refreshAnalysis(worker, store))
     .then(_ => {
         document.querySelectorAll('[data-yoast-analysis]').forEach(container => {
             const config = {};
@@ -35,11 +28,15 @@ store
 
             if (config.resultType === 'seo') {
                 config.resultSubtype = '';
+
+                if (container.closest('[id*="tx_yoastseo_focuskeyword_premium"]')) {
+                    config.resultSubtype = 'een';
+                }
             }
 
             ReactDOM.render(<Provider store={store}><Analysis {...config} /></Provider>, container);
         });
-    })
+    });
 
 document.querySelectorAll('[data-yoast-snippetpreview]').forEach(container => {
     ReactDOM.render(<Provider store={store}><SnippetPreview /></Provider>, container);

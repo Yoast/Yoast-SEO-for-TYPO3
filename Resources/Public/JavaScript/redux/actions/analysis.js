@@ -1,37 +1,25 @@
-import {AnalysisWorkerWrapper, createWorker, Paper} from "yoastseo";
-import measureTextWidth from "../../helpers/measureTextWidth";
+import {AnalysisWorkerWrapper, createWorker} from 'yoastseo';
 
 export const ANALYZE_DATA_REQUEST = 'ANALYZE_DATA_REQUEST';
 export const ANALYZE_DATA_SUCCESS = 'ANALYZE_DATA_SUCCESS';
 
-export function analyzeData(data, keyword, synonyms, url, useCornerstone) {
+export function analyzeData(worker, paper, relatedKeyphrases = undefined) {
     return dispatch => {
         dispatch({type: ANALYZE_DATA_REQUEST});
 
-        const worker = new AnalysisWorkerWrapper( createWorker( url ) );
+        let request;
+        if (relatedKeyphrases === undefined) {
+            request = worker.analyze(paper);
+        } else {
+            request = worker.analyzeRelatedKeywords(paper, relatedKeyphrases);
+        }
 
-        return worker.initialize( {
-            locale: "en_US",
-            contentAnalysisActive: true,
-            keywordAnalysisActive: true,
-            useKeywordDistribution: true,
-            useCornerstone: useCornerstone,
-            logLevel: "ERROR",
-        } ).then( () => {
-            const paper = new Paper( data.body, {
-                keyword: keyword,
-                title: data.title,
-                synonyms: synonyms,
-                description: data.description,
-                titleWidth: measureTextWidth(data.title)
-            } );
-
-            return worker.analyze( paper );
-        } ).then( ( results ) => {
-            dispatch({type: ANALYZE_DATA_SUCCESS, payload: results});
-        } ).catch( ( error ) => {
-            console.error( 'An error occured while analyzing the text:' );
-            console.error( error );
-        } );
+        return request
+            .then((results) => {
+                dispatch({type: ANALYZE_DATA_SUCCESS, payload: results});
+            }).catch((error) => {
+                console.error('An error occured while analyzing the text:');
+                console.error(error);
+            });
     };
 }
