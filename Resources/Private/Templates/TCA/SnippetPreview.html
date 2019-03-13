@@ -32,11 +32,7 @@
 			<script type="text/javascript" src="https://localhost:3333/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/plugin.js" async></script>
 
 			<div id="{previewTargetId}" data-yoast-snippetpreview>
-				<div class="spinner">
-					<div class="bounce1"></div>
-					<div class="bounce2"></div>
-					<div class="bounce3"></div>
-				</div>
+				<f:render partial="Spinner" />
 			</div>
 		</f:then>
 		<f:else>

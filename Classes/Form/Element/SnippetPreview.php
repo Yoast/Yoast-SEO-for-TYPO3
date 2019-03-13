@@ -99,6 +99,9 @@ class SnippetPreview extends AbstractNode
         $this->localeService = GeneralUtility::makeInstance(Locales::class);
 
         $this->templateView = GeneralUtility::makeInstance(StandaloneView::class);
+        $this->templateView->setPartialRootPaths(
+            [GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Partials/TCA')]
+        );
         $this->templateView->setTemplatePathAndFilename(
             GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Templates/TCA/SnippetPreview.html')
         );

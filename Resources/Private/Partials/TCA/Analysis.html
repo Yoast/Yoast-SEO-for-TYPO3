@@ -1,7 +1,7 @@
 <html data-namespace-typo3-fluid="true" xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers">
 
 <style>
-    div.yoast-analysis div {
+    div.yoast-analysis div:not(.bounce) {
         background-color: inherit !important;
     }
 
@@ -14,5 +14,7 @@
         text-decoration: underline;
     }
 </style>
-<div data-yoast-analysis="{type}" class="yoast-analysis"></div>
+<div data-yoast-analysis="{type}" class="yoast-analysis">
+	<f:render partial="Spinner" />
+</div>
 </html>
