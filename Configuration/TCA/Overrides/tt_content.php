@@ -9,7 +9,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
             'exclude' => true,
             'config' => [
                 'type' => 'text',
-                'renderType' => 'readabilityAnalysis'
+                'renderType' => 'internalLinkingSuggestion'
             ]
         ]
     ]

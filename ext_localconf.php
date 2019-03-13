@@ -53,6 +53,12 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1519937113] = a
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\Insights::class
 );
 
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1552511464] = array(
+    'nodeName' => 'internalLinkingSuggestion',
+    'priority' => 40,
+    'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\InternalLinkingSuggestion::class
+);
+
 $llFolder = 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/';
 
 $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = [
