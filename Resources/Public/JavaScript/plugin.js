@@ -11,12 +11,14 @@ import {setCornerstoneContent} from './redux/actions/cornerstoneContent';
 import RelevantWords from "./Components/RelevantWords";
 import {saveRelevantWords} from './redux/actions/relevantWords';
 
-import worker from './analysis/worker';
+import createAnalysisWorker from './analysis/createAnalysisWorker';
 import refreshAnalysis from './analysis/refreshAnalysis';
 
 const keyword = tx_yoast_seo.settings.focusKeyword;
 const useCornerstone = tx_yoast_seo.settings.cornerstone;
 const prominentWordsSaveUrl = '/?type=1539541406';
+
+let worker = createAnalysisWorker(useCornerstone);
 
 store.dispatch(setFocusKeyword(keyword));
 
@@ -52,12 +54,7 @@ document.querySelectorAll('[data-yoast-insights]').forEach(container => {
 
 if (typeof $cornerstoneFieldSelector !== 'undefined') {
     document.querySelector('[data-formengine-input-name="' + $cornerstoneFieldSelector + '"]').addEventListener('change', function() {
-        Promise.all([
-            store.dispatch(setCornerstoneContent(this.checked, workerUrl))
-        ]).then(_ => {
-            let state = store.getState();
-
-            store.dispatch(analyzeData(state.content, state.focusKeyword, synonyms, workerUrl, state.cornerstoneContent))
-        });
+        worker = createAnalysisWorker(this.checked);
+        refreshAnalysis(worker, store);
     });
 }

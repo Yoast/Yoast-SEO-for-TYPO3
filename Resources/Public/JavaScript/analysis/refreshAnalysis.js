@@ -2,7 +2,6 @@ import store from '../redux/store';
 import {Paper} from 'yoastseo';
 import measureTextWidth from '../helpers/measureTextWidth';
 import {analyzeData} from '../redux/actions/analysis';
-import worker from './worker';
 import {getRelevantWords} from '../redux/actions/relevantWords';
 
 export default function refreshAnalysis(worker, store) {
