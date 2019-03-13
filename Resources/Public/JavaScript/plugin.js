@@ -1,11 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
+import { debounce} from 'lodash';
 
 import SnippetPreview from './Components/SnippetPreview';
 import Analysis from './Components/Analysis';
+import TitleProgressBar from './Components/TitleProgressBar';
+import DescriptionProgressBar from './Components/DescriptionProgressBar';
 import store from './redux/store';
-import {getContent} from './redux/actions/content';
+import {getContent, updateContent} from './redux/actions/content';
 import {setFocusKeyword} from './redux/actions/focusKeyword';
 import {setCornerstoneContent} from './redux/actions/cornerstoneContent';
 import RelevantWords from "./Components/RelevantWords";
@@ -54,3 +57,30 @@ if (typeof $cornerstoneFieldSelector !== 'undefined') {
         refreshAnalysis(worker, store);
     });
 }
+
+const progressBarItems = [{
+    input: document.querySelector(`[data-formengine-input-name="${$titleTcaSelector}"]`),
+    component: <TitleProgressBar />,
+    storeKey: 'title'
+}, {
+    input: document.querySelector(`[data-formengine-input-name="${$descriptionTcaSelector}"]`),
+    component: <DescriptionProgressBar />,
+    storeKey: 'description'
+}]
+
+progressBarItems.forEach(item => {
+    if (item.input) {
+        const container = document.createElement('div');
+        item.input.after(container);
+
+        item.input.addEventListener('input', debounce(_ => {
+            store.dispatch(updateContent({[item.storeKey]: item.input.value}));
+        }, 100));
+
+        item.input.addEventListener('change', _ => {
+            refreshAnalysis(worker, store);
+        })
+
+        ReactDOM.render(<Provider store={store}>{item.component}</Provider>, container);
+    }
+})

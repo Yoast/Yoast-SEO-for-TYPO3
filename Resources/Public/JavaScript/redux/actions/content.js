@@ -1,6 +1,7 @@
 export const GET_CONTENT_REQUEST = 'GET_CONTENT_REQUEST';
 export const GET_CONTENT_SUCCESS = 'GET_CONTENT_SUCCESS';
 export const GET_CONTENT_ERROR = 'GET_CONTENT_ERROR';
+export const UPDATE_CONTENT = 'UPDATE_CONTENT';
 
 export function getContent() {
     return dispatch => {
@@ -23,4 +24,11 @@ export function getContent() {
                 dispatch({type: GET_CONTENT_ERROR, payload: error, error: true});
             });
     };
+}
+
+export function updateContent(content) {
+    return {
+        type: UPDATE_CONTENT,
+        payload: content
+    }
 }
