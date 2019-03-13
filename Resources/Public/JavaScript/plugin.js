@@ -30,12 +30,8 @@ store
             const config = {};
             config.resultType = container.getAttribute('data-yoast-analysis');
 
-            if (config.resultType === 'seo') {
-                config.resultSubtype = '';
-
-                if (container.closest('[id*="tx_yoastseo_focuskeyword_premium"]')) {
-                    config.resultSubtype = container.getAttribute('data-yoast-subtype');
-                }
+            if (container.getAttribute('data-yoast-subtype')) {
+                config.resultSubtype = container.getAttribute('data-yoast-subtype');
             }
 
             ReactDOM.render(<Provider store={store}><Analysis {...config} /></Provider>, container);
