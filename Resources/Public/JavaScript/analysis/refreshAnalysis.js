@@ -11,24 +11,13 @@ export default function refreshAnalysis(worker, store) {
     const paper = new Paper( data.body, {
         keyword: state.focusKeyword,
         title: data.title,
-        synonyms: '',
+        synonyms: state.focusKeywordSynonyms,
         description: data.description,
         titleWidth: measureTextWidth(data.title)
     });
 
-    const relatedKeyphrases = {
-        een: {
-            keyword: 'bla',
-            synonyms: 'beproeving, experiment, onderzoek, poging, probatie, probeersel, proefje, proefneming, test, test-case, toetsing, trial. keuring (zn) : beoordeling, controle, essaai, nazicht, onderzoek, proefneming, schouwing, test, toets, toetsing'
-        },
-        twee: {
-            keyword: '',
-            synonyms: ''
-        }
-    }
-
     const promises = [
-        store.dispatch(analyzeData(worker, paper, relatedKeyphrases)),
+        store.dispatch(analyzeData(worker, paper, YoastConfig.relatedKeyphrases)),
         store.dispatch(getRelevantWords(worker, paper)),
     ];
 
