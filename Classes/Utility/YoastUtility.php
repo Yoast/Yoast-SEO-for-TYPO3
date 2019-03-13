@@ -133,4 +133,34 @@ class YoastUtility
 
         return $params['keyword'];
     }
+
+    /**
+     * @param string $parentTable
+     * @param int $parentId
+     * @return array
+     */
+    public static function getRelatedKeyphrases($parentTable, $parentId): array
+    {
+        $config = [];
+        $queryBuilder = CMS\Core\Utility\GeneralUtility::makeInstance(CMS\Core\Database\ConnectionPool::class)->getQueryBuilderForTable('tx_yoast_seo_premium_focus_keywords');
+        if ($queryBuilder) {
+            $relatedKeyphrases = $queryBuilder->select('*')
+                ->from('tx_yoast_seo_premium_focus_keywords')
+                ->where(
+                    $queryBuilder->expr()->eq('parenttable', $queryBuilder->createNamedParameter($parentTable)),
+                    $queryBuilder->expr()->eq('parentid', (int)$parentId)
+                )
+                ->execute()
+                ->fetchAll();
+
+            foreach ($relatedKeyphrases as $relatedKeyphrase) {
+                $config['rk' . (int)$relatedKeyphrase['uid']] = [
+                    'keyword' => (string)$relatedKeyphrase['keyword'],
+                    'synonyms' => (string)$relatedKeyphrase['synonyms']
+                ];
+            }
+        }
+
+        return $config;
+    }
 }

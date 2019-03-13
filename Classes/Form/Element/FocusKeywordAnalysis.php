@@ -4,6 +4,7 @@ namespace YoastSeoForTypo3\YoastSeo\Form\Element;
 use TYPO3\CMS\Backend\Form\AbstractNode;
 use TYPO3\CMS\Backend\Form\NodeFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
@@ -60,7 +61,12 @@ class FocusKeywordAnalysis extends AbstractNode
         if ($this->data['tableName'] == 'pages' && !\in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
             $this->templateView->assign('wrongDoktype', true);
         }
+        $subtype = '';
+        if ($this->data['tableName'] === 'tx_yoast_seo_premium_focus_keywords') {
+            $subtype = 'rk' . $this->data['vanillaUid'];
+        }
 
+        $this->templateView->assign('subtype', $subtype);
         $resultArray['html'] = $this->templateView->render();
         return $resultArray;
     }

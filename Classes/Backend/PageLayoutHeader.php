@@ -4,6 +4,7 @@ namespace YoastSeoForTypo3\YoastSeo\Backend;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS;
+use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class PageLayoutHeader
@@ -162,6 +163,21 @@ class PageLayoutHeader
             $labelBad = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelBad');
             $labelOk = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelOk');
             $labelGood = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelGood');
+
+            $config = [
+                'snippetPreview' => [
+                    'previewUrl' => $previewDataUrl,
+                ],
+                'isCornerstoneContent' => (bool)$currentPage['tx_yoastseo_cornerstone'],
+                'focusKeyphrase' => [
+                    'keyword' => (string)$currentPage['tx_yoastseo_focuskeyword'],
+                    'synonyms' => (string)$currentPage['tx_yoastseo_focuskeyword_synonyms'],
+                ]
+            ];
+            $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigUtility::class);
+            $jsonConfigUtility->addConfig($config);
+
+            $this->pageRenderer->addJsInlineCode('yoast-json-config', $jsonConfigUtility->render());
 
             $this->pageRenderer->addJsInlineCode(
                 'YoastSEO settings',

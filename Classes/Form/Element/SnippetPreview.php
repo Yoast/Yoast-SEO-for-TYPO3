@@ -6,6 +6,7 @@ use TYPO3\CMS\Backend\Form\NodeFactory;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Localization\Locales;
+use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
@@ -15,6 +16,7 @@ use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use TYPO3\CMS\Frontend\Page\CacheHashCalculator;
 use TYPO3\CMS\Frontend\Page\PageRepository;
+use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class SnippetPreview extends AbstractNode
@@ -135,6 +137,7 @@ class SnippetPreview extends AbstractNode
 
     public function render()
     {
+        $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigUtility::class);
         $allowedDoktypes = YoastUtility::getAllowedDoktypes();
         $resultArray = $this->initializeResultArray();
         $publicResourcesPath = PathUtility::getAbsoluteWebPath('../typo3conf/ext/yoast_seo/Resources/Public/');
@@ -142,6 +145,22 @@ class SnippetPreview extends AbstractNode
 
         if ($this->data['tableName'] != 'pages' || in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
             $firstFocusKeyword = YoastUtility::getFocusKeywordOfPage((int)$this->data['databaseRow']['uid'], $this->data['tableName']);
+
+            $config = [
+                'snippetPreview' => [
+                    'previewUrl' => $this->previewUrl,
+                ],
+                'isCornerstoneContent' => (bool)$this->data['databaseRow']['tx_yoastseo_cornerstone'],
+                'focusKeyphrase' => [
+                    'keyword' => (string)$this->data['databaseRow']['tx_yoastseo_focuskeyword'],
+                    'synonyms' => (string)$this->data['databaseRow']['tx_yoastseo_focuskeyword_synonyms'],
+                ],
+                'fields' => [
+
+                ],
+                'relatedKeyphrases' => YoastUtility::getRelatedKeyphrases($this->data['tableName'], (int)$this->data['databaseRow']['uid'])
+            ];
+            $jsonConfigUtility->addConfig($config);
 
             $this->templateView->assign('translations', $this->getTranslations());
             $this->templateView->assign('previewUrl', $this->previewUrl);

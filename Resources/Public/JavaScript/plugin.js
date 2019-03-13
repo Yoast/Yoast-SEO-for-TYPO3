@@ -13,17 +13,17 @@ import {saveRelevantWords} from './redux/actions/relevantWords';
 
 import createAnalysisWorker from './analysis/createAnalysisWorker';
 import refreshAnalysis from './analysis/refreshAnalysis';
+import {setFocusKeywordSynonyms} from "./redux/actions/focusKeywordSynonyms";
 
-const keyword = tx_yoast_seo.settings.focusKeyword;
-const useCornerstone = tx_yoast_seo.settings.cornerstone;
 const prominentWordsSaveUrl = '/?type=1539541406';
 
-let worker = createAnalysisWorker(useCornerstone);
+let worker = createAnalysisWorker(YoastConfig.isCornerstoneContent);
 
-store.dispatch(setFocusKeyword(keyword));
+store.dispatch(setFocusKeyword(YoastConfig.focusKeyphrase.keyword));
+store.dispatch(setFocusKeywordSynonyms(YoastConfig.focusKeyphrase.synonyms));
 
 store
-    .dispatch(getContent(keyword))
+    .dispatch(getContent())
     .then(_ => refreshAnalysis(worker, store))
     .then(_ => {
         document.querySelectorAll('[data-yoast-analysis]').forEach(container => {
@@ -34,7 +34,7 @@ store
                 config.resultSubtype = '';
 
                 if (container.closest('[id*="tx_yoastseo_focuskeyword_premium"]')) {
-                    config.resultSubtype = 'een';
+                    config.resultSubtype = container.getAttribute('data-yoast-subtype');
                 }
             }
 
