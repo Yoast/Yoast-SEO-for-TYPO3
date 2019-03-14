@@ -10,7 +10,6 @@ import DescriptionProgressBar from './Components/DescriptionProgressBar';
 import store from './redux/store';
 import {getContent, updateContent} from './redux/actions/content';
 import {setFocusKeyword} from './redux/actions/focusKeyword';
-import {setCornerstoneContent} from './redux/actions/cornerstoneContent';
 import RelevantWords from "./Components/RelevantWords";
 import {saveRelevantWords} from './redux/actions/relevantWords';
 
