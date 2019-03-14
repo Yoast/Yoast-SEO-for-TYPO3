@@ -38,7 +38,6 @@ function mapStateToProps (state) {
         ...state.content,
         ...state.analysis,
         ...state.relevantWords,
-        cornerstoneContent: state.cornerstoneContent,
         keyword: state.focusKeyword
     }
 }
