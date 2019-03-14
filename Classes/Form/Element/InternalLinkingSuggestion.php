@@ -62,8 +62,7 @@ class InternalLinkingSuggestion extends AbstractNode
         $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
         $pageRenderer->addJsInlineCode('yoast-json-config-linking-suggestion', $jsonConfigUtility->render());
 
-    $resultArray['requireJsModules'] = ['TYPO3/CMS/YoastSeo/linkingSuggestions'];
-    $resultArray['html'] = $this->templateView->render();
+        $resultArray['html'] = $this->templateView->render();
 
         return $resultArray;
     }

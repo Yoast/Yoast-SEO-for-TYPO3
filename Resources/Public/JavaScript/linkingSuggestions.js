@@ -35,7 +35,7 @@ function updateLinkingSuggestions(url) {
                             content += '<p><strong>' + word + '</strong></p>';
                             content += '<ol>';
                             for (let link in results.links[word]) {
-                                content += '<li>[' + results.links[word][link]['table'] + ':' + results.links[word][link]['uid'] + '] ' + results.links[word][link]['label'] + '</li>';
+                                content += '<li>[' + results.links[word][link]['table'] + ':' + results.links[word][link]['id'] + '] ' + results.links[word][link]['label'] + '</li>';
                             }
                             content += '</ol>';
                         }

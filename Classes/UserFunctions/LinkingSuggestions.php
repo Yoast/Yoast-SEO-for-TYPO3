@@ -35,7 +35,7 @@ class LinkingSuggestions
                 $data = BackendUtility::getRecord($record['table'], $record['pid']);
                 $labelField = $GLOBALS['TCA'][$record['table']]['ctrl']['label'];
 
-                $links[$combined][] = ['label' => $data[$labelField], 'uid' => $record['uid'], 'table' => $record['table']];
+                $links[$combined][] = ['label' => $data[$labelField], 'id' => $record['pid'], 'table' => $record['table']];
             }
 
         }
