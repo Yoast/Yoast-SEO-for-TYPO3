@@ -53,6 +53,9 @@ class InternalLinkingSuggestion extends AbstractNode
             'focusKeyphrase' => [
                 'keyword' => '',
                 'synonyms' => ''
+            ],
+            'urls' => [
+                'linkingSuggestions' => '/?type=1552555364'
             ]
         ];
         $jsonConfigUtility->addConfig($config);

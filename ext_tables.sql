@@ -23,6 +23,9 @@ CREATE TABLE tx_yoast_seo_premium_focus_keywords (
 	parenttable varchar(255) DEFAULT '' NOT NULL,
 );
 
+CREATE TABLE tt_content (
+	tx_yoastseo_linking_suggestions tinytext,
+);
 
 CREATE TABLE tx_yoast_seo_premium_prominent_words (
 	uid int(11) NOT NULL auto_increment,
@@ -35,3 +38,4 @@ CREATE TABLE tx_yoast_seo_premium_prominent_words (
 	PRIMARY KEY (uid),
 	KEY parent (pid),
 );
+

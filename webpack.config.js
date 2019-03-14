@@ -6,6 +6,7 @@ const PORT = 3333;
 module.exports = {
     entry: {
         plugin: ['@babel/polyfill', './Resources/Public/JavaScript/plugin.js'],
+        linkingSuggestions: ['@babel/polyfill', './Resources/Public/JavaScript/linkingSuggestions.js'],
         /*worker: './Resources/Public/JavaScript/worker.js'*/
     },
     output: {

@@ -329,6 +329,13 @@
 				<source><![CDATA[Read our <a href="%s" target="_blank">ultimate guide to keyword research</a> to learn more about keyword research and keyword strategy.]]></source>
 			</trans-unit>
 
+			<trans-unit id="tx_yoastseo_linking_suggestions">
+				<source>Internal linking suggestions</source>
+			</trans-unit>
+			<trans-unit id="tx_yoastseo_linking_suggestions.intro">
+				<source>We found the following items that might be interesting to link to from within this text.</source>
+			</trans-unit>
+
 		</body>
 	</file>
 </xliff>

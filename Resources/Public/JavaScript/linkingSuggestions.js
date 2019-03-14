@@ -1,29 +1,57 @@
-/*global define, top, TYPO3, YoastConfig */
+import React from 'react';
+import createAnalysisWorker from './analysis/createAnalysisWorker';
+import {Paper} from "yoastseo";
 
-define(['jquery', 'ckeditor'], function ($, CKEDITOR) {
-    'use strict';
+function updateLinkingSuggestions(url) {
+    let timeout = 1000; // check every second when no analysis is done
 
-    function getData() {
+    if (typeof CKEDITOR != "undefined") {
         let content = '';
 
         for (let instance in CKEDITOR.instances) {
             content += CKEDITOR.instances[instance].getData();
         }
 
-        console.log(content);
-        return content;
+        let worker = createAnalysisWorker(false);
+
+        const paper = new Paper( content, {});
+        let request;
+        request = worker.runResearch('relevantWords', paper)
+            .then((results) => {
+                let words = results.result.slice( 0, 25 );
+
+                fetch(url, {
+                    method: 'post',
+                    headers : new Headers(),
+                    body: JSON.stringify({words: words})
+                })
+                    .then(response => {
+                        return response.json();
+                    })
+                    .then(results => {
+                        let content = '';
+
+                        for (let word in results.links) {
+                            content += '<p><strong>' + word + '</strong></p>';
+                            content += '<ol>';
+                            for (let link in results.links[word]) {
+                                content += '<li>[' + results.links[word][link]['table'] + ':' + results.links[word][link]['uid'] + '] ' + results.links[word][link]['label'] + '</li>';
+                            }
+                            content += '</ol>';
+                        }
+
+                        document.querySelector(`[data-yoast-linking-suggestion]`).innerHTML = content;
+                    });
+            });
+
+        timeout = 10000; // we have done an analysis so updating every second is not nessecary anymore.
     }
 
-    $(function () {
-        CKEDITOR.on('instanceReady', function(){
-            getData();
-            for (let instance in CKEDITOR.instances) {
-                CKEDITOR.instances[instance].on('change', function (evt) {
-                    getData();
-                })
-            }
-        });
-    });
-});
+    setTimeout(function() {
+        updateLinkingSuggestions(url);
+    }, timeout);
+}
 
-
+if (typeof YoastConfig.urls.linkingSuggestions != "undefined") {
+    updateLinkingSuggestions(YoastConfig.urls.linkingSuggestions);
+}
