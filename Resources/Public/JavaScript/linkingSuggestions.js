@@ -3,15 +3,26 @@
 define(['jquery', 'ckeditor'], function ($, CKEDITOR) {
     'use strict';
 
-    CKEDITOR.on('instanceReady', function(){
+    function getData() {
         let content = '';
 
-        for (var instance in CKEDITOR.instances) {
+        for (let instance in CKEDITOR.instances) {
             content += CKEDITOR.instances[instance].getData();
         }
 
-        let worker = createAnalysisWorker(false);
-        console.log(worker);
+        console.log(content);
+        return content;
+    }
+
+    $(function () {
+        CKEDITOR.on('instanceReady', function(){
+            getData();
+            for (let instance in CKEDITOR.instances) {
+                CKEDITOR.instances[instance].on('change', function (evt) {
+                    getData();
+                })
+            }
+        });
     });
 });
 
