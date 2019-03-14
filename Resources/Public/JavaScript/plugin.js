@@ -32,7 +32,7 @@ store
             const config = {};
             config.resultType = container.getAttribute('data-yoast-analysis');
 
-            if (container.getAttribute('data-yoast-subtype')) {
+            if (config.resultType === 'seo') {
                 config.resultSubtype = container.getAttribute('data-yoast-subtype');
             }
 
@@ -57,29 +57,31 @@ if (typeof $cornerstoneFieldSelector !== 'undefined') {
     });
 }
 
-const progressBarItems = [{
-    input: document.querySelector(`[data-formengine-input-name="${$titleTcaSelector}"]`),
-    component: <TitleProgressBar />,
-    storeKey: 'title'
-}, {
-    input: document.querySelector(`[data-formengine-input-name="${$descriptionTcaSelector}"]`),
-    component: <DescriptionProgressBar />,
-    storeKey: 'description'
-}]
+if (typeof $titleTcaSelector !== 'undefined' && typeof $descriptionTcaSelector !== 'undefined') {
+    const progressBarItems = [{
+        input: document.querySelector(`[data-formengine-input-name="${$titleTcaSelector}"]`),
+        component: <TitleProgressBar/>,
+        storeKey: 'title'
+    }, {
+        input: document.querySelector(`[data-formengine-input-name="${$descriptionTcaSelector}"]`),
+        component: <DescriptionProgressBar/>,
+        storeKey: 'description'
+    }]
 
-progressBarItems.forEach(item => {
-    if (item.input) {
-        const container = document.createElement('div');
-        item.input.after(container);
+    progressBarItems.forEach(item => {
+        if (item.input) {
+            const container = document.createElement('div');
+            item.input.after(container);
 
-        item.input.addEventListener('input', debounce(_ => {
-            store.dispatch(updateContent({[item.storeKey]: item.input.value}));
-        }, 100));
+            item.input.addEventListener('input', debounce(_ => {
+                store.dispatch(updateContent({[item.storeKey]: item.input.value}));
+            }, 100));
 
-        item.input.addEventListener('change', _ => {
-            refreshAnalysis(worker, store);
-        })
+            item.input.addEventListener('change', _ => {
+                refreshAnalysis(worker, store);
+            })
 
-        ReactDOM.render(<Provider store={store}>{item.component}</Provider>, container);
-    }
-})
+            ReactDOM.render(<Provider store={store}>{item.component}</Provider>, container);
+        }
+    });
+}
