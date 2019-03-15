@@ -112,11 +112,11 @@ define(['jquery', './bundle', 'TYPO3/CMS/Backend/AjaxDataHandler', 'TYPO3/CMS/Ba
                         $('.yoastSeo-score-bar-item').on('click', function() {
                             var preContent = '';
                             if ($(this).attr('id') == 'yoastSeo-score-bar-focuskeyword' && tx_yoast_seo.settings.focusKeyword) {
-                                preContent = '<div style="margin-bottom: 10px;"><strong>' + (app.i18n.dgettext('js-text-analysis', 'Focus keyword')) + '</strong>: ' + tx_yoast_seo.settings.focusKeyword + '</div>';
+                                preContent = '<div style="margin-bottom: 10px;"><strong>' + (app.i18n.dgettext('js-text-analysis', 'Focus keyphrase')) + '</strong>: ' + tx_yoast_seo.settings.focusKeyword + '</div>';
                             }
 
                             var title = $(this).find('.yoastSeo-score-bar-item--title').text();
-                            var content = cssFile + preContent + $(this).find('.yoastSeo-score-bar-item--content').html();
+                            var content = $(cssFile + preContent + $(this).find('.yoastSeo-score-bar-item--content').html());
 
                             Modal.show(title, content);
                         });

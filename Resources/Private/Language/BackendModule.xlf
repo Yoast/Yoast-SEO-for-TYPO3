@@ -124,7 +124,7 @@
 				<source>Synonyms (PREMIUM)</source>
 			</trans-unit>
 			<trans-unit id="focusKeyword">
-				<source>Focus keyword</source>
+				<source>Focus keyphrase</source>
 			</trans-unit>
 			<trans-unit id="last_mod">
 				<source>Last modified</source>
@@ -244,7 +244,7 @@
 				<source>Advanced settings</source>
 			</trans-unit>
 			<trans-unit id="snippetPreview">
-				<source>Snippet preview</source>
+				<source>Yoast SEO Snippet preview</source>
 			</trans-unit>
 			<trans-unit id="analysis">
 				<source>Analysis results</source>
@@ -305,6 +305,9 @@
 			</trans-unit>
 			<trans-unit id="thisPageIsCornerstoneContent">
 				<source><![CDATA[This page is <a href="%s" target="_blank">cornerstone content</a>]]></source>
+			</trans-unit>
+			<trans-unit id="goPremium">
+				<source>Go Premium</source>
 			</trans-unit>
 
 			<trans-unit id="tx_yoast_seo_premium_focus_keywords.title">

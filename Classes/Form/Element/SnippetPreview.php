@@ -143,6 +143,16 @@ class SnippetPreview extends AbstractNode
         $publicResourcesPath = PathUtility::getAbsoluteWebPath('../typo3conf/ext/yoast_seo/Resources/Public/');
         $resultArray['stylesheetFiles'][] = $publicResourcesPath . 'CSS/yoast-seo-tca.min.css';
 
+        $premiumText = '';
+        if (!YoastUtility::isPremiumInstalled()) {
+            $premiumText = '
+                <div class="yoast-snippet-preview-premium">
+                    <a target="_blank" rel="noopener noreferrer" href="' . YoastUtility::getYoastLink('Go premium', 'page-properties-snippetpreview') . '">
+                        <i class="fa fa-star"></i>' . $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:goPremium') . '
+                    </a>
+                </div>';
+        }
+
         if ($this->data['tableName'] != 'pages' || in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
             $firstFocusKeyword = YoastUtility::getFocusKeywordOfPage((int)$this->data['databaseRow']['uid'], $this->data['tableName']);
 
@@ -174,6 +184,7 @@ class SnippetPreview extends AbstractNode
             $this->templateView->assign('vanillaUid', $this->data['vanillaUid']);
             $this->templateView->assign('tableName', $this->data['tableName']);
             $this->templateView->assign('languageId', $this->languageId);
+            $this->templateView->assign('previewContent', $premiumText);
         } else {
             $this->templateView->assign('wrongDoktype', true);
         }

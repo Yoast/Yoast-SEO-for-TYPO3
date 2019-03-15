@@ -150,3 +150,13 @@
 .yoastHiddenTcaField {
     display: none;
 }
+
+.yoast-snippet-preview-premium {
+	margin-top: 5px;
+	text-decoration: underline;
+
+	i {
+		color: $yoast_color_headings;
+		margin-right: 5px;
+	}
+}
