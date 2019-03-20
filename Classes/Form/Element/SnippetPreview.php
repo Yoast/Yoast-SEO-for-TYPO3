@@ -156,6 +156,12 @@ class SnippetPreview extends AbstractNode
         if ($this->data['tableName'] != 'pages' || in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
             $firstFocusKeyword = YoastUtility::getFocusKeywordOfPage((int)$this->data['databaseRow']['uid'], $this->data['tableName']);
 
+            $labelReadability = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelReadability');
+            $labelSeo = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelSeo');
+            $labelBad = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelBad');
+            $labelOk = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelOk');
+            $labelGood = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelGood');
+
             $config = [
                 'snippetPreview' => [
                     'previewUrl' => $this->previewUrl,
@@ -167,6 +173,13 @@ class SnippetPreview extends AbstractNode
                 ],
                 'fields' => [
 
+                ],
+                'labels' => [
+                    'readability' => $labelReadability,
+                    'seo' => $labelSeo,
+                    'bad' => $labelBad,
+                    'ok' => $labelOk,
+                    'good' => $labelGood
                 ],
                 'relatedKeyphrases' => YoastUtility::getRelatedKeyphrases($this->data['tableName'], (int)$this->data['databaseRow']['uid'])
             ];

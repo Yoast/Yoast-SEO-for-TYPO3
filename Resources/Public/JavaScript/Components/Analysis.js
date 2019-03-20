@@ -68,12 +68,8 @@ class Analysis extends React.Component {
         let element;
 
         if (this.props.content.isFetching === false && this.props.analysis.isAnalyzing === false && getResult(this.props)) {
-            let score = getResult(this.props).score / 10;
-            let iconForScore = getIconForScore(scoreToRating(score));
-
             element = (
                 <React.Fragment>
-                    <SvgIcon icon={ iconForScore.icon } color={ iconForScore.color } />
                     <YoastContentAnalysis
                         problemsResults={ problemsResults }
                         improvementsResults={ improvementsResults }

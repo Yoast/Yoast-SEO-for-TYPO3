@@ -160,6 +160,8 @@ class PageLayoutHeader
                 );
             }
 
+            $labelReadability = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelReadability');
+            $labelSeo = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelSeo');
             $labelBad = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelBad');
             $labelOk = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelOk');
             $labelGood = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelGood');
@@ -172,6 +174,13 @@ class PageLayoutHeader
                 'focusKeyphrase' => [
                     'keyword' => (string)$currentPage['tx_yoastseo_focuskeyword'],
                     'synonyms' => (string)$currentPage['tx_yoastseo_focuskeyword_synonyms'],
+                ],
+                'labels' => [
+                    'readability' => $labelReadability,
+                    'seo' => $labelSeo,
+                    'bad' => $labelBad,
+                    'ok' => $labelOk,
+                    'good' => $labelGood
                 ]
             ];
             $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigUtility::class);
@@ -258,25 +267,18 @@ class PageLayoutHeader
             }
 
             $returnHtml = '
+                <style>
+                    .yoastSeo-score-bar--analysis {
+                        margin-right: 20px;
+                    }
+
+                    .yoastSeo-score-bar--analysis svg {
+                        position: relative;
+                        top: 3px;
+                    }                    
+                </style>
+
                 <div class="yoast-snippet-header">
-                    <div class="yoast-snippet-header-icons btn-group btn-group-sm">
-                        <a href="#" class="yoast-collapse" data-collapse-target="' . $targetElementId . '">
-                            <span class="t3js-icon icon icon-size-small icon-state-default icon-actions-document-open"
-                                data-identifier="actions-document-open">
-                                <span class="icon-markup">
-                                    <img src="/typo3/sysext/core/Resources/Public/Icons/T3Icons/actions/actions-move-down.svg" width="16" height="16">
-                                </span>
-                            </span>
-                        </a>
-                        <a href="' . $url . '" title="">
-                            <span class="t3js-icon icon icon-size-small icon-state-default icon-actions-document-open"
-                                data-identifier="actions-document-open">
-                                <span class="icon-markup">
-                                    <img src="/typo3/sysext/core/Resources/Public/Icons/T3Icons/actions/actions-document-open.svg" width="16" height="16">
-                                </span>
-                            </span>
-                        </a>
-                    </div>
                     ' . $premiumText . '
                     <div class="yoast-snippet-header-label">Yoast SEO</div>
                 </div>';
@@ -284,7 +286,7 @@ class PageLayoutHeader
             if ($this->routeEnhancerError === false) {
                 $returnHtml .= '
                 <input id="focusKeyword" style="display: none" />
-                <div id="' . $targetElementId . '" class="t3-grid-cell yoastSeo yoastSeo--small" style="background-color: #fff;" data-yoast-snippetpreview>
+                <div id="' . $targetElementId . '" class="t3-grid-cell yoastSeo yoastSeo--small" data-yoast-snippetpreview>
                     <!-- ' . $targetElementId . ' -->
                     <div class="spinner">
                       <div class="bounce bounce1"></div>

@@ -111,6 +111,39 @@ export function getIconForScore( score ) {
 }
 
 /**
+ * @param {string} type
+ * @param {string} score
+ *
+ * @returns {string}
+ */
+export function getTextForScore( type, score ) {
+    let scoreText = '-';
+    let scoreLabel = '';
+
+    switch (type) {
+        case "readability":
+            scoreLabel = YoastConfig.labels.readability;
+            break;
+        case "seo":
+            scoreLabel = YoastConfig.labels.seo;
+            break;
+    }
+    switch ( score ) {
+        case "good":
+            scoreText = YoastConfig.labels.good;
+            break;
+        case "ok":
+            scoreText = YoastConfig.labels.ok;
+            break;
+        case "bad":
+            scoreText = YoastConfig.labels.bad;
+            break;
+    }
+
+    return scoreLabel + ': ' + scoreText;
+}
+
+/**
  * Maps results to object, to be used by the ContentAnalysis component.
  *
  * Takes in the YoastSEO.js results and maps them to the appropriate objects, so they can be used by the

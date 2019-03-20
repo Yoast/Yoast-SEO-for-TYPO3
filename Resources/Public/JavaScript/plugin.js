@@ -5,6 +5,7 @@ import { debounce} from 'lodash';
 
 import SnippetPreview from './Components/SnippetPreview';
 import Analysis from './Components/Analysis';
+import StatusIcon from './Components/StatusIcon';
 import TitleProgressBar from './Components/TitleProgressBar';
 import DescriptionProgressBar from './Components/DescriptionProgressBar';
 import store from './redux/store';
@@ -41,6 +42,49 @@ store
 
         store.dispatch(saveRelevantWords(store.getState().relevantWords, tx_yoast_seo.settings.vanillaUid, tx_yoast_seo.settings.languageId, prominentWordsSaveUrl));
     });
+
+document.querySelectorAll('[data-yoast-analysis]').forEach(container => {
+    const config = {};
+    config.resultType = container.getAttribute('data-yoast-analysis');
+
+    let titleContainer = container.closest('.form-section').querySelector('h4');
+    let iconContainer = document.createElement('span');
+    iconContainer.classList.add('yoast-status-icon');
+    titleContainer.prepend(iconContainer);
+
+    if (config.resultType === 'seo') {
+        config.resultSubtype = container.getAttribute('data-yoast-subtype');
+    }
+
+    ReactDOM.render(<Provider store={store}><StatusIcon {...config} text="false" /></Provider>, iconContainer);
+});
+
+document.querySelectorAll('h1').forEach(container => {
+    const configReadability = {};
+    const configSeo = {};
+
+    configReadability.resultType = 'readability';
+    configSeo.resultType = 'seo';
+    configSeo.resultSubtype = '';
+
+    let scoreBar = document.createElement('div');
+    scoreBar.classList.add('yoastSeo-score-bar');
+
+    // Readability
+    let readabilityContainer = document.createElement('span');
+    readabilityContainer.classList.add('yoastSeo-score-bar--analysis');
+    scoreBar.append(readabilityContainer);
+
+    // Seo
+    let seoContainer = document.createElement('span');
+    seoContainer.classList.add('yoastSeo-score-bar--analysis');
+    scoreBar.append(seoContainer);
+
+    container.parentNode.insertBefore(scoreBar, container.nextSibling);
+
+    ReactDOM.render(<Provider store={store}><StatusIcon {...configReadability} text="true" /></Provider>, readabilityContainer);
+    ReactDOM.render(<Provider store={store}><StatusIcon {...configSeo} text="true" /></Provider>, seoContainer);
+});
 
 document.querySelectorAll('[data-yoast-snippetpreview]').forEach(container => {
     ReactDOM.render(<Provider store={store}><SnippetPreview /></Provider>, container);
