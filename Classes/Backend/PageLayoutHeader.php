@@ -284,7 +284,7 @@ class PageLayoutHeader
             if ($this->routeEnhancerError === false) {
                 $returnHtml .= '
                 <input id="focusKeyword" style="display: none" />
-                <div id="' . $targetElementId . '" class="t3-grid-cell yoastSeo yoastSeo--small" data-yoast-snippetpreview>
+                <div id="' . $targetElementId . '" class="t3-grid-cell yoastSeo yoastSeo--small" style="background-color: #fff;" data-yoast-snippetpreview>
                     <!-- ' . $targetElementId . ' -->
                     <div class="spinner">
                       <div class="bounce bounce1"></div>
@@ -294,7 +294,7 @@ class PageLayoutHeader
                 </div>';
             } else {
                 $returnHtml .= '
-                <div class="t3-grid-cell yoast yoastSeo yoastSeo--small">
+                <div class="t3-grid-cell yoast yoastSeo yoastSeo--small" style="background-color: #fff;">
                     <div class="callout callout-warning callout-body">
                         It seems that you have configured routeEnhancers for this site with type pageType. When you do this, it is necessary that you also add the pageType for the Yoast Snippetpreview.<br />
                         Please add a mapping for type ' . self::FE_PREVIEW_TYPE . ' and map it for example to \'yoast-snippetpreview.json\'.<br />

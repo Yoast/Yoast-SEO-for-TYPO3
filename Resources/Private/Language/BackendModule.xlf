@@ -121,7 +121,7 @@
 				<source>Related keyphrases</source>
 			</trans-unit>
 			<trans-unit id="synonyms">
-				<source>Synonyms (PREMIUM)</source>
+				<source>Synonyms</source>
 			</trans-unit>
 			<trans-unit id="focusKeyword">
 				<source>Focus keyphrase</source>
@@ -232,7 +232,7 @@
 				<source>Focus keyphrase</source>
 			</trans-unit>
 			<trans-unit id="pages.palettes.focusRelatedKeyphrases">
-				<source>Related keyphrases (PREMIUM)</source>
+				<source>Related keyphrases</source>
 			</trans-unit>
 			<trans-unit id="pages.palettes.robot">
 				<source>Robot instructions</source>
@@ -311,10 +311,10 @@
 			</trans-unit>
 
 			<trans-unit id="tx_yoast_seo_premium_focus_keywords.title">
-				<source>Yoast SEO Focus keywords</source>
+				<source>Yoast SEO keyphrase</source>
 			</trans-unit>
 			<trans-unit id="tx_yoast_seo_premium_focus_keywords.fields.keyword">
-				<source>SEO Focus keyword</source>
+				<source>Keyphrase</source>
 			</trans-unit>
 			<trans-unit id="tx_yoast_seo_premium_focus_keywords.fields.analysis">
 				<source>Analysis results</source>
