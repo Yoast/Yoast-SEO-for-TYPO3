@@ -13,6 +13,7 @@ export default function refreshAnalysis(worker, store) {
         title: data.title,
         synonyms: state.focusKeywordSynonyms,
         description: data.description,
+        locale: data.locale,
         titleWidth: measureTextWidth(data.title)
     });
 

@@ -78,7 +78,7 @@ class PageLayoutHeader
         $pageId = (int)$_GET['id'];
 
         if (!$GLOBALS['BE_USER'] instanceof CMS\Core\Authentication\BackendUserAuthentication ||
-            !$GLOBALS['BE_USER']->check('modules', 'yoast_YoastSeoDashboard')) {
+            !$GLOBALS['BE_USER']->check('non_exclude_fields', 'pages:tx_yoastseo_snippetpreview')) {
             return '';
         }
 
@@ -141,24 +141,24 @@ class PageLayoutHeader
         ) {
             $interfaceLocale = $this->getInterfaceLocale();
 
-            if ($interfaceLocale !== null
-                && ($translationFilePath = sprintf(
-                    static::APP_TRANSLATION_FILE_PATTERN,
-                    $interfaceLocale
-                )) !== false
-                && ($translationFilePath = CMS\Core\Utility\GeneralUtility::getFileAbsFileName(
-                    $translationFilePath
-                )) !== false
-                && file_exists($translationFilePath)
-            ) {
-                $this->pageRenderer->addJsInlineCode(
-                    md5($translationFilePath),
-                    'var tx_yoast_seo = tx_yoast_seo || {};'
-                    . ' tx_yoast_seo.translations = '
-                    . file_get_contents($translationFilePath)
-                    . ';'
-                );
-            }
+//            if ($interfaceLocale !== null
+//                && ($translationFilePath = sprintf(
+//                    static::APP_TRANSLATION_FILE_PATTERN,
+//                    $interfaceLocale
+//                )) !== false
+//                && ($translationFilePath = CMS\Core\Utility\GeneralUtility::getFileAbsFileName(
+//                    $translationFilePath
+//                )) !== false
+//                && file_exists($translationFilePath)
+//            ) {
+//                $this->pageRenderer->addJsInlineCode(
+//                    md5($translationFilePath),
+//                    'var tx_yoast_seo = tx_yoast_seo || {};'
+//                    . ' tx_yoast_seo.translations = '
+//                    . file_get_contents($translationFilePath)
+//                    . ';'
+//                );
+//            }
 
             $labelReadability = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelReadability');
             $labelSeo = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelSeo');
@@ -167,8 +167,10 @@ class PageLayoutHeader
             $labelGood = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelGood');
 
             $config = [
-                'snippetPreview' => [
+                'urls' => [
                     'previewUrl' => $previewDataUrl,
+                    'saveScores' => YoastUtility::getUrlForType(1553260291),
+                    'prominentWords' => YoastUtility::getUrlForType(1539541406),
                 ],
                 'isCornerstoneContent' => (bool)$currentPage['tx_yoastseo_cornerstone'],
                 'focusKeyphrase' => [
@@ -181,38 +183,17 @@ class PageLayoutHeader
                     'bad' => $labelBad,
                     'ok' => $labelOk,
                     'good' => $labelGood
-                ]
+                ],
+                'data' => [
+                    'table' => 'pages',
+                    'uid' => $pageId,
+                    'languageId' => (int)$moduleData['language']
+                ],
             ];
             $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigUtility::class);
             $jsonConfigUtility->addConfig($config);
 
             $this->pageRenderer->addJsInlineCode('yoast-json-config', $jsonConfigUtility->render());
-
-            $this->pageRenderer->addJsInlineCode(
-                'YoastSEO settings',
-                'var tx_yoast_seo = tx_yoast_seo || {};'
-                . 'var tx_yoast_scores = new Array();'
-                . 'tx_yoast_scores["bad"] = "' . $labelBad . '";'
-                . 'tx_yoast_scores["ok"] = "' . $labelOk . '";'
-                . 'tx_yoast_scores["good"] = "' . $labelGood . '";'
-                . ' tx_yoast_seo.settings = '
-                . json_encode(
-                    array(
-                        'focusKeyword' => $focusKeyword,
-                        'preview' => $previewDataUrl,
-                        'recordId' => $recordId,
-                        'recordTable' => $tableName,
-                        'cornerstone' => $currentPage['tx_yoastseo_cornerstone'],
-                        'targetElementId' => $targetElementId,
-                        'editable' => 0,
-                        'disableSlug' => 1,
-                        'tableName' => 'pages',
-                        'vanillaUid' => $pageId,
-                        'languageId' => (int)$moduleData['language']
-                    )
-                )
-                . ';'
-            );
 
             $this->pageRenderer->addRequireJsConfiguration(
                 array(
@@ -398,6 +379,15 @@ class PageLayoutHeader
             return $uri;
         }
         return '#';
+    }
+
+    /**
+     * @param int $type
+     * @return string
+     */
+    protected function getUrlForType($type): string
+    {
+        return '/?type=' . $type;
     }
 
     /**

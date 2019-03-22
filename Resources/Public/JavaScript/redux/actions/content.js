@@ -7,7 +7,7 @@ export function getContent() {
     return dispatch => {
         dispatch({type: GET_CONTENT_REQUEST});
 
-        return fetch(tx_yoast_seo.settings.preview)
+        return fetch(YoastConfig.urls.previewUrl)
             .then(response => {
                 return response.json();
             })

@@ -18,16 +18,17 @@ import createAnalysisWorker from './analysis/createAnalysisWorker';
 import refreshAnalysis from './analysis/refreshAnalysis';
 import {setFocusKeywordSynonyms} from "./redux/actions/focusKeywordSynonyms";
 
-const prominentWordsSaveUrl = '/?type=1539541406';
-
-let worker = createAnalysisWorker(YoastConfig.isCornerstoneContent);
+let worker = createAnalysisWorker(YoastConfig.isCornerstoneContent, 'en_US');
 
 store.dispatch(setFocusKeyword(YoastConfig.focusKeyphrase.keyword));
 store.dispatch(setFocusKeywordSynonyms(YoastConfig.focusKeyphrase.synonyms));
 
 store
     .dispatch(getContent())
-    .then(_ => refreshAnalysis(worker, store))
+    .then(_ => {
+        worker = createAnalysisWorker(YoastConfig.isCornerstoneContent, store.getState().content.locale);
+        return refreshAnalysis(worker, store)
+    })
     .then(_ => {
         document.querySelectorAll('[data-yoast-analysis]').forEach(container => {
             const config = {};
@@ -40,7 +41,7 @@ store
             ReactDOM.render(<Provider store={store}><Analysis {...config} /></Provider>, container);
         });
 
-        store.dispatch(saveRelevantWords(store.getState().relevantWords, tx_yoast_seo.settings.vanillaUid, tx_yoast_seo.settings.languageId, prominentWordsSaveUrl));
+        store.dispatch(saveRelevantWords(store.getState().relevantWords, YoastConfig.data.uid, YoastConfig.data.languageId, YoastConfig.urls.prominentWords));
     });
 
 document.querySelectorAll('[data-yoast-analysis]').forEach(container => {

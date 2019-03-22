@@ -198,4 +198,13 @@ class YoastUtility
 
         return 'https://yoast.com/typo3-extensions-seo/?' . http_build_query($parameters);
     }
+
+    /**
+     * @param int $type
+     * @return string
+     */
+    public static function getUrlForType($type): string
+    {
+        return '/?type=' . $type;
+    }
 }

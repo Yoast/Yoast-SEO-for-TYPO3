@@ -12,7 +12,7 @@ function updateLinkingSuggestions(url) {
             content += CKEDITOR.instances[instance].getData();
         }
 
-        let worker = createAnalysisWorker(false);
+        let worker = createAnalysisWorker(false, Yoast);
 
         const paper = new Paper( content, {});
         let request;

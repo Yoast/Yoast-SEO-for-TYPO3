@@ -163,8 +163,10 @@ class SnippetPreview extends AbstractNode
             $labelGood = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelGood');
 
             $config = [
-                'snippetPreview' => [
+                'urls' => [
                     'previewUrl' => $this->previewUrl,
+                    'saveScores' => YoastUtility::getUrlForType(1553260291),
+                    'prominentWords' => YoastUtility::getUrlForType(1539541406),
                 ],
                 'isCornerstoneContent' => (bool)$this->data['databaseRow']['tx_yoastseo_cornerstone'],
                 'focusKeyphrase' => [
@@ -180,6 +182,11 @@ class SnippetPreview extends AbstractNode
                     'bad' => $labelBad,
                     'ok' => $labelOk,
                     'good' => $labelGood
+                ],
+                'data' => [
+                    'table' => $this->data['tableName'],
+                    'uid' => (int)$this->data['databaseRow']['uid'],
+                    'languageId' => (int)$this->languageId
                 ],
                 'relatedKeyphrases' => YoastUtility::getRelatedKeyphrases($this->data['tableName'], (int)$this->data['databaseRow']['uid'])
             ];
