@@ -6,7 +6,6 @@ use TYPO3\CMS\Backend\Form\NodeFactory;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Localization\Locales;
-use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
@@ -141,7 +140,7 @@ class SnippetPreview extends AbstractNode
         $allowedDoktypes = YoastUtility::getAllowedDoktypes();
         $resultArray = $this->initializeResultArray();
         $publicResourcesPath = PathUtility::getAbsoluteWebPath('../typo3conf/ext/yoast_seo/Resources/Public/');
-        $resultArray['stylesheetFiles'][] = $publicResourcesPath . 'CSS/yoast-seo-tca.min.css';
+        $resultArray['stylesheetFiles'][] = $publicResourcesPath . 'CSS/yoast.min.css';
 
         $premiumText = '';
         if (!YoastUtility::isPremiumInstalled()) {
@@ -188,11 +187,11 @@ class SnippetPreview extends AbstractNode
                     'uid' => (int)$this->data['databaseRow']['uid'],
                     'languageId' => (int)$this->languageId
                 ],
+                'translations' => $this->getTranslations(),
                 'relatedKeyphrases' => YoastUtility::getRelatedKeyphrases($this->data['tableName'], (int)$this->data['databaseRow']['uid'])
             ];
             $jsonConfigUtility->addConfig($config);
 
-            $this->templateView->assign('translations', $this->getTranslations());
             $this->templateView->assign('previewUrl', $this->previewUrl);
             $this->templateView->assign('previewTargetId', $this->data['fieldName']);
             $this->templateView->assign('titleFieldSelector', $this->getFieldSelector($this->titleField));
@@ -225,7 +224,7 @@ class SnippetPreview extends AbstractNode
     }
 
     /**
-     * @return string
+     * @return array
      */
     protected function getTranslations()
     {
@@ -241,7 +240,7 @@ class SnippetPreview extends AbstractNode
             )) !== false
             && file_exists($translationFilePath)
         ) {
-            return (string)file_get_contents($translationFilePath);
+            return json_decode(file_get_contents($translationFilePath));
         }
     }
 

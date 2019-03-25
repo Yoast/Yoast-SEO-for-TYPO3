@@ -50,7 +50,7 @@ document.querySelectorAll('[data-yoast-analysis]').forEach(container => {
 
     let titleContainer = container.closest('.form-section').querySelector('h4');
     let iconContainer = document.createElement('span');
-    iconContainer.classList.add('yoast-status-icon');
+    iconContainer.classList.add('yoast-seo-status-icon');
     titleContainer.prepend(iconContainer);
 
     if (config.resultType === 'seo') {
@@ -69,11 +69,11 @@ document.querySelectorAll('h1').forEach(container => {
     configSeo.resultSubtype = '';
 
     let scoreBar = document.createElement('div');
-    scoreBar.classList.add('yoastSeo-score-bar');
+    scoreBar.classList.add('yoast-seo-score-bar');
 
     // Readability
     let readabilityContainer = document.createElement('span');
-    readabilityContainer.classList.add('yoastSeo-score-bar--analysis');
+    readabilityContainer.classList.add('yoast-seo-score-bar--analysis');
     scoreBar.append(readabilityContainer);
 
     // Seo

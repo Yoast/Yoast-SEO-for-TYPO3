@@ -4,19 +4,23 @@
   "description": "Yoast SEO for TYPO3",
   "main": "plugin.js",
   "devDependencies": {
-    "@babel/core": "^7.2.2",
-    "@babel/preset-env": "^7.3.1",
+    "@babel/core": "^7.4.0",
+    "@babel/preset-env": "^7.4.2",
     "@babel/preset-react": "^7.0.0",
     "babel-loader": "^8.0.5",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-glotpress": "git+https://github.com/markoheijnen/grunt-glotpress.git#05a38906b357d5a4785bc57e6287fb6479e674b7",
+    "grunt-po2json": "git+https://github.com/atimmer/grunt-po2json.git#f26c05653af89ef0f7a72456dbe141eb56bf5471",
     "react-intl": "^2.8.0",
     "redux-thunk": "^2.3.0",
     "webpack": "^4.29.6",
-    "webpack-cli": "^3.2.3",
+    "webpack-cli": "^3.3.0",
     "webpack-dev-server": "^3.2.1"
   },
   "scripts": {
     "dev": "webpack-dev-server",
-    "build": "webpack --config webpack.config.js"
+    "build": "webpack --config webpack.config.js",
+    "i18n-wordpress-seo": "cross-env NODE_ENV=production babel Resources/Public/Javascript --plugins=@wordpress/babel-plugin-makepot | shusher"
   },
   "plugin": {
     "glotpress": "http://translate.wordpress.org",
@@ -28,8 +32,17 @@
     "lasttranslator": "Yoast Translate Team <translations@yoast.com>"
   },
   "dependencies": {
-    "@babel/polyfill": "^7.2.5",
+    "@babel/polyfill": "^7.4.0",
+    "@wordpress/babel-plugin-makepot": "^3.0.0",
+    "@yoast/grunt-plugin-tasks": "^1.0.0",
+    "cross-env": "^5.2.0",
+    "grunt": "^1.0.4",
+    "grunt-contrib-clean": "^2.0.0",
+    "grunt-sass": "^2.1.0",
+    "grunt-wp-i18n": "^1.0.3",
+    "load-grunt-config": "^1.0.1",
     "lodash": "^4.17.11",
+    "time-grunt": "^2.0.0",
     "yoast-components": "git+https://github.com/Yoast/yoast-components.git#develop",
     "yoastseo": "git+https://github.com/Yoast/YoastSEO.js.git#develop"
   },

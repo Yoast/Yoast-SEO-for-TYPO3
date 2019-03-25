@@ -139,27 +139,6 @@ class PageLayoutHeader
             array_key_exists('doktype', $currentPage) &&
             in_array((int)$currentPage['doktype'], $allowedDoktypes, true)
         ) {
-            $interfaceLocale = $this->getInterfaceLocale();
-
-//            if ($interfaceLocale !== null
-//                && ($translationFilePath = sprintf(
-//                    static::APP_TRANSLATION_FILE_PATTERN,
-//                    $interfaceLocale
-//                )) !== false
-//                && ($translationFilePath = CMS\Core\Utility\GeneralUtility::getFileAbsFileName(
-//                    $translationFilePath
-//                )) !== false
-//                && file_exists($translationFilePath)
-//            ) {
-//                $this->pageRenderer->addJsInlineCode(
-//                    md5($translationFilePath),
-//                    'var tx_yoast_seo = tx_yoast_seo || {};'
-//                    . ' tx_yoast_seo.translations = '
-//                    . file_get_contents($translationFilePath)
-//                    . ';'
-//                );
-//            }
-
             $labelReadability = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelReadability');
             $labelSeo = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelSeo');
             $labelBad = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelBad');
@@ -215,7 +194,7 @@ class PageLayoutHeader
             );
 
             $this->pageRenderer->addCssFile(
-                $publicResourcesPath . 'CSS/yoast-seo.min.css'
+                $publicResourcesPath . 'CSS/yoast.min.css'
             );
 
             $uriBuilder = GeneralUtility::makeInstance(CMS\Backend\Routing\UriBuilder::class);
@@ -240,7 +219,7 @@ class PageLayoutHeader
             $premiumText = '';
             if (!YoastUtility::isPremiumInstalled()) {
                 $premiumText = '
-                <div class="yoast-snippet-header-premium">
+                <div class="yoast-seo-snippet-header-premium">
                     <a target="_blank" rel="noopener noreferrer" href="' . YoastUtility::getYoastLink('Go premium', 'pagemodule-snippetpreview') . '">
                         <i class="fa fa-star"></i>' . $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:goPremium') . '
                     </a>
@@ -248,18 +227,7 @@ class PageLayoutHeader
             }
 
             $returnHtml = '
-                <style>
-                    .yoastSeo-score-bar--analysis {
-                        margin-right: 20px;
-                    }
-
-                    .yoastSeo-score-bar--analysis svg {
-                        position: relative;
-                        top: 3px;
-                    }                    
-                </style>
-
-                <div class="yoast-snippet-header">
+                <div class="yoast-seo-snippet-header">
                     ' . $premiumText . '
                     <div class="yoast-snippet-header-label">Yoast SEO</div>
                 </div>';
@@ -267,7 +235,7 @@ class PageLayoutHeader
             if ($this->routeEnhancerError === false) {
                 $returnHtml .= '
                 <input id="focusKeyword" style="display: none" />
-                <div id="' . $targetElementId . '" class="t3-grid-cell yoastSeo yoastSeo--small" data-yoast-snippetpreview>
+                <div id="' . $targetElementId . '" class="t3-grid-cell yoast-seo" data-yoast-snippetpreview>
                     <!-- ' . $targetElementId . ' -->
                     <div class="spinner">
                       <div class="bounce bounce1"></div>
@@ -277,7 +245,7 @@ class PageLayoutHeader
                 </div>';
             } else {
                 $returnHtml .= '
-                <div class="t3-grid-cell yoast yoastSeo yoastSeo--small" style="background-color: #fff;">
+                <div class="t3-grid-cell yoast yoast-seo" style="background-color: #fff;">
                     <div class="callout callout-warning callout-body">
                         It seems that you have configured routeEnhancers for this site with type pageType. When you do this, it is necessary that you also add the pageType for the Yoast Snippetpreview.<br />
                         Please add a mapping for type ' . self::FE_PREVIEW_TYPE . ' and map it for example to \'yoast-snippetpreview.json\'.<br />
