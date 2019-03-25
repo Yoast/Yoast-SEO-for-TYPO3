@@ -187,6 +187,10 @@ class SnippetPreview extends AbstractNode
                     'uid' => (int)$this->data['databaseRow']['uid'],
                     'languageId' => (int)$this->languageId
                 ],
+                'fieldSelectors' => [
+                    'title' => $this->getFieldSelector($this->titleField),
+                    'description' => $this->getFieldSelector($this->descriptionField),
+                ],
                 'translations' => $this->getTranslations(),
                 'relatedKeyphrases' => YoastUtility::getRelatedKeyphrases($this->data['tableName'], (int)$this->data['databaseRow']['uid'])
             ];

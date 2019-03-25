@@ -163,6 +163,7 @@ class PageLayoutHeader
                     'ok' => $labelOk,
                     'good' => $labelGood
                 ],
+                'fieldSelectors' => [],
                 'data' => [
                     'table' => 'pages',
                     'uid' => $pageId,

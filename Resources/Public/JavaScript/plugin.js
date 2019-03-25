@@ -102,13 +102,16 @@ if (typeof $cornerstoneFieldSelector !== 'undefined') {
     });
 }
 
-if (typeof $titleTcaSelector !== 'undefined' && typeof $descriptionTcaSelector !== 'undefined') {
+if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
+    typeof YoastConfig.fieldSelectors.title !== 'undefined' &&
+    typeof YoastConfig.fieldSelectors.description !== 'undefined')
+{
     const progressBarItems = [{
-        input: document.querySelector(`[data-formengine-input-name="${$titleTcaSelector}"]`),
+        input: document.querySelector(`[data-formengine-input-name="${YoastConfig.fieldSelectors.title}"]`),
         component: <TitleProgressBar/>,
         storeKey: 'title'
     }, {
-        input: document.querySelector(`[data-formengine-input-name="${$descriptionTcaSelector}"]`),
+        input: document.querySelector(`[data-formengine-input-name="${YoastConfig.fieldSelectors.description}"]`),
         component: <DescriptionProgressBar/>,
         storeKey: 'description'
     }]
