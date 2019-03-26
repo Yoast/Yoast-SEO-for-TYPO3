@@ -50,8 +50,11 @@ document.querySelectorAll('[data-yoast-analysis]').forEach(container => {
 
     let titleContainer = container.closest('.form-section').querySelector('h4');
     let iconContainer = document.createElement('span');
-    iconContainer.classList.add('yoast-seo-status-icon');
-    titleContainer.prepend(iconContainer);
+
+    if (typeof titleContainer !== "undefined" && titleContainer !== null) {
+        iconContainer.classList.add('yoast-seo-status-icon');
+        titleContainer.prepend(iconContainer);
+    }
 
     if (config.resultType === 'seo') {
         config.resultSubtype = container.getAttribute('data-yoast-subtype');
