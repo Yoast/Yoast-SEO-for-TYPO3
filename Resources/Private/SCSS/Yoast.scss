@@ -89,3 +89,9 @@
   border: 1px solid $color_border;
   padding: 15px;
 }
+
+.yoast-analysis {
+  button:disabled {
+    display: none;
+  }
+}
