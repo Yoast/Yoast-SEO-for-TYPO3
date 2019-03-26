@@ -1,0 +1,75 @@
+.yoast-seo {
+  padding: 15px 0;
+  background-color: #FFF; }
+
+.yoast-seo-snippet-header {
+  padding: 10px;
+  background-color: #eee;
+  color: #000; }
+  .yoast-seo-snippet-header-premium {
+    float: right; }
+    .yoast-seo-snippet-header-premium a {
+      margin-left: 5px;
+      text-decoration: underline; }
+      .yoast-seo-snippet-header-premium a i {
+        color: #a4286a;
+        margin-right: 5px; }
+
+.yoast-seo-score-bar {
+  margin-top: -15px;
+  margin-bottom: 15px; }
+  .yoast-seo-score-bar--analysis {
+    margin-right: 20px; }
+    .yoast-seo-score-bar--analysis svg {
+      position: relative;
+      top: 3px; }
+
+.spinner {
+  margin: 50px auto;
+  width: 70px;
+  text-align: center; }
+  .spinner > div {
+    width: 18px;
+    height: 18px;
+    background-color: #cccccc;
+    border-radius: 100%;
+    display: inline-block;
+    -webkit-animation: sk-bouncedelay 1.4s infinite ease-in-out both;
+    animation: sk-bouncedelay 1.4s infinite ease-in-out both; }
+  .spinner .bounce1 {
+    -webkit-animation-delay: -0.32s;
+    animation-delay: -0.32s; }
+  .spinner .bounce2 {
+    -webkit-animation-delay: -0.16s;
+    animation-delay: -0.16s; }
+
+@-webkit-keyframes sk-bouncedelay {
+  0%, 80%, 100% {
+    -webkit-transform: scale(0); }
+  40% {
+    -webkit-transform: scale(1); } }
+
+@keyframes sk-bouncedelay {
+  0%, 80%, 100% {
+    -webkit-transform: scale(0);
+    transform: scale(0); }
+  40% {
+    -webkit-transform: scale(1);
+    transform: scale(1); } }
+
+.yoast-seo-snippet-preview {
+  background-color: #FFF;
+  border: 1px solid #cccccc;
+  padding: 15px; }
+
+div.yoast-analysis button {
+  background-color: inherit !important;
+  font-size: 12px !important; }
+  div.yoast-analysis button:disabled {
+    display: none; }
+
+div.yoast-analysis div:not(.bounce) {
+  background-color: inherit !important; }
+
+div.yoast-analysis a {
+  text-decoration: underline; }

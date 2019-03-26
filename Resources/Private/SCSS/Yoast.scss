@@ -90,8 +90,21 @@
   padding: 15px;
 }
 
-.yoast-analysis {
-  button:disabled {
-    display: none;
+div.yoast-analysis {
+  button {
+    background-color: inherit !important;
+    font-size: 12px !important;
+
+    &:disabled {
+      display: none;
+    }
+  }
+
+  div:not(.bounce) {
+    background-color: inherit !important;
+  }
+
+  a {
+    text-decoration: underline;
   }
 }

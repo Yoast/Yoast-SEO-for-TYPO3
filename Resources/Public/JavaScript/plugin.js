@@ -78,7 +78,7 @@ document.querySelectorAll('h1').forEach(container => {
 
     // Seo
     let seoContainer = document.createElement('span');
-    seoContainer.classList.add('yoastSeo-score-bar--analysis');
+    seoContainer.classList.add('yoast-seo-score-bar--analysis');
     scoreBar.append(seoContainer);
 
     container.parentNode.insertBefore(scoreBar, container.nextSibling);
