@@ -54,6 +54,10 @@ document.querySelectorAll('[data-yoast-analysis]').forEach(container => {
     if (typeof titleContainer !== "undefined" && titleContainer !== null) {
         iconContainer.classList.add('yoast-seo-status-icon');
         titleContainer.prepend(iconContainer);
+    } else {
+        titleContainer = container.closest('.panel').querySelector('.t3js-icon');
+        iconContainer.style.cssText = 'top: 3px; position: relative;';
+        titleContainer.replaceWith(iconContainer);
     }
 
     if (config.resultType === 'seo') {
@@ -98,8 +102,10 @@ document.querySelectorAll('[data-yoast-insights]').forEach(container => {
     ReactDOM.render(<Provider store={store}><RelevantWords /></Provider>, container);
 });
 
-if (typeof $cornerstoneFieldSelector !== 'undefined') {
-    document.querySelector('[data-formengine-input-name="' + $cornerstoneFieldSelector + '"]').addEventListener('change', function() {
+if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
+    typeof YoastConfig.fieldSelectors.cornerstone !== 'undefined')
+{
+    document.querySelector(`[data-formengine-input-name="${YoastConfig.fieldSelectors.cornerstone}"]`).addEventListener('change', function() {
         worker = createAnalysisWorker(this.checked);
         refreshAnalysis(worker, store);
     });
@@ -136,3 +142,43 @@ if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
         }
     });
 }
+
+if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
+    typeof YoastConfig.fieldSelectors.focusKeyword !== 'undefined')
+{
+    document.querySelectorAll(`[data-formengine-input-name="${YoastConfig.fieldSelectors.focusKeyword}"]`).forEach(item => {
+        item.addEventListener('input', debounce(_ => {
+            store.dispatch(setFocusKeyword(item.value));
+            refreshAnalysis(worker, store);
+        }, 500));
+    });
+
+}
+
+if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
+    typeof YoastConfig.fieldSelectors.focusKeywordSynonyms !== 'undefined')
+{
+    document.querySelectorAll(`[data-formengine-input-name="${YoastConfig.fieldSelectors.focusKeywordSynonyms}"]`).forEach(item => {
+        item.addEventListener('input', debounce(_ => {
+            store.dispatch(setFocusKeywordSynonyms(item.value));
+            refreshAnalysis(worker, store);
+        }, 500));
+    });
+
+}
+
+document.querySelector(`#data-1-pages-1-tx_yoastseo_focuskeyword_premium`).querySelectorAll(`.panel-heading`).forEach(item => {
+    item.addEventListener('click', debounce(_ => {
+        document.querySelectorAll('[data-yoast-analysis]').forEach(container => {
+            const config = {};
+            config.resultType = container.getAttribute('data-yoast-analysis');
+
+
+            if (config.resultType === 'seo') {
+                config.resultSubtype = container.getAttribute('data-yoast-subtype');
+            }
+
+            ReactDOM.render(<Provider store={store}><Analysis {...config} /></Provider>, container);
+        });
+    }, 2000));
+});

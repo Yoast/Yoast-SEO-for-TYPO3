@@ -48,6 +48,21 @@ class SnippetPreview extends AbstractNode
     /**
      * @var string
      */
+    protected $focusKeywordField = 'tx_yoastseo_focuskeyword';
+
+    /**
+     * @var string
+     */
+    protected $focusKeywordSynonymsField = 'tx_yoastseo_focuskeyword_synonyms';
+
+    /**
+     * @var string
+     */
+    protected $cornerstoneField = 'tx_yoastseo_cornerstone';
+
+    /**
+     * @var string
+     */
     protected $table = 'pages';
 
     /**
@@ -172,9 +187,6 @@ class SnippetPreview extends AbstractNode
                     'keyword' => (string)$this->data['databaseRow']['tx_yoastseo_focuskeyword'],
                     'synonyms' => (string)$this->data['databaseRow']['tx_yoastseo_focuskeyword_synonyms'],
                 ],
-                'fields' => [
-
-                ],
                 'labels' => [
                     'readability' => $labelReadability,
                     'seo' => $labelSeo,
@@ -190,6 +202,9 @@ class SnippetPreview extends AbstractNode
                 'fieldSelectors' => [
                     'title' => $this->getFieldSelector($this->titleField),
                     'description' => $this->getFieldSelector($this->descriptionField),
+                    'focusKeyword' => $this->getFieldSelector($this->focusKeywordField),
+                    'focusKeywordSynonyms' => $this->getFieldSelector($this->focusKeywordSynonymsField),
+                    'cornerstone' => $this->getFieldSelector($this->cornerstoneField),
                 ],
                 'translations' => $this->getTranslations(),
                 'relatedKeyphrases' => YoastUtility::getRelatedKeyphrases($this->data['tableName'], (int)$this->data['databaseRow']['uid'])
