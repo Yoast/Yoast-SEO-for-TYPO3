@@ -233,6 +233,7 @@ class SnippetPreview extends AbstractNode
                     )
                 )
             );
+            $pageRenderer->loadRequireJsModule('YoastSEO/dist/plugin');
             $pageRenderer->loadRequireJsModule('YoastSEO/yoastModal');
 
             $this->templateView->assign('previewUrl', $this->previewUrl);
