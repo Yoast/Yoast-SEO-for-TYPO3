@@ -215,7 +215,7 @@ class SnippetPreview extends AbstractNode
                     'premiumKeyword' => YoastUtility::isPremiumInstalled() ? $this->getFieldSelector($this->relatedKeyphrases, true) : '',
                 ],
                 'translations' => $this->getTranslations(),
-                'relatedKeyphrases' => YoastUtility::getRelatedKeyphrases($this->data['tableName'], (int)$this->data['databaseRow']['uid'])
+                'relatedKeyphrases' => YoastUtility::isPremiumInstalled() ? YoastUtility::getRelatedKeyphrases($this->data['tableName'], (int)$this->data['databaseRow']['uid']) : []
             ];
 
             if (YoastUtility::isPremiumInstalled()) {
