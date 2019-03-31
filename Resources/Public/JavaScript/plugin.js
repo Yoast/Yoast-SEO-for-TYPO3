@@ -41,7 +41,11 @@ store
             ReactDOM.render(<Provider store={store}><Analysis {...config} /></Provider>, container);
         });
 
-        store.dispatch(saveRelevantWords(store.getState().relevantWords, YoastConfig.data.uid, YoastConfig.data.languageId, YoastConfig.urls.prominentWords));
+        if (typeof YoastConfig.useRelevantWords !== 'undefined' &&
+             YoastConfig.useRelevantWords === true)
+        {
+            store.dispatch(saveRelevantWords(store.getState().relevantWords, YoastConfig.data.uid, YoastConfig.data.languageId, YoastConfig.urls.prominentWords));
+        }
     });
 
 document.querySelectorAll('[data-yoast-analysis]').forEach(container => {
@@ -167,18 +171,23 @@ if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
 
 }
 
-document.querySelector(`#data-1-pages-1-tx_yoastseo_focuskeyword_premium`).querySelectorAll(`.panel-heading`).forEach(item => {
-    item.addEventListener('click', debounce(_ => {
-        document.querySelectorAll('[data-yoast-analysis]').forEach(container => {
-            const config = {};
-            config.resultType = container.getAttribute('data-yoast-analysis');
 
+if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
+    typeof YoastConfig.fieldSelectors.premiumKeyword !== 'undefined' &&
+    YoastConfig.fieldSelectors.premiumKeyword !== ''
+) {
+    document.querySelector(`#${YoastConfig.fieldSelectors.premiumKeyword}`).querySelectorAll(`.panel-heading`).forEach(item => {
+        item.addEventListener('click', debounce(_ => {
+            document.querySelectorAll('[data-yoast-analysis]').forEach(container => {
+                const config = {};
+                config.resultType = container.getAttribute('data-yoast-analysis');
 
-            if (config.resultType === 'seo') {
-                config.resultSubtype = container.getAttribute('data-yoast-subtype');
-            }
+                if (config.resultType === 'seo') {
+                    config.resultSubtype = container.getAttribute('data-yoast-subtype');
+                }
 
-            ReactDOM.render(<Provider store={store}><Analysis {...config} /></Provider>, container);
-        });
-    }, 2000));
-});
+                ReactDOM.render(<Provider store={store}><Analysis {...config}/></Provider>, container);
+            });
+        }, 2000));
+    });
+}

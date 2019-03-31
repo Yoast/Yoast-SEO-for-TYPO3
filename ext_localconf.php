@@ -50,16 +50,16 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1537991862] = a
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\HiddenField::class
 );
 
-$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1519937113] = array(
-    'nodeName' => 'insights',
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1553888878] = array(
+    'nodeName' => 'synonyms',
     'priority' => 40,
-    'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\Insights::class
+    'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\Synonyms::class
 );
 
-$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1552511464] = array(
-    'nodeName' => 'internalLinkingSuggestion',
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1553977739] = array(
+    'nodeName' => 'relatedKeyphrases',
     'priority' => 40,
-    'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\InternalLinkingSuggestion::class
+    'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\RelatedKeyphrases::class
 );
 
 $llFolder = 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/';

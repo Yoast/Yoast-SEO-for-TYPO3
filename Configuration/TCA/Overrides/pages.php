@@ -41,25 +41,6 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
                 'type' => 'input',
             ]
         ],
-        'tx_yoastseo_focuskeyword_synonyms' => [
-            'label' => $llPrefix . 'synonyms',
-            'exclude' => true,
-            'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
-            'config' => [
-                'type' => 'input',
-            ]
-        ],
-        'tx_yoastseo_focuskeyword_premium' => [
-            'label' => $llPrefix . 'seoRelatedKeywords',
-            'exclude' => true,
-            'config' => [
-                'type' => 'inline',
-                'foreign_table' => 'tx_yoast_seo_premium_focus_keywords',
-                'foreign_field' => 'parentid',
-                'foreign_table_field' => 'parenttable',
-                'maxitems' => 5
-            ]
-        ],
         'tx_yoastseo_focuskeyword_analysis' => [
             'label' => $llPrefix . 'analysis',
             'exclude' => true,
@@ -97,17 +78,33 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
                 'renderType' => 'hiddenField'
             ]
         ],
-        'tx_yoastseo_insights' => [
-            'label' => 'Insights',
-            'exclude' => true,
-            'config' => [
-                'type' => 'text',
-                'renderType' => 'insights'
-            ]
-        ],
     ]
 );
 
+if (!\YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::isPremiumInstalled()) {
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns(
+        'pages',
+        [
+            'tx_yoastseo_focuskeyword_synonyms' => [
+                'label' => $llPrefix . 'synonyms',
+                'exclude' => false,
+                'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
+                'config' => [
+                    'type' => 'text',
+                    'renderType' => 'synonyms',
+                ]
+            ],
+            'tx_yoastseo_focuskeyword_premium' => [
+                'label' => $llPrefix . 'seoRelatedKeywords',
+                'exclude' => true,
+                'config' => [
+                    'type' => 'text',
+                    'renderType' => 'relatedKeyphrases'
+                ]
+            ],
+        ]
+    );
+}
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
     'pages',
     'seo',
@@ -147,7 +144,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     'pages',
     'yoast-relatedkeywords',
     '
-    --linebreak--, tx_yoastseo_focuskeyword_premium, --linebreak--, tx_yoastseo_insights 
+    --linebreak--, tx_yoastseo_focuskeyword_premium 
     '
 );
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(

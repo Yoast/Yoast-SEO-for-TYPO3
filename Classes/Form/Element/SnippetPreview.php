@@ -6,6 +6,7 @@ use TYPO3\CMS\Backend\Form\NodeFactory;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Localization\Locales;
+use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
@@ -59,6 +60,11 @@ class SnippetPreview extends AbstractNode
      * @var string
      */
     protected $cornerstoneField = 'tx_yoastseo_cornerstone';
+
+    /**
+     * @var string
+     */
+    protected $relatedKeyphrases = 'tx_yoastseo_focuskeyword_premium';
 
     /**
      * @var string
@@ -182,6 +188,8 @@ class SnippetPreview extends AbstractNode
                     'saveScores' => YoastUtility::getUrlForType(1553260291),
                     'prominentWords' => YoastUtility::getUrlForType(1539541406),
                 ],
+                'useKeywordDistribution' => YoastUtility::isPremiumInstalled(),
+                'useRelevantWords' => YoastUtility::isPremiumInstalled(),
                 'isCornerstoneContent' => (bool)$this->data['databaseRow']['tx_yoastseo_cornerstone'],
                 'focusKeyphrase' => [
                     'keyword' => (string)$this->data['databaseRow']['tx_yoastseo_focuskeyword'],
@@ -203,13 +211,29 @@ class SnippetPreview extends AbstractNode
                     'title' => $this->getFieldSelector($this->titleField),
                     'description' => $this->getFieldSelector($this->descriptionField),
                     'focusKeyword' => $this->getFieldSelector($this->focusKeywordField),
-                    'focusKeywordSynonyms' => $this->getFieldSelector($this->focusKeywordSynonymsField),
                     'cornerstone' => $this->getFieldSelector($this->cornerstoneField),
+                    'premiumKeyword' => YoastUtility::isPremiumInstalled() ? $this->getFieldSelector($this->relatedKeyphrases, true) : '',
                 ],
                 'translations' => $this->getTranslations(),
                 'relatedKeyphrases' => YoastUtility::getRelatedKeyphrases($this->data['tableName'], (int)$this->data['databaseRow']['uid'])
             ];
+
+            if (YoastUtility::isPremiumInstalled()) {
+                $config['fieldSelectors']['focusKeywordSynonyms'] = $this->getFieldSelector($this->focusKeywordSynonymsField);
+            }
+
             $jsonConfigUtility->addConfig($config);
+
+            $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
+
+            $pageRenderer->addRequireJsConfiguration(
+                array(
+                    'paths' => array(
+                        'YoastSEO' => $publicResourcesPath . 'JavaScript/'
+                    )
+                )
+            );
+            $pageRenderer->loadRequireJsModule('YoastSEO/yoastModal');
 
             $this->templateView->assign('previewUrl', $this->previewUrl);
             $this->templateView->assign('previewTargetId', $this->data['fieldName']);
@@ -235,9 +259,13 @@ class SnippetPreview extends AbstractNode
      * @param string $field
      * @return string
      */
-    protected function getFieldSelector($field)
+    protected function getFieldSelector($field, $id = false)
     {
-        $element = 'data' . str_replace('tx_yoastseo_snippetpreview', $field, $this->data['elementBaseName']);
+        if ($id === true) {
+            $element = 'data-' . $this->data['vanillaUid'] . '-' . $this->data['tableName'] . '-' . $this->data['vanillaUid'] . '-' . $field;
+        } else {
+            $element = 'data' . str_replace('tx_yoastseo_snippetpreview', $field, $this->data['elementBaseName']);
+        }
 
         return $element;
     }

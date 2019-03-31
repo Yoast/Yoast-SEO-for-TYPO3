@@ -17,10 +17,19 @@ export default function refreshAnalysis(worker, store) {
         titleWidth: measureTextWidth(data.title)
     });
 
-    const promises = [
-        store.dispatch(analyzeData(worker, paper, YoastConfig.relatedKeyphrases)),
-        store.dispatch(getRelevantWords(worker, paper)),
-    ];
+    let promises = [];
+    if (typeof YoastConfig.useRelevantWords !== 'undefined' &&
+        YoastConfig.useRelevantWords === true) {
+
+        promises = [
+            store.dispatch(analyzeData(worker, paper, YoastConfig.relatedKeyphrases)),
+            store.dispatch(getRelevantWords(worker, paper)),
+        ];
+    } else {
+        promises = [
+            store.dispatch(analyzeData(worker, paper, YoastConfig.relatedKeyphrases)),
+        ];
+    }
 
     return Promise.all(promises);
 }

@@ -73,3 +73,9 @@ div.yoast-analysis div:not(.bounce) {
 
 div.yoast-analysis a {
   text-decoration: underline; }
+
+.yoast-modal-h3 {
+  margin: 12px 0 12px; }
+
+a.yoast-modal-link {
+  text-decoration: underline; }

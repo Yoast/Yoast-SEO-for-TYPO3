@@ -151,6 +151,8 @@ class PageLayoutHeader
                     'saveScores' => YoastUtility::getUrlForType(1553260291),
                     'prominentWords' => YoastUtility::getUrlForType(1539541406),
                 ],
+                'useKeywordDistribution' => YoastUtility::isPremiumInstalled(),
+                'useRelevantWords' => YoastUtility::isPremiumInstalled(),
                 'isCornerstoneContent' => (bool)$currentPage['tx_yoastseo_cornerstone'],
                 'focusKeyphrase' => [
                     'keyword' => (string)$currentPage['tx_yoastseo_focuskeyword'],
