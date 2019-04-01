@@ -341,6 +341,7 @@ class PageLayoutHeader
                 $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
                 $uriToCheck = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
 
+                unset($additionalQueryParams);
                 $additionalQueryParams['type'] = self::FE_PREVIEW_TYPE;
                 $additionalQueryParams['uriToCheck'] = urlencode($uriToCheck);
                 $uri = (string)$site->getRouter()->generateUri($site->getRootPageId(), $additionalQueryParams);
