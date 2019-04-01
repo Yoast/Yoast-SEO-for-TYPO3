@@ -127,20 +127,39 @@ if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
         input: document.querySelector(`[data-formengine-input-name="${YoastConfig.fieldSelectors.description}"]`),
         component: <DescriptionProgressBar/>,
         storeKey: 'description'
-    }]
+    }];
 
     progressBarItems.forEach(item => {
         if (item.input) {
             const container = document.createElement('div');
             item.input.after(container);
-
             item.input.addEventListener('input', debounce(_ => {
-                store.dispatch(updateContent({[item.storeKey]: item.input.value}));
+                let value = item.input.value;
+
+                if (item.storeKey === 'title') {
+                    if (typeof YoastConfig.pageTitlePrepend !== "undefined" &&
+                        YoastConfig.pageTitlePrepend !== null &&
+                        YoastConfig.pageTitlePrepend !== ''
+                    )
+                    {
+                        value = YoastConfig.pageTitlePrepend + value;
+                    }
+
+                    if (typeof YoastConfig.pageTitleAppend !== "undefined" &&
+                        YoastConfig.pageTitleAppend !== null &&
+                        YoastConfig.pageTitleAppend !== '')
+                    {
+                        value = value + YoastConfig.pageTitleAppend;
+                    }
+
+                }
+
+                store.dispatch(updateContent({[item.storeKey]: value}));
             }, 100));
 
             item.input.addEventListener('change', _ => {
                 refreshAnalysis(worker, store);
-            })
+            });
 
             ReactDOM.render(<Provider store={store}>{item.component}</Provider>, container);
         }

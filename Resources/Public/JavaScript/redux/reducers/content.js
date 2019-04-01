@@ -9,6 +9,9 @@ function contentReducer (state = initialState, action) {
         case GET_CONTENT_REQUEST:
             return {...state, isFetching: true};
         case GET_CONTENT_SUCCESS:
+            YoastConfig.pageTitlePrepend = action.payload.pageTitlePrepend;
+            YoastConfig.pageTitleAppend = action.payload.pageTitleAppend;
+
             return {...state, isFetching: false, ...action.payload};
         case GET_CONTENT_ERROR:
             return {...state, isFetching: false, error: action.error}
