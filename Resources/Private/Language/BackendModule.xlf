@@ -219,6 +219,9 @@
 			<trans-unit id="pages.tabs.seo">
 				<source>Yoast SEO</source>
 			</trans-unit>
+			<trans-unit id="pages.tabs.social">
+				<source>Social Media</source>
+			</trans-unit>
 			<trans-unit id="pages.palettes.metadata">
 				<source>Metadata</source>
 			</trans-unit>
@@ -343,6 +346,36 @@
 			</trans-unit>
 			<trans-unit id="tx_yoastseo_linking_suggestions.intro">
 				<source>We found the following items that might be interesting to link to from within this text.</source>
+			</trans-unit>
+			<trans-unit id="pages.no_index_formlabel">
+				<source>Do not index this page in search engines</source>
+			</trans-unit>
+			<trans-unit id="pages.no_follow_formlabel">
+				<source>Do not follow links on this page</source>
+			</trans-unit>
+			<trans-unit id="og_title">
+				<source>Title</source>
+			</trans-unit>
+			<trans-unit id="og_description">
+				<source>Description</source>
+			</trans-unit>
+			<trans-unit id="og_image">
+				<source>Image</source>
+			</trans-unit>
+			<trans-unit id="twitter_title">
+				<source>Title</source>
+			</trans-unit>
+			<trans-unit id="twitter_description">
+				<source>Description</source>
+			</trans-unit>
+			<trans-unit id="twitter_image">
+				<source>Image</source>
+			</trans-unit>
+			<trans-unit id="imwizard.crop_variant.social">
+				<source>Social media</source>
+			</trans-unit>
+			<trans-unit id="imwizard.ratio.191_1">
+				<source>1.91:1</source>
 			</trans-unit>
 
 		</body>

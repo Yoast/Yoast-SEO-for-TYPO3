@@ -478,8 +478,6 @@ class SnippetPreview extends AbstractNode
             $rootLine = BackendUtility::BEgetRootLine($pageId);
             // Mount point overlay: Set new target page id and mp parameter
             $pageRepository = GeneralUtility::makeInstance(PageRepository::class);
-            $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
-            $site = $siteFinder->getSiteByPageId($pageId, $rootLine);
             $finalPageIdToShow = $pageId;
             $mountPointInformation = $pageRepository->getMountPointInfo($pageId);
             if ($mountPointInformation && $mountPointInformation['overlay']) {
@@ -487,19 +485,27 @@ class SnippetPreview extends AbstractNode
                 $finalPageIdToShow = $mountPointInformation['mount_pid'];
                 $additionalGetVars .= '&MP=' . $mountPointInformation['MPvar'];
             }
-            if ($site instanceof Site) {
-                $additionalQueryParams = [];
-                parse_str($additionalGetVars, $additionalQueryParams);
-                $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
-                $uriToCheck = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
 
-                unset($additionalQueryParams);
-                $additionalQueryParams['type'] = self::FE_PREVIEW_TYPE;
-                $additionalQueryParams['uriToCheck'] = urlencode($uriToCheck);
-                $uri = (string)$site->getRouter()->generateUri($site->getRootPageId(), $additionalQueryParams);
+            if (version_compare(TYPO3_branch, '9.5', '>=')) {
+                $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
+                $site = $siteFinder->getSiteByPageId($pageId, $rootLine);
+                if ($site instanceof Site) {
+                    $additionalQueryParams = [];
+                    parse_str($additionalGetVars, $additionalQueryParams);
+                    $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
+                    $uriToCheck = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
+
+                    unset($additionalQueryParams);
+                    $additionalQueryParams['type'] = self::FE_PREVIEW_TYPE;
+                    $additionalQueryParams['uriToCheck'] = urlencode($uriToCheck);
+                    $uri = (string)$site->getRouter()->generateUri($site->getRootPageId(), $additionalQueryParams);
+                } else {
+                    $uri = BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
+                }
             } else {
-                $uri = BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
+                $uri = '/?type=' . self::FE_PREVIEW_TYPE . '&pageIdToCheck=' . (int)$pageId . '&languageIdToCheck=' . (int)$languageId;
             }
+
             return $uri;
         }
         return '#';

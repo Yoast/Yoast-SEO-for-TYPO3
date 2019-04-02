@@ -5,6 +5,7 @@ namespace YoastSeoForTypo3\YoastSeo\StructuredData;
 
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use TYPO3\CMS\Frontend\Page\PageRepository;
 
@@ -73,7 +74,8 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
             return (string)$site->getBase();
         }
 
-        return '';
+        $cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
+        return (string)$cObj->typoLink('', ['parameter' => $pageId, 'returnLast' => 'url', 'forceAbsoluteUrl' => true]);
     }
 
     /**
@@ -83,17 +85,9 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
      */
     protected function getName(int $pageId): string
     {
-        if (class_exists(SiteFinder::class)) {
-            $site = $this->siteFinder->getSiteByPageId($pageId);
+        $rootPageRecord = $this->pageRepository->getPage($pageId);
 
-            $rootPageId = (int)$site->getRootPageId();
-
-            $rootPageRecord = $this->pageRepository->getPage($rootPageId);
-
-            return $rootPageRecord['seo_title'] ?: $rootPageRecord['title'] ?: $this->getUrl($pageId);
-        }
-
-        return '';
+        return $rootPageRecord['seo_title'] ?: $rootPageRecord['title'] ?: $this->getUrl($pageId);
     }
 
     /**

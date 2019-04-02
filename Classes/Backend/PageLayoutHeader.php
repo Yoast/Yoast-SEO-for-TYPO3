@@ -201,7 +201,15 @@ class PageLayoutHeader
             );
 
             $uriBuilder = GeneralUtility::makeInstance(CMS\Backend\Routing\UriBuilder::class);
-            $returnUrl = $uriBuilder->buildUriFromRoute('web_layout', ['id' => (int)$pageLayoutController->id]);
+
+            if (version_compare(TYPO3_branch, '9.5', '>=')) {
+                $returnUrl = $uriBuilder->buildUriFromRoute('web_layout', ['id' => (int)$pageLayoutController->id]);
+            } else {
+                $returnUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl(
+                    'web_layout',
+                    ['id' => (int)$pageLayoutController->id]
+                );
+            }
 
             $urlParameters = [
                 'edit' => [
@@ -324,8 +332,6 @@ class PageLayoutHeader
             $rootLine = CMS\Backend\Utility\BackendUtility::BEgetRootLine($pageId);
             // Mount point overlay: Set new target page id and mp parameter
             $pageRepository = GeneralUtility::makeInstance(CMS\Frontend\Page\PageRepository::class);
-            $siteFinder = GeneralUtility::makeInstance(CMS\Core\Site\SiteFinder::class);
-            $site = $siteFinder->getSiteByPageId($pageId, $rootLine);
             $finalPageIdToShow = $pageId;
             $mountPointInformation = $pageRepository->getMountPointInfo($pageId);
             if ($mountPointInformation && $mountPointInformation['overlay']) {
@@ -333,21 +339,31 @@ class PageLayoutHeader
                 $finalPageIdToShow = $mountPointInformation['mount_pid'];
                 $additionalGetVars .= '&MP=' . $mountPointInformation['MPvar'];
             }
-            if ($site instanceof CMS\Core\Site\Entity\Site) {
-                $this->checkRouteEnhancers($site);
 
-                $additionalQueryParams = [];
-                parse_str($additionalGetVars, $additionalQueryParams);
-                $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
-                $uriToCheck = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
+            if (version_compare(TYPO3_branch, '9.5', '>=')) {
+                $siteFinder = GeneralUtility::makeInstance(CMS\Core\Site\SiteFinder::class);
+                $site = $siteFinder->getSiteByPageId($pageId, $rootLine);
+                if ($site instanceof CMS\Core\Site\Entity\Site) {
+                    $this->checkRouteEnhancers($site);
 
-                unset($additionalQueryParams);
-                $additionalQueryParams['type'] = self::FE_PREVIEW_TYPE;
-                $additionalQueryParams['uriToCheck'] = urlencode($uriToCheck);
-                $uri = (string)$site->getRouter()->generateUri($site->getRootPageId(), $additionalQueryParams);
+                    $additionalQueryParams = [];
+                    parse_str($additionalGetVars, $additionalQueryParams);
+                    $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
+                    $uriToCheck = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
+
+                    unset($additionalQueryParams);
+                    $additionalQueryParams['type'] = self::FE_PREVIEW_TYPE;
+                    $additionalQueryParams['uriToCheck'] = urlencode($uriToCheck);
+                    $uri = (string)$site->getRouter()->generateUri($site->getRootPageId(), $additionalQueryParams);
+                } else {
+                    $uri = CMS\Backend\Utility\BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
+                }
             } else {
-                $uri = CMS\Backend\Utility\BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
+                $additionalQueryParams = [];
+
+                $uri = '/?type=' . self::FE_PREVIEW_TYPE . '&pageIdToCheck=' . $pageId . '&languageIdToCheck=' . $languageId;
             }
+
             return $uri;
         }
         return '#';
