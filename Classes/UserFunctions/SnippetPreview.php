@@ -26,7 +26,7 @@ class SnippetPreview
             $uriToCheck = $cObj->typolink_URL([
                 'parameter' => (int)$_GET['pageIdToCheck'],
                 'forceAbsoluteUrl' => 1,
-                'L' => (int)$_GET['languageIdToCheck'],
+                'additionalParams' => '&L=' . (int)$_GET['languageIdToCheck'],
                 'linkAccessRestrictedPages' => 1,
             ]);
         }
