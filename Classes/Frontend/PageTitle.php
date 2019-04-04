@@ -1,7 +1,6 @@
 <?php
 namespace YoastSeoForTypo3\YoastSeo\Frontend;
 
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 class PageTitle
@@ -19,8 +18,10 @@ class PageTitle
                 $pageTitleSeparator = $tsfe->config['config']['pageTitleSeparator'];
 
                 if (isset($tsfe->config['config']['pageTitleSeparator.']) && is_array($tsfe->config['config']['pageTitleSeparator.'])) {
-                    $pageTitleSeparator = $tsfe->cObj->stdWrap($pageTitleSeparator,
-                        $tsfe->config['config']['pageTitleSeparator.']);
+                    $pageTitleSeparator = $tsfe->cObj->stdWrap(
+                        $pageTitleSeparator,
+                        $tsfe->config['config']['pageTitleSeparator.']
+                    );
                 } else {
                     $pageTitleSeparator .= ' ';
                 }

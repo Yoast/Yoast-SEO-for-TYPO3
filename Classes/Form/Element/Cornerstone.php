@@ -8,7 +8,6 @@ use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
-use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class Cornerstone extends AbstractNode
 {

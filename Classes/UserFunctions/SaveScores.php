@@ -37,5 +37,4 @@ class SaveScores
         }
         return json_encode(['OK']);
     }
-
 }
