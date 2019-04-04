@@ -64,17 +64,25 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1537991862] = a
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\HiddenField::class
 );
 
-$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1553888878] = array(
-    'nodeName' => 'synonyms',
-    'priority' => 40,
-    'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\Synonyms::class
-);
+if (!\YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::isPremiumInstalled()) {
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1553888878] = array(
+        'nodeName' => 'synonyms',
+        'priority' => 40,
+        'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\Synonyms::class
+    );
 
-$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1553977739] = array(
-    'nodeName' => 'relatedKeyphrases',
-    'priority' => 40,
-    'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\RelatedKeyphrases::class
-);
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1553977739] = array(
+        'nodeName' => 'relatedKeyphrases',
+        'priority' => 40,
+        'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\RelatedKeyphrases::class
+    );
+
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1554381790] = array(
+        'nodeName' => 'internalLinkingSuggestion',
+        'priority' => 40,
+        'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\InternalLinkingSuggestion::class
+    );
+}
 
 $llFolder = 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/';
 
