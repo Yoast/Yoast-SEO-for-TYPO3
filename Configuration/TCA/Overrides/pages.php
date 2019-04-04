@@ -174,9 +174,7 @@ try {
     'before:seo_title'
 );
 
-
 if (version_compare(TYPO3_branch, '9.5', '<')) {
-
     $openGraphCropConfiguration = [
         'config' => [
             'cropVariants' => [
@@ -391,9 +389,7 @@ if (version_compare(TYPO3_branch, '9.5', '<')) {
         $dokTypes,
         'after:subtitle'
     );
-
 } else {
-
     \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
         'pages',
         '
