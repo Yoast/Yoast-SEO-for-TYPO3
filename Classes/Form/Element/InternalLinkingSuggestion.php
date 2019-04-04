@@ -34,7 +34,6 @@ class InternalLinkingSuggestion extends AbstractNode
 
         $pageRenderer->loadRequireJsModule('YoastSEO/yoastModal');
 
-
         $resultArray = $this->initializeResultArray();
 
         $resultArray['html'] = '<div><a href="#" data-yoast-modal-type="internal-linking-suggestion" class="btn btn-default">Get internal linking suggestions</a></div>';
