@@ -12,8 +12,8 @@
       margin-left: 5px;
       text-decoration: underline; }
       .yoast-seo-snippet-header-premium a i {
-        color: #a4286a;
-        margin-right: 5px; }
+        margin-right: 5px;
+        color: #a4286a; }
 
 .yoast-seo-score-bar {
   margin-top: -15px;
@@ -25,15 +25,15 @@
       top: 3px; }
 
 .spinner {
-  margin: 50px auto;
   width: 70px;
+  margin: 50px auto;
   text-align: center; }
   .spinner > div {
+    display: inline-block;
     width: 18px;
     height: 18px;
-    background-color: #cccccc;
     border-radius: 100%;
-    display: inline-block;
+    background-color: #cccccc;
     -webkit-animation: sk-bouncedelay 1.4s infinite ease-in-out both;
     animation: sk-bouncedelay 1.4s infinite ease-in-out both; }
   .spinner .bounce1 {
@@ -44,23 +44,27 @@
     animation-delay: -0.16s; }
 
 @-webkit-keyframes sk-bouncedelay {
-  0%, 80%, 100% {
+  0%,
+  80%,
+  100% {
     -webkit-transform: scale(0); }
   40% {
     -webkit-transform: scale(1); } }
 
 @keyframes sk-bouncedelay {
-  0%, 80%, 100% {
-    -webkit-transform: scale(0);
-    transform: scale(0); }
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+    -webkit-transform: scale(0); }
   40% {
-    -webkit-transform: scale(1);
-    transform: scale(1); } }
+    transform: scale(1);
+    -webkit-transform: scale(1); } }
 
 .yoast-seo-snippet-preview {
-  background-color: #FFF;
+  padding: 15px;
   border: 1px solid #cccccc;
-  padding: 15px; }
+  background-color: #FFF; }
 
 div.yoast-analysis button {
   background-color: inherit !important;
@@ -72,10 +76,4 @@ div.yoast-analysis div:not(.bounce) {
   background-color: inherit !important; }
 
 div.yoast-analysis a {
-  text-decoration: underline; }
-
-.yoast-modal-h3 {
-  margin: 12px 0 12px; }
-
-a.yoast-modal-link {
   text-decoration: underline; }

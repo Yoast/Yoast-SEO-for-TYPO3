@@ -1,25 +1,167 @@
-<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" xmlns:yoast="http://typo3.org/ns/YoastSeoForTypo3/YoastSeo/ViewHelpers" data-namespace-typo3-fluid="true">
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+	  xmlns:yoast="http://typo3.org/ns/YoastSeoForTypo3/YoastSeo/ViewHelpers"
+	  data-namespace-typo3-fluid="true">
+
 <div class="yoast yoast-content">
-	<h1><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_title" /><span><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_subtitle" /></span></h1>
-	<f:image src="EXT:yoast_seo/Resources/Public/Images/YoastSeoPremium.png" width="700" class="img img-responsive yoast-seo-premium-benefits__image" />
+	<div class="row">
+		<div class="col-xs-12">
+			<h1>
+				<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_title"/>
+				<span><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_subtitle"/></span></h1>
 
-	<ul class="yoast-seo-premium-benefits yoast-list--usp">
-		<li class="yoast-seo-premium-benefits__item">
-			<span class="yoast-seo-premium-benefits__title"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_redirectmanager" /></span>
-			<span class="yoast-seo-premium-benefits__description"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_redirectmanager_descr" />.</span>
-		</li>
-		<li class="yoast-seo-premium-benefits__item">
-			<span class="yoast-seo-premium-benefits__title"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_multiple_focus_keywords" /></span>
-			<span class="yoast-seo-premium-benefits__description"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_multiple_focus_keywords_descr" />.</span>
-		</li>
-		<li class="yoast-seo-premium-benefits__item">
-			<span class="yoast-seo-premium-benefits__title"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_support" /></span>
-			<span class="yoast-seo-premium-benefits__description"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_support_descr" />.</span>
-		</li>
-	</ul>
+			<table class="compare-free-premium">
+				<tr>
+					<th>Feature</th>
+					<th>Yoast SEO Premium</th>
+					<th>Yoast SEO Free</th>
+				</tr>
+				<tr>
+					<td>Keywords optimisation</td>
+					<td>
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text">Set up to <b>5 keywords</b> per page.</div>
+						</div>
+					</td>
+					<td>
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text">Only one keyword.</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td>Preview of your page</td>
+					<td>
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text"><b>Google snippet preview:</b> see what your page looks like in Google.</div>
+						</div>
+					</td>
+					<td>
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text">Check!</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td>Readability check</td>
+					<td>
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text">We check the readability of the text your wrote and calculate the <b>Flesch Reading Ease Score</b>.</div>
+						</div>
+					</td>
+					<td>
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text">Check!</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td>No duplicate content</td>
+					<td>
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text">Your rankings can suffer from duplicate content. Yoast SEO sets canonical URLs to avoid confusing Google.</div>
+						</div>
+					</td>
+					<td>
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text">Check!</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td>Always updated for Google’s algorithm</td>
+					<td>
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text">The extension is updated every month, so you’re sure that your website is optimized for the most recent Google algorithm.</div>
+						</div>
+					</td>
+					<td>
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text">Check!</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td>Content insights</td>
+					<td>
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text">See the <b>5 words or phrases</b> you use the most on your page and check if they match what you want to rank for.</div>
+						</div>
+					</td>
+					<td>
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-times"></i>
+							<div class="compare-diff-text">You have to check this yourself, we’re afraid.</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td>Redirect manager</td>
+					<td>
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text">Get alerts and easily redirect old URLs to new ones. You don’t want your visitors to encounter a <b>404 Not Found</b> page.</div>
+						</div>
+					</td>
+					<td>
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-times"></i>
+							<div class="compare-diff-text">Don’t forget (to ask your developer) to create a redirect each time you delete a page.</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td>1 year free access to 24/7 support</td>
+					<td>
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text">Get email access to our amazing and <b>helpful support team</b>.</div>
+						</div>
+					</td>
+					<td>
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-times"></i>
+							<div class="compare-diff-text">We offer an extensive FAQ section and knowledge base.</div>
+						</div>
+					</td>
+				</tr>
+			</table>
+			<ul class="yoast-seo-premium-benefits yoast-list--usp">
+				<li class="yoast-seo-premium-benefits__item">
+					<span class="yoast-seo-premium-benefits__title"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_redirectmanager"/></span>
+					<span class="yoast-seo-premium-benefits__description"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_redirectmanager_descr"/>.</span>
+				</li>
+				<li class="yoast-seo-premium-benefits__item">
+					<span class="yoast-seo-premium-benefits__title"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_multiple_focus_keywords"/></span>
+					<span class="yoast-seo-premium-benefits__description"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_multiple_focus_keywords_descr"/>.</span>
+				</li>
+				<li class="yoast-seo-premium-benefits__item">
+					<span class="yoast-seo-premium-benefits__title"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_support"/></span>
+					<span class="yoast-seo-premium-benefits__description"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_support_descr"/>.</span>
+				</li>
+			</ul>
 
-	<a target="_blank" href="https://yoa.st/typo3-premium-extension" class="yoast-button yoast-button--noarrow yoast-button--extension yoast-button--extension-buy"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:buy_now" /> &raquo;</a>
-	<a target="_blank" href="https://yoa.st/typo3-premium-extension" class="yoast-link--more-info"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:more_information" /> &raquo;</a>
-	<p><small class="yoast-money-back-guarantee"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:guarantee" /></small></p>
+			<a target="_blank" href="https://yoast.com/eu/cart/?add-to-cart=80333" class="yoast-button yoast-button--noarrow yoast-button--extension yoast-button--extension-cta">
+				<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:buy_now"/> &raquo;</a>
+			<a target="_blank" href="https://yoa.st/typo3-premium-extension" class="yoast-button yoast-button--noarrow yoast-button--extension yoast-button--extension-cta yoast-button--extension-cta--white">
+				<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:more_information"/> &raquo;</a>
+			<p>
+				<small class="yoast-money-back-guarantee">
+					<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:guarantee"/>
+				</small>
+			</p>
+		</div>
+	</div>
 </div>
+
 </html>
