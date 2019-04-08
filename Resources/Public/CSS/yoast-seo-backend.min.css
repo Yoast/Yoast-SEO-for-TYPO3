@@ -360,6 +360,28 @@ li.score:after {
     color: #dc3232; }
   .compare-free-premium .fa-check {
     color: #008a00; }
+  @media screen and (max-width: 600px) {
+    .compare-free-premium thead {
+      position: absolute;
+      overflow: hidden;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      clip: rect(0 0 0 0); }
+    .compare-free-premium tr:nth-child(even) {
+      background-color: #e6e6e6; }
+      .compare-free-premium tr:nth-child(even) td:nth-child(even) {
+        border-top: 2px solid #fff;
+        border-bottom: 2px solid #fff; }
+    .compare-free-premium td {
+      display: block; }
+      .compare-free-premium td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        text-transform: uppercase; } }
 
 .wpseo-score-icon {
   float: left;

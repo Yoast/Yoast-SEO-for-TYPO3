@@ -48,6 +48,40 @@
 			<trans-unit id="guarantee">
 				<source>Comes with our 30-day no questions asked money back guarantee</source>
 			</trans-unit>
+			<trans-unit id="free">
+				<source>Yoast SEO free</source>
+			</trans-unit>
+
+			<trans-unit id="table.check">
+				<source>Check!</source>
+			</trans-unit>
+			<trans-unit id="table.feature">
+				<source>Feature</source>
+			</trans-unit>
+			<trans-unit id="table.feature.keywords">
+				<source>Keywords optimisation</source>
+			</trans-unit>
+			<trans-unit id="table.feature.preview">
+				<source>Preview of your page</source>
+			</trans-unit>
+			<trans-unit id="table.feature.readability">
+				<source>Readability check</source>
+			</trans-unit>
+			<trans-unit id="table.feature.content">
+				<source>No duplicate content</source>
+			</trans-unit>
+			<trans-unit id="table.feature.algorithm">
+				<source>Always updated for Google’s algorithm</source>
+			</trans-unit>
+			<trans-unit id="table.feature.insights">
+				<source>Content insights</source>
+			</trans-unit>
+			<trans-unit id="table.feature.redirect">
+				<source>Redirect manager</source>
+			</trans-unit>
+			<trans-unit id="table.feature.support">
+				<source>1 year free access to 24/7 support</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

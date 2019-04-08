@@ -212,8 +212,40 @@ $gutter: 32px;
 			color: $color_green_medium;
 		}
 	}
-}
 
+	@media screen and (max-width: 600px) {
+		thead {
+			position: absolute;
+			overflow: hidden;
+			width: 1px;
+			height: 1px;
+			padding: 0;
+			margin: -1px;
+			clip: rect(0 0 0 0);
+		}
+
+		tr:nth-child(even) {
+			background-color: #e6e6e6;
+
+			td:nth-child(even) {
+				border-top: 2px solid #fff;
+				border-bottom: 2px solid #fff;
+			}
+		}
+
+		td {
+			display: block;
+
+			&::before {
+				content: attr(data-label);
+				display: block;
+				margin-bottom: 5px;
+				font-weight: bold;
+				text-transform: uppercase;
+			}
+		}
+	}
+}
 
 .wpseo-score-icon {
 	float: left;
