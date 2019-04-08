@@ -2,7 +2,6 @@
 namespace YoastSeoForTypo3\YoastSeo\UserFunctions;
 
 use TYPO3\CMS\Core\Exception;
-use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 

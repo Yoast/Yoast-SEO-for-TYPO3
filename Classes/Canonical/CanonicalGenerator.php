@@ -65,7 +65,6 @@ class CanonicalGenerator
             return '';
         }
 
-
         if (empty($href)) {
             // 1) Check if page show content from other page
             $href = $this->checkContentFromPid();
