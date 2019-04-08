@@ -82,6 +82,44 @@
 			<trans-unit id="table.feature.support">
 				<source>1 year free access to 24/7 support</source>
 			</trans-unit>
+
+			<trans-unit id="table.premium.keywords">
+				<source><![CDATA[Set up to <b>5 keywords</b> per page.]]></source>
+			</trans-unit>
+			<trans-unit id="table.premium.preview">
+				<source><![CDATA[<b>Google snippet preview:</b> see what your page looks like in Google.]]></source>
+			</trans-unit>
+			<trans-unit id="table.premium.readability">
+				<source><![CDATA[We check the readability of the text your wrote and calculate the <b>Flesch Reading Ease Score</b>.]]></source>
+			</trans-unit>
+			<trans-unit id="table.premium.content">
+				<source><![CDATA[Your rankings can suffer from duplicate content. Yoast SEO sets canonical URLs to avoid confusing Google.]]></source>
+			</trans-unit>
+			<trans-unit id="table.premium.algorithm">
+				<source><![CDATA[The extension is updated every month, so you’re sure that your website is optimized for the most recent Google algorithm.]]></source>
+			</trans-unit>
+			<trans-unit id="table.premium.insights">
+				<source><![CDATA[See the <b>5 words or phrases</b> you use the most on your page and check if they match what you want to rank for.]]></source>
+			</trans-unit>
+			<trans-unit id="table.premium.redirect">
+				<source><![CDATA[Get alerts and easily redirect old URLs to new ones. You don’t want your visitors to encounter a <b>404 Not Found</b> page.]]></source>
+			</trans-unit>
+			<trans-unit id="table.premium.support">
+				<source><![CDATA[Get email access to our amazing and <b>helpful support team</b>.]]></source>
+			</trans-unit>
+
+			<trans-unit id="table.free.keywords">
+				<source>Only one keyword.</source>
+			</trans-unit>
+			<trans-unit id="table.free.insights">
+				<source>You have to check this yourself, we’re afraid.</source>
+			</trans-unit>
+			<trans-unit id="table.free.redirect">
+				<source>Don’t forget (to ask your developer) to create a redirect each time you delete a page.</source>
+			</trans-unit>
+			<trans-unit id="table.free.support">
+				<source>We offer an extensive FAQ section and knowledge base.</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>
