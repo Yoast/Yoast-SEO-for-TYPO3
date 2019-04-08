@@ -1,25 +1,202 @@
-<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers" xmlns:yoast="http://typo3.org/ns/YoastSeoForTypo3/YoastSeo/ViewHelpers" data-namespace-typo3-fluid="true">
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+	  xmlns:yoast="http://typo3.org/ns/YoastSeoForTypo3/YoastSeo/ViewHelpers"
+	  data-namespace-typo3-fluid="true">
+
 <div class="yoast yoast-content">
-	<h1><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_title" /><span><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_subtitle" /></span></h1>
-	<f:image src="EXT:yoast_seo/Resources/Public/Images/YoastSeoPremium.png" width="700" class="img img-responsive yoast-seo-premium-benefits__image" />
+	<div class="row">
+		<div class="col-xs-12">
+			<h1>
+				<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_title"/>
+				<span><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_subtitle"/></span></h1>
 
-	<ul class="yoast-seo-premium-benefits yoast-list--usp">
-		<li class="yoast-seo-premium-benefits__item">
-			<span class="yoast-seo-premium-benefits__title"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_redirectmanager" /></span>
-			<span class="yoast-seo-premium-benefits__description"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_redirectmanager_descr" />.</span>
-		</li>
-		<li class="yoast-seo-premium-benefits__item">
-			<span class="yoast-seo-premium-benefits__title"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_multiple_focus_keywords" /></span>
-			<span class="yoast-seo-premium-benefits__description"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_multiple_focus_keywords_descr" />.</span>
-		</li>
-		<li class="yoast-seo-premium-benefits__item">
-			<span class="yoast-seo-premium-benefits__title"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_support" /></span>
-			<span class="yoast-seo-premium-benefits__description"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_support_descr" />.</span>
-		</li>
-	</ul>
+			<table class="compare-free-premium">
+				<thead>
+				<tr>
+					<th>
+						<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.feature"/>
+					</th>
+					<th>
+						<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_title"/>
+					</th>
+					<th>
+						<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:free"/>
+					</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+					<td data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.feature')}">
+						<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.feature.keywords"/>
+					</td>
+					<td data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_title')}">
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text"><f:format.raw><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.premium.keywords"/></f:format.raw></div>
+						</div>
+					</td>
+					<td  data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:free')}">
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.free.keywords"/></div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.feature')}">
+						<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.feature.preview"/>
+					</td>
+					<td data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_title')}">
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text"><f:format.raw><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.premium.preview"/></f:format.raw></div>
+						</div>
+					</td>
+					<td  data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:free')}">
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text">
+								<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.check"/>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.feature')}">
+						<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.feature.readability"/>
+					</td>
+					<td data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_title')}">
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text"><f:format.raw><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.premium.readability"/></f:format.raw></div>
+						</div>
+					</td>
+					<td  data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:free')}">
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text">
+								<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.check"/>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.feature')}">
+						<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.feature.content"/>
+					</td>
+					<td data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_title')}">
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text"><f:format.raw><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.premium.content"/></f:format.raw></div>
+						</div>
+					</td>
+					<td  data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:free')}">
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text">
+								<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.check"/>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.feature')}">
+						<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.feature.algorithm"/>
+					</td>
+					<td data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_title')}">
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text"><f:format.raw><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.premium.algorithm"/></f:format.raw></div>
+						</div>
+					</td>
+					<td  data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:free')}">
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text">
+								<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.check"/>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.feature')}">
+						<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.feature.insights"/>
+					</td>
+					<td data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_title')}">
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text"><f:format.raw><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.premium.insights"/></f:format.raw></div>
+						</div>
+					</td>
+					<td  data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:free')}">
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-times"></i>
+							<div class="compare-diff-text"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.free.insights"/></div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.feature')}">
+						<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.feature.redirect"/>
+					</td>
+					<td data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_title')}">
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text"><f:format.raw><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.premium.redirect"/></f:format.raw></div>
+						</div>
+					</td>
+					<td  data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:free')}">
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-times"></i>
+							<div class="compare-diff-text"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.free.redirect"/></div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.feature')}">
+						<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.feature.support"/>
+					</td>
+					<td data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_title')}">
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-check"></i>
+							<div class="compare-diff-text"><f:format.raw><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.premium.support"/></f:format.raw></div>
+						</div>
+					</td>
+					<td  data-label="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:free')}">
+						<div class="compare-diff">
+							<i class="compare-diff-icon fa fa-times"></i>
+							<div class="compare-diff-text"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:table.free.support"/></div>
+						</div>
+					</td>
+				</tr>
+				</tbody>
+			</table>
 
-	<a target="_blank" href="https://yoa.st/typo3-premium-extension" class="yoast-button yoast-button--noarrow yoast-button--extension yoast-button--extension-buy"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:buy_now" /> &raquo;</a>
-	<a target="_blank" href="https://yoa.st/typo3-premium-extension" class="yoast-link--more-info"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:more_information" /> &raquo;</a>
-	<p><small class="yoast-money-back-guarantee"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:guarantee" /></small></p>
+			<ul class="yoast-seo-premium-benefits yoast-list--usp">
+				<li class="yoast-seo-premium-benefits__item">
+					<span class="yoast-seo-premium-benefits__title"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_redirectmanager"/></span>
+					<span class="yoast-seo-premium-benefits__description"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_redirectmanager_descr"/>.</span>
+				</li>
+				<li class="yoast-seo-premium-benefits__item">
+					<span class="yoast-seo-premium-benefits__title"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_multiple_focus_keywords"/></span>
+					<span class="yoast-seo-premium-benefits__description"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_multiple_focus_keywords_descr"/>.</span>
+				</li>
+				<li class="yoast-seo-premium-benefits__item">
+					<span class="yoast-seo-premium-benefits__title"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_support"/></span>
+					<span class="yoast-seo-premium-benefits__description"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:mod_premium_support_descr"/>.</span>
+				</li>
+			</ul>
+
+			<a target="_blank" href="https://yoast.com/eu/cart/?add-to-cart=80333" class="yoast-button yoast-button--noarrow yoast-button--extension yoast-button--extension-cta">
+				<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:buy_now"/> &raquo;</a>
+			<a target="_blank" href="https://yoa.st/typo3-premium-extension" class="yoast-button yoast-button--noarrow yoast-button--extension yoast-button--extension-cta yoast-button--extension-cta--white">
+				<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:more_information"/> &raquo;</a>
+			<p>
+				<small class="yoast-money-back-guarantee">
+					<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf:guarantee"/>
+				</small>
+			</p>
+		</div>
+	</div>
 </div>
+
 </html>

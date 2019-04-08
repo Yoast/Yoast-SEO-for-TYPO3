@@ -159,6 +159,9 @@
 			<trans-unit id="dashboard">
 				<source>Dashboard</source>
 			</trans-unit>
+			<trans-unit id="dashboard.about">
+				<source>About the plugin</source>
+			</trans-unit>
 			<trans-unit id="dashboard.intro">
 				<source>This plugin integrates text analysis and assessment from YoastSEO.js. Content analysis can generate interesting metrics about a text and give you an assessment which can be used to improve the text.</source>
 			</trans-unit>
@@ -178,7 +181,7 @@
 				<source>Need help?</source>
 			</trans-unit>
 			<trans-unit id="dashboard.help.description">
-				<source>If you need any support on using or configuring this plugin, please contact us by %s in the channel #yoast-seo-for-typo3</source>
+				<source>If you need any support on using or configuring this plugin, please contact us by %s in the channel %s</source>
 			</trans-unit>
 			<trans-unit id="update">
 				<source>Update</source>
@@ -314,6 +317,9 @@
 			</trans-unit>
 			<trans-unit id="thisPageIsCornerstoneContent">
 				<source><![CDATA[This page is <a href="%s" target="_blank">cornerstone content</a>]]></source>
+			</trans-unit>
+			<trans-unit id="dashboard.seoCourses">
+				<source>SEO Courses</source>
 			</trans-unit>
 			<trans-unit id="goPremium">
 				<source>Go Premium</source>
