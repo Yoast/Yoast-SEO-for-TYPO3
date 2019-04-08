@@ -33,7 +33,7 @@ class SnippetPreview
 
         try {
             $content = $this->getContentFromUrl($uriToCheck);
-            $data = $this->getDataFromContent($content, $uriToCheck);
+            $data = $this->getDataFromContent($content, $uriToCheck, (int)$_GET['languageIdToCheck']);
         } catch (Exception $e) {
             $data = ['error' => 'Could not read the url ' . $uriToCheck . ': ' . $e->getMessage()];
         }
@@ -46,20 +46,15 @@ class SnippetPreview
      *
      * @param string $content
      * @param string $uriToCheck
+     * @param int $languageId
      * @return array
      */
-    protected function getDataFromContent($content, $uriToCheck): array
+    protected function getDataFromContent($content, $uriToCheck, $languageId): array
     {
         $title = $body = $metaDescription = '';
+        $locale = 'en';
 
-        if (version_compare(TYPO3_branch, '9.5', '>=')) {
-            /** @var SiteLanguage $siteLanguage */
-            $siteLanguage = $GLOBALS['TYPO3_REQUEST']->getAttribute('language');
-            $locale = $siteLanguage->getLocale();
-        } else {
-            $locale = $GLOBALS['TSFE']->config['config']['locale_all'];
-        }
-
+        $localeFound = preg_match('/<html lang="([a-z]*)"/is', $content, $matchesLocale);
         $titleFound = preg_match("/<title[^>]*>(.*?)<\/title>/is", $content, $matchesTitle);
         $descriptionFound = preg_match(
             "/<meta[^>]*name=[\" | \']description[\"|\'][^>]*content=[\"]([^\"]*)[\"][^>]*>/i",
@@ -90,6 +85,9 @@ class SnippetPreview
             $metaDescription = $matchesDescription[1];
         }
 
+        if ($localeFound) {
+            $locale = trim($matchesLocale[1]);
+        }
         $url = preg_replace('/\/$/', '', $uriToCheck);
 
         $titlePrependAppend = $this->getPageTitlePrependAppend();

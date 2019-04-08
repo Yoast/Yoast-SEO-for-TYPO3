@@ -2,56 +2,8 @@
 <INCLUDE_TYPOSCRIPT: source="FILE:EXT:yoast_seo/Configuration/TypoScript/Setup/Module.typoscript">
 <INCLUDE_TYPOSCRIPT: source="FILE:EXT:yoast_seo/Configuration/TypoScript/Setup/Preview.typoscript">
 
-yoast_seo_prominent_words = PAGE
-yoast_seo_prominent_words {
-    typeNum = 1539541406
-    config {
-        disableAllHeaderCode = 1
-        absRefPrefix = /
-
-        no_cache = 1
-
-        additionalHeaders {
-            10 {
-                header = Content-type: application/json; charset=UTF-8
-            }
-
-            20 {
-                header = Access-Control-Allow-Origin: *
-            }
-        }
-    }
-
-    10 = USER_INT
-    10.userFunc = YoastSeoForTypo3\YoastSeo\UserFunctions\ProminentWords->render
-}
-
-yoast_seo_linking_suggestions = PAGE
-yoast_seo_linking_suggestions {
-    typeNum = 1552555364
-    config {
-        disableAllHeaderCode = 1
-        absRefPrefix = /
-
-        no_cache = 1
-
-        additionalHeaders {
-            10 {
-                header = Content-type: application/json; charset=UTF-8
-            }
-
-            20 {
-                header = Access-Control-Allow-Origin: *
-            }
-        }
-    }
-
-    10 = USER_INT
-    10.userFunc = YoastSeoForTypo3\YoastSeo\UserFunctions\LinkingSuggestions->render
-}
-
-yoast_seo_linking_suggestions = PAGE
-yoast_seo_linking_suggestions {
+yoast_seo_save_scores = PAGE
+yoast_seo_save_scores {
     typeNum = 1553260291
     config {
         disableAllHeaderCode = 1

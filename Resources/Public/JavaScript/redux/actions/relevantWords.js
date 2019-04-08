@@ -20,7 +20,7 @@ export function getRelevantWords(worker, paper) {
     };
 }
 
-export function saveRelevantWords(object, pageId, languageId, url)
+export function saveRelevantWords(object, uid, languageId, table, url)
 {
     return dispatch => {
         let words = object.relevantWords.result.slice( 0, 25 );
@@ -28,7 +28,7 @@ export function saveRelevantWords(object, pageId, languageId, url)
         fetch(url, {
             method: 'post',
             headers : new Headers(),
-            body: JSON.stringify({words: words, pageId: pageId, languageId: languageId})
+            body: JSON.stringify({words: words, uid: uid, languageId: languageId, table: table})
         });
 
         dispatch({type: SAVE_RELEVANTWORDS_SUCCESS});

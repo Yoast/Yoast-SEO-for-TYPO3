@@ -44,7 +44,7 @@ store
         if (typeof YoastConfig.useRelevantWords !== 'undefined' &&
              YoastConfig.useRelevantWords === true)
         {
-            store.dispatch(saveRelevantWords(store.getState().relevantWords, YoastConfig.data.uid, YoastConfig.data.languageId, YoastConfig.urls.prominentWords));
+            store.dispatch(saveRelevantWords(store.getState().relevantWords, YoastConfig.data.uid, YoastConfig.data.languageId, YoastConfig.data.table, YoastConfig.urls.prominentWords));
         }
     });
 
