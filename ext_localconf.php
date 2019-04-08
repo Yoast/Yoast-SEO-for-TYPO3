@@ -5,6 +5,9 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php'][
     = \YoastSeoForTypo3\YoastSeo\StructuredData\StructuredDataProviderManager::class . '->render';
 
 if (version_compare(TYPO3_branch, '9.5', '<')) {
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][] =
+        \YoastSeoForTypo3\YoastSeo\Canonical\CanonicalGenerator::class . '->generate';
+
     $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][]
         = \YoastSeoForTypo3\YoastSeo\Frontend\PageTitle::class . '->render';
 }
