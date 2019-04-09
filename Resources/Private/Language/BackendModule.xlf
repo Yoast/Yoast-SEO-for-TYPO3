@@ -351,7 +351,7 @@
 				<source>Internal linking suggestions</source>
 			</trans-unit>
 			<trans-unit id="tx_yoastseo_linking_suggestions.intro">
-				<source>We found the following items that might be interesting to link to from within this text.</source>
+				<source>We found some opportunities for you to create internal links. In the list below, you will find the words we found in this text that might be linked to the given pages. Pages highlighted with a * are cornerstone pages and are therefor the most important pages on your website. Especially those are interesting to link to.</source>
 			</trans-unit>
 			<trans-unit id="pages.no_index_formlabel">
 				<source>Do not index this page in search engines</source>

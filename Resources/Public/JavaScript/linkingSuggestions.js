@@ -20,12 +20,12 @@ function updateLinkingSuggestions(url) {
             let request;
             request = worker.runResearch('relevantWords', paper)
                 .then((results) => {
-                    let words = results.result.slice( 0, 25 );
+                    let words = results.result.slice( 0, 5 );
 
                     fetch(url, {
                         method: 'post',
                         headers : new Headers(),
-                        body: JSON.stringify({words: words})
+                        body: JSON.stringify({words: words, excludedPage: YoastConfig.linkingSuggestions.excludedPage, language: YoastConfig.data.languageId})
                     })
                         .then(response => {
                             return response.json();
@@ -37,9 +37,18 @@ function updateLinkingSuggestions(url) {
                                 content += '<p><strong>' + word + '</strong></p>';
                                 content += '<ol>';
                                 for (let link in results.links[word]) {
-                                    content += '<li>[' + results.links[word][link]['table'] + ':' + results.links[word][link]['id'] + '] ' + results.links[word][link]['label'] + '</li>';
+                                    let cornerstone = '';
+                                    if (results.links[word][link]['cornerstone'] == 1) {
+                                        cornerstone = ' *';
+                                    }
+
+                                    content += '<li>' + results.links[word][link]['label'] + cornerstone + ' [ID: ' + results.links[word][link]['id'] + ']</li>';
                                 }
                                 content += '</ol>';
+                            }
+
+                            if (content == '') {
+                                content = '> No results found';
                             }
 
                             document.querySelector(`[data-yoast-linking-suggestion]`).innerHTML = content;
