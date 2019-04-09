@@ -44,4 +44,18 @@ class RecordIconViewHelper extends AbstractViewHelper
 
         return $icon->render();
     }
+
+    /**
+     * Render the view helper
+     *
+     * @return string
+     */
+    public function render()
+    {
+        return self::renderStatic(
+            $this->arguments,
+            $this->buildRenderChildrenClosure(),
+            $this->renderingContext
+        );
+    }
 }

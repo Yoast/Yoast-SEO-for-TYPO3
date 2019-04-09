@@ -31,7 +31,7 @@ class RecordLinksViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractVie
     public static function renderStatic(array $arguments, \Closure $renderChildrenClosure, RenderingContextInterface $renderingContext): string
     {
         $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
-        $returnUri = $uriBuilder->buildUriFromRoute($arguments['module'], $_GET);
+        $returnUri = $uriBuilder->buildUriFromModule($arguments['module'], $_GET);
 
         switch ($arguments['command']) {
             case 'edit':
@@ -55,5 +55,19 @@ class RecordLinksViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractVie
         }
 
         return $uriBuilder->buildUriFromRoute($module, $urlParameters);
+    }
+
+    /**
+     * Render the view helper
+     *
+     * @return string
+     */
+    public function render()
+    {
+        return self::renderStatic(
+            $this->arguments,
+            $this->buildRenderChildrenClosure(),
+            $this->renderingContext
+        );
     }
 }
