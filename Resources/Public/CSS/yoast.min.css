@@ -19,7 +19,8 @@
   margin-top: -15px;
   margin-bottom: 15px; }
   .yoast-seo-score-bar--analysis {
-    margin-right: 20px; }
+    margin-right: 20px;
+    cursor: pointer; }
     .yoast-seo-score-bar--analysis svg {
       position: relative;
       top: 3px; }

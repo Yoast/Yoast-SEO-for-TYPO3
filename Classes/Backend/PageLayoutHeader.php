@@ -191,6 +191,8 @@ class PageLayoutHeader
                 $this->pageRenderer->addHeaderData('<script type="text/javascript" src="https://localhost:3333/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/plugin.js" async></script>');
             }
 
+            $this->pageRenderer->loadRequireJsModule('YoastSEO/yoastModal');
+
             $this->pageRenderer->addCssFile(
                 $publicResourcesPath . 'CSS/yoast.min.css'
             );
@@ -233,6 +235,10 @@ class PageLayoutHeader
             }
 
             $returnHtml = '
+                <div class="yoast-seo-score-bar">
+                    <span class="yoast-seo-score-bar--analysis" data-yoast-analysis-type="readability"></span>
+                    <span class="yoast-seo-score-bar--analysis" data-yoast-analysis-type="seo"></span>
+                </div>
                 <div class="yoast-seo-snippet-header">
                     ' . $premiumText . '
                     <div class="yoast-snippet-header-label">Yoast SEO</div>
@@ -248,7 +254,10 @@ class PageLayoutHeader
                       <div class="bounce bounce2"></div>
                       <div class="bounce bounce3"></div>
                     </div>
-                </div>';
+                </div>
+                <div data-yoast-analysis="readability" id="YoastPageHeaderAnalysisReadability" data-yoast-subtype="" class="hidden yoast-analysis"></div>
+                <div data-yoast-analysis="seo" id="YoastPageHeaderAnalysisSeo" data-yoast-subtype="" class="hidden yoast-analysis"></div>
+                ';
             } else {
                 $returnHtml .= '
                 <div class="t3-grid-cell yoast yoast-seo" style="background-color: #fff;">

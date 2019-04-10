@@ -52,26 +52,31 @@ document.querySelectorAll('[data-yoast-analysis]').forEach(container => {
     const config = {};
     config.resultType = container.getAttribute('data-yoast-analysis');
 
-    let titleContainer = container.closest('.form-section').querySelector('h4');
-    let iconContainer = document.createElement('span');
+    let formContainer = container.closest('.form-section');
 
-    if (typeof titleContainer !== "undefined" && titleContainer !== null) {
-        iconContainer.classList.add('yoast-seo-status-icon');
-        titleContainer.prepend(iconContainer);
-    } else {
-        titleContainer = container.closest('.panel').querySelector('.t3js-icon');
-        iconContainer.style.cssText = 'top: 3px; position: relative;';
-        titleContainer.replaceWith(iconContainer);
+    if (formContainer !== null) {
+        let titleContainer = formContainer.querySelector('h4');
+        let iconContainer = document.createElement('span');
+
+        if (typeof titleContainer !== "undefined" && titleContainer !== null) {
+            iconContainer.classList.add('yoast-seo-status-icon');
+            titleContainer.prepend(iconContainer);
+        } else {
+            titleContainer = container.closest('.panel').querySelector('.t3js-icon');
+            iconContainer.style.cssText = 'top: 3px; position: relative;';
+            titleContainer.replaceWith(iconContainer);
+        }
+
+        if (config.resultType === 'seo') {
+            config.resultSubtype = container.getAttribute('data-yoast-subtype');
+        }
+
+        ReactDOM.render(<Provider store={store}><StatusIcon {...config} text="false" /></Provider>, iconContainer);
     }
-
-    if (config.resultType === 'seo') {
-        config.resultSubtype = container.getAttribute('data-yoast-subtype');
-    }
-
-    ReactDOM.render(<Provider store={store}><StatusIcon {...config} text="false" /></Provider>, iconContainer);
 });
 
-document.querySelectorAll('h1').forEach(container => {
+document.querySelectorAll('.yoast-seo-score-bar--analysis').forEach(container => {
+    let type = container.getAttribute('data-yoast-analysis-type');
     const configReadability = {};
     const configSeo = {};
 
@@ -79,23 +84,13 @@ document.querySelectorAll('h1').forEach(container => {
     configSeo.resultType = 'seo';
     configSeo.resultSubtype = '';
 
-    let scoreBar = document.createElement('div');
-    scoreBar.classList.add('yoast-seo-score-bar');
+    if (type === 'readability') {
+        ReactDOM.render(<Provider store={store}><StatusIcon {...configReadability} text="true" /></Provider>, container);
+    }
 
-    // Readability
-    let readabilityContainer = document.createElement('span');
-    readabilityContainer.classList.add('yoast-seo-score-bar--analysis');
-    scoreBar.append(readabilityContainer);
-
-    // Seo
-    let seoContainer = document.createElement('span');
-    seoContainer.classList.add('yoast-seo-score-bar--analysis');
-    scoreBar.append(seoContainer);
-
-    container.parentNode.insertBefore(scoreBar, container.nextSibling);
-
-    ReactDOM.render(<Provider store={store}><StatusIcon {...configReadability} text="true" /></Provider>, readabilityContainer);
-    ReactDOM.render(<Provider store={store}><StatusIcon {...configSeo} text="true" /></Provider>, seoContainer);
+    if (type === 'seo') {
+        ReactDOM.render(<Provider store={store}><StatusIcon {...configSeo} text="true" /></Provider>, container);
+    }
 });
 
 document.querySelectorAll('[data-yoast-snippetpreview]').forEach(container => {

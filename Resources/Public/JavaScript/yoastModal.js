@@ -47,4 +47,36 @@ define(['jquery', 'TYPO3/CMS/Backend/Modal'], function ($, Modal) {
             '<small>1 year free updates and upgrades included!</small>';
         Modal.show('Get Yoast SEO Premium for TYPO3', $(content));
     });
+
+    $('.yoast-seo-score-bar--analysis').on('click', function(e) {
+        e.preventDefault();
+
+        let title = '';
+        let content = '';
+        let styling = 'li button:disabled, h4 button svg { display: none; } h4 button { cursor: inherit !important; } h4 button span { font-size: 12px; font-weight: bold; } li a { text-decoration: underline; }';
+
+        $('style[data-styled-components]').each(function() {
+           styling += $(this).html();
+        });
+
+        if ($(this).data('yoast-analysis-type') === 'readability') {
+            title = 'Readability';
+            content = $('#YoastPageHeaderAnalysisReadability').html();
+        }
+
+        if ($(this).data('yoast-analysis-type') === 'seo') {
+            title = 'SEO';
+            if (typeof YoastConfig.focusKeyphrase.keyword !== "undefined" && YoastConfig.focusKeyphrase.keyword !== null && YoastConfig.focusKeyphrase.keyword !== '') {
+                title += ': ' + YoastConfig.focusKeyphrase.keyword;
+            }
+            content = $('#YoastPageHeaderAnalysisSeo').html();
+        }
+
+        if (title && content) {
+            content = '<style>' + styling + '</style>' + content;
+
+            Modal.show(title, $(content));
+        }
+    });
+
 });
