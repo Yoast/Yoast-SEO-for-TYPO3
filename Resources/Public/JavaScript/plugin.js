@@ -185,7 +185,6 @@ if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
 
 }
 
-
 if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
     typeof YoastConfig.fieldSelectors.premiumKeyword !== 'undefined' &&
     YoastConfig.fieldSelectors.premiumKeyword !== ''
@@ -203,5 +202,36 @@ if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
                 ReactDOM.render(<Provider store={store}><Analysis {...config}/></Provider>, container);
             });
         }, 2000));
+    });
+}
+
+if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
+    typeof YoastConfig.fieldSelectors.title !== 'undefined' &&
+    YoastConfig.fieldSelectors.title !== ''
+) {
+    document.querySelectorAll(`li.t3js-tabmenu-item`).forEach(item => {
+       if (item.innerHTML.includes('Yoast SEO')) {
+           item.addEventListener('click', debounce(_ => {
+               let element = document.querySelector(`[data-formengine-input-name="${YoastConfig.fieldSelectors.title}"]`);
+               let value = element.value;
+
+               if (typeof YoastConfig.pageTitlePrepend !== "undefined" &&
+                   YoastConfig.pageTitlePrepend !== null &&
+                   YoastConfig.pageTitlePrepend !== ''
+               )
+               {
+                   value = YoastConfig.pageTitlePrepend + value;
+               }
+
+               if (typeof YoastConfig.pageTitleAppend !== "undefined" &&
+                   YoastConfig.pageTitleAppend !== null &&
+                   YoastConfig.pageTitleAppend !== '')
+               {
+                   value = value + YoastConfig.pageTitleAppend;
+               }
+
+               store.dispatch(updateContent({title: value + ' '}));
+           }, 100));
+       }
     });
 }
