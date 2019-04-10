@@ -210,7 +210,7 @@ if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
     YoastConfig.fieldSelectors.title !== ''
 ) {
     document.querySelectorAll(`li.t3js-tabmenu-item`).forEach(item => {
-       if (item.innerHTML.includes('Yoast SEO')) {
+       if (item.innerHTML.includes('SEO')) {
            item.addEventListener('click', debounce(_ => {
                let element = document.querySelector(`[data-formengine-input-name="${YoastConfig.fieldSelectors.title}"]`);
                let value = element.value;
