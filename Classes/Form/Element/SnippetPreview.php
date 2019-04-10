@@ -511,7 +511,7 @@ class SnippetPreview extends AbstractNode
                     $uri = BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
                 }
             } else {
-                $uri = '/?type=' . self::FE_PREVIEW_TYPE . '&pageIdToCheck=' . (int)$pageId . '&languageIdToCheck=' . (int)$languageId;
+                $uri = '/?type=' . self::FE_PREVIEW_TYPE . '&pageIdToCheck=' . (int)$pageId . '&languageIdToCheck=' . (int)$languageId . '&additionalGetVars=' . urlencode($additionalGetVars);
             }
 
             return $uri;

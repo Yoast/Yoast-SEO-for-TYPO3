@@ -62,9 +62,13 @@ document.querySelectorAll('[data-yoast-analysis]').forEach(container => {
             iconContainer.classList.add('yoast-seo-status-icon');
             titleContainer.prepend(iconContainer);
         } else {
-            titleContainer = container.closest('.panel').querySelector('.t3js-icon');
-            iconContainer.style.cssText = 'top: 3px; position: relative;';
-            titleContainer.replaceWith(iconContainer);
+            let panel = container.closest('.panel');
+
+            if (panel !== null) {
+                titleContainer = panel.querySelector('.t3js-icon');
+                iconContainer.style.cssText = 'top: 3px; position: relative;';
+                titleContainer.replaceWith(iconContainer);
+            }
         }
 
         if (config.resultType === 'seo') {
@@ -135,10 +139,13 @@ document.querySelectorAll('[data-yoast-insights]').forEach(container => {
 if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
     typeof YoastConfig.fieldSelectors.cornerstone !== 'undefined')
 {
-    document.querySelector(`[data-formengine-input-name="${YoastConfig.fieldSelectors.cornerstone}"]`).addEventListener('change', function() {
-        worker = createAnalysisWorker(this.checked);
-        refreshAnalysis(worker, store);
-    });
+    let cornerStoneField = document.querySelector(`[data-formengine-input-name="${YoastConfig.fieldSelectors.cornerstone}"]`);
+    if (cornerStoneField !== null) {
+        cornerStoneField.addEventListener('change', function() {
+            worker = createAnalysisWorker(this.checked);
+            refreshAnalysis(worker, store);
+        });
+    }
 }
 
 if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
@@ -220,20 +227,24 @@ if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
     typeof YoastConfig.fieldSelectors.premiumKeyword !== 'undefined' &&
     YoastConfig.fieldSelectors.premiumKeyword !== ''
 ) {
-    document.querySelector(`#${YoastConfig.fieldSelectors.premiumKeyword}`).querySelectorAll(`.panel-heading`).forEach(item => {
-        item.addEventListener('click', debounce(_ => {
-            document.querySelectorAll('[data-yoast-analysis]').forEach(container => {
-                const config = {};
-                config.resultType = container.getAttribute('data-yoast-analysis');
+    let premiumKeywordField = document.querySelector(`#${YoastConfig.fieldSelectors.premiumKeyword}`);
 
-                if (config.resultType === 'seo') {
-                    config.resultSubtype = container.getAttribute('data-yoast-subtype');
-                }
+    if (premiumKeywordField !== null) {
+        premiumKeywordField.querySelectorAll(`.panel-heading`).forEach(item => {
+            item.addEventListener('click', debounce(_ => {
+                document.querySelectorAll('[data-yoast-analysis]').forEach(container => {
+                    const config = {};
+                    config.resultType = container.getAttribute('data-yoast-analysis');
 
-                ReactDOM.render(<Provider store={store}><Analysis {...config}/></Provider>, container);
-            });
-        }, 2000));
-    });
+                    if (config.resultType === 'seo') {
+                        config.resultSubtype = container.getAttribute('data-yoast-subtype');
+                    }
+
+                    ReactDOM.render(<Provider store={store}><Analysis {...config}/></Provider>, container);
+                });
+            }, 2000));
+        });
+    }
 }
 
 if (typeof YoastConfig.fieldSelectors !== 'undefined' &&

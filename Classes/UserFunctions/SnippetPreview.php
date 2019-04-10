@@ -21,11 +21,12 @@ class SnippetPreview
         if (version_compare(TYPO3_branch, '9.5', '>=')) {
             $uriToCheck = urldecode($GLOBALS['TYPO3_REQUEST']->getQueryParams()['uriToCheck']);
         } else {
+            $additionalGetVars = urldecode($_GET['additionalGetVars']);
             $cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
             $uriToCheck = $cObj->typolink_URL([
                 'parameter' => (int)$_GET['pageIdToCheck'],
                 'forceAbsoluteUrl' => 1,
-                'additionalParams' => '&L=' . (int)$_GET['languageIdToCheck'],
+                'additionalParams' => $additionalGetVars . '&L=' . (int)$_GET['languageIdToCheck'],
                 'linkAccessRestrictedPages' => 1,
             ]);
         }
