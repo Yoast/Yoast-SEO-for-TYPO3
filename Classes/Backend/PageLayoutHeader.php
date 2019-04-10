@@ -166,6 +166,7 @@ class PageLayoutHeader
                     'good' => $labelGood
                 ],
                 'fieldSelectors' => [],
+                'translations' => $this->getTranslations(),
                 'data' => [
                     'table' => 'pages',
                     'uid' => $pageId,
@@ -404,6 +405,27 @@ class PageLayoutHeader
             if ($typeEnhancer === true && $yoastTypeEnhancer === false) {
                 $this->routeEnhancerError = true;
             }
+        }
+    }
+
+    /**
+     * @return array
+     */
+    protected function getTranslations()
+    {
+        $interfaceLocale = $this->getInterfaceLocale();
+
+        if ($interfaceLocale !== null
+            && ($translationFilePath = sprintf(
+                static::APP_TRANSLATION_FILE_PATTERN,
+                $interfaceLocale
+            )) !== false
+            && ($translationFilePath = GeneralUtility::getFileAbsFileName(
+                $translationFilePath
+            )) !== false
+            && file_exists($translationFilePath)
+        ) {
+            return json_decode(file_get_contents($translationFilePath));
         }
     }
 
