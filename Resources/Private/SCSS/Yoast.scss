@@ -32,7 +32,9 @@
 
 	&--analysis {
 		margin-right: 20px;
-		cursor: pointer;
+		&.yoast-seo-page {
+			cursor: pointer;
+		}
 
 		svg {
 			position: relative;

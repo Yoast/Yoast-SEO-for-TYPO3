@@ -237,8 +237,8 @@ class PageLayoutHeader
 
             $returnHtml = '
                 <div class="yoast-seo-score-bar">
-                    <span class="yoast-seo-score-bar--analysis" data-yoast-analysis-type="readability"></span>
-                    <span class="yoast-seo-score-bar--analysis" data-yoast-analysis-type="seo"></span>
+                    <span class="yoast-seo-score-bar--analysis yoast-seo-page" data-yoast-analysis-type="readability"></span>
+                    <span class="yoast-seo-score-bar--analysis yoast-seo-page" data-yoast-analysis-type="seo"></span>
                 </div>
                 <div class="yoast-seo-snippet-header">
                     ' . $premiumText . '

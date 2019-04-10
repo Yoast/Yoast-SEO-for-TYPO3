@@ -93,6 +93,37 @@ document.querySelectorAll('.yoast-seo-score-bar--analysis').forEach(container =>
     }
 });
 
+if (YoastConfig.TCA === 1) {
+    document.querySelectorAll('h1').forEach(container => {
+        const configReadability = {};
+        const configSeo = {};
+
+        configReadability.resultType = 'readability';
+        configSeo.resultType = 'seo';
+        configSeo.resultSubtype = '';
+
+        let scoreBar = document.createElement('div');
+        scoreBar.classList.add('yoast-seo-score-bar');
+
+        // Readability
+        let readabilityContainer = document.createElement('span');
+        readabilityContainer.classList.add('yoast-seo-score-bar--analysis');
+        readabilityContainer.classList.add('yoast-seo-tca');
+        scoreBar.append(readabilityContainer);
+
+        // Seo
+        let seoContainer = document.createElement('span');
+        seoContainer.classList.add('yoast-seo-score-bar--analysis');
+        seoContainer.classList.add('yoast-seo-tca');
+        scoreBar.append(seoContainer);
+
+        container.parentNode.insertBefore(scoreBar, container.nextSibling);
+
+        ReactDOM.render(<Provider store={store}><StatusIcon {...configReadability} text="true" /></Provider>, readabilityContainer);
+        ReactDOM.render(<Provider store={store}><StatusIcon {...configSeo} text="true" /></Provider>, seoContainer);
+    });
+}
+
 document.querySelectorAll('[data-yoast-snippetpreview]').forEach(container => {
     ReactDOM.render(<Provider store={store}><SnippetPreview /></Provider>, container);
 });

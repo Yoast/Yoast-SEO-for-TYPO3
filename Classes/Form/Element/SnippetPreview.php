@@ -188,6 +188,7 @@ class SnippetPreview extends AbstractNode
                     'saveScores' => YoastUtility::getUrlForType(1553260291),
                     'prominentWords' => YoastUtility::getUrlForType(1539541406),
                 ],
+                'TCA' => 1,
                 'useKeywordDistribution' => YoastUtility::isPremiumInstalled(),
                 'useRelevantWords' => YoastUtility::isPremiumInstalled(),
                 'isCornerstoneContent' => (bool)$this->data['databaseRow']['tx_yoastseo_cornerstone'],
