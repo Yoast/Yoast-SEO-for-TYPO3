@@ -185,16 +185,11 @@ class PageLayoutHeader
                 )
             );
 
-            $this->pageRenderer->loadRequireJsModule('YoastSEO/dist/plugin');
-//            $this->pageRenderer->addJsInlineCode(
-//                'yoastseo-webpack-plugin',
-//                '(function () {
-//                            var s = document.createElement("script");
-//                            s.async=true;
-//                            s.src="https://localhost:3333/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/plugin.js";
-//                            document.querySelector("head").appendChild(s);
-//                        }());'
-//            );
+            if (YoastUtility::inProductionMode() === true) {
+                $this->pageRenderer->loadRequireJsModule('YoastSEO/dist/plugin');
+            } else {
+                $this->pageRenderer->addHeaderData('<script type="text/javascript" src="https://localhost:3333/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/plugin.js" async></script>');
+            }
 
             $this->pageRenderer->addCssFile(
                 $publicResourcesPath . 'CSS/yoast.min.css'

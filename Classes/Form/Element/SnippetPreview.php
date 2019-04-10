@@ -13,6 +13,7 @@ use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use TYPO3\CMS\Frontend\Page\CacheHashCalculator;
 use TYPO3\CMS\Frontend\Page\PageRepository;
@@ -233,7 +234,13 @@ class SnippetPreview extends AbstractNode
                     )
                 )
             );
-            $pageRenderer->loadRequireJsModule('YoastSEO/dist/plugin');
+
+            if (YoastUtility::inProductionMode() === true) {
+                $pageRenderer->loadRequireJsModule('YoastSEO/dist/plugin');
+            } else {
+                $pageRenderer->addHeaderData('<script type="text/javascript" src="https://localhost:3333/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/plugin.js" async></script>');
+            }
+
             $pageRenderer->loadRequireJsModule('YoastSEO/yoastModal');
 
             $this->templateView->assign('previewUrl', $this->previewUrl);
@@ -248,6 +255,7 @@ class SnippetPreview extends AbstractNode
             $this->templateView->assign('tableName', $this->data['tableName']);
             $this->templateView->assign('languageId', $this->languageId);
             $this->templateView->assign('previewContent', $premiumText);
+            $this->templateView->assign('inlineJsLib', $inlineJsLib);
         } else {
             $this->templateView->assign('wrongDoktype', true);
         }

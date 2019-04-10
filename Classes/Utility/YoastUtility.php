@@ -39,14 +39,7 @@ class YoastUtility
         $allowedDoktypes = [];
 
         if ($configuration === null) {
-            /** @var CMS\Extbase\Object\ObjectManager $objectManager */
-            $objectManager = CMS\Core\Utility\GeneralUtility::makeInstance(CMS\Extbase\Object\ObjectManager::class);
-            /** @var CMS\Extbase\Configuration\ConfigurationManager $configurationManager */
-            $configurationManager = $objectManager->get(CMS\Extbase\Configuration\ConfigurationManager::class);
-            $configuration = $configurationManager->getConfiguration(
-                CMS\Extbase\Configuration\ConfigurationManagerInterface::CONFIGURATION_TYPE_SETTINGS,
-                'yoastseo'
-            );
+            $configuration = self::getTypoScriptConfiguration();
         }
 
         if (is_array($configuration) &&
@@ -172,6 +165,39 @@ class YoastUtility
         return (bool)CMS\Core\Utility\ExtensionManagementUtility::isLoaded('yoast_seo_premium');
     }
 
+    /**
+     * Returns true if Yoast extension is in production mode. You need a webpack dev server running to load
+     * JS files if not in production mode
+     *
+     * @param array|null $configuration
+     * @return bool
+     */
+    public static function inProductionMode($configuration = null)
+    {
+        if ($configuration === null) {
+            $configuration = self::getTypoScriptConfiguration();
+        }
+
+        if ((int)$_ENV['YOAST_DEVELOPMENT_MODE'] === 1 || (int)$configuration['developmentMode'] === 1) {
+            return false;
+        }
+
+        return true;
+    }
+
+    protected static function getTypoScriptConfiguration()
+    {
+        /** @var CMS\Extbase\Object\ObjectManager $objectManager */
+        $objectManager = CMS\Core\Utility\GeneralUtility::makeInstance(CMS\Extbase\Object\ObjectManager::class);
+        /** @var CMS\Extbase\Configuration\ConfigurationManager $configurationManager */
+        $configurationManager = $objectManager->get(CMS\Extbase\Configuration\ConfigurationManager::class);
+        $configuration = $configurationManager->getConfiguration(
+            CMS\Extbase\Configuration\ConfigurationManagerInterface::CONFIGURATION_TYPE_SETTINGS,
+            'yoastseo'
+        );
+
+        return $configuration;
+    }
     /**
      * @param string $utm_term
      * @param string $utm_content
