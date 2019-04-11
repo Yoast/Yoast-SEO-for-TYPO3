@@ -7,10 +7,10 @@
 				<source>Premium</source>
 			</trans-unit>
 			<trans-unit id="mlang_labels_tabdescr">
-				<source>Yoast SEO for TYPO3 Premium</source>
+				<source>Yoast SEO Premium for TYPO3</source>
 			</trans-unit>
 			<trans-unit id="mlang_labels_tablabel">
-				<source>Yoast SEO for TYPO3 Premium</source>
+				<source>Yoast SEO Premium for TYPO3</source>
 			</trans-unit>
 			<trans-unit id="mod_premium_title">
 				<source>Yoast SEO Premium</source>
@@ -40,7 +40,7 @@
 				<source>Yoast SEO Premium for TYPO3 is installed</source>
 			</trans-unit>
 			<trans-unit id="buy_now">
-				<source>BUY YOAST SEO FOR TYPO3 PREMIUM</source>
+				<source>BUY YOAST SEO PREMIUM FOR TYPO3</source>
 			</trans-unit>
 			<trans-unit id="more_information">
 				<source>More information</source>
@@ -59,7 +59,7 @@
 				<source>Feature</source>
 			</trans-unit>
 			<trans-unit id="table.feature.keywords">
-				<source>Keywords optimisation</source>
+				<source>Keyword optimization</source>
 			</trans-unit>
 			<trans-unit id="table.feature.preview">
 				<source>Preview of your page</source>
@@ -73,6 +73,9 @@
 			<trans-unit id="table.feature.algorithm">
 				<source>Always updated for Google’s algorithm</source>
 			</trans-unit>
+			<trans-unit id="table.feature.linking_suggestions">
+				<source>Internal linking suggestions</source>
+			</trans-unit>
 			<trans-unit id="table.feature.insights">
 				<source>Content insights</source>
 			</trans-unit>
@@ -82,9 +85,12 @@
 			<trans-unit id="table.feature.support">
 				<source>1 year free access to 24/7 support</source>
 			</trans-unit>
+			<trans-unit id="table.feature.ad_free">
+				<source>Ad-free</source>
+			</trans-unit>
 
 			<trans-unit id="table.premium.keywords">
-				<source><![CDATA[Set up to <b>5 keywords</b> per page.]]></source>
+				<source>Optimize for keywords, keyphrases, synonyms and related keywords.</source>
 			</trans-unit>
 			<trans-unit id="table.premium.preview">
 				<source><![CDATA[<b>Google snippet preview:</b> see what your page looks like in Google.]]></source>
@@ -101,6 +107,12 @@
 			<trans-unit id="table.premium.insights">
 				<source><![CDATA[See the <b>5 words or phrases</b> you use the most on your page and check if they match what you want to rank for.]]></source>
 			</trans-unit>
+			<trans-unit id="table.premium.linking_suggestions">
+				<source><![CDATA[Get <strong>suggestions for links</strong> to other pages on your website, as you write.]]></source>
+			</trans-unit>
+			<trans-unit id="table.premium.ad_free">
+				<source><![CDATA[In Yoast SEO Premium there are <strong>no ads</strong>.]]></source>
+			</trans-unit>
 			<trans-unit id="table.premium.redirect">
 				<source><![CDATA[Get alerts and easily redirect old URLs to new ones. You don’t want your visitors to encounter a <b>404 Not Found</b> page.]]></source>
 			</trans-unit>
@@ -109,10 +121,16 @@
 			</trans-unit>
 
 			<trans-unit id="table.free.keywords">
-				<source>Only one keyword.</source>
+				<source>Only 1 keyword or keyphrase</source>
 			</trans-unit>
 			<trans-unit id="table.free.insights">
 				<source>You have to check this yourself, we’re afraid.</source>
+			</trans-unit>
+			<trans-unit id="table.free.linking_suggestions">
+				<source>You have to manually look up related pages to create links.</source>
+			</trans-unit>
+			<trans-unit id="table.free.ad_free">
+				<source>You’ll see ads for our other awesome products and services.</source>
 			</trans-unit>
 			<trans-unit id="table.free.redirect">
 				<source>Don’t forget (to ask your developer) to create a redirect each time you delete a page.</source>
