@@ -314,11 +314,14 @@ li.score:after {
     padding: 10px 12px;
     text-transform: uppercase; }
     .yoast-button--extension {
+      border-width: 1px;
+      border-style: solid;
       color: #FFF; }
       .yoast-button--extension + .yoast-button--extension-activated,
       .yoast-button--extension + .yoast-button--extension-not-activated {
         margin-left: 0; }
       .yoast-button--extension-cta, .yoast-button--extension-cta:hover {
+        border-color: #A4286A;
         background-color: #A4286A; }
       .yoast-button--extension-cta:visited {
         color: #FFF; }
@@ -334,10 +337,13 @@ li.score:after {
       .yoast-button--extension-installed {
         margin-right: 0.2rem; }
         .yoast-button--extension-installed, .yoast-button--extension-installed:hover {
+          border-color: #008a00;
           background-color: #008a00; }
       .yoast-button--extension-not-activated, .yoast-button--extension-not-activated:hover {
+        border-color: #dc3232;
         background-color: #dc3232; }
       .yoast-button--extension-activated, .yoast-button--extension-activated:hover {
+        border-color: #008a00;
         background-color: #008a00; }
   .yoast-overview-filters {
     margin-bottom: 20px; }

@@ -112,6 +112,8 @@ $gutter: 32px;
 		text-transform: uppercase;
 
 		&--extension {
+			border-width: 1px;
+			border-style: solid;
 			color: $color-white;
 
 			& + &-activated,
@@ -122,6 +124,7 @@ $gutter: 32px;
 			&-cta {
 				&,
 				&:hover {
+					border-color: $color-pink-dark;
 					background-color: $color-pink-dark;
 				}
 
@@ -156,6 +159,7 @@ $gutter: 32px;
 
 				&,
 				&:hover {
+					border-color: $color_green_medium;
 					background-color: $color_green_medium;
 				}
 			}
@@ -163,6 +167,7 @@ $gutter: 32px;
 			&-not-activated {
 				&,
 				&:hover {
+					border-color: $color-error;
 					background-color: $color-error;
 				}
 			}
@@ -170,6 +175,7 @@ $gutter: 32px;
 			&-activated {
 				&,
 				&:hover {
+					border-color: $color_green_medium;
 					background-color: $color_green_medium;
 				}
 			}
