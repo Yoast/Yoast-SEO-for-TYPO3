@@ -13,6 +13,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
+use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class ModuleController extends ActionController
 {
@@ -136,6 +137,7 @@ class ModuleController extends ActionController
 
     public function premiumAction()
     {
+        $this->view->assign('premiumInstalled', YoastUtility::isPremiumInstalled());
     }
 
     /**
