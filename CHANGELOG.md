@@ -5,6 +5,28 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## Yoast SEO Premium for TYPO3
+Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
+
+## 5.0.0 April 12, 2019
+### Added
+* Basic schema.org integration helping you to give structured data to search engines. In this basic version, we will help you with your breadcrumbs and your general site information.
+* Possibility for extension developers to create their own schema.org data providers
+* Focus keyword is now renamed to Focus keyphrase. You can find more information about the difference on https://yoast.com/difference-between-keyword-and-keyphrase/
+* All latest features now available for TYPO3 CMS v8LTS and v9LTS 
+* New single H1 assessment to check if only one H1 is used within the text
+
+### Changed
+* For various languages, we’ll now filter out function words that precede the keyphrase in the title when analysing your title. This means that if you use words like [the], [on] or [what] before your keyphrase in the title, it won’t affect your score.
+* The keyword density assessment now takes the length of the focus keyphrase into account, because it can be much harder to use a longer keyphrase in your text. In this new version, you’ll need to use your longer keyphrase less often in the text than a shorter keyphrase to get a green bullet.
+* When you have no outbound links on your page, you will get a red bullet instead of an orange one.
+* Check if your keyphrase is used in the alt attributes of your images.
+* All the technology behind the integration is rewritten so we are future proof and can handle new updates of the Yoast SEO libraries.
+
+### Fixed
+* Fixed problem with analysing pages when using a quote in your focus keyword
+* When you have larger pages to analyse it could happen in previous versions that your browser crashed. Because we have rewritten the technology to analyse your content, your browser should not crash on large amounts of content anymore.
+
 ## 4.1.0 January 16, 2019
 ### Added
 * Added possibility to view snippet preview on disabled pages.
