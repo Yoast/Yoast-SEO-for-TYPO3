@@ -81,6 +81,30 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     ]
 );
 
+if (!\YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::isPremiumInstalled()) {
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns(
+        'pages',
+        [
+            'tx_yoastseo_focuskeyword_synonyms' => [
+                'label' => $llPrefix . 'synonyms',
+                'exclude' => false,
+                'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
+                'config' => [
+                    'type' => 'text',
+                    'renderType' => 'synonyms',
+                ]
+            ],
+            'tx_yoastseo_focuskeyword_premium' => [
+                'label' => $llPrefix . 'seoRelatedKeywords',
+                'exclude' => true,
+                'config' => [
+                    'type' => 'text',
+                    'renderType' => 'relatedKeyphrases'
+                ]
+            ],
+        ]
+    );
+}
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
     'pages',
     'seo',
@@ -112,14 +136,22 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
     'yoast-focuskeyword',
     '
     --linebreak--, tx_yoastseo_focuskeyword,
+    --linebreak--, tx_yoastseo_focuskeyword_synonyms,
     --linebreak--, tx_yoastseo_focuskeyword_analysis
+    '
+);
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+    'pages',
+    'yoast-relatedkeywords',
+    '
+    --linebreak--, tx_yoastseo_focuskeyword_premium 
     '
 );
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
     'pages',
     'yoast-advanced',
     '
-    --linebreak--, tx_yoastseo_hide_snippet_preview, --linebreak--, tx_yoastseo_score_readability, tx_yoastseo_score_seo
+    --linebreak--, tx_yoastseo_hide_snippet_preview
     '
 );
 
@@ -142,21 +174,239 @@ try {
     'before:seo_title'
 );
 
-\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
-    'pages',
-    '
-        --palette--;' . $llPrefix . 'pages.palettes.readability;yoast-readability,
-        --palette--;' . $llPrefix . 'pages.palettes.seo;yoast-focuskeyword,
-    ',
-    $dokTypes,
-    'after: tx_yoastseo_cornerstone'
-);
+if (version_compare(TYPO3_branch, '9.5', '<')) {
+    $openGraphCropConfiguration = [
+        'config' => [
+            'cropVariants' => [
+                'default' => [
+                    'disabled' => true,
+                ],
+                'social' => [
+                    'title' => $llPrefix . 'imwizard.crop_variant.social',
+                    'coverAreas' => [],
+                    'cropArea' => [
+                        'x' => '0.0',
+                        'y' => '0.0',
+                        'width' => '1.0',
+                        'height' => '1.0'
+                    ],
+                    'allowedAspectRatios' => [
+                        '1.91:1' => [
+                            'title' => $llPrefix . 'imwizard.ratio.191_1',
+                            'value' => 1.91 / 1
+                        ],
+                        'NaN' => [
+                            'title' => 'LLL:EXT:lang/Resources/Private/Language/locallang_wizards.xlf:imwizard.ratio.free',
+                            'value' => 0.0
+                        ],
+                    ],
+                    'selectedRatio' => '1.91:1',
+                ],
+            ],
+        ],
+    ];
 
-\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
-    'pages',
-    '
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTCAcolumns(
+        'pages',
+        [
+            'seo_title' => [
+                'label' => $llPrefix . 'seoTitle',
+                'exclude' => true,
+                'config' => [
+                    'type' => 'input',
+                ]
+            ],
+            'no_index' => [
+                'exclude' => true,
+                'l10n_mode' => 'exclude',
+                'label' => $llPrefix . 'pages.no_index_formlabel',
+                'config' => [
+                    'type' => 'check',
+                ]
+            ],
+            'no_follow' => [
+                'exclude' => true,
+                'l10n_mode' => 'exclude',
+                'label' => $llPrefix . 'pages.no_follow_formlabel',
+                'config' => [
+                    'type' => 'check',
+                ]
+            ],
+            'og_title' => [
+                'exclude' => true,
+                'l10n_mode' => 'prefixLangTitle',
+                'label' => $llPrefix . 'og_title',
+                'config' => [
+                    'type' => 'input',
+                    'size' => 40,
+                    'max' => 255,
+                    'eval' => 'trim'
+                ]
+            ],
+            'og_description' => [
+                'exclude' => true,
+                'l10n_mode' => 'prefixLangTitle',
+                'label' => $llPrefix . 'og_description',
+                'config' => [
+                    'type' => 'text',
+                    'cols' => 40,
+                    'rows' => 3
+                ]
+            ],
+            'og_image' => [
+                'exclude' => true,
+                'label' => $llPrefix . 'og_image',
+                'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig(
+                    'og_image',
+                    [
+                        // Use the imageoverlayPalette instead of the basicoverlayPalette
+                        'overrideChildTca' => [
+                            'types' => [
+                                '0' => [
+                                    'showitem' => '
+                                    --palette--;;imageoverlayPalette,
+                                    --palette--;;filePalette'
+                                ],
+                                \TYPO3\CMS\Core\Resource\File::FILETYPE_IMAGE => [
+                                    'showitem' => '
+                                    --palette--;;imageoverlayPalette,
+                                    --palette--;;filePalette'
+                                ]
+                            ],
+                            'columns' => [
+                                'crop' => $openGraphCropConfiguration
+                            ]
+                        ],
+                        'behaviour' => [
+                            'allowLanguageSynchronization' => true
+                        ]
+                    ],
+                    $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']
+                )
+            ],
+            'twitter_title' => [
+                'exclude' => true,
+                'l10n_mode' => 'prefixLangTitle',
+                'label' => $llPrefix . 'twitter_title',
+                'config' => [
+                    'type' => 'input',
+                    'size' => 40,
+                    'max' => 255,
+                    'eval' => 'trim'
+                ]
+            ],
+            'twitter_description' => [
+                'exclude' => true,
+                'l10n_mode' => 'prefixLangTitle',
+                'label' => $llPrefix . 'twitter_description',
+                'config' => [
+                    'type' => 'text',
+                    'cols' => 40,
+                    'rows' => 3
+                ]
+            ],
+            'twitter_image' => [
+                'exclude' => true,
+                'label' => $llPrefix . 'twitter_image',
+                'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig(
+                    'twitter_image',
+                    [
+                        // Use the imageoverlayPalette instead of the basicoverlayPalette
+                        'overrideChildTca' => [
+                            'types' => [
+                                '0' => [
+                                    'showitem' => '
+                                    --palette--;;imageoverlayPalette,
+                                    --palette--;;filePalette'
+                                ],
+                                \TYPO3\CMS\Core\Resource\File::FILETYPE_IMAGE => [
+                                    'showitem' => '
+                                    --palette--;;imageoverlayPalette,
+                                    --palette--;;filePalette'
+                                ]
+                            ],
+                            'columns' => [
+                                'crop' => $openGraphCropConfiguration
+                            ]
+                        ],
+                        'behaviour' => [
+                            'allowLanguageSynchronization' => true
+                        ]
+                    ],
+                    $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']
+                )
+            ],
+        ]
+    );
+
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+        'pages',
+        'seo',
+        '
+            --linebreak--, seo_title, --linebreak--,
+        ',
+        'before: description'
+    );
+
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+        'pages',
+        'yoast-social-og',
+        '
+            --linebreak--, og_title, --linebreak--, og_description, --linebreak--, og_image,
+        '
+    );
+
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+        'pages',
+        'yoast-social-twitter',
+        '
+            --linebreak--, twitter_title, --linebreak--, twitter_description, --linebreak--, twitter_image,
+        '
+    );
+
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+        'pages',
+        'yoast-robot',
+        '
+            no_index;' . $llPrefix . 'pages.no_index_formlabel, no_follow;' . $llPrefix . 'pages.no_follow_formlabel,
+        '
+    );
+
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
+        'pages',
+        '
+    --div--;' . $llPrefix . 'pages.tabs.seo,
+        --palette--;' . $llPrefix . 'pages.palettes.metadata;seo,
+        --palette--;' . $llPrefix . 'pages.palettes.readability;yoast-readability,
+        --palette--;' . $llPrefix . 'pages.palettes.focusKeyphrase;yoast-focuskeyword,
+        --palette--;' . $llPrefix . 'pages.palettes.focusRelatedKeyphrases;yoast-relatedkeywords,
+        --palette--;' . $llPrefix . 'pages.palettes.robot;yoast-robot,
+        --palette--;' . $llPrefix . 'pages.palettes.advanced;yoast-advanced,
+    --div--;' . $llPrefix . 'pages.tabs.social,
+        --palette--;' . $llPrefix . 'pages.palettes.og;yoast-social-og,
+        --palette--;' . $llPrefix . 'pages.palettes.twitter;yoast-social-twitter,
+    ',
+        $dokTypes,
+        'after:subtitle'
+    );
+} else {
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
+        'pages',
+        '
+        --palette--;' . $llPrefix . 'pages.palettes.readability;yoast-readability,
+        --palette--;' . $llPrefix . 'pages.palettes.focusKeyphrase;yoast-focuskeyword,
+        --palette--;' . $llPrefix . 'pages.palettes.focusRelatedKeyphrases;yoast-relatedkeywords,
+    ',
+        $dokTypes,
+        'after: tx_yoastseo_cornerstone'
+    );
+
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
+        'pages',
+        '
         --palette--;' . $llPrefix . 'pages.palettes.advances;yoast-advanced,
     ',
-    $dokTypes,
-    'after: twitter_image'
-);
+        $dokTypes,
+        'after: twitter_image'
+    );
+}

@@ -263,29 +263,38 @@ li.score:after {
 
 .yoast {
   line-height: 1.6;
-  letter-spacing: 0.01em;
-  color: #000; }
+  color: #000;
+  letter-spacing: 0.01em; }
   .yoast .callout-body a {
     font-weight: bold; }
-  .yoast-content {
-    max-width: 700px; }
-    .yoast-content p {
-      margin: 1em 0; }
-    .yoast-content .yoast-money-back-guarantee {
-      font-style: italic; }
+  .yoast-content .row {
+    max-width: 1650px;
+    margin-bottom: 20px; }
+  .yoast-content p {
+    margin: 1em 0; }
+  .yoast-content .yoast-money-back-guarantee {
+    font-style: italic; }
   .yoast-seo-credits__link {
-    margin-right: 2em; }
+    display: inline-block;
+    margin-top: 10px;
+    margin-right: 30px;
+    text-decoration: none !important; }
   .yoast-seo-seoTips__field {
     width: 250px !important; }
-  .yoast-seo-academy__courses {
-    margin-top: 1em; }
   .yoast-seo-academy__item {
+    position: relative;
     margin-bottom: 20px; }
     .yoast-seo-academy__item p {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
       display: block;
-      padding: 5px 0;
-      text-align: center;
-      font-weight: bold; }
+      padding: 20px 0;
+      margin: 0;
+      background-color: rgba(255, 255, 255, 0.75);
+      font-weight: bold;
+      text-align: center; }
   .yoast-seo-premium-extension {
     margin: 2em 0.5em 1.5em; }
   .yoast-seo-premium-benefits {
@@ -296,41 +305,125 @@ li.score:after {
       content: "– "; }
     .yoast-seo-premium-benefits__image {
       margin: 40px 0; }
-  .yoast-button--extension {
-    color: #FFF;
-    text-transform: uppercase;
-    padding-left: 0.8em;
-    padding-right: 0.8em; }
-    .yoast-button--extension + .yoast-button--extension-activated, .yoast-button--extension + .yoast-button--extension-not-activated {
-      margin-left: 0; }
-    .yoast-button--extension-buy, .yoast-button--extension-buy:hover {
-      background-color: #A4286A; }
-    .yoast-button--extension-buy:visited {
+  .yoast-subscribe-form-inputFields {
+    margin-bottom: 10px; }
+  .yoast-link--more-info {
+    border: 1px solid #000; }
+  .yoast-button {
+    max-height: none;
+    padding: 10px 12px;
+    text-transform: uppercase; }
+    .yoast-button--extension {
+      border-width: 1px;
+      border-style: solid;
       color: #FFF; }
-    .yoast-button--extension-installed:hover, .yoast-button--extension-activated:hover, .yoast-button--extension-not-activated:hover {
-      text-decoration: none; }
-    .yoast-button--extension-installed {
-      margin-right: 0.2rem; }
-      .yoast-button--extension-installed, .yoast-button--extension-installed:hover {
+      .yoast-button--extension + .yoast-button--extension-activated,
+      .yoast-button--extension + .yoast-button--extension-not-activated {
+        margin-left: 0; }
+      .yoast-button--extension-cta, .yoast-button--extension-cta:hover {
+        border-color: #A4286A;
+        background-color: #A4286A; }
+      .yoast-button--extension-cta:visited {
+        color: #FFF; }
+      .yoast-button--extension-cta--white {
+        border: 1px solid #000;
+        background-color: #fff;
+        color: #000; }
+        .yoast-button--extension-cta--white:hover, .yoast-button--extension-cta--white:focus, .yoast-button--extension-cta--white:visited {
+          background-color: #fff;
+          color: #000; }
+      .yoast-button--extension-installed:hover, .yoast-button--extension-activated:hover, .yoast-button--extension-not-activated:hover {
+        text-decoration: none; }
+      .yoast-button--extension-installed {
+        margin-right: 0.2rem; }
+        .yoast-button--extension-installed, .yoast-button--extension-installed:hover {
+          border-color: #008a00;
+          background-color: #008a00; }
+      .yoast-button--extension-not-activated, .yoast-button--extension-not-activated:hover {
+        border-color: #dc3232;
+        background-color: #dc3232; }
+      .yoast-button--extension-activated, .yoast-button--extension-activated:hover {
+        border-color: #008a00;
         background-color: #008a00; }
-    .yoast-button--extension-not-activated, .yoast-button--extension-not-activated:hover {
-      background-color: #dc3232; }
-    .yoast-button--extension-activated, .yoast-button--extension-activated:hover {
-      background-color: #008a00; }
   .yoast-overview-filters {
     margin-bottom: 20px; }
+
+.compare-free-premium {
+  max-width: 1200px;
+  margin-bottom: 20px; }
+  .compare-free-premium th {
+    line-height: 1.2;
+    font-weight: 700;
+    font-size: 16px;
+    color: #A4286A; }
+  .compare-free-premium td,
+  .compare-free-premium th {
+    padding: 10px 25px;
+    border: 1px solid #e6e6e6;
+    vertical-align: top;
+    border-collapse: collapse; }
+  .compare-free-premium .fa-times {
+    color: #dc3232; }
+  .compare-free-premium .fa-check {
+    color: #008a00; }
+  @media screen and (max-width: 600px) {
+    .compare-free-premium thead {
+      position: absolute;
+      overflow: hidden;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      clip: rect(0 0 0 0); }
+    .compare-free-premium tr:nth-child(even) {
+      background-color: #e6e6e6; }
+      .compare-free-premium tr:nth-child(even) td:nth-child(even) {
+        border-top: 2px solid #fff;
+        border-bottom: 2px solid #fff; }
+    .compare-free-premium td {
+      display: block; }
+      .compare-free-premium td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        text-transform: uppercase; } }
 
 .wpseo-score-icon {
   float: left;
   width: 12px;
   height: 12px;
-  margin: 3px 10px 0 0;
   border-radius: 50%;
+  margin: 3px 10px 0 0;
   background: #888; }
 
 .form-inline .form-group {
   display: inline-block;
-  width: auto;
-  vertical-align: middle;
   float: left;
-  margin-right: 2em; }
+  width: auto;
+  margin-right: 2em;
+  vertical-align: middle; }
+
+.resetLink {
+  text-decoration: underline; }
+  .resetLink:hover, .resetLink:focus {
+    text-decoration: none; }
+
+.compare-diff {
+  display: flex;
+  flex-direction: row;
+  flex: 1 1 0;
+  -webkit-flex: 1 1 0;
+  -webkit-flex-direction: row;
+  -webkit-box-flex: 1;
+  -ms-flex: 1 1 0;
+  -ms-flex-direction: row; }
+  .compare-diff-icon, .compare-diff-text {
+    display: block; }
+  .compare-diff-icon {
+    flex-shrink: 0;
+    width: 35px;
+    margin-right: 10px;
+    font-size: 24px;
+    -webkit-flex: 0 0 0;
+    -ms-flex: 0 0 0; }

@@ -6,6 +6,7 @@ namespace YoastSeoForTypo3\YoastSeo\StructuredData;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterface
@@ -99,7 +100,8 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
             return (string)$site->getRouter()->generateUri($pageId, ['_language' => $this->getLanguage()]);
         }
 
-        return '';
+        $cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
+        return (string)$cObj->typoLink('', ['parameter' => $pageId, 'returnLast' => 'url', 'forceAbsoluteUrl' => true]);
     }
 
     /**

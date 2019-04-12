@@ -1,33 +1,10 @@
 <html data-namespace-typo3-fluid="true">
 	<f:if condition="{previewUrl}">
 		<f:then>
-			<script>
-                <f:format.raw>
-                var tx_yoast_seo = tx_yoast_seo || {};
-                tx_yoast_seo.previewUrl = '{previewUrl}';
-                tx_yoast_seo.previewTargetId = '{previewTargetId}';
-                tx_yoast_seo.titlePrepend = '{titlePrepend}';
-                tx_yoast_seo.titleAppend = '{titleAppend}';
-                tx_yoast_seo.firstFocusKeyword = '{focusKeyword}';
-
-                var tx_yoast_scores = new Array();
-                tx_yoast_scores["bad"] = "{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelBad' )}";
-                tx_yoast_scores["ok"] = "{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelOk' )}";
-                tx_yoast_scores["good"] = "{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelGood' )}";
-
-                <f:if condition="{translations}">
-                tx_yoast_seo.translations = {translations};
-                </f:if>
-
-                $titleTcaSelector = '{titleFieldSelector}';
-                $descriptionTcaSelector = '{descriptionFieldSelector}';
-                $scoreReadabilityFieldSelector = '{scoreReadabilityFieldSelector}';
-                $scoreSeoFieldSelector = '{scoreSeoFieldSelector}';
-                </f:format.raw>
-			</script>
-
-			<div id="{previewTargetId}"></div>
-			{previewContent->f:format.raw()}
+			{inlineJsLib}
+			<div id="{previewTargetId}" class="yoast-seo-snippet-preview" data-yoast-snippetpreview>
+				<f:render partial="Spinner" />
+			</div>
 		</f:then>
 		<f:else>
 			<f:if condition="{wrongDoktype}">

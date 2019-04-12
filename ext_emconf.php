@@ -10,14 +10,14 @@ $EM_CONF[$_EXTKEY] = array(
     'dependencies' => '',
     'state' => 'stable',
     'uploadfolder' => 0,
-    'version' => '4.1.0',
+    'version' => '5.0.0',
     'constraints' => array(
         'depends' => array(
-            'typo3' => '9.5.0-9.5.99',
-            'seo' => ''
+            'typo3' => '8.7.0-9.5.99',
         ),
         'conflicts' => array(),
         'suggests' => array(
+            'seo' => ''
         ),
     ),
     'autoload' => array(

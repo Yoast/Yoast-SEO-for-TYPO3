@@ -4,6 +4,7 @@ namespace YoastSeoForTypo3\YoastSeo\Backend;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS;
+use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class PageLayoutHeader
@@ -77,7 +78,7 @@ class PageLayoutHeader
         $pageId = (int)$_GET['id'];
 
         if (!$GLOBALS['BE_USER'] instanceof CMS\Core\Authentication\BackendUserAuthentication ||
-            !$GLOBALS['BE_USER']->check('modules', 'yoast_YoastSeoDashboard')) {
+            !$GLOBALS['BE_USER']->check('non_exclude_fields', 'pages:tx_yoastseo_snippetpreview')) {
             return '';
         }
 
@@ -138,53 +139,44 @@ class PageLayoutHeader
             array_key_exists('doktype', $currentPage) &&
             in_array((int)$currentPage['doktype'], $allowedDoktypes, true)
         ) {
-            $interfaceLocale = $this->getInterfaceLocale();
-
-            if ($interfaceLocale !== null
-                && ($translationFilePath = sprintf(
-                    static::APP_TRANSLATION_FILE_PATTERN,
-                    $interfaceLocale
-                )) !== false
-                && ($translationFilePath = CMS\Core\Utility\GeneralUtility::getFileAbsFileName(
-                    $translationFilePath
-                )) !== false
-                && file_exists($translationFilePath)
-            ) {
-                $this->pageRenderer->addJsInlineCode(
-                    md5($translationFilePath),
-                    'var tx_yoast_seo = tx_yoast_seo || {};'
-                    . ' tx_yoast_seo.translations = '
-                    . file_get_contents($translationFilePath)
-                    . ';'
-                );
-            }
-
+            $labelReadability = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelReadability');
+            $labelSeo = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelSeo');
             $labelBad = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelBad');
             $labelOk = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelOk');
             $labelGood = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelGood');
 
-            $this->pageRenderer->addJsInlineCode(
-                'YoastSEO settings',
-                'var tx_yoast_seo = tx_yoast_seo || {};'
-                . 'var tx_yoast_scores = new Array();'
-                . 'tx_yoast_scores["bad"] = "' . $labelBad . '";'
-                . 'tx_yoast_scores["ok"] = "' . $labelOk . '";'
-                . 'tx_yoast_scores["good"] = "' . $labelGood . '";'
-                . ' tx_yoast_seo.settings = '
-                . json_encode(
-                    array(
-                        'focusKeyword' => $focusKeyword,
-                        'preview' => $previewDataUrl,
-                        'recordId' => $recordId,
-                        'recordTable' => $tableName,
-                        'cornerstone' => $currentPage['tx_yoastseo_cornerstone'],
-                        'targetElementId' => $targetElementId,
-                        'editable' => 0,
-                        'disableSlug' => 1
-                    )
-                )
-                . ';'
-            );
+            $config = [
+                'urls' => [
+                    'previewUrl' => $previewDataUrl,
+                    'saveScores' => YoastUtility::getUrlForType(1553260291),
+                    'prominentWords' => YoastUtility::getUrlForType(1539541406),
+                ],
+                'useKeywordDistribution' => YoastUtility::isPremiumInstalled(),
+                'useRelevantWords' => YoastUtility::isPremiumInstalled(),
+                'isCornerstoneContent' => (bool)$currentPage['tx_yoastseo_cornerstone'],
+                'focusKeyphrase' => [
+                    'keyword' => (string)$currentPage['tx_yoastseo_focuskeyword'],
+                    'synonyms' => (string)$currentPage['tx_yoastseo_focuskeyword_synonyms'],
+                ],
+                'labels' => [
+                    'readability' => $labelReadability,
+                    'seo' => $labelSeo,
+                    'bad' => $labelBad,
+                    'ok' => $labelOk,
+                    'good' => $labelGood
+                ],
+                'fieldSelectors' => [],
+                'translations' => $this->getTranslations(),
+                'data' => [
+                    'table' => 'pages',
+                    'uid' => $pageId,
+                    'languageId' => (int)$moduleData['language']
+                ],
+            ];
+            $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigUtility::class);
+            $jsonConfigUtility->addConfig($config);
+
+            $this->pageRenderer->addJsInlineCode('yoast-json-config', $jsonConfigUtility->render());
 
             $this->pageRenderer->addRequireJsConfiguration(
                 array(
@@ -194,14 +186,28 @@ class PageLayoutHeader
                 )
             );
 
-            $this->pageRenderer->loadRequireJsModule('YoastSEO/app');
+            if (YoastUtility::inProductionMode() === true) {
+                $this->pageRenderer->loadRequireJsModule('YoastSEO/dist/plugin');
+            } else {
+                $this->pageRenderer->addHeaderData('<script type="text/javascript" src="https://localhost:3333/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/plugin.js" async></script>');
+            }
+
+            $this->pageRenderer->loadRequireJsModule('YoastSEO/yoastModal');
 
             $this->pageRenderer->addCssFile(
-                $publicResourcesPath . 'CSS/yoast-seo.min.css'
+                $publicResourcesPath . 'CSS/yoast.min.css'
             );
 
             $uriBuilder = GeneralUtility::makeInstance(CMS\Backend\Routing\UriBuilder::class);
-            $returnUrl = $uriBuilder->buildUriFromRoute('web_layout', ['id' => (int)$pageLayoutController->id]);
+
+            if (version_compare(TYPO3_branch, '9.5', '>=')) {
+                $returnUrl = $uriBuilder->buildUriFromRoute('web_layout', ['id' => (int)$pageLayoutController->id]);
+            } else {
+                $returnUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl(
+                    'web_layout',
+                    ['id' => (int)$pageLayoutController->id]
+                );
+            }
 
             $urlParameters = [
                 'edit' => [
@@ -222,7 +228,7 @@ class PageLayoutHeader
             $premiumText = '';
             if (!YoastUtility::isPremiumInstalled()) {
                 $premiumText = '
-                <div class="yoast-snippet-header-premium">
+                <div class="yoast-seo-snippet-header-premium">
                     <a target="_blank" rel="noopener noreferrer" href="' . YoastUtility::getYoastLink('Go premium', 'pagemodule-snippetpreview') . '">
                         <i class="fa fa-star"></i>' . $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:goPremium') . '
                     </a>
@@ -230,25 +236,11 @@ class PageLayoutHeader
             }
 
             $returnHtml = '
-                <div class="yoast-snippet-header">
-                    <div class="yoast-snippet-header-icons btn-group btn-group-sm">
-                        <a href="#" class="yoast-collapse" data-collapse-target="' . $targetElementId . '">
-                            <span class="t3js-icon icon icon-size-small icon-state-default icon-actions-document-open"
-                                data-identifier="actions-document-open">
-                                <span class="icon-markup">
-                                    <img src="/typo3/sysext/core/Resources/Public/Icons/T3Icons/actions/actions-move-down.svg" width="16" height="16">
-                                </span>
-                            </span>
-                        </a>
-                        <a href="' . $url . '" title="">
-                            <span class="t3js-icon icon icon-size-small icon-state-default icon-actions-document-open"
-                                data-identifier="actions-document-open">
-                                <span class="icon-markup">
-                                    <img src="/typo3/sysext/core/Resources/Public/Icons/T3Icons/actions/actions-document-open.svg" width="16" height="16">
-                                </span>
-                            </span>
-                        </a>
-                    </div>
+                <div class="yoast-seo-score-bar">
+                    <span class="yoast-seo-score-bar--analysis yoast-seo-page" data-yoast-analysis-type="readability"></span>
+                    <span class="yoast-seo-score-bar--analysis yoast-seo-page" data-yoast-analysis-type="seo"></span>
+                </div>
+                <div class="yoast-seo-snippet-header">
                     ' . $premiumText . '
                     <div class="yoast-snippet-header-label">Yoast SEO</div>
                 </div>';
@@ -256,17 +248,20 @@ class PageLayoutHeader
             if ($this->routeEnhancerError === false) {
                 $returnHtml .= '
                 <input id="focusKeyword" style="display: none" />
-                <div id="' . $targetElementId . '" class="t3-grid-cell yoastSeo yoastSeo--small">
+                <div id="' . $targetElementId . '" class="t3-grid-cell yoast-seo" data-yoast-snippetpreview>
                     <!-- ' . $targetElementId . ' -->
                     <div class="spinner">
-                      <div class="bounce1"></div>
-                      <div class="bounce2"></div>
-                      <div class="bounce3"></div>
+                      <div class="bounce bounce1"></div>
+                      <div class="bounce bounce2"></div>
+                      <div class="bounce bounce3"></div>
                     </div>
-                </div>';
+                </div>
+                <div data-yoast-analysis="readability" id="YoastPageHeaderAnalysisReadability" data-yoast-subtype="" class="hidden yoast-analysis"></div>
+                <div data-yoast-analysis="seo" id="YoastPageHeaderAnalysisSeo" data-yoast-subtype="" class="hidden yoast-analysis"></div>
+                ';
             } else {
                 $returnHtml .= '
-                <div class="t3-grid-cell yoast yoastSeo yoastSeo--small">
+                <div class="t3-grid-cell yoast yoast-seo" style="background-color: #fff;">
                     <div class="callout callout-warning callout-body">
                         It seems that you have configured routeEnhancers for this site with type pageType. When you do this, it is necessary that you also add the pageType for the Yoast Snippetpreview.<br />
                         Please add a mapping for type ' . self::FE_PREVIEW_TYPE . ' and map it for example to \'yoast-snippetpreview.json\'.<br />
@@ -342,8 +337,6 @@ class PageLayoutHeader
             $rootLine = CMS\Backend\Utility\BackendUtility::BEgetRootLine($pageId);
             // Mount point overlay: Set new target page id and mp parameter
             $pageRepository = GeneralUtility::makeInstance(CMS\Frontend\Page\PageRepository::class);
-            $siteFinder = GeneralUtility::makeInstance(CMS\Core\Site\SiteFinder::class);
-            $site = $siteFinder->getSiteByPageId($pageId, $rootLine);
             $finalPageIdToShow = $pageId;
             $mountPointInformation = $pageRepository->getMountPointInfo($pageId);
             if ($mountPointInformation && $mountPointInformation['overlay']) {
@@ -351,23 +344,43 @@ class PageLayoutHeader
                 $finalPageIdToShow = $mountPointInformation['mount_pid'];
                 $additionalGetVars .= '&MP=' . $mountPointInformation['MPvar'];
             }
-            if ($site instanceof CMS\Core\Site\Entity\Site) {
-                $this->checkRouteEnhancers($site);
 
-                $additionalQueryParams = [];
-                parse_str($additionalGetVars, $additionalQueryParams);
-                $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
-                $uriToCheck = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
+            if (version_compare(TYPO3_branch, '9.5', '>=')) {
+                $siteFinder = GeneralUtility::makeInstance(CMS\Core\Site\SiteFinder::class);
+                $site = $siteFinder->getSiteByPageId($pageId, $rootLine);
+                if ($site instanceof CMS\Core\Site\Entity\Site) {
+                    $this->checkRouteEnhancers($site);
 
-                $additionalQueryParams['type'] = self::FE_PREVIEW_TYPE;
-                $additionalQueryParams['uriToCheck'] = urlencode($uriToCheck);
-                $uri = (string)$site->getRouter()->generateUri($site->getRootPageId(), $additionalQueryParams);
+                    $additionalQueryParams = [];
+                    parse_str($additionalGetVars, $additionalQueryParams);
+                    $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
+                    $uriToCheck = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
+
+                    unset($additionalQueryParams);
+                    $additionalQueryParams['type'] = self::FE_PREVIEW_TYPE;
+                    $additionalQueryParams['uriToCheck'] = urlencode($uriToCheck);
+                    $uri = (string)$site->getRouter()->generateUri($site->getRootPageId(), $additionalQueryParams);
+                } else {
+                    $uri = CMS\Backend\Utility\BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
+                }
             } else {
-                $uri = CMS\Backend\Utility\BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
+                $additionalQueryParams = [];
+
+                $uri = '/?type=' . self::FE_PREVIEW_TYPE . '&pageIdToCheck=' . $pageId . '&languageIdToCheck=' . $languageId;
             }
+
             return $uri;
         }
         return '#';
+    }
+
+    /**
+     * @param int $type
+     * @return string
+     */
+    protected function getUrlForType($type): string
+    {
+        return '/?type=' . $type;
     }
 
     /**
@@ -392,6 +405,27 @@ class PageLayoutHeader
             if ($typeEnhancer === true && $yoastTypeEnhancer === false) {
                 $this->routeEnhancerError = true;
             }
+        }
+    }
+
+    /**
+     * @return array
+     */
+    protected function getTranslations()
+    {
+        $interfaceLocale = $this->getInterfaceLocale();
+
+        if ($interfaceLocale !== null
+            && ($translationFilePath = sprintf(
+                static::APP_TRANSLATION_FILE_PATTERN,
+                $interfaceLocale
+            )) !== false
+            && ($translationFilePath = GeneralUtility::getFileAbsFileName(
+                $translationFilePath
+            )) !== false
+            && file_exists($translationFilePath)
+        ) {
+            return json_decode(file_get_contents($translationFilePath));
         }
     }
 

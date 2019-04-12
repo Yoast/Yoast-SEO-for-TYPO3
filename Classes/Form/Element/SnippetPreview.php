@@ -6,6 +6,7 @@ use TYPO3\CMS\Backend\Form\NodeFactory;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Localization\Locales;
+use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
@@ -15,6 +16,7 @@ use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use TYPO3\CMS\Frontend\Page\CacheHashCalculator;
 use TYPO3\CMS\Frontend\Page\PageRepository;
+use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class SnippetPreview extends AbstractNode
@@ -43,6 +45,26 @@ class SnippetPreview extends AbstractNode
      * @var string
      */
     protected $descriptionField = 'description';
+
+    /**
+     * @var string
+     */
+    protected $focusKeywordField = 'tx_yoastseo_focuskeyword';
+
+    /**
+     * @var string
+     */
+    protected $focusKeywordSynonymsField = 'tx_yoastseo_focuskeyword_synonyms';
+
+    /**
+     * @var string
+     */
+    protected $cornerstoneField = 'tx_yoastseo_cornerstone';
+
+    /**
+     * @var string
+     */
+    protected $relatedKeyphrases = 'tx_yoastseo_focuskeyword_premium';
 
     /**
      * @var string
@@ -99,6 +121,9 @@ class SnippetPreview extends AbstractNode
         $this->localeService = GeneralUtility::makeInstance(Locales::class);
 
         $this->templateView = GeneralUtility::makeInstance(StandaloneView::class);
+        $this->templateView->setPartialRootPaths(
+            [GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Partials/TCA')]
+        );
         $this->templateView->setTemplatePathAndFilename(
             GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Templates/TCA/SnippetPreview.html')
         );
@@ -132,10 +157,11 @@ class SnippetPreview extends AbstractNode
 
     public function render()
     {
+        $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigUtility::class);
         $allowedDoktypes = YoastUtility::getAllowedDoktypes();
         $resultArray = $this->initializeResultArray();
         $publicResourcesPath = PathUtility::getAbsoluteWebPath('../typo3conf/ext/yoast_seo/Resources/Public/');
-        $resultArray['stylesheetFiles'][] = $publicResourcesPath . 'CSS/yoast-seo-tca.min.css';
+        $resultArray['stylesheetFiles'][] = $publicResourcesPath . 'CSS/yoast.min.css';
 
         $premiumText = '';
         if (!YoastUtility::isPremiumInstalled()) {
@@ -150,7 +176,73 @@ class SnippetPreview extends AbstractNode
         if ($this->data['tableName'] != 'pages' || in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
             $firstFocusKeyword = YoastUtility::getFocusKeywordOfPage((int)$this->data['databaseRow']['uid'], $this->data['tableName']);
 
-            $this->templateView->assign('translations', $this->getTranslations());
+            $labelReadability = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelReadability');
+            $labelSeo = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelSeo');
+            $labelBad = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelBad');
+            $labelOk = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelOk');
+            $labelGood = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelGood');
+
+            $config = [
+                'urls' => [
+                    'previewUrl' => $this->previewUrl,
+                    'saveScores' => YoastUtility::getUrlForType(1553260291),
+                    'prominentWords' => YoastUtility::getUrlForType(1539541406),
+                ],
+                'TCA' => 1,
+                'useKeywordDistribution' => YoastUtility::isPremiumInstalled(),
+                'useRelevantWords' => YoastUtility::isPremiumInstalled(),
+                'isCornerstoneContent' => (bool)$this->data['databaseRow']['tx_yoastseo_cornerstone'],
+                'focusKeyphrase' => [
+                    'keyword' => (string)$this->data['databaseRow']['tx_yoastseo_focuskeyword'],
+                    'synonyms' => (string)$this->data['databaseRow']['tx_yoastseo_focuskeyword_synonyms'],
+                ],
+                'labels' => [
+                    'readability' => $labelReadability,
+                    'seo' => $labelSeo,
+                    'bad' => $labelBad,
+                    'ok' => $labelOk,
+                    'good' => $labelGood
+                ],
+                'data' => [
+                    'table' => $this->data['tableName'],
+                    'uid' => (int)$this->data['databaseRow']['uid'],
+                    'languageId' => (int)$this->languageId
+                ],
+                'fieldSelectors' => [
+                    'title' => $this->getFieldSelector($this->titleField),
+                    'description' => $this->getFieldSelector($this->descriptionField),
+                    'focusKeyword' => $this->getFieldSelector($this->focusKeywordField),
+                    'cornerstone' => $this->getFieldSelector($this->cornerstoneField),
+                    'premiumKeyword' => YoastUtility::isPremiumInstalled() ? $this->getFieldSelector($this->relatedKeyphrases, true) : '',
+                ],
+                'translations' => $this->getTranslations(),
+                'relatedKeyphrases' => YoastUtility::isPremiumInstalled() ? YoastUtility::getRelatedKeyphrases($this->data['tableName'], (int)$this->data['databaseRow']['uid']) : []
+            ];
+
+            if (YoastUtility::isPremiumInstalled()) {
+                $config['fieldSelectors']['focusKeywordSynonyms'] = $this->getFieldSelector($this->focusKeywordSynonymsField);
+            }
+
+            $jsonConfigUtility->addConfig($config);
+
+            $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
+
+            $pageRenderer->addRequireJsConfiguration(
+                array(
+                    'paths' => array(
+                        'YoastSEO' => $publicResourcesPath . 'JavaScript/'
+                    )
+                )
+            );
+
+            if (YoastUtility::inProductionMode() === true) {
+                $pageRenderer->loadRequireJsModule('YoastSEO/dist/plugin');
+            } else {
+                $pageRenderer->addHeaderData('<script type="text/javascript" src="https://localhost:3333/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/plugin.js" async></script>');
+            }
+
+            $pageRenderer->loadRequireJsModule('YoastSEO/yoastModal');
+
             $this->templateView->assign('previewUrl', $this->previewUrl);
             $this->templateView->assign('previewTargetId', $this->data['fieldName']);
             $this->templateView->assign('titleFieldSelector', $this->getFieldSelector($this->titleField));
@@ -159,9 +251,11 @@ class SnippetPreview extends AbstractNode
             $this->templateView->assign('databaseRow', $this->data['databaseRow']);
             $this->templateView->assign('scoreSeoFieldSelector', $this->getFieldSelector('tx_yoastseo_score_seo'));
             $this->templateView->assign('focusKeyword', $firstFocusKeyword);
+            $this->templateView->assign('vanillaUid', $this->data['vanillaUid']);
+            $this->templateView->assign('tableName', $this->data['tableName']);
+            $this->templateView->assign('languageId', $this->languageId);
             $this->templateView->assign('previewContent', $premiumText);
-
-            $resultArray['requireJsModules'] = ['TYPO3/CMS/YoastSeo/Tca'];
+            $this->templateView->assign('inlineJsLib', $inlineJsLib);
         } else {
             $this->templateView->assign('wrongDoktype', true);
         }
@@ -174,15 +268,19 @@ class SnippetPreview extends AbstractNode
      * @param string $field
      * @return string
      */
-    protected function getFieldSelector($field)
+    protected function getFieldSelector($field, $id = false)
     {
-        $element = 'data' . str_replace('tx_yoastseo_snippetpreview', $field, $this->data['elementBaseName']);
+        if ($id === true) {
+            $element = 'data-' . $this->data['vanillaUid'] . '-' . $this->data['tableName'] . '-' . $this->data['vanillaUid'] . '-' . $field;
+        } else {
+            $element = 'data' . str_replace('tx_yoastseo_snippetpreview', $field, $this->data['elementBaseName']);
+        }
 
         return $element;
     }
 
     /**
-     * @return string
+     * @return array
      */
     protected function getTranslations()
     {
@@ -198,7 +296,7 @@ class SnippetPreview extends AbstractNode
             )) !== false
             && file_exists($translationFilePath)
         ) {
-            return (string)file_get_contents($translationFilePath);
+            return json_decode(file_get_contents($translationFilePath));
         }
     }
 
@@ -388,8 +486,6 @@ class SnippetPreview extends AbstractNode
             $rootLine = BackendUtility::BEgetRootLine($pageId);
             // Mount point overlay: Set new target page id and mp parameter
             $pageRepository = GeneralUtility::makeInstance(PageRepository::class);
-            $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
-            $site = $siteFinder->getSiteByPageId($pageId, $rootLine);
             $finalPageIdToShow = $pageId;
             $mountPointInformation = $pageRepository->getMountPointInfo($pageId);
             if ($mountPointInformation && $mountPointInformation['overlay']) {
@@ -397,19 +493,27 @@ class SnippetPreview extends AbstractNode
                 $finalPageIdToShow = $mountPointInformation['mount_pid'];
                 $additionalGetVars .= '&MP=' . $mountPointInformation['MPvar'];
             }
-            if ($site instanceof Site) {
-                $additionalQueryParams = [];
-                parse_str($additionalGetVars, $additionalQueryParams);
-                $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
-                $uriToCheck = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
 
-                $additionalQueryParams['type'] = self::FE_PREVIEW_TYPE;
-                $additionalQueryParams['uriToCheck'] = urlencode($uriToCheck);
-                $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
-                $uri = (string)$site->getRouter()->generateUri($site->getRootPageId(), $additionalQueryParams);
+            if (version_compare(TYPO3_branch, '9.5', '>=')) {
+                $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
+                $site = $siteFinder->getSiteByPageId($pageId, $rootLine);
+                if ($site instanceof Site) {
+                    $additionalQueryParams = [];
+                    parse_str($additionalGetVars, $additionalQueryParams);
+                    $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
+                    $uriToCheck = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
+
+                    unset($additionalQueryParams);
+                    $additionalQueryParams['type'] = self::FE_PREVIEW_TYPE;
+                    $additionalQueryParams['uriToCheck'] = urlencode($uriToCheck);
+                    $uri = (string)$site->getRouter()->generateUri($site->getRootPageId(), $additionalQueryParams);
+                } else {
+                    $uri = BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
+                }
             } else {
-                $uri = BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
+                $uri = '/?type=' . self::FE_PREVIEW_TYPE . '&pageIdToCheck=' . (int)$pageId . '&languageIdToCheck=' . (int)$languageId . '&additionalGetVars=' . urlencode($additionalGetVars);
             }
+
             return $uri;
         }
         return '#';

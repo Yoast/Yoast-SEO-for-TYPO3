@@ -4,6 +4,8 @@
 build:
   - 'sass'
   - 'browserify'
-# Default task
+build:language-files:
+  - 'glotpress_download'
+  - 'po2json'
 default:
   - build

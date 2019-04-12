@@ -5,12 +5,13 @@
 @import "./BackendModule/lists";
 @import "./BackendModule/buttons";
 
+$gutter: 32px;
+
 .yoast {
 	line-height: 1.6;
-	letter-spacing: 0.01em;
 	color: #000;
+	letter-spacing: 0.01em;
 
-	$gutter: 32px;
 	.callout-body {
 		a {
 			font-weight: bold;
@@ -18,21 +19,28 @@
 	}
 
 	&-content {
-		max-width: 700px;
+
+		.row {
+			max-width: 1650px;
+			margin-bottom: 20px;
+		}
 
 		p {
 			margin: 1em 0;
 		}
 
 		.yoast-money-back-guarantee {
-			font-style: italic
+			font-style: italic;
 		}
 	}
 
 	&-seo {
 		&-credits {
 			&__link {
-				margin-right: 2em;
+				display: inline-block;
+				margin-top: 10px;
+				margin-right: 30px;
+				text-decoration: none !important;
 			}
 		}
 
@@ -43,18 +51,21 @@
 		}
 
 		&-academy {
-			&__courses {
-				margin-top: 1em;
-			}
-
 			&__item {
+				position: relative;
 				margin-bottom: 20px;
 
 				p {
+					position: absolute;
+					right: 0;
+					bottom: 0;
+					left: 0;
 					display: block;
-					padding: 5px 0;
-					text-align: center;
+					padding: 20px 0;
+					margin: 0;
+					background-color: rgba(#fff, 0.75);
 					font-weight: bold;
+					text-align: center;
 				}
 			}
 		}
@@ -71,37 +82,73 @@
 			}
 
 			&__description:before {
-				content: "– "
+				content: "– ";
 			}
+
 			&__image {
 				margin: 40px 0;
 			}
 		}
 	}
 
+	&-subscribe {
+		&-form {
+			&-inputFields {
+				margin-bottom: 10px;
+			}
+		}
+	}
+
+	&-link {
+
+		&--more-info {
+			border: 1px solid #000;
+		}
+	}
+
 	&-button {
+		max-height: none;
+		padding: 10px 12px;
+		text-transform: uppercase;
 
 		&--extension {
+			border-width: 1px;
+			border-style: solid;
 			color: $color-white;
-			text-transform: uppercase;
-			padding-left: 0.8em;
-			padding-right: 0.8em;
 
-			& + &-activated, & + &-not-activated {
+			& + &-activated,
+			& + &-not-activated {
 				margin-left: 0;
 			}
 
-			&-buy {
-				&, &:hover {
+			&-cta {
+				&,
+				&:hover {
+					border-color: $color-pink-dark;
 					background-color: $color-pink-dark;
 				}
 
 				&:visited {
 					color: $color-white;
 				}
+
+				&--white {
+					border: 1px solid #000;
+					background-color: #fff;
+					color: #000;
+
+					&:hover,
+					&:focus,
+					&:visited {
+						background-color: #fff;
+						color: #000;
+					}
+				}
 			}
 
-			&-installed, &-activated, &-not-activated {
+			&-installed,
+			&-activated,
+			&-not-activated {
 				&:hover {
 					text-decoration: none;
 				}
@@ -110,19 +157,25 @@
 			&-installed {
 				margin-right: 0.2rem;
 
-				&, &:hover {
+				&,
+				&:hover {
+					border-color: $color_green_medium;
 					background-color: $color_green_medium;
 				}
 			}
 
 			&-not-activated {
-				&, &:hover {
+				&,
+				&:hover {
+					border-color: $color-error;
 					background-color: $color-error;
 				}
 			}
 
 			&-activated {
-				&, &:hover {
+				&,
+				&:hover {
+					border-color: $color_green_medium;
 					background-color: $color_green_medium;
 				}
 			}
@@ -137,20 +190,118 @@
 	}
 }
 
+.compare-free-premium {
+	max-width: 1200px;
+	margin-bottom: 20px;
+
+	th {
+		line-height: 1.2;
+		font-weight: 700;
+		font-size: 16px;
+		color: $color-pink-dark;
+	}
+
+	td,
+	th {
+		padding: 10px 25px;
+		border: 1px solid #e6e6e6;
+		vertical-align: top;
+		border-collapse: collapse;
+	}
+
+	.fa {
+		&-times {
+			color: $color-error;
+		}
+
+		&-check {
+			color: $color_green_medium;
+		}
+	}
+
+	@media screen and (max-width: 600px) {
+		thead {
+			position: absolute;
+			overflow: hidden;
+			width: 1px;
+			height: 1px;
+			padding: 0;
+			margin: -1px;
+			clip: rect(0 0 0 0);
+		}
+
+		tr:nth-child(even) {
+			background-color: #e6e6e6;
+
+			td:nth-child(even) {
+				border-top: 2px solid #fff;
+				border-bottom: 2px solid #fff;
+			}
+		}
+
+		td {
+			display: block;
+
+			&::before {
+				content: attr(data-label);
+				display: block;
+				margin-bottom: 5px;
+				font-weight: bold;
+				text-transform: uppercase;
+			}
+		}
+	}
+}
 
 .wpseo-score-icon {
 	float: left;
 	width: 12px;
 	height: 12px;
-	margin: 3px 10px 0 0;
 	border-radius: 50%;
+	margin: 3px 10px 0 0;
 	background: #888;
 }
 
 .form-inline .form-group {
 	display: inline-block;
-	width: auto;
-	vertical-align: middle;
 	float: left;
+	width: auto;
 	margin-right: 2em;
+	vertical-align: middle;
+}
+
+.resetLink {
+	text-decoration: underline;
+
+	&:hover,
+	&:focus {
+		text-decoration: none;
+	}
+}
+
+.compare {
+	&-diff {
+		display: flex;
+		flex-direction: row;
+		flex: 1 1 0;
+		-webkit-flex: 1 1 0;
+		-webkit-flex-direction: row;
+		-webkit-box-flex: 1;
+		-ms-flex: 1 1 0;
+		-ms-flex-direction: row;
+
+		&-icon,
+		&-text {
+			display: block;
+		}
+
+		&-icon {
+			flex-shrink: 0;
+			width: 35px;
+			margin-right: 10px;
+			font-size: 24px;
+			-webkit-flex: 0 0 0;
+			-ms-flex: 0 0 0;
+		}
+	}
 }

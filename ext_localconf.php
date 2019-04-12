@@ -4,9 +4,20 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['cms/layout/db_layout.php']['drawHeade
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][]
     = \YoastSeoForTypo3\YoastSeo\StructuredData\StructuredDataProviderManager::class . '->render';
 
+if (version_compare(TYPO3_branch, '9.5', '<')) {
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][] =
+        \YoastSeoForTypo3\YoastSeo\Canonical\CanonicalGenerator::class . '->generate';
+
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][]
+        = \YoastSeoForTypo3\YoastSeo\Frontend\PageTitle::class . '->render';
+}
+
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScriptConstants(
     'config.yoast_seo.fe_preview_type = '
-        . \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::FE_PREVIEW_TYPE . PHP_EOL
+        . \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::FE_PREVIEW_TYPE . PHP_EOL .
+    'config.yoast_seo.sitemap_xml_type = '
+        . \YoastSeoForTypo3\YoastSeo\UserFunctions\XmlSitemap::DOKTYPE
+
 );
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
@@ -14,11 +25,20 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php'][
     'constants',
     '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/constants.txt">'
 );
+
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
     'YoastSeo',
     'setup',
     '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/setup.txt">'
 );
+
+if (version_compare(TYPO3_branch, '9.5', '<')) {
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
+        'YoastSeoCms8',
+        'setup',
+        '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/Setup/CMS8.typoscript">'
+    );
+}
 
 $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514550050] = array(
     'nodeName' => 'snippetPreview',
@@ -38,9 +58,9 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514830899] = a
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\FocusKeywordAnalysis::class,
 );
 
-$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1520291507] = array(
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1552342645] = array(
     'nodeName' => 'cornerstone',
-    'priority' => 40,
+    'priority' => 43,
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\Cornerstone::class,
 );
 
@@ -49,6 +69,26 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1537991862] = a
     'priority' => 40,
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\HiddenField::class
 );
+
+if (!\YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::isPremiumInstalled()) {
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1553888878] = array(
+        'nodeName' => 'synonyms',
+        'priority' => 40,
+        'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\Synonyms::class
+    );
+
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1553977739] = array(
+        'nodeName' => 'relatedKeyphrases',
+        'priority' => 40,
+        'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\RelatedKeyphrases::class
+    );
+
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1554381790] = array(
+        'nodeName' => 'internalLinkingSuggestion',
+        'priority' => 40,
+        'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\InternalLinkingSuggestion::class
+    );
+}
 
 $llFolder = 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/';
 

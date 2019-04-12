@@ -2,8 +2,8 @@
 namespace YoastSeoForTypo3\YoastSeo\UserFunctions;
 
 use TYPO3\CMS\Core\Exception;
-use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
 /**
  * Class SnippetPreview
@@ -18,11 +18,22 @@ class SnippetPreview
      */
     public function render(): string
     {
-        $uriToCheck = urldecode($GLOBALS['TYPO3_REQUEST']->getQueryParams()['uriToCheck']);
+        if (version_compare(TYPO3_branch, '9.5', '>=')) {
+            $uriToCheck = urldecode($GLOBALS['TYPO3_REQUEST']->getQueryParams()['uriToCheck']);
+        } else {
+            $additionalGetVars = urldecode($_GET['additionalGetVars']);
+            $cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
+            $uriToCheck = $cObj->typolink_URL([
+                'parameter' => (int)$_GET['pageIdToCheck'],
+                'forceAbsoluteUrl' => 1,
+                'additionalParams' => $additionalGetVars . '&L=' . (int)$_GET['languageIdToCheck'],
+                'linkAccessRestrictedPages' => 1,
+            ]);
+        }
 
         try {
             $content = $this->getContentFromUrl($uriToCheck);
-            $data = $this->getDataFromContent($content, $uriToCheck);
+            $data = $this->getDataFromContent($content, $uriToCheck, (int)$_GET['languageIdToCheck']);
         } catch (Exception $e) {
             $data = ['error' => 'Could not read the url ' . $uriToCheck . ': ' . $e->getMessage()];
         }
@@ -35,15 +46,15 @@ class SnippetPreview
      *
      * @param string $content
      * @param string $uriToCheck
+     * @param int $languageId
      * @return array
      */
-    protected function getDataFromContent($content, $uriToCheck): array
+    protected function getDataFromContent($content, $uriToCheck, $languageId): array
     {
         $title = $body = $metaDescription = '';
+        $locale = 'en';
 
-        /** @var SiteLanguage $siteLanguage */
-        $siteLanguage = $GLOBALS['TYPO3_REQUEST']->getAttribute('language');
-
+        $localeFound = preg_match('/<html lang="([a-z]*)"/is', $content, $matchesLocale);
         $titleFound = preg_match("/<title[^>]*>(.*?)<\/title>/is", $content, $matchesTitle);
         $descriptionFound = preg_match(
             "/<meta[^>]*name=[\" | \']description[\"|\'][^>]*content=[\"]([^\"]*)[\"][^>]*>/i",
@@ -74,6 +85,9 @@ class SnippetPreview
             $metaDescription = $matchesDescription[1];
         }
 
+        if ($localeFound) {
+            $locale = trim($matchesLocale[1]);
+        }
         $url = preg_replace('/\/$/', '', $uriToCheck);
 
         $titlePrependAppend = $this->getPageTitlePrependAppend();
@@ -85,7 +99,7 @@ class SnippetPreview
                 'slug' => $GLOBALS['TSFE']->page['slug'],
                 'title' => $title,
                 'description' => $metaDescription,
-                'locale' => $siteLanguage->getLocale(),
+                'locale' => $locale,
                 'body' => $body,
                 'pageTitlePrepend' => $titlePrependAppend['prepend'],
                 'pageTitleAppend' => $titlePrependAppend['append'],
