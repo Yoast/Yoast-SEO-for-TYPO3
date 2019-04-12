@@ -15,5 +15,5 @@ Integration in other plugins
 	:maxdepth: 5
 	:titlesonly:
 
-        	Analysis/Index
-        	Sitemap/Index
+    	Analysis/Index
+    	Sitemap/Index
