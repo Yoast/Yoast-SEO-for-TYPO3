@@ -76,7 +76,7 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
     /**
      * @param TypoScriptFrontendController|null $tsfe
      */
-    protected function setTsfe($tsfe = null): void
+    protected function setTsfe($tsfe = null)
     {
         if ($tsfe instanceof TypoScriptFrontendController) {
             $this->tsfe = $tsfe;
@@ -107,7 +107,7 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
     /**
      * @param $siteFinder
      */
-    protected function setSiteFinder($siteFinder): void
+    protected function setSiteFinder($siteFinder)
     {
         if ($siteFinder instanceof SiteFinder) {
             $this->siteFinder = $siteFinder;

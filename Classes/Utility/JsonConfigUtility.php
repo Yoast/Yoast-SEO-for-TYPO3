@@ -11,7 +11,7 @@ class JsonConfigUtility implements SingletonInterface
     /**
      * @param $config
      */
-    public function addConfig($config): void
+    public function addConfig($config)
     {
         ArrayUtility::mergeRecursiveWithOverrule($this->config, $config, true, false);
     }

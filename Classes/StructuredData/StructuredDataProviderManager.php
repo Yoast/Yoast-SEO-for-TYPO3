@@ -57,7 +57,7 @@ class StructuredDataProviderManager implements SingletonInterface
      * @param array $params
      * @param object $pObj
      */
-    public function render(&$params, $pObj): void
+    public function render(&$params, $pObj)
     {
         if (TYPO3_MODE === 'FE') {
             $data = $this->getStructuredData();
@@ -155,7 +155,7 @@ class StructuredDataProviderManager implements SingletonInterface
     /**
      * Initializes the caching system.
      */
-    protected function initCaches(): void
+    protected function initCaches()
     {
         try {
             $this->pageCache = GeneralUtility::makeInstance(CacheManager::class)->getCache('cache_pages');

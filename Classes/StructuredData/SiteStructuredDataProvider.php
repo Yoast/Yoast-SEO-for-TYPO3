@@ -93,7 +93,7 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
     /**
      * @param TypoScriptFrontendController|null $tsfe
      */
-    protected function setTsfe($tsfe = null): void
+    protected function setTsfe($tsfe = null)
     {
         if ($tsfe instanceof TypoScriptFrontendController) {
             $this->tsfe = $tsfe;
@@ -105,7 +105,7 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
     /**
      * @param PageRepository|null $pageRepository
      */
-    protected function setPageRepository($pageRepository = null): void
+    protected function setPageRepository($pageRepository = null)
     {
         if ($pageRepository instanceof PageRepository) {
             $this->pageRepository = $pageRepository;
@@ -117,7 +117,7 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
     /**
      * @param SiteFinder|null $siteFinder
      */
-    protected function setSiteFinder($siteFinder = null): void
+    protected function setSiteFinder($siteFinder = null)
     {
         if ($siteFinder instanceof SiteFinder) {
             $this->siteFinder = $siteFinder;
