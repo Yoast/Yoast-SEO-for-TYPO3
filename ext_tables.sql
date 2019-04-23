@@ -55,3 +55,7 @@ CREATE TABLE pages_language_overlay (
 	tx_yoastseo_focuskeyword_premium int(11) DEFAULT '0' NOT NULL,
 	KEY tx_yoastseo_cornerstone (tx_yoastseo_cornerstone),
 );
+
+CREATE TABLE tt_content (
+    tx_yoastseo_linking_suggestions int(11) DEFAULT '0' NOT NULL
+);
