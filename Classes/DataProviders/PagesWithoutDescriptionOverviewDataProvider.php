@@ -33,7 +33,13 @@ class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataPr
     {
         $doktypes = implode(',', YoastUtility::getAllowedDoktypes()) ?: '-1';
 
-        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('pages');
+        if (version_compare(TYPO3_branch, '9.5', '>=')) {
+            $table = 'pages';
+        } else {
+            $table = 'pages_language_overlay';
+        }
+
+        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($table);
 
         $constraints = [
             $qb->expr()->orX(
@@ -46,7 +52,7 @@ class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataPr
         ];
 
         $query = $qb->select('*')
-            ->from('pages')
+            ->from($table)
             ->where(...$constraints)
             ->execute();
 

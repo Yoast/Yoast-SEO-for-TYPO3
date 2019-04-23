@@ -30,15 +30,23 @@ class CornerstoneOverviewDataProvider extends AbstractOverviewDataProvider
      */
     public function getData($returnOnlyCount = false)
     {
-        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('pages');
+        $language = (int)$this->callerParams['language'];
+        $constraints = [];
+        $table = 'pages';
+        if ($language > 0 && version_compare(TYPO3_branch, '9.5', '<')) {
+            $table = 'pages_language_overlay';
+        }
 
-        $constraints = [
-            $qb->expr()->eq('tx_yoastseo_cornerstone', 1),
-            $qb->expr()->eq('sys_language_uid', (int)$this->callerParams['language'])
-        ];
+        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($table);
+
+        if ($language > 0 || version_compare(TYPO3_branch, '9.5', '>=')) {
+            $constraints[] = $qb->expr()->eq('sys_language_uid', $language);
+        }
+
+        $constraints[] = $qb->expr()->eq('tx_yoastseo_cornerstone', 1);
 
         $query = $qb->select('*')
-            ->from('pages')
+            ->from($table)
             ->where(...$constraints)
             ->execute();
 
