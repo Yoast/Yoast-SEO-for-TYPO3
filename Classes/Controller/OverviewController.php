@@ -15,6 +15,7 @@ namespace YoastSeoForTypo3\YoastSeo\Controller;
  */
 
 use TYPO3\CMS\Backend\Routing\UriBuilder;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Backend\View\BackendTemplateView;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
@@ -226,12 +227,16 @@ class OverviewController extends ActionController
                 );
 
                 $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
-                $url = $uriBuilder->buildUriFromRoute('yoast_YoastSeoOverview', $parameters);
+                try {
+                    $url = $uriBuilder->buildUriFromRoute('yoast_YoastSeoOverview', $parameters);
+                } catch (\TYPO3\CMS\Backend\Routing\Exception\RouteNotFoundException $e) {
+                    $url = BackendUtility::getModuleUrl('yoast_YoastSeoOverview', $parameters);
+                }
 
                 $menuItem = $languageMenu
                     ->makeMenuItem()
                     ->setTitle($language)
-                    ->setHref($url);
+                    ->setHref((string)$url);
                 if ($this->request->hasArgument('language') &&
                     (int)$this->request->getArgument('language') === $key) {
                     $menuItem->setActive(true);
