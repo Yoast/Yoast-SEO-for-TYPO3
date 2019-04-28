@@ -17,8 +17,11 @@ import {saveRelevantWords} from './redux/actions/relevantWords';
 import createAnalysisWorker from './analysis/createAnalysisWorker';
 import refreshAnalysis from './analysis/refreshAnalysis';
 import {setFocusKeywordSynonyms} from "./redux/actions/focusKeywordSynonyms";
+import {setLocaleData} from "@wordpress/i18n";
 
 let worker = createAnalysisWorker(YoastConfig.isCornerstoneContent, 'en_US');
+
+setLocaleData({'': {'yoast-components': {}}}, 'yoast-components');
 
 store.dispatch(setFocusKeyword(YoastConfig.focusKeyphrase.keyword));
 store.dispatch(setFocusKeywordSynonyms(YoastConfig.focusKeyphrase.synonyms));
