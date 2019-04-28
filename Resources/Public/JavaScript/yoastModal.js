@@ -57,7 +57,7 @@ define(['jquery', 'TYPO3/CMS/Backend/Modal'], function ($, Modal) {
     let content = '';
     let styling = 'li button:disabled, h4 button svg { display: none; } h4 button { cursor: inherit !important; } h4 button span { font-size: 12px; font-weight: bold; } li a { text-decoration: underline; }';
 
-    $('style[data-styled-components]').each(function () {
+    $('style[data-styled]').each(function () {
       styling += $(this).html();
     });
 

@@ -169,6 +169,8 @@ class YoastUtility
      * Returns true if Yoast extension is in production mode. You need a webpack dev server running to load
      * JS files if not in production mode
      *
+     * You can set development by using TypoScript "module.tx_yoastseo.settings.developmentMode = 1"
+     *
      * @param array|null $configuration
      * @return bool
      */
