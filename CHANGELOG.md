@@ -8,6 +8,19 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## 5.0.1 May 2, 2019
+### Changed
+* Updated Yoast libraries
+* Added configuration to exclude certain doktypes in the structured data output for breadcrumbs
+
+### Fixed
+* Fixed problems with overview module in CMS8
+* Made sure the extension also works with PHP 7.0
+* Resolved problems with the upgrade wizard in CMS8
+* Removed message in console about translations
+* Fixed styling issues with modal in page module
+* Preview URL generation in page module is now only done on allowed doktypes making sure you don't get an error on the not allowed doktypes.
+
 ## 5.0.0 April 12, 2019
 ### Added
 * Basic schema.org integration helping you to give structured data to search engines. In this basic version, we will help you with your breadcrumbs and your general site information.
