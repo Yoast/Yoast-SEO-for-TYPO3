@@ -90,10 +90,7 @@ class PageLayoutHeader
         $pageLayoutController = $GLOBALS['SOBE'];
 
         $currentPage = null;
-        $focusKeyword = '';
-        $previewDataUrl = '';
         $recordId = $pageId;
-        $tableName = 'pages';
         $targetElementId = uniqid('_YoastSEO_panel_');
         $publicResourcesPath = CMS\Core\Utility\PathUtility::getAbsoluteWebPath(CMS\Core\Utility\ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
         if ($pageLayoutController instanceof CMS\Backend\Controller\PageLayoutController
@@ -128,12 +125,6 @@ class PageLayoutHeader
             return '';
         }
 
-        if (\is_array($currentPage)) {
-            $focusKeyword = YoastUtility::getFocusKeywordOfPage($recordId, $tableName);
-
-            $previewDataUrl = $this->getTargetUrl($pageId, (int)$moduleData['language']);
-        }
-
         $allowedDoktypes = YoastUtility::getAllowedDoktypes();
         if (is_array($currentPage) &&
             array_key_exists('doktype', $currentPage) &&
@@ -144,6 +135,8 @@ class PageLayoutHeader
             $labelBad = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelBad');
             $labelOk = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelOk');
             $labelGood = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelGood');
+
+            $previewDataUrl = $this->getTargetUrl($pageId, (int)$moduleData['language']);
 
             $config = [
                 'urls' => [
