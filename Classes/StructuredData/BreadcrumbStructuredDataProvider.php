@@ -22,6 +22,11 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
     protected $siteFinder;
 
     /**
+     * @var array
+     */
+    protected $configuration;
+
+    /**
      * BreadcrumbStructuredDataProvider constructor.
      * @param null $tsfe
      * @param null $siteFinder
@@ -48,18 +53,21 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         $rootLine = $this->tsfe->rootLine ?: [];
         ksort($rootLine);
 
+        $excludedDoktypes = $this->configuration['excludedDoktypes'] ? GeneralUtility::intExplode(',', $this->configuration['excludedDoktypes']) : [];
         $breadcrumbs = [];
         $iterator = 1;
         foreach ($rootLine as $k => $page) {
-            $breadcrumbs[] = [
-                '@type' => 'ListItem',
-                'position' => $iterator,
-                'item' => [
-                    '@id' => $this->getUrlForPage($page['uid']),
-                    'name' => $page['nav_title'] ?: $page['title']
-                ]
-            ];
-            $iterator++;
+            if (!in_array((int)$page['doktype'], $excludedDoktypes, true)) {
+                $breadcrumbs[] = [
+                    '@type' => 'ListItem',
+                    'position' => $iterator,
+                    'item' => [
+                        '@id' => $this->getUrlForPage($page['uid']),
+                        'name' => $page['nav_title'] ?: $page['title']
+                    ]
+                ];
+                $iterator++;
+            }
         }
 
         if (!empty($breadcrumbs)) {
@@ -125,5 +133,13 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         $context = GeneralUtility::makeInstance(Context::class);
 
         return (int)$context->getPropertyFromAspect('language', 'id');
+    }
+
+    /**
+     * @param array $configuration
+     */
+    public function setConfiguration($configuration)
+    {
+        $this->configuration = $configuration;
     }
 }

@@ -27,6 +27,11 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
     protected $siteFinder;
 
     /**
+     * @var array
+     */
+    protected $configuration;
+
+    /**
      * SiteStructuredDataProvider constructor.
      * @param TypoScriptFrontendController|null $tsfe
      * @param PageRepository|null $pageRepository
@@ -124,5 +129,13 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
         } else {
             $this->siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
         }
+    }
+
+    /**
+     * @param array $configuration
+     */
+    public function setConfiguration($configuration)
+    {
+        $this->configuration = $configuration;
     }
 }

@@ -112,6 +112,10 @@ class StructuredDataProviderManager implements SingletonInterface
                 && is_subclass_of($configuration['provider'], StructuredDataProviderInterface::class)) {
                 /** @var StructuredDataProviderInterface $structuredDataProviderObject */
                 $structuredDataProviderObject = GeneralUtility::makeInstance($configuration['provider']);
+                if (method_exists($structuredDataProviderObject, 'setConfiguration')) {
+                    $structuredDataProviderObject->setConfiguration($configuration);
+                }
+
                 if ($data = $structuredDataProviderObject->getData()) {
                     $this->pageCache->set(
                         $cacheIdentifier,

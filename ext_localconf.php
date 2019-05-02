@@ -196,6 +196,7 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['seoTitleUpda
         breadcrumb {
             provider = YoastSeoForTypo3\YoastSeo\StructuredData\BreadcrumbStructuredDataProvider
             after = site
+            excludedDoktypes =
         }
         site {
             provider = YoastSeoForTypo3\YoastSeo\StructuredData\SiteStructuredDataProvider
