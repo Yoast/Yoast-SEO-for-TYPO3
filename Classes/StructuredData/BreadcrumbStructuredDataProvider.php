@@ -103,7 +103,7 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
     protected function getUrlForPage($pageId): string
     {
         if (class_exists(SiteFinder::class)) {
-            $site = $this->siteFinder->getSiteByPageId($pageId);
+            $site = $this->siteFinder->getSiteByPageId((int)$pageId);
 
             return (string)$site->getRouter()->generateUri($pageId, ['_language' => $this->getLanguage()]);
         }
