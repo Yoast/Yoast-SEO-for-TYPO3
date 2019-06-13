@@ -8,6 +8,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\VisibilityAspect;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Utility\YoastReguestHash;
 
 /**
  * Class PageRequestMiddleware
@@ -24,24 +25,10 @@ class PageRequestMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $serverParams = $request->getServerParams();
-        if (isset($serverParams['HTTP_X_YOAST_PAGE_REQUEST'])
-            && $serverParams['HTTP_X_YOAST_PAGE_REQUEST'] === $this->getRequestHash()) {
+        if (YoastReguestHash::isValid($request->getServerParams())) {
             $context = GeneralUtility::makeInstance(Context::class);
             $context->setAspect('visibility', new VisibilityAspect(true));
         }
         return $handler->handle($request);
-    }
-
-    /**
-     * Get request hash
-     *
-     * @return string
-     */
-    protected function getRequestHash(): string
-    {
-        return GeneralUtility::hmac(
-            GeneralUtility::getIndpEnv('TYPO3_REQUEST_URL')
-        );
     }
 }

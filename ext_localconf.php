@@ -10,6 +10,9 @@ if (version_compare(TYPO3_branch, '9.5', '<')) {
 
     $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][]
         = \YoastSeoForTypo3\YoastSeo\Frontend\PageTitle::class . '->render';
+} else {
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['usePageCache'][]
+        = \YoastSeoForTypo3\YoastSeo\Frontend\UsePageCache::class;
 }
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScriptConstants(
