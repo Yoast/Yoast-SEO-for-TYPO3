@@ -8,7 +8,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\VisibilityAspect;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use YoastSeoForTypo3\YoastSeo\Utility\YoastReguestHash;
+use YoastSeoForTypo3\YoastSeo\Utility\YoastRequestHash;
 
 /**
  * Class PageRequestMiddleware
@@ -25,7 +25,7 @@ class PageRequestMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        if (YoastReguestHash::isValid($request->getServerParams())) {
+        if (YoastRequestHash::isValid($request->getServerParams())) {
             $context = GeneralUtility::makeInstance(Context::class);
             $context->setAspect('visibility', new VisibilityAspect(true));
         }

@@ -8,7 +8,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  * Class YoastReguestHash
  * @package YoastSeoForTypo3\YoastSeo\Utility
  */
-class YoastReguestHash
+class YoastRequestHash
 {
     /**
      * @param $serverParams

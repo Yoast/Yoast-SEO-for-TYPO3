@@ -2,7 +2,7 @@
 declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Frontend;
 
-use YoastSeoForTypo3\YoastSeo\Utility\YoastReguestHash;
+use YoastSeoForTypo3\YoastSeo\Utility\YoastRequestHash;
 
 /**
  * Class UsePageCache
@@ -17,7 +17,7 @@ class UsePageCache
      */
     public function usePageCache($pObj, $usePageCache): bool
     {
-        if (YoastReguestHash::isValid($GLOBALS['TYPO3_REQUEST']->getServerParams())) {
+        if (YoastRequestHash::isValid($GLOBALS['TYPO3_REQUEST']->getServerParams())) {
             return false;
         }
         return $usePageCache;
