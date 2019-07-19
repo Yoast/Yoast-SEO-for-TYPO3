@@ -35,8 +35,10 @@ class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataPr
 
         if (version_compare(TYPO3_branch, '9.5', '>=')) {
             $table = 'pages';
-        } else {
+        } elseif ((int)$this->callerParams['language'] > 0) {
             $table = 'pages_language_overlay';
+        } else {
+            $table = 'pages';
         }
 
         $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($table);
@@ -47,9 +49,12 @@ class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataPr
                 $qb->expr()->isNull('description')
             ),
             $qb->expr()->in('doktype', $doktypes),
-            $qb->expr()->eq('sys_language_uid', (int)$this->callerParams['language']),
             $qb->expr()->eq('tx_yoastseo_hide_snippet_preview', 0)
         ];
+
+        if (version_compare(TYPO3_branch, '9.5', '>=') || $table === 'pages_language_overlay') {
+            $constraints[] = $qb->expr()->eq('sys_language_uid', (int)$this->callerParams['language']);
+        }
 
         $query = $qb->select('*')
             ->from($table)
