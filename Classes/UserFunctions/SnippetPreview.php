@@ -115,7 +115,7 @@ class SnippetPreview
      * @return null|string
      * @throws \TYPO3\CMS\Core\Exception
      */
-    protected function getContentFromUrl($uriToCheck): ?string
+    protected function getContentFromUrl($uriToCheck): string
     {
         $GLOBALS['TYPO3_CONF_VARS']['HTTP']['verify'] = false;
         $report = [];
