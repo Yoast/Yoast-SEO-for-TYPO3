@@ -501,12 +501,12 @@ class SnippetPreview extends AbstractNode
                     $additionalQueryParams = [];
                     parse_str($additionalGetVars, $additionalQueryParams);
                     $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
-                    $uriToCheck = (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams);
+                    $uriToCheck = YoastUtility::fixAbsoluteUrl((string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams));
 
                     unset($additionalQueryParams);
                     $additionalQueryParams['type'] = self::FE_PREVIEW_TYPE;
                     $additionalQueryParams['uriToCheck'] = urlencode($uriToCheck);
-                    $uri = (string)$site->getRouter()->generateUri($site->getRootPageId(), $additionalQueryParams);
+                    $uri = YoastUtility::fixAbsoluteUrl((string)$site->getRouter()->generateUri($site->getRootPageId(), $additionalQueryParams));
                 } else {
                     $uri = BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
                 }
