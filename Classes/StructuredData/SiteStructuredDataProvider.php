@@ -54,12 +54,12 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
     public function getData(): array
     {
         $data = [];
-        if ($this->tsfe->page['is_siteroot'] === 1) {
+        if ((int)$this->tsfe->page['is_siteroot'] === 1) {
             $data[] = [
                 '@context' => 'https://www.schema.org',
                 '@type' => 'WebSite',
-                'url' => $this->getUrl($this->tsfe->page['uid']),
-                'name' => $this->getName($this->tsfe->page['uid']),
+                'url' => $this->getUrl((int)$this->tsfe->page['uid']),
+                'name' => $this->getName((int)$this->tsfe->page['uid']),
             ];
         }
 
