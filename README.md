@@ -17,6 +17,8 @@ composer require yoast-seo-for-typo3/yoast_seo
 ## Configuration
 There is no need for configuration although it is recommended to remove all other SEO related plugins creating metatags in frontend. There are however some configuration options available. More information about configuring Yoast SEO for TYPO3 can be found in the manual on [https://docs.typo3.org](https://docs.typo3.org/typo3cms/extensions/yoast_seo/). 
 
+This repository uses [the Yoast grunt tasks plugin](https://github.com/Yoast/plugin-grunt-tasks).
+
 ### Changing Frontend behaviour
 As it has always been, you can change frontend behaviour of `yoast_seo` via TypoScript. Check the [current file](Configuration/TypoScript/setup.txt) for reference.
 
