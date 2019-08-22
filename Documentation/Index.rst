@@ -30,14 +30,14 @@ Yoast SEO for TYPO3
         SEO, Yoast, Readability, Analysis
 
     :Copyright:
-        |copyright|
+        since 2016 by MaxServ and Yoast
 
     :Author:
         MaxServ / Yoast
 
     :Support:
         Community support is available on `Slack <https://typo3.slack.com>`__ in the channel #yoast-seo-for-typo3. If
-        you want real support for your installation, you can buy our `premium plugin <|project_home|>`__ and get 24/7 support.
+        you want real support for your installation, you can buy our `premium plugin <https://yoast.com/typo3-extensions-seo/>`__ and get 24/7 support.
 
     :License:
         This document is published under the Open Publication License
@@ -49,6 +49,11 @@ Yoast SEO for TYPO3
     The content of this document is related to TYPO3,
     a GNU/GPL CMS/Framework available from `www.typo3.org <https://typo3.org/>`__.
 
+
+.. tip::
+
+    Community support is available on `Slack <https://typo3.slack.com>`__ in the channel #yoast-seo-for-typo3. If
+    you want real support for your installation, you can buy our `premium plugin <https://yoast.com/typo3-extensions-seo/>`__ and get 24/7 support.
 
     **Table of Contents**
 
