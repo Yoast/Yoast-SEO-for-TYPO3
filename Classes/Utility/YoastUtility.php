@@ -15,6 +15,7 @@ namespace YoastSeoForTypo3\YoastSeo\Utility;
  */
 
 use TYPO3\CMS;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class YoastUtility
@@ -234,5 +235,19 @@ class YoastUtility
     public static function getUrlForType($type): string
     {
         return '/?type=' . $type;
+    }
+
+    /**
+     * Fix absolute url when site configuration has '/' as base
+     *
+     * @param string $url
+     * @return string
+     */
+    public static function fixAbsoluteUrl(string $url): string
+    {
+        if (strpos($url, '/') === 0) {
+            $url = GeneralUtility::getIndpEnv('TYPO3_REQUEST_HOST') . $url;
+        }
+        return $url;
     }
 }
