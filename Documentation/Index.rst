@@ -37,7 +37,7 @@ Yoast SEO for TYPO3
 
     :Support:
         Community support is available on `Slack <https://typo3.slack.com>`__ in the channel #yoast-seo-for-typo3. If
-        you want real support for your installation, you can buy our `premium plugin <https://yoast.com/typo3-extensions-seo/>`__ and get 24/7 support.
+        you want support for your installation, you can buy our `premium plugin <https://yoast.com/typo3-extensions-seo/>`__ and get 24/7 support.
 
     :License:
         This document is published under the Open Publication License
@@ -53,10 +53,10 @@ Yoast SEO for TYPO3
 .. tip::
 
     Community support is available on `Slack <https://typo3.slack.com>`__ in the channel #yoast-seo-for-typo3. If
-    you want real support for your installation, you can buy our `premium plugin <https://yoast.com/typo3-extensions-seo/>`__ and get 24/7 support.
+    you want support for your installation, you can buy our `premium plugin <https://yoast.com/typo3-extensions-seo/>`__ and get 24/7 support.
 
 Table of Contents
-============
+=================
 
 .. toctree::
     :maxdepth: 3
