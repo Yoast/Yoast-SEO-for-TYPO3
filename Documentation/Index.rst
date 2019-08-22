@@ -27,16 +27,17 @@ Yoast SEO for TYPO3
         Integrates text analysis and assessment from `YoastSEO.js <https://github.com/Yoast/YoastSEO.js>`__.
 
     :Keywords:
-        SEO, Yoast
+        SEO, Yoast, Readability, Analysis
 
     :Copyright:
-        2017
+        |copyright|
 
     :Author:
         MaxServ / Yoast
 
-    :Email:
-        suppport@maxserv.com
+    :Support:
+        Community support is available on `Slack <https://typo3.slack.com>`__ in the channel #yoast-seo-for-typo3. If
+        you want real support for your installation, you can buy our `premium plugin <|project_home|>`__ and get 24/7 support.
 
     :License:
         This document is published under the Open Publication License
