@@ -36,31 +36,32 @@ class YoastUtility
      */
     public static function getAllowedDoktypes($configuration = null, $returnInString = false)
     {
-        // By default only add normal pages
-        $allowedDoktypes = [];
+        $allowedDoktypes = array_values($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes']);
 
-        if ($configuration === null) {
-            $configuration = self::getTypoScriptConfiguration();
-        }
+        if (empty($allowedDoktypes)) {
+            if ($configuration === null) {
+                $configuration = self::getTypoScriptConfiguration();
+            }
 
-        if (is_array($configuration) &&
-            array_key_exists('allowedDoktypes', $configuration) &&
-            is_array($configuration['allowedDoktypes'])
-        ) {
-            foreach ($configuration['allowedDoktypes'] as $doktype) {
-                if (!in_array($doktype, $allowedDoktypes)) {
-                    $allowedDoktypes[] = (int)$doktype;
+            if (is_array($configuration) &&
+                array_key_exists('allowedDoktypes', $configuration) &&
+                is_array($configuration['allowedDoktypes'])
+            ) {
+                foreach ($configuration['allowedDoktypes'] as $doktype) {
+                    if (!in_array($doktype, $allowedDoktypes)) {
+                        $allowedDoktypes[] = (int)$doktype;
+                    }
                 }
             }
-        }
 
-        $allowedDoktypes = ($allowedDoktypes) ?: [1];
+            $allowedDoktypes = $allowedDoktypes ?: [1];
+        }
 
         if ($returnInString) {
             return implode(',', $allowedDoktypes);
-        } else {
-            return $allowedDoktypes;
         }
+
+        return $allowedDoktypes;
     }
 
     /**

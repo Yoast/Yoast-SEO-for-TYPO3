@@ -9,8 +9,15 @@ We will follow [Semantic Versioning](http://semver.org/).
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
 ## Unreleased
+### Changed
+* You can set the doktypes that Yoast should analyse now by `$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes']` in stead of TypoScript. It will still have a fallback to the old TypoScript configuration. ([#283](https://github.com/Yoast/Yoast-SEO-for-TYPO3/issues/283))
+* Altered the [documentation](https://docs.typo3.org/p/yoast-seo-for-typo3/yoast_seo/master/en-us/) a little bit.
+
 ### Fixed
-* Prevent caching of page if Middleware is active
+* Restored the compatibility with PHP 7.0 ([#266](https://github.com/Yoast/Yoast-SEO-for-TYPO3/issues/266))
+* Prevent caching of page when analysing a page that is disabled. ([#272](https://github.com/Yoast/Yoast-SEO-for-TYPO3/issues/272))
+* When the base in site configuration is only `/`, the absolute URL (which is needed by the analysis) will now be based on the current domain. [#279](https://github.com/Yoast/Yoast-SEO-for-TYPO3/issues/279)
+* Made sure that if you set the allowed doktypes via `$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes']`, the doktypes will always be available when defining which fields in the page properties.  ([#283](https://github.com/Yoast/Yoast-SEO-for-TYPO3/issues/283))  
 
 ## 5.0.1 May 2, 2019
 ### Changed
