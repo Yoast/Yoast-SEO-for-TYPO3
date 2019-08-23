@@ -36,10 +36,15 @@ class YoastUtility
      */
     public static function getAllowedDoktypes($configuration = null, $returnInString = false)
     {
-        $allowedDoktypes = array_values($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes']);
+        $allowedDoktypes = array_values((array)$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes']);
 
         if (empty($allowedDoktypes)) {
             if ($configuration === null) {
+                trigger_error(
+                    'You are using the old TypoScript way of setting the allowed doktypes. Check documentation on how to set the allowed doktypes correctly',
+                    E_USER_DEPRECATED
+                );
+
                 $configuration = self::getTypoScriptConfiguration();
             }
 
