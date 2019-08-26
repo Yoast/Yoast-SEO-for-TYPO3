@@ -95,7 +95,11 @@ if (!\YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::isPremiumInstalled()) {
 
 $llFolder = 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/';
 
-$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = [
+$defaultConfiguration = [
+    'allowedDoktypes' => [
+        'page' => 1,
+        'backend_section' => 5
+    ],
     'translations' => [
         'availableLocales' => [
             'bg_BG',
@@ -173,6 +177,11 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = [
         ],
     ]
 ];
+
+$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = array_merge_recursive(
+    $defaultConfiguration,
+    (array)$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']
+);
 
 // allow social meta fields to be overlaid
 $GLOBALS['TYPO3_CONF_VARS']['FE']['pageOverlayFields'] .=

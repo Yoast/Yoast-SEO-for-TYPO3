@@ -1,10 +1,5 @@
 module.tx_yoastseo {
     settings {
-        allowedDoktypes {
-            page = 1
-            backend_user_section = 6
-        }
-
         itemsPerPage = 20
 
         og < plugin.tx_yoastseo.settings.og

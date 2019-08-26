@@ -14,17 +14,15 @@ Snippet Preview
 Enable snippet preview on specific page types
 ---------------------------------------------
 By default, the snippet preview is only shown on pages with doktype 1 (Standard page) and 6 (Backend user section). You can
-add your own doktypes like the example below to your TypoScript setup.
+add your own doktypes like the example below by adding a doktype to the :php:`$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes']`
+array.
 
-.. code-block:: typoscript
+.. code-block:: php
 
-    module.tx_yoastseo {
-        settings {
-            allowedDoktypes {
-                blog = 137
-            }
-        }
-    }
+    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes']['blog'] = 137;
+
+The key can be any unique string. It is only used to identify the doktype as a developer. The value contains the numeric
+value of the doktype.
 
 Disable snippet preview with PageTs
 -----------------------------------
