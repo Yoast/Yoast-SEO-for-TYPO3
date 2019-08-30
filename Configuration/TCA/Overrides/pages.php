@@ -64,7 +64,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
         ],
         'tx_yoastseo_score_readability' => [
             'label' => '',
-            'exclude' => false,
+            'exclude' => true,
             'config' => [
                 'type' => 'input',
                 'renderType' => 'hiddenField'
@@ -72,7 +72,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
         ],
         'tx_yoastseo_score_seo' => [
             'label' => '',
-            'exclude' => false,
+            'exclude' => true,
             'config' => [
                 'type' => 'input',
                 'renderType' => 'hiddenField'
@@ -87,7 +87,7 @@ if (!\YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::isPremiumInstalled()) {
         [
             'tx_yoastseo_focuskeyword_synonyms' => [
                 'label' => $llPrefix . 'synonyms',
-                'exclude' => false,
+                'exclude' => true,
                 'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
                 'config' => [
                     'type' => 'text',
