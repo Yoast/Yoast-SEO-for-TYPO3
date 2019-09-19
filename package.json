@@ -4,18 +4,18 @@
   "description": "Yoast SEO for TYPO3",
   "main": "plugin.js",
   "devDependencies": {
-    "@babel/core": "^7.4.3",
-    "@babel/preset-env": "^7.4.3",
+    "@babel/core": "^7.6.0",
+    "@babel/preset-env": "^7.6.0",
     "@babel/preset-react": "^7.0.0",
-    "babel-loader": "^8.0.5",
+    "babel-loader": "^8.0.6",
     "grunt-contrib-copy": "^1.0.0",
     "grunt-glotpress": "git+https://github.com/markoheijnen/grunt-glotpress.git#05a38906b357d5a4785bc57e6287fb6479e674b7",
     "grunt-po2json": "git+https://github.com/atimmer/grunt-po2json.git#f26c05653af89ef0f7a72456dbe141eb56bf5471",
-    "react-intl": "^2.8.0",
+    "react-intl": "^2.9.0",
     "redux-thunk": "^2.3.0",
-    "webpack": "^4.30.0",
-    "webpack-cli": "^3.3.1",
-    "webpack-dev-server": "^3.3.1"
+    "webpack": "^4.40.2",
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-server": "^3.8.1"
   },
   "scripts": {
     "dev": "webpack-dev-server",
@@ -32,19 +32,23 @@
     "lasttranslator": "Yoast Translate Team <translations@yoast.com>"
   },
   "dependencies": {
-    "@babel/polyfill": "^7.4.3",
-    "@wordpress/babel-plugin-makepot": "^3.0.0",
-    "@yoast/grunt-plugin-tasks": "^1.0.0",
-    "cross-env": "^5.2.0",
+    "@babel/polyfill": "^7.6.0",
+    "@wordpress/babel-plugin-makepot": "^3.2.0",
+    "@yoast/components": "^0.6.0",
+    "@yoast/grunt-plugin-tasks": "^1.4.2",
+    "@yoast/search-metadata-previews": "^1.8.0",
+    "cross-env": "^5.2.1",
     "grunt": "^1.0.4",
     "grunt-contrib-clean": "^2.0.0",
     "grunt-sass": "^2.1.0",
     "grunt-wp-i18n": "^1.0.3",
-    "load-grunt-config": "^1.0.1",
-    "lodash": "^4.17.11",
+    "load-grunt-config": "^1.0.2",
+    "lodash": "^4.17.15",
+    "material-ui": "^0.20.2",
+    "react-dom": "^16.9.0",
     "time-grunt": "^2.0.0",
-    "yoast-components": "^4.23.1",
-    "yoastseo": "^1.50.0"
+    "yoast-components": "^4.32.0",
+    "yoastseo": "^1.59.0"
   },
   "repository": {
     "type": "git",

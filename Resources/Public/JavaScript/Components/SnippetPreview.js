@@ -2,10 +2,11 @@ import React from 'react';
 import { connect } from 'react-redux';
 
 import LoadingIndicator from './LoadingIndicator';
+import SnippetPreviewError from './SnippetPreviewError';
 
-import YoastSnippetPreview from 'yoast-components/composites/Plugin/SnippetPreview/components/SnippetPreview';
-import ModeSwitcher from 'yoast-components/composites/Plugin/SnippetEditor/components/ModeSwitcher';
-import {DEFAULT_MODE} from 'yoast-components/composites/Plugin/SnippetPreview/constants';
+import YoastSnippetPreview from '@yoast/search-metadata-previews/snippet-preview/SnippetPreview';
+import ModeSwitcher from '@yoast/search-metadata-previews/snippet-editor/ModeSwitcher';
+import {DEFAULT_MODE} from '@yoast/search-metadata-previews/snippet-preview/constants';
 
 class SnippetPreview extends React.Component {
 
@@ -21,12 +22,16 @@ class SnippetPreview extends React.Component {
 
         let element;
         if (this.props.isFetching === false) {
-            element = (
-                <React.Fragment>
-                    <YoastSnippetPreview {...this.props} mode={this.state.mode} onMouseUp={() => {}} />
-                    <ModeSwitcher onChange={(newMode) => this.setState({mode: newMode})} active={this.state.mode}/>
-                </React.Fragment>
-            );
+            if (typeof this.props.title === 'undefined') {
+                element = <SnippetPreviewError/>
+            } else {
+                element = (
+                    <React.Fragment>
+                        <YoastSnippetPreview {...this.props} mode={this.state.mode} onMouseUp={() => {}} />
+                        <ModeSwitcher onChange={(newMode) => this.setState({mode: newMode})} active={this.state.mode}/>
+                    </React.Fragment>
+                );
+            }
         } else {
             element = <LoadingIndicator/>
         }
@@ -44,6 +49,8 @@ function mapStateToProps (state) {
     return {
         ...state.content,
         ...state.analysis,
+        title: state.content.title,
+        faviconSrc: state.content.faviconSrc,
         wordsToHighlight: [state.focusKeyword]
     }
 }
