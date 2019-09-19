@@ -134,21 +134,23 @@ class SnippetPreview
      */
     protected function getContentFromUrl($uriToCheck): string
     {
-        $ch = curl_init();
+        $GLOBALS['TYPO3_CONF_VARS']['HTTP']['verify'] = false;
+        $report = [];
+        $content = GeneralUtility::getUrl(
+            $uriToCheck,
+            1,
+            [
+                'X-Yoast-Page-Request' => GeneralUtility::hmac(
+                    $uriToCheck
+                )
+            ],
+            $report
+        );
 
-        curl_setopt($ch, CURLOPT_URL, $uriToCheck);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-Yoast-Page-Request: ' . GeneralUtility::hmac($uriToCheck)]);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        $content = curl_exec($ch);
-        $info = curl_getinfo($ch);
-
-        if ($info['http_code'] === 200) {
+        if ((int)$report['error'] === 0) {
             return $content;
         }
-        $error = curl_error($ch);
-        curl_close($ch);
-        throw new Exception($info['http_code']);
+        throw new Exception($report['error']);
     }
 
     /**
