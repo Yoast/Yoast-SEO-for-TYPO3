@@ -9,7 +9,12 @@ We will follow [Semantic Versioning](http://semver.org/).
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
 ## Unreleased
+### Added
+* Favicons visible in mobile snippet preview
+* Added proper error message when server is not able to access the page it wants to analyse.
+
 ### Changed
+* Visually updated snippet preview to match latest changes on Google.
 * You can set the doktypes that Yoast should analyse now by `$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes']` in stead of TypoScript. It will still have a fallback to the old TypoScript configuration. ([#283](https://github.com/Yoast/Yoast-SEO-for-TYPO3/issues/283))
 * Altered the [documentation](https://docs.typo3.org/p/yoast-seo-for-typo3/yoast_seo/master/en-us/) a little bit.
 

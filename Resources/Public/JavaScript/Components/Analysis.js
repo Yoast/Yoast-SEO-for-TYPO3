@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import LoadingIndicator from './LoadingIndicator';
 
 import YoastContentAnalysis from 'yoast-components/composites/Plugin/ContentAnalysis/components/ContentAnalysis';
-import SvgIcon from 'yoast-components/composites/Plugin/Shared/components/SvgIcon'
+import SvgIcon from '@yoast/components'
 
 import { getIconForScore, mapResults } from "../mapResults";
 import { helpers } from "yoastseo";

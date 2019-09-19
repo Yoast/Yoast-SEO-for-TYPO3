@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-import ProgressBar from 'yoast-components/composites/Plugin/SnippetPreview/components/ProgressBar';
+import ProgressBar from '@yoast/components/ProgressBar';
 
 import getProgressColor from '../helpers/progressColor';
 import {mapResults} from '../mapResults';

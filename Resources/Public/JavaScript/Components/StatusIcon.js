@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-import SvgIcon from 'yoast-components/composites/Plugin/Shared/components/SvgIcon'
+import SvgIcon from '@yoast/components/SvgIcon'
 
 import { getIconForScore, getTextForScore } from "../mapResults";
 import { helpers } from "yoastseo";

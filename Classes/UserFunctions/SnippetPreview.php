@@ -35,7 +35,12 @@ class SnippetPreview
             $content = $this->getContentFromUrl($uriToCheck);
             $data = $this->getDataFromContent($content, $uriToCheck, (int)$_GET['languageIdToCheck']);
         } catch (Exception $e) {
-            $data = ['error' => 'Could not read the url ' . $uriToCheck . ': ' . $e->getMessage()];
+            $data = [
+                'error' => [
+                    'uriToCheck' => $uriToCheck,
+                    'statusCode' => $e->getMessage(),
+                ]
+            ];
         }
 
         return json_encode($data);
@@ -89,23 +94,35 @@ class SnippetPreview
             $locale = trim($matchesLocale[1]);
         }
         $url = preg_replace('/\/$/', '', $uriToCheck);
+        $baseUrl = preg_replace('/' . preg_quote($GLOBALS['TSFE']->page['slug'], '/') . '$/', '', $url);
+
+        $faviconSrc = $baseUrl . '/favicon.ico';
+        $favIconFound = preg_match('/<link rel=\"shortcut icon\" href=\"(.*)\"/i', $content, $matchesFavIcon);
+        if ($favIconFound) {
+            $faviconSrc = $matchesFavIcon[1];
+        }
+        $favIconHeader = @get_headers($faviconSrc);
+        if ($favIconHeader[0] === 'HTTP/1.1 404 Not Found') {
+            $faviconSrc = '';
+        }
 
         $titlePrependAppend = $this->getPageTitlePrependAppend();
         if ($content !== null) {
             return [
                 'id' => $GLOBALS['TSFE']->id,
                 'url' => $url,
-                'baseUrl' => preg_replace('/' . preg_quote($GLOBALS['TSFE']->page['slug'], '/') . '$/', '', $url),
+                'baseUrl' => $baseUrl,
                 'slug' => $GLOBALS['TSFE']->page['slug'],
                 'title' => $title,
                 'description' => $metaDescription,
                 'locale' => $locale,
                 'body' => $body,
+                'faviconSrc' => $faviconSrc,
                 'pageTitlePrepend' => $titlePrependAppend['prepend'],
                 'pageTitleAppend' => $titlePrependAppend['append'],
             ];
         }
-        return ['error' => 'Could not read the url ' . $uriToCheck];
+        return [];
     }
 
     /**
@@ -129,10 +146,11 @@ class SnippetPreview
             ],
             $report
         );
-        if ($report['http_code'] === 200) {
+
+        if ((int)$report['error'] === 0) {
             return $content;
         }
-        throw new Exception($report['message']);
+        throw new Exception($report['error']);
     }
 
     /**

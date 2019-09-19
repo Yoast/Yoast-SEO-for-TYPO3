@@ -26,6 +26,14 @@
       position: relative;
       top: 3px; }
 
+.yoast-seo-snippet-error {
+  color: #dc3232;
+  padding: 10px;
+  text-align: center; }
+  .yoast-seo-snippet-error a {
+    color: #dc3232;
+    text-decoration: underline; }
+
 .spinner {
   width: 70px;
   margin: 50px auto;

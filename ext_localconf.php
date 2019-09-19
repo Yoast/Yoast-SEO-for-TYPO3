@@ -20,7 +20,6 @@ if (version_compare(TYPO3_branch, '9.5', '<')) {
         . \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::FE_PREVIEW_TYPE . PHP_EOL .
     'config.yoast_seo.sitemap_xml_type = '
         . \YoastSeoForTypo3\YoastSeo\UserFunctions\XmlSitemap::DOKTYPE
-
 );
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(

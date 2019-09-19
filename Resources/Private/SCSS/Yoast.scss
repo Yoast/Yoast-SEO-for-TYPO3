@@ -43,6 +43,16 @@
 	}
 }
 
+.yoast-seo-snippet-error {
+  color: $color-error;
+  padding: 10px;
+  text-align: center;
+
+  a {
+	color: $color-error;
+	text-decoration: underline;
+  }
+}
 
 .spinner {
 	width: 70px;
