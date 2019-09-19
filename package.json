@@ -38,6 +38,7 @@
     "@yoast/grunt-plugin-tasks": "^1.4.2",
     "@yoast/search-metadata-previews": "^1.8.0",
     "cross-env": "^5.2.1",
+    "fstream": "^1.0.12",
     "grunt": "^1.0.4",
     "grunt-contrib-clean": "^2.0.0",
     "grunt-sass": "^2.1.0",
