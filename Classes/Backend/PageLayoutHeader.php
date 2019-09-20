@@ -322,7 +322,7 @@ class PageLayoutHeader
         return $locale;
     }
 
-    protected function getTargetUrl(int $pageId, int $languageId): string
+    protected function getTargetUrl(int $pageId, int $languageId, $additionalGetVars = ''): string
     {
         $permissionClause = $this->getBackendUser()->getPagePermsClause(CMS\Core\Type\Bitmask\Permission::PAGE_SHOW);
         $pageRecord = CMS\Backend\Utility\BackendUtility::readPageAccess($pageId, $permissionClause);
@@ -340,7 +340,7 @@ class PageLayoutHeader
 
             if (version_compare(TYPO3_branch, '9.5', '>=')) {
                 $siteFinder = GeneralUtility::makeInstance(CMS\Core\Site\SiteFinder::class);
-                $site = $siteFinder->getSiteByPageId($pageId, $rootLine);
+                $site = $siteFinder->getSiteByPageId($finalPageIdToShow, $rootLine);
                 if ($site instanceof CMS\Core\Site\Entity\Site) {
                     $this->checkRouteEnhancers($site);
 
@@ -349,16 +349,11 @@ class PageLayoutHeader
                     $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
                     $uriToCheck = YoastUtility::fixAbsoluteUrl((string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams));
 
-                    unset($additionalQueryParams);
-                    $additionalQueryParams['type'] = self::FE_PREVIEW_TYPE;
-                    $additionalQueryParams['uriToCheck'] = urlencode($uriToCheck);
-                    $uri = YoastUtility::fixAbsoluteUrl((string)$site->getRouter()->generateUri($site->getRootPageId(), $additionalQueryParams));
+                    $uri = '/?type=' . self::FE_PREVIEW_TYPE . '&uriToCheck=' . urlencode($uriToCheck);
                 } else {
                     $uri = CMS\Backend\Utility\BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
                 }
             } else {
-                $additionalQueryParams = [];
-
                 $uri = '/?type=' . self::FE_PREVIEW_TYPE . '&pageIdToCheck=' . $pageId . '&languageIdToCheck=' . $languageId;
             }
 
