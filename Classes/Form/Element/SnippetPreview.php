@@ -496,17 +496,14 @@ class SnippetPreview extends AbstractNode
 
             if (version_compare(TYPO3_branch, '9.5', '>=')) {
                 $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
-                $site = $siteFinder->getSiteByPageId($pageId, $rootLine);
+                $site = $siteFinder->getSiteByPageId($finalPageIdToShow, $rootLine);
                 if ($site instanceof Site) {
                     $additionalQueryParams = [];
                     parse_str($additionalGetVars, $additionalQueryParams);
                     $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
                     $uriToCheck = YoastUtility::fixAbsoluteUrl((string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams));
 
-                    unset($additionalQueryParams);
-                    $additionalQueryParams['type'] = self::FE_PREVIEW_TYPE;
-                    $additionalQueryParams['uriToCheck'] = urlencode($uriToCheck);
-                    $uri = YoastUtility::fixAbsoluteUrl((string)$site->getRouter()->generateUri($site->getRootPageId(), $additionalQueryParams));
+                    $uri = '/?type=' . self::FE_PREVIEW_TYPE . '&uriToCheck=' . urlencode($uriToCheck);
                 } else {
                     $uri = BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
                 }

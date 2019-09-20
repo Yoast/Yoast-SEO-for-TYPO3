@@ -23,6 +23,7 @@ Besides the free version of our plugin, we also have a premium version. The free
 * Prevent caching of page when analysing a page that is disabled. ([#272](https://github.com/Yoast/Yoast-SEO-for-TYPO3/issues/272))
 * When the base in site configuration is only `/`, the absolute URL (which is needed by the analysis) will now be based on the current domain. [#279](https://github.com/Yoast/Yoast-SEO-for-TYPO3/issues/279)
 * Made sure that if you set the allowed doktypes via `$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes']`, the doktypes will always be available when defining which fields in the page properties.  ([#283](https://github.com/Yoast/Yoast-SEO-for-TYPO3/issues/283))  
+* The right URL to analyse the content is now generated when you have a multi-site setup
 
 ## 5.0.1 May 2, 2019
 ### Changed
