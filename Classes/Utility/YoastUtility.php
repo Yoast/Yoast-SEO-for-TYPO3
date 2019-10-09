@@ -38,29 +38,22 @@ class YoastUtility
     {
         $allowedDoktypes = array_values((array)$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes']);
 
-        if (empty($allowedDoktypes)) {
-            if ($configuration === null) {
-                trigger_error(
-                    'You are using the old TypoScript way of setting the allowed doktypes. Check documentation on how to set the allowed doktypes correctly',
-                    E_USER_DEPRECATED
-                );
+        if ($configuration === null) {
+            $configuration = self::getTypoScriptConfiguration();
+        }
 
-                $configuration = self::getTypoScriptConfiguration();
-            }
-
-            if (is_array($configuration) &&
-                array_key_exists('allowedDoktypes', $configuration) &&
-                is_array($configuration['allowedDoktypes'])
-            ) {
-                foreach ($configuration['allowedDoktypes'] as $doktype) {
-                    if (!in_array($doktype, $allowedDoktypes)) {
-                        $allowedDoktypes[] = (int)$doktype;
-                    }
+        if (is_array($configuration) &&
+            array_key_exists('allowedDoktypes', $configuration) &&
+            is_array($configuration['allowedDoktypes'])
+        ) {
+            foreach ($configuration['allowedDoktypes'] as $doktype) {
+                if (!in_array($doktype, $allowedDoktypes)) {
+                    $allowedDoktypes[] = (int)$doktype;
                 }
             }
-
-            $allowedDoktypes = $allowedDoktypes ?: [1];
         }
+
+        $allowedDoktypes = $allowedDoktypes ?: [1];
 
         if ($returnInString) {
             return implode(',', $allowedDoktypes);
