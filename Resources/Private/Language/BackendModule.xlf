@@ -1,386 +1,386 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <xliff version="1.0">
-	<file source-language="en" datatype="plaintext" original="messages" date="2014-05-02T12:00:00Z" product-name="yoastseo">
+	<file source-language="en" datatype="plaintext" original="EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf" date="2014-05-02T12:00:00Z" product-name="yoastseo">
 		<header/>
 		<body>
-			<trans-unit id="mlang_tabs_tab">
+			<trans-unit id="mlang_tabs_tab" resname="mlang_tabs_tab">
 				<source>Yoast SEO</source>
 			</trans-unit>
-			<trans-unit id="mlang_labels_tabdescr">
+			<trans-unit id="mlang_labels_tabdescr" resname="mlang_labels_tabdescr">
 				<source>The first true all-in-one SEO solution for TYPO3, including on-page content analysis</source>
 			</trans-unit>
-			<trans-unit id="mlang_labels_tablabel">
+			<trans-unit id="mlang_labels_tablabel" resname="mlang_labels_tablabel">
 				<source>Yoast SEO Analysis</source>
 			</trans-unit>
-			<trans-unit id="defaultLanguage">
+			<trans-unit id="defaultLanguage" resname="defaultLanguage">
 				<source>Default</source>
 			</trans-unit>
-			<trans-unit id="noPageSelected.title">
+			<trans-unit id="noPageSelected.title" resname="noPageSelected.title">
 				<source>No page selected</source>
 			</trans-unit>
-			<trans-unit id="noPageSelected.description">
+			<trans-unit id="noPageSelected.description" resname="noPageSelected.description">
 				<source>Please select a page to edit the SEO properties</source>
 			</trans-unit>
-			<trans-unit id="seoTitle">
+			<trans-unit id="seoTitle" resname="seoTitle">
 				<source>SEO Title</source>
 			</trans-unit>
-			<trans-unit id="seoDescription">
+			<trans-unit id="seoDescription" resname="seoDescription">
 				<source>SEO Description</source>
 			</trans-unit>
-			<trans-unit id="og">
+			<trans-unit id="og" resname="og">
 				<source>Open Graph</source>
 			</trans-unit>
-			<trans-unit id="og.title">
+			<trans-unit id="og.title" resname="og.title">
 				<source>Title</source>
 			</trans-unit>
-			<trans-unit id="og.description">
+			<trans-unit id="og.description" resname="og.description">
 				<source>Description</source>
 			</trans-unit>
-			<trans-unit id="og.image">
+			<trans-unit id="og.image" resname="og.image">
 				<source>Image</source>
 			</trans-unit>
-			<trans-unit id="facebook.image">
+			<trans-unit id="facebook.image" resname="facebook.image">
 				<source>Image</source>
 			</trans-unit>
-			<trans-unit id="facebook.image.default">
+			<trans-unit id="facebook.image.default" resname="facebook.image.default">
 				<source>Default image</source>
 			</trans-unit>
-			<trans-unit id="facebook.image.new">
+			<trans-unit id="facebook.image.new" resname="facebook.image.new">
 				<source>New image</source>
 			</trans-unit>
-			<trans-unit id="facebook.image.newDescription">
+			<trans-unit id="facebook.image.newDescription" resname="facebook.image.newDescription">
 				<source>Upload a new image to show on a Facebook post</source>
 			</trans-unit>
-			<trans-unit id="facebook.image.delete">
+			<trans-unit id="facebook.image.delete" resname="facebook.image.delete">
 				<source>Remove current image</source>
 			</trans-unit>
-			<trans-unit id="facebook.image.deleteDescription">
+			<trans-unit id="facebook.image.deleteDescription" resname="facebook.image.deleteDescription">
 				<source>Remove the current image</source>
 			</trans-unit>
-			<trans-unit id="facebook.image.no">
+			<trans-unit id="facebook.image.no" resname="facebook.image.no">
 				<source>No image set</source>
 			</trans-unit>
-			<trans-unit id="twitter">
+			<trans-unit id="twitter" resname="twitter">
 				<source>Twitter</source>
 			</trans-unit>
-			<trans-unit id="twitter.title">
+			<trans-unit id="twitter.title" resname="twitter.title">
 				<source>Title</source>
 			</trans-unit>
-			<trans-unit id="twitter.description">
+			<trans-unit id="twitter.description" resname="twitter.description">
 				<source>Description</source>
 			</trans-unit>
-			<trans-unit id="twitter.image">
+			<trans-unit id="twitter.image" resname="twitter.image">
 				<source>Image</source>
 			</trans-unit>
-			<trans-unit id="twitter.image.default">
+			<trans-unit id="twitter.image.default" resname="twitter.image.default">
 				<source>Default image</source>
 			</trans-unit>
-			<trans-unit id="twitter.image.new">
+			<trans-unit id="twitter.image.new" resname="twitter.image.new">
 				<source>New image</source>
 			</trans-unit>
-			<trans-unit id="twitter.image.newDescription">
+			<trans-unit id="twitter.image.newDescription" resname="twitter.image.newDescription">
 				<source>Upload a new image to show on a Twitter card</source>
 			</trans-unit>
-			<trans-unit id="twitter.image.delete">
+			<trans-unit id="twitter.image.delete" resname="twitter.image.delete">
 				<source>Remove current image</source>
 			</trans-unit>
-			<trans-unit id="twitter.image.deleteDescription">
+			<trans-unit id="twitter.image.deleteDescription" resname="twitter.image.deleteDescription">
 				<source>Remove the current image</source>
 			</trans-unit>
-			<trans-unit id="twitter.image.no">
+			<trans-unit id="twitter.image.no" resname="twitter.image.no">
 				<source>No image set</source>
 			</trans-unit>
-			<trans-unit id="cornerstoneContent">
+			<trans-unit id="cornerstoneContent" resname="cornerstoneContent">
 				<source>This page is cornerstone content</source>
 			</trans-unit>
-			<trans-unit id="canonical">
+			<trans-unit id="canonical" resname="canonical">
 				<source>Canonical URL</source>
 			</trans-unit>
-			<trans-unit id="robotInstructions">
+			<trans-unit id="robotInstructions" resname="robotInstructions">
 				<source>Robot instructions</source>
 			</trans-unit>
-			<trans-unit id="noIndex">
+			<trans-unit id="noIndex" resname="noIndex">
 				<source>No index</source>
 			</trans-unit>
-			<trans-unit id="noFollow">
+			<trans-unit id="noFollow" resname="noFollow">
 				<source>No follow</source>
 			</trans-unit>
-			<trans-unit id="analysis">
+			<trans-unit id="analysis" resname="analysis">
 				<source>Analysis</source>
 			</trans-unit>
-			<trans-unit id="social">
+			<trans-unit id="social" resname="social">
 				<source>Social</source>
 			</trans-unit>
-			<trans-unit id="advanced">
+			<trans-unit id="advanced" resname="advanced">
 				<source>Advanced</source>
 			</trans-unit>
-			<trans-unit id="seoFocusKeyword">
+			<trans-unit id="seoFocusKeyword" resname="seoFocusKeyword">
 				<source>Focus keyphrase</source>
 			</trans-unit>
-			<trans-unit id="seoRelatedKeywords">
+			<trans-unit id="seoRelatedKeywords" resname="seoRelatedKeywords">
 				<source>Related keyphrases</source>
 			</trans-unit>
-			<trans-unit id="synonyms">
+			<trans-unit id="synonyms" resname="synonyms">
 				<source>Synonyms</source>
 			</trans-unit>
-			<trans-unit id="focusKeyword">
+			<trans-unit id="focusKeyword" resname="focusKeyword">
 				<source>Focus keyphrase</source>
 			</trans-unit>
-			<trans-unit id="last_mod">
+			<trans-unit id="last_mod" resname="last_mod">
 				<source>Last modified</source>
 			</trans-unit>
-			<trans-unit id="saved.title">
+			<trans-unit id="saved.title" resname="saved.title">
 				<source>Saved</source>
 			</trans-unit>
-			<trans-unit id="saved.description">
+			<trans-unit id="saved.description" resname="saved.description">
 				<source>The SEO information is saved</source>
 			</trans-unit>
-			<trans-unit id="failed.imageExtensions.description">
+			<trans-unit id="failed.imageExtensions.description" resname="failed.imageExtensions.description">
 				<source>The uploaded image is not in a proper format. Please upload a file with one of the following extensions: %s</source>
 			</trans-unit>
-			<trans-unit id="failed.imageExtensions.title">
+			<trans-unit id="failed.imageExtensions.title" resname="failed.imageExtensions.title">
 				<source>Upload of image for %s is failed!</source>
 			</trans-unit>
-			<trans-unit id="action.dashboard">
+			<trans-unit id="action.dashboard" resname="action.dashboard">
 				<source>Dashboard</source>
 			</trans-unit>
-			<trans-unit id="action.edit">
+			<trans-unit id="action.edit" resname="action.edit">
 				<source>Analyse page</source>
 			</trans-unit>
-			<trans-unit id="action.settings">
+			<trans-unit id="action.settings" resname="action.settings">
 				<source>Settings</source>
 			</trans-unit>
-			<trans-unit id="data.needUpdate">
+			<trans-unit id="data.needUpdate" resname="data.needUpdate">
 				<source>The data needs to be updated! Click to convert your data</source>
 			</trans-unit>
-			<trans-unit id="action.update">
+			<trans-unit id="action.update" resname="action.update">
 				<source>Update</source>
 			</trans-unit>
-			<trans-unit id="dashboard">
+			<trans-unit id="dashboard" resname="dashboard">
 				<source>Dashboard</source>
 			</trans-unit>
-			<trans-unit id="dashboard.about">
+			<trans-unit id="dashboard.about" resname="dashboard.about">
 				<source>About the plugin</source>
 			</trans-unit>
-			<trans-unit id="dashboard.intro">
+			<trans-unit id="dashboard.intro" resname="dashboard.intro">
 				<source>This plugin integrates text analysis and assessment from YoastSEO.js. Content analysis can generate interesting metrics about a text and give you an assessment which can be used to improve the text.</source>
 			</trans-unit>
-			<trans-unit id="dashboard.learnMore">
+			<trans-unit id="dashboard.learnMore" resname="dashboard.learnMore">
 				<source>Want to learn more about SEO?</source>
 			</trans-unit>
-			<trans-unit id="dashboard.learnMore.description">
+			<trans-unit id="dashboard.learnMore.description" resname="dashboard.learnMore.description">
 				<source>Check out these training courses on Yoast Academy to get up to speed on the SEO basics or dive deep into specific subjects.</source>
 			</trans-unit>
-			<trans-unit id="dashboard.credits">
+			<trans-unit id="dashboard.credits" resname="dashboard.credits">
 				<source>Credits</source>
 			</trans-unit>
-			<trans-unit id="dashboard.credits.description">
+			<trans-unit id="dashboard.credits.description" resname="dashboard.credits.description">
 				<source>This plugin is mainly maintained by Yoast and MaxServ. Besides these contributors, also several other developers helped with enhancing the plugin.</source>
 			</trans-unit>
-			<trans-unit id="dashboard.help">
+			<trans-unit id="dashboard.help" resname="dashboard.help">
 				<source>Need help?</source>
 			</trans-unit>
-			<trans-unit id="dashboard.help.description">
+			<trans-unit id="dashboard.help.description" resname="dashboard.help.description">
 				<source>If you need any support on using or configuring this plugin, please contact us by %s in the channel %s</source>
 			</trans-unit>
-			<trans-unit id="update">
+			<trans-unit id="update" resname="update">
 				<source>Update</source>
 			</trans-unit>
-			<trans-unit id="update.data">
+			<trans-unit id="update.data" resname="update.data">
 				<source>Convert data</source>
 			</trans-unit>
-			<trans-unit id="update.data.intro">
+			<trans-unit id="update.data.intro" resname="update.data.intro">
 				<source>Some updates of the Yoast SEO for TYPO3 extension may require updates in the datastructure. Most of the times this doesn't need an update of the data itself, but sometimes we can't prevent that. If the data needs an update, you see a button below to update your data.</source>
 			</trans-unit>
-			<trans-unit id="update.data.updateData">
+			<trans-unit id="update.data.updateData" resname="update.data.updateData">
 				<source>Update data</source>
 			</trans-unit>
-			<trans-unit id="update.data.convert.success">
+			<trans-unit id="update.data.convert.success" resname="update.data.convert.success">
 				<source>Convert succesful</source>
 			</trans-unit>
-			<trans-unit id="update.data.convert.success.description">
+			<trans-unit id="update.data.convert.success.description" resname="update.data.convert.success.description">
 				<source>The data is succesfully converted</source>
 			</trans-unit>
-			<trans-unit id="settings">
+			<trans-unit id="settings" resname="settings">
 				<source>Settings</source>
 			</trans-unit>
-			<trans-unit id="settings.intro">
+			<trans-unit id="settings.intro" resname="settings.intro">
 				<source>The following settings are fallback settings. If you don't specify specific settings on a page, this information will be used as a default.</source>
 			</trans-unit>
-			<trans-unit id="usersettings.title">
+			<trans-unit id="usersettings.title" resname="usersettings.title">
 				<source>Yoast SEO</source>
 			</trans-unit>
-			<trans-unit id="usersettings.hideYoastInPageModule">
+			<trans-unit id="usersettings.hideYoastInPageModule" resname="usersettings.hideYoastInPageModule">
 				<source>Hide Yoast SEO content analysis in page module</source>
 			</trans-unit>
-			<trans-unit id="hideYoastInFrontend">
+			<trans-unit id="hideYoastInFrontend" resname="hideYoastInFrontend">
 				<source>Don't render metatags in frontend by Yoast SEO for this page</source>
 			</trans-unit>
-			<trans-unit id="hideSnippetPreview">
+			<trans-unit id="hideSnippetPreview" resname="hideSnippetPreview">
 				<source>Hide Yoast SEO snippet preview in page module for this page</source>
 			</trans-unit>
-			<trans-unit id="pages.tabs.seo">
+			<trans-unit id="pages.tabs.seo" resname="pages.tabs.seo">
 				<source>Yoast SEO</source>
 			</trans-unit>
-			<trans-unit id="pages.tabs.social">
+			<trans-unit id="pages.tabs.social" resname="pages.tabs.social">
 				<source>Social Media</source>
 			</trans-unit>
-			<trans-unit id="pages.palettes.metadata">
+			<trans-unit id="pages.palettes.metadata" resname="pages.palettes.metadata">
 				<source>Metadata</source>
 			</trans-unit>
-			<trans-unit id="pages.palettes.og">
+			<trans-unit id="pages.palettes.og" resname="pages.palettes.og">
 				<source>Open Graph (Facebook)</source>
 			</trans-unit>
-			<trans-unit id="pages.palettes.twitter">
+			<trans-unit id="pages.palettes.twitter" resname="pages.palettes.twitter">
 				<source>Twitter Cards</source>
 			</trans-unit>
-			<trans-unit id="pages.palettes.focusKeyphrase">
+			<trans-unit id="pages.palettes.focusKeyphrase" resname="pages.palettes.focusKeyphrase">
 				<source>Focus keyphrase</source>
 			</trans-unit>
-			<trans-unit id="pages.palettes.focusRelatedKeyphrases">
+			<trans-unit id="pages.palettes.focusRelatedKeyphrases" resname="pages.palettes.focusRelatedKeyphrases">
 				<source>Related keyphrases</source>
 			</trans-unit>
-			<trans-unit id="pages.palettes.robot">
+			<trans-unit id="pages.palettes.robot" resname="pages.palettes.robot">
 				<source>Robot instructions</source>
 			</trans-unit>
-			<trans-unit id="pages.palettes.readability">
+			<trans-unit id="pages.palettes.readability" resname="pages.palettes.readability">
 				<source>Readability analysis</source>
 			</trans-unit>
-			<trans-unit id="pages.palettes.advanced">
+			<trans-unit id="pages.palettes.advanced" resname="pages.palettes.advanced">
 				<source>Advanced settings</source>
 			</trans-unit>
-			<trans-unit id="snippetPreview">
+			<trans-unit id="snippetPreview" resname="snippetPreview">
 				<source>Yoast SEO Snippet preview</source>
 			</trans-unit>
-			<trans-unit id="analysis">
+			<trans-unit id="analysis" resname="analysis">
 				<source>Analysis results</source>
 			</trans-unit>
-			<trans-unit id="wrongDoktype.title">
+			<trans-unit id="wrongDoktype.title" resname="wrongDoktype.title">
 				<source>No analysis available</source>
 			</trans-unit>
-			<trans-unit id="wrongDoktype.description">
+			<trans-unit id="wrongDoktype.description" resname="wrongDoktype.description">
 				<source>The Yoast SEO analysis is not available for this type of page. Please change the type of page, or make sure your administrator adds the pagetype to the allowed pagetypes for Yoast SEO.</source>
 			</trans-unit>
-			<trans-unit id="labelReadability">
+			<trans-unit id="labelReadability" resname="labelReadability">
 				<source>Readability</source>
 			</trans-unit>
-			<trans-unit id="labelSeo">
+			<trans-unit id="labelSeo" resname="labelSeo">
 				<source>SEO</source>
 			</trans-unit>
-			<trans-unit id="labelOk">
+			<trans-unit id="labelOk" resname="labelOk">
 				<source>OK</source>
 			</trans-unit>
-			<trans-unit id="labelBad">
+			<trans-unit id="labelBad" resname="labelBad">
 				<source>Needs improvement</source>
 			</trans-unit>
-			<trans-unit id="labelGood">
+			<trans-unit id="labelGood" resname="labelGood">
 				<source>Good</source>
 			</trans-unit>
-			<trans-unit id="academy.basic_seo">
+			<trans-unit id="academy.basic_seo" resname="academy.basic_seo">
 				<source>Basic SEO training</source>
 			</trans-unit>
-			<trans-unit id="academy.seo-copywriting">
+			<trans-unit id="academy.seo-copywriting" resname="academy.seo-copywriting">
 				<source>SEO copywriting training</source>
 			</trans-unit>
-			<trans-unit id="academy.multilingual">
+			<trans-unit id="academy.multilingual" resname="academy.multilingual">
 				<source>Multilingual SEO training</source>
 			</trans-unit>
-			<trans-unit id="academy.site-structure">
+			<trans-unit id="academy.site-structure" resname="academy.site-structure">
 				<source>Site structure training</source>
 			</trans-unit>
-			<trans-unit id="academy.structured-data">
+			<trans-unit id="academy.structured-data" resname="academy.structured-data">
 				<source>Structured data training</source>
 			</trans-unit>
-			<trans-unit id="academy.technical-seo-1">
+			<trans-unit id="academy.technical-seo-1" resname="academy.technical-seo-1">
 				<source>Technical SEO 1</source>
 			</trans-unit>
-			<trans-unit id="dashboard.seoTips">
+			<trans-unit id="dashboard.seoTips" resname="dashboard.seoTips">
 				<source>Get free SEO tips!</source>
 			</trans-unit>
-			<trans-unit id="dashboard.seoTips.1">
+			<trans-unit id="dashboard.seoTips.1" resname="dashboard.seoTips.1">
 				<source>Get weekly tips on how to optimize your website's SEO, usability and conversion</source>
 			</trans-unit>
-			<trans-unit id="dashboard.seoTips.2">
+			<trans-unit id="dashboard.seoTips.2" resname="dashboard.seoTips.2">
 				<source>Be the first to know about new features and other cool (free) plugins.</source>
 			</trans-unit>
-			<trans-unit id="dashboard.seoTips.3">
+			<trans-unit id="dashboard.seoTips.3" resname="dashboard.seoTips.3">
 				<source>Get our free 50-page SEO guide right away to help you become an SEO genius.</source>
 			</trans-unit>
-			<trans-unit id="dashboard.seoTips.submit">
+			<trans-unit id="dashboard.seoTips.submit" resname="dashboard.seoTips.submit">
 				<source>Yes, give me your free tips</source>
 			</trans-unit>
-			<trans-unit id="dashboard.seoTips.email">
+			<trans-unit id="dashboard.seoTips.email" resname="dashboard.seoTips.email">
 				<source>Enter your email address...</source>
 			</trans-unit>
-			<trans-unit id="dashboard.seoTips.name">
+			<trans-unit id="dashboard.seoTips.name" resname="dashboard.seoTips.name">
 				<source>Enter your name...</source>
 			</trans-unit>
-			<trans-unit id="thisPageIsCornerstoneContent">
+			<trans-unit id="thisPageIsCornerstoneContent" resname="thisPageIsCornerstoneContent">
 				<source><![CDATA[This page is <a href="%s" target="_blank">cornerstone content</a>]]></source>
 			</trans-unit>
-			<trans-unit id="dashboard.seoCourses">
+			<trans-unit id="dashboard.seoCourses" resname="dashboard.seoCourses">
 				<source>SEO Courses</source>
 			</trans-unit>
-			<trans-unit id="goPremium">
+			<trans-unit id="goPremium" resname="goPremium">
 				<source>Go Premium</source>
 			</trans-unit>
 
-			<trans-unit id="tx_yoast_seo_premium_focus_keywords.title">
+			<trans-unit id="tx_yoast_seo_premium_focus_keywords.title" resname="tx_yoast_seo_premium_focus_keywords.title">
 				<source>Yoast SEO keyphrase</source>
 			</trans-unit>
-			<trans-unit id="tx_yoast_seo_premium_focus_keywords.fields.keyword">
+			<trans-unit id="tx_yoast_seo_premium_focus_keywords.fields.keyword" resname="tx_yoast_seo_premium_focus_keywords.fields.keyword">
 				<source>Keyphrase</source>
 			</trans-unit>
-			<trans-unit id="tx_yoast_seo_premium_focus_keywords.fields.analysis">
+			<trans-unit id="tx_yoast_seo_premium_focus_keywords.fields.analysis" resname="tx_yoast_seo_premium_focus_keywords.fields.analysis">
 				<source>Analysis results</source>
 			</trans-unit>
-			<trans-unit id="tx_yoast_seo_premium_focus_keywords.fields.synonyms">
+			<trans-unit id="tx_yoast_seo_premium_focus_keywords.fields.synonyms" resname="tx_yoast_seo_premium_focus_keywords.fields.synonyms">
 				<source>Synonyms</source>
 			</trans-unit>
-			<trans-unit id="pages.fields.tx_yoastseo_insights">
+			<trans-unit id="pages.fields.tx_yoastseo_insights" resname="pages.fields.tx_yoastseo_insights">
 				<source>Most relevant words</source>
 			</trans-unit>
-			<trans-unit id="pages.fields.tx_yoastseo_insights.intro">
+			<trans-unit id="pages.fields.tx_yoastseo_insights.intro" resname="pages.fields.tx_yoastseo_insights.intro">
 				<source>The following words and word combinations occur the most in the content. These give an indication of what your content focuses on. If the words differ a lot from your topic, you might want to rewrite your content accordingly.</source>
 			</trans-unit>
-			<trans-unit id="pages.fields.tx_yoastseo_insights.more_information">
+			<trans-unit id="pages.fields.tx_yoastseo_insights.more_information" resname="pages.fields.tx_yoastseo_insights.more_information">
 				<source><![CDATA[Read our <a href="%s" target="_blank">ultimate guide to keyword research</a> to learn more about keyword research and keyword strategy.]]></source>
 			</trans-unit>
 
-			<trans-unit id="tx_yoastseo_linking_suggestions">
+			<trans-unit id="tx_yoastseo_linking_suggestions" resname="tx_yoastseo_linking_suggestions">
 				<source>Internal linking suggestions</source>
 			</trans-unit>
-			<trans-unit id="tx_yoastseo_linking_suggestions.intro">
+			<trans-unit id="tx_yoastseo_linking_suggestions.intro" resname="tx_yoastseo_linking_suggestions.intro">
 				<source>We found some opportunities for you to create internal links. In the list below, you will find the words we found in this text that might be linked to the given pages. Pages highlighted with a * are cornerstone pages and are therefor the most important pages on your website. Especially those are interesting to link to.</source>
 			</trans-unit>
-			<trans-unit id="pages.no_index_formlabel">
+			<trans-unit id="pages.no_index_formlabel" resname="pages.no_index_formlabel">
 				<source>Do not index this page in search engines</source>
 			</trans-unit>
-			<trans-unit id="pages.no_follow_formlabel">
+			<trans-unit id="pages.no_follow_formlabel" resname="pages.no_follow_formlabel">
 				<source>Do not follow links on this page</source>
 			</trans-unit>
-			<trans-unit id="og_title">
+			<trans-unit id="og_title" resname="og_title">
 				<source>Title</source>
 			</trans-unit>
-			<trans-unit id="og_description">
+			<trans-unit id="og_description" resname="og_description">
 				<source>Description</source>
 			</trans-unit>
-			<trans-unit id="og_image">
+			<trans-unit id="og_image" resname="og_image">
 				<source>Image</source>
 			</trans-unit>
-			<trans-unit id="twitter_title">
+			<trans-unit id="twitter_title" resname="twitter_title">
 				<source>Title</source>
 			</trans-unit>
-			<trans-unit id="twitter_description">
+			<trans-unit id="twitter_description" resname="twitter_description">
 				<source>Description</source>
 			</trans-unit>
-			<trans-unit id="twitter_image">
+			<trans-unit id="twitter_image" resname="twitter_image">
 				<source>Image</source>
 			</trans-unit>
-			<trans-unit id="imwizard.crop_variant.social">
+			<trans-unit id="imwizard.crop_variant.social" resname="imwizard.crop_variant.social">
 				<source>Social media</source>
 			</trans-unit>
-			<trans-unit id="imwizard.ratio.191_1">
+			<trans-unit id="imwizard.ratio.191_1" resname="imwizard.ratio.191_1">
 				<source>1.91:1</source>
 			</trans-unit>
 
