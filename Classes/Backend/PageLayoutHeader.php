@@ -4,22 +4,13 @@ namespace YoastSeoForTypo3\YoastSeo\Backend;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS;
+use YoastSeoForTypo3\YoastSeo\Service\LocaleService;
+use YoastSeoForTypo3\YoastSeo\Service\UrlService;
 use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class PageLayoutHeader
 {
-
-    /**
-     * @var int
-     */
-    const FE_PREVIEW_TYPE = 1480321830;
-
-    /**
-     * @var string
-     */
-    const APP_TRANSLATION_FILE_PATTERN = 'EXT:yoast_seo/Resources/Private/Language/wordpress-seo-%s.json';
-
     /**
      * @var array
      */
@@ -35,21 +26,19 @@ class PageLayoutHeader
     );
 
     /**
-     * @var CMS\Core\Localization\Locales
+     * @var \YoastSeoForTypo3\YoastSeo\Service\LocaleService
      */
     protected $localeService;
+
+    /**
+     * @var \YoastSeoForTypo3\YoastSeo\Service\UrlService
+     */
+    protected $urlService;
 
     /**
      * @var CMS\Core\Page\PageRenderer
      */
     protected $pageRenderer;
-
-    /**
-     * Route enhancer error
-     *
-     * @var bool
-     */
-    protected $routeEnhancerError = false;
 
     /**
      * Initialize the page renderer
@@ -65,7 +54,8 @@ class PageLayoutHeader
             );
         }
 
-        $this->localeService = CMS\Core\Utility\GeneralUtility::makeInstance(CMS\Core\Localization\Locales::class);
+        $this->localeService = CMS\Core\Utility\GeneralUtility::makeInstance(LocaleService::class, $this->configuration);
+        $this->urlService = GeneralUtility::makeInstance(UrlService::class);
         $this->pageRenderer = CMS\Core\Utility\GeneralUtility::makeInstance(CMS\Core\Page\PageRenderer::class);
     }
 
@@ -136,13 +126,13 @@ class PageLayoutHeader
             $labelOk = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelOk');
             $labelGood = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelGood');
 
-            $previewDataUrl = $this->getTargetUrl($pageId, (int)$moduleData['language']);
+            $previewDataUrl = $this->urlService->getTargetUrl($pageId, (int)$moduleData['language']);
 
             $config = [
                 'urls' => [
                     'previewUrl' => $previewDataUrl,
-                    'saveScores' => YoastUtility::getUrlForType(1553260291),
-                    'prominentWords' => YoastUtility::getUrlForType(1539541406),
+                    'saveScores' => $this->urlService->getUrlForType(1553260291),
+                    'prominentWords' => $this->urlService->getUrlForType(1539541406),
                 ],
                 'useKeywordDistribution' => YoastUtility::isPremiumInstalled(),
                 'useRelevantWords' => YoastUtility::isPremiumInstalled(),
@@ -159,7 +149,7 @@ class PageLayoutHeader
                     'good' => $labelGood
                 ],
                 'fieldSelectors' => [],
-                'translations' => $this->getTranslations(),
+                'translations' => $this->localeService->getTranslations(),
                 'data' => [
                     'table' => 'pages',
                     'uid' => $pageId,
@@ -191,33 +181,6 @@ class PageLayoutHeader
                 $publicResourcesPath . 'CSS/yoast.min.css'
             );
 
-            $uriBuilder = GeneralUtility::makeInstance(CMS\Backend\Routing\UriBuilder::class);
-
-            if (version_compare(TYPO3_branch, '9.5', '>=')) {
-                $returnUrl = $uriBuilder->buildUriFromRoute('web_layout', ['id' => (int)$pageLayoutController->id]);
-            } else {
-                $returnUrl = CMS\Backend\Utility\BackendUtility::getModuleUrl(
-                    'web_layout',
-                    ['id' => (int)$pageLayoutController->id]
-                );
-            }
-
-            $urlParameters = [
-                'edit' => [
-                    'pages' => [
-                        $recordId => 'edit'
-                    ]
-                ],
-                'overrideVals' => [
-                    'pages' => [
-                        'sys_language_uid' => (int)$moduleData['language']
-                    ]
-                ],
-                'switchToYoast' => 1,
-                'returnUrl' => $returnUrl
-            ];
-            $url = $uriBuilder->buildUriFromRoute('record_edit', $urlParameters);
-
             $premiumText = '';
             if (!YoastUtility::isPremiumInstalled()) {
                 $premiumText = '
@@ -238,7 +201,7 @@ class PageLayoutHeader
                     <div class="yoast-snippet-header-label">Yoast SEO</div>
                 </div>';
 
-            if ($this->routeEnhancerError === false) {
+            if ($this->urlService->getRouteEnhancerError() === false) {
                 $returnHtml .= '
                 <input id="focusKeyword" style="display: none" />
                 <div id="' . $targetElementId . '" class="t3-grid-cell yoast-seo" data-yoast-snippetpreview>
@@ -257,7 +220,7 @@ class PageLayoutHeader
                 <div class="t3-grid-cell yoast yoast-seo" style="background-color: #fff;">
                     <div class="callout callout-warning callout-body">
                         It seems that you have configured routeEnhancers for this site with type pageType. When you do this, it is necessary that you also add the pageType for the Yoast Snippetpreview.<br />
-                        Please add a mapping for type ' . self::FE_PREVIEW_TYPE . ' and map it for example to \'yoast-snippetpreview.json\'.<br />
+                        Please add a mapping for type ' . UrlService::FE_PREVIEW_TYPE . ' and map it for example to \'yoast-snippetpreview.json\'.<br />
                         <strong><a href="https://docs.typo3.org/typo3cms/extensions/core/Changelog/9.5/Feature-86160-PageTypeEnhancerForMappingTypeParameter.html" target="_blank">You can find an example configuration here.</a></strong>
                     </div>
                 </div>';
@@ -265,163 +228,5 @@ class PageLayoutHeader
             return $returnHtml;
         }
         return '';
-    }
-
-    /**
-     * Try to resolve a supported locale based on the user settings
-     * take the configured locale dependencies into account
-     * so if the TYPO3 interface is tailored for a specific dialect
-     * the local of a parent language might be used
-     *
-     * @return string|null
-     */
-    protected function getInterfaceLocale()
-    {
-        $locale = null;
-        $languageChain = null;
-
-        if ($GLOBALS['BE_USER'] instanceof CMS\Core\Authentication\BackendUserAuthentication
-            && is_array($GLOBALS['BE_USER']->uc)
-            && array_key_exists('lang', $GLOBALS['BE_USER']->uc)
-            && !empty($GLOBALS['BE_USER']->uc['lang'])
-        ) {
-            $languageChain = $this->localeService->getLocaleDependencies(
-                $GLOBALS['BE_USER']->uc['lang']
-            );
-
-            array_unshift($languageChain, $GLOBALS['BE_USER']->uc['lang']);
-        }
-
-        // try to find a matching locale available for this plugins UI
-        // take configured locale dependencies into account
-        if ($languageChain !== null
-            && ($suitableLocales = array_intersect(
-                $languageChain,
-                $this->configuration['translations']['availableLocales']
-            )) !== false
-            && count($suitableLocales) > 0
-        ) {
-            $locale = array_shift($suitableLocales);
-        }
-
-        // if a locale couldn't be resolved try if an entry of the
-        // language dependency chain matches legacy mapping
-        if ($locale === null && $languageChain !== null
-            && ($suitableLanguageKeys = array_intersect(
-                $languageChain,
-                array_flip(
-                    $this->configuration['translations']['languageKeyToLocaleMapping']
-                )
-            )) !== false
-            && count($suitableLanguageKeys) > 0
-        ) {
-            $locale =
-                $this->configuration['translations']['languageKeyToLocaleMapping'][array_shift($suitableLanguageKeys)];
-        }
-
-        return $locale;
-    }
-
-    protected function getTargetUrl(int $pageId, int $languageId, $additionalGetVars = ''): string
-    {
-        $permissionClause = $this->getBackendUser()->getPagePermsClause(CMS\Core\Type\Bitmask\Permission::PAGE_SHOW);
-        $pageRecord = CMS\Backend\Utility\BackendUtility::readPageAccess($pageId, $permissionClause);
-        if ($pageRecord) {
-            $rootLine = CMS\Backend\Utility\BackendUtility::BEgetRootLine($pageId);
-            // Mount point overlay: Set new target page id and mp parameter
-            $pageRepository = GeneralUtility::makeInstance(CMS\Frontend\Page\PageRepository::class);
-            $finalPageIdToShow = $pageId;
-            $mountPointInformation = $pageRepository->getMountPointInfo($pageId);
-            if ($mountPointInformation && $mountPointInformation['overlay']) {
-                // New page id
-                $finalPageIdToShow = $mountPointInformation['mount_pid'];
-                $additionalGetVars .= '&MP=' . $mountPointInformation['MPvar'];
-            }
-
-            if (version_compare(TYPO3_branch, '9.5', '>=')) {
-                $siteFinder = GeneralUtility::makeInstance(CMS\Core\Site\SiteFinder::class);
-                $site = $siteFinder->getSiteByPageId($finalPageIdToShow, $rootLine);
-                if ($site instanceof CMS\Core\Site\Entity\Site) {
-                    $this->checkRouteEnhancers($site);
-
-                    $additionalQueryParams = [];
-                    parse_str($additionalGetVars, $additionalQueryParams);
-                    $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
-                    $uriToCheck = YoastUtility::fixAbsoluteUrl((string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams));
-
-                    $uri = '/?type=' . self::FE_PREVIEW_TYPE . '&uriToCheck=' . urlencode($uriToCheck);
-                } else {
-                    $uri = CMS\Backend\Utility\BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
-                }
-            } else {
-                $uri = '/?type=' . self::FE_PREVIEW_TYPE . '&pageIdToCheck=' . $pageId . '&languageIdToCheck=' . $languageId;
-            }
-
-            return $uri;
-        }
-        return '#';
-    }
-
-    /**
-     * @param int $type
-     * @return string
-     */
-    protected function getUrlForType($type): string
-    {
-        return '/?type=' . $type;
-    }
-
-    /**
-     * Check the route enhancers
-     *
-     * @param \TYPO3\CMS\Core\Site\Entity\Site $site
-     */
-    protected function checkRouteEnhancers(CMS\Core\Site\Entity\Site $site)
-    {
-        if (isset($site->getConfiguration()['routeEnhancers'])) {
-            $typeEnhancer = $yoastTypeEnhancer = false;
-            foreach ($site->getConfiguration()['routeEnhancers'] as $routeEnhancer) {
-                if ($routeEnhancer['type'] === 'PageType') {
-                    $typeEnhancer = true;
-                    foreach ($routeEnhancer['map'] as $pageType) {
-                        if ($pageType === self::FE_PREVIEW_TYPE) {
-                            $yoastTypeEnhancer = true;
-                        }
-                    }
-                }
-            }
-            if ($typeEnhancer === true && $yoastTypeEnhancer === false) {
-                $this->routeEnhancerError = true;
-            }
-        }
-    }
-
-    /**
-     * @return array
-     */
-    protected function getTranslations()
-    {
-        $interfaceLocale = $this->getInterfaceLocale();
-
-        if ($interfaceLocale !== null
-            && ($translationFilePath = sprintf(
-                static::APP_TRANSLATION_FILE_PATTERN,
-                $interfaceLocale
-            )) !== false
-            && ($translationFilePath = GeneralUtility::getFileAbsFileName(
-                $translationFilePath
-            )) !== false
-            && file_exists($translationFilePath)
-        ) {
-            return json_decode(file_get_contents($translationFilePath));
-        }
-    }
-
-    /**
-     * @return CMS\Core\Authentication\BackendUserAuthentication
-     */
-    protected function getBackendUser(): CMS\Core\Authentication\BackendUserAuthentication
-    {
-        return $GLOBALS['BE_USER'];
     }
 }

@@ -5,7 +5,6 @@ use TYPO3\CMS\Backend\Form\AbstractNode;
 use TYPO3\CMS\Backend\Form\NodeFactory;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
-use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\SiteFinder;
@@ -16,21 +15,13 @@ use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use TYPO3\CMS\Frontend\Page\CacheHashCalculator;
 use TYPO3\CMS\Frontend\Page\PageRepository;
+use YoastSeoForTypo3\YoastSeo\Service\LocaleService;
+use YoastSeoForTypo3\YoastSeo\Service\UrlService;
 use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class SnippetPreview extends AbstractNode
 {
-    /**
-     * @var int
-     */
-    const FE_PREVIEW_TYPE = 1480321830;
-
-    /**
-     * @var string
-     */
-    const APP_TRANSLATION_FILE_PATTERN = 'EXT:yoast_seo/Resources/Private/Language/wordpress-seo-%s.json';
-
     /**
      * @var StandaloneView
      */
@@ -82,14 +73,14 @@ class SnippetPreview extends AbstractNode
     protected $languageId = 0;
 
     /**
-     * @var string
-     */
-    protected $viewScript = '/?id=';
-
-    /**
-     * @var Locales
+     * @var \YoastSeoForTypo3\YoastSeo\Service\LocaleService
      */
     protected $localeService;
+
+    /**
+     * @var \YoastSeoForTypo3\YoastSeo\Service\UrlService
+     */
+    protected $urlService;
 
     /**
      * @var array
@@ -118,7 +109,8 @@ class SnippetPreview extends AbstractNode
             );
         }
 
-        $this->localeService = GeneralUtility::makeInstance(Locales::class);
+        $this->localeService = GeneralUtility::makeInstance(LocaleService::class, $this->configuration);
+        $this->urlService = GeneralUtility::makeInstance(UrlService::class);
 
         $this->templateView = GeneralUtility::makeInstance(StandaloneView::class);
         $this->templateView->setPartialRootPaths(
@@ -185,8 +177,8 @@ class SnippetPreview extends AbstractNode
             $config = [
                 'urls' => [
                     'previewUrl' => $this->previewUrl,
-                    'saveScores' => YoastUtility::getUrlForType(1553260291),
-                    'prominentWords' => YoastUtility::getUrlForType(1539541406),
+                    'saveScores' => $this->urlService->getUrlForType(1553260291),
+                    'prominentWords' => $this->urlService->getUrlForType(1539541406),
                 ],
                 'TCA' => 1,
                 'useKeywordDistribution' => YoastUtility::isPremiumInstalled(),
@@ -215,7 +207,7 @@ class SnippetPreview extends AbstractNode
                     'cornerstone' => $this->getFieldSelector($this->cornerstoneField),
                     'premiumKeyword' => YoastUtility::isPremiumInstalled() ? $this->getFieldSelector($this->relatedKeyphrases, true) : '',
                 ],
-                'translations' => $this->getTranslations(),
+                'translations' => $this->localeService->getTranslations(),
                 'relatedKeyphrases' => YoastUtility::isPremiumInstalled() ? YoastUtility::getRelatedKeyphrases($this->data['tableName'], (int)$this->data['databaseRow']['uid']) : []
             ];
 
@@ -277,27 +269,6 @@ class SnippetPreview extends AbstractNode
         }
 
         return $element;
-    }
-
-    /**
-     * @return array
-     */
-    protected function getTranslations()
-    {
-        $interfaceLocale = $this->getInterfaceLocale();
-
-        if ($interfaceLocale !== null
-            && ($translationFilePath = sprintf(
-                static::APP_TRANSLATION_FILE_PATTERN,
-                $interfaceLocale
-            )) !== false
-            && ($translationFilePath = GeneralUtility::getFileAbsFileName(
-                $translationFilePath
-            )) !== false
-            && file_exists($translationFilePath)
-        ) {
-            return json_decode(file_get_contents($translationFilePath));
-        }
     }
 
     /**
@@ -398,7 +369,7 @@ class SnippetPreview extends AbstractNode
 
         $additionalParamsForUrl = GeneralUtility::implodeArrayForUrl('', $linkParameters, '', false, true);
 
-        return $this->getTargetUrl($previewPageId, $languageId, $additionalParamsForUrl);
+        return $this->urlService->getTargetUrl($previewPageId, $languageId, $additionalParamsForUrl);
     }
 
     /**
@@ -421,99 +392,6 @@ class SnippetPreview extends AbstractNode
                 $parameters[$key] = $value;
             }
         }
-    }
-
-    /**
-     * Try to resolve a supported locale based on the user settings
-     * take the configured locale dependencies into account
-     * so if the TYPO3 interface is tailored for a specific dialect
-     * the local of a parent language might be used
-     *
-     * @return string|null
-     */
-    protected function getInterfaceLocale()
-    {
-        $locale = null;
-        $languageChain = null;
-
-        if ($GLOBALS['BE_USER'] instanceof BackendUserAuthentication
-            && is_array($GLOBALS['BE_USER']->uc)
-            && array_key_exists('lang', $GLOBALS['BE_USER']->uc)
-            && !empty($GLOBALS['BE_USER']->uc['lang'])
-        ) {
-            $languageChain = $this->localeService->getLocaleDependencies(
-                $GLOBALS['BE_USER']->uc['lang']
-            );
-
-            array_unshift($languageChain, $GLOBALS['BE_USER']->uc['lang']);
-        }
-
-        // try to find a matching locale available for this plugins UI
-        // take configured locale dependencies into account
-        if ($languageChain !== null
-            && ($suitableLocales = array_intersect(
-                $languageChain,
-                $this->configuration['translations']['availableLocales']
-            )) !== false
-            && count($suitableLocales) > 0
-        ) {
-            $locale = array_shift($suitableLocales);
-        }
-
-        // if a locale couldn't be resolved try if an entry of the
-        // language dependency chain matches legacy mapping
-        if ($locale === null && $languageChain !== null
-            && ($suitableLanguageKeys = array_intersect(
-                $languageChain,
-                array_flip(
-                    $this->configuration['translations']['languageKeyToLocaleMapping']
-                )
-            )) !== false
-            && count($suitableLanguageKeys) > 0
-        ) {
-            $locale =
-                $this->configuration['translations']['languageKeyToLocaleMapping'][array_shift($suitableLanguageKeys)];
-        }
-
-        return $locale;
-    }
-
-    protected function getTargetUrl(int $pageId, int $languageId, string $additionalGetVars = ''): string
-    {
-        $permissionClause = $this->getBackendUser()->getPagePermsClause(Permission::PAGE_SHOW);
-        $pageRecord = BackendUtility::readPageAccess($pageId, $permissionClause);
-        if ($pageRecord) {
-            $rootLine = BackendUtility::BEgetRootLine($pageId);
-            // Mount point overlay: Set new target page id and mp parameter
-            $pageRepository = GeneralUtility::makeInstance(PageRepository::class);
-            $finalPageIdToShow = $pageId;
-            $mountPointInformation = $pageRepository->getMountPointInfo($pageId);
-            if ($mountPointInformation && $mountPointInformation['overlay']) {
-                // New page id
-                $finalPageIdToShow = $mountPointInformation['mount_pid'];
-                $additionalGetVars .= '&MP=' . $mountPointInformation['MPvar'];
-            }
-
-            if (version_compare(TYPO3_branch, '9.5', '>=')) {
-                $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
-                $site = $siteFinder->getSiteByPageId($finalPageIdToShow, $rootLine);
-                if ($site instanceof Site) {
-                    $additionalQueryParams = [];
-                    parse_str($additionalGetVars, $additionalQueryParams);
-                    $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
-                    $uriToCheck = YoastUtility::fixAbsoluteUrl((string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams));
-
-                    $uri = '/?type=' . self::FE_PREVIEW_TYPE . '&uriToCheck=' . urlencode($uriToCheck);
-                } else {
-                    $uri = BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
-                }
-            } else {
-                $uri = '/?type=' . self::FE_PREVIEW_TYPE . '&pageIdToCheck=' . (int)$pageId . '&languageIdToCheck=' . (int)$languageId . '&additionalGetVars=' . urlencode($additionalGetVars);
-            }
-
-            return $uri;
-        }
-        return '#';
     }
 
     /**
