@@ -56,8 +56,10 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         $excludedDoktypes = $this->configuration['excludedDoktypes'] ? GeneralUtility::intExplode(',', $this->configuration['excludedDoktypes']) : [];
         $breadcrumbs = [];
         $iterator = 1;
+        $siteRootFound = false;
         foreach ($rootLine as $k => $page) {
-            if (!in_array((int)$page['doktype'], $excludedDoktypes, true)) {
+            $siteRootFound = $siteRootFound || $page['is_siteroot'];
+            if ($siteRootFound && !in_array((int)$page['doktype'], $excludedDoktypes, true)) {
                 $breadcrumbs[] = [
                     '@type' => 'ListItem',
                     'position' => $iterator,
