@@ -384,7 +384,7 @@ class PageLayoutHeader
                 if ($routeEnhancer['type'] === 'PageType') {
                     $typeEnhancer = true;
                     foreach ($routeEnhancer['map'] as $pageType) {
-                        if ($pageType === self::FE_PREVIEW_TYPE) {
+                        if ((int)$pageType === self::FE_PREVIEW_TYPE) {
                             $yoastTypeEnhancer = true;
                         }
                     }
