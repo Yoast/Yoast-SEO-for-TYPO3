@@ -39,21 +39,6 @@ class ModuleController extends ActionController
     protected $pageRenderer;
 
     /**
-     * @var string
-     */
-    const FOCUS_KEYWORD_COLUMN_NAME = 'tx_yoastseo_focuskeyword';
-
-    /**
-     * @var int
-     */
-    const FE_PREVIEW_TYPE = 1480321830;
-
-    /**
-     * @var string
-     */
-    const APP_TRANSLATION_FILE_PATTERN = 'EXT:yoast_seo/Resources/Private/Language/wordpress-seo-%s.json';
-
-    /**
      * @var array
      */
     protected $MOD_MENU;

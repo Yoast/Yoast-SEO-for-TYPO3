@@ -228,15 +228,6 @@ class YoastUtility
     }
 
     /**
-     * @param int $type
-     * @return string
-     */
-    public static function getUrlForType($type): string
-    {
-        return '/?type=' . $type;
-    }
-
-    /**
      * Fix absolute url when site configuration has '/' as base
      *
      * @param string $url
