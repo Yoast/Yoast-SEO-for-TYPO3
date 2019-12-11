@@ -123,11 +123,8 @@ class SnippetPreview extends AbstractNode
             $this->titleField = $this->data['parameterArray']['fieldConf']['config']['settings']['titleField'];
         }
 
-        if (array_key_exists(
-            'descriptionField',
-            (array)$this->data['parameterArray']['fieldConf']['config']['settings']
-        ) &&
-            $this->data['parameterArray']['fieldConf']['config']['settings']['descriptionField']
+        if (array_key_exists('descriptionField', (array)$this->data['parameterArray']['fieldConf']['config']['settings'])
+            && $this->data['parameterArray']['fieldConf']['config']['settings']['descriptionField']
         ) {
             $this->descriptionField =
                 $this->data['parameterArray']['fieldConf']['config']['settings']['descriptionField'];
@@ -152,29 +149,19 @@ class SnippetPreview extends AbstractNode
         $publicResourcesPath = PathUtility::getAbsoluteWebPath('../typo3conf/ext/yoast_seo/Resources/Public/');
         $resultArray['stylesheetFiles'][] = $publicResourcesPath . 'CSS/yoast.min.css';
 
-        $premiumText = '';
-        if (!YoastUtility::isPremiumInstalled()) {
-            $premiumText = '
-                <div class="yoast-snippet-preview-premium">
-                    <a target="_blank" rel="noopener noreferrer" href="' . YoastUtility::getYoastLink('Go premium', 'page-properties-snippetpreview') . '">
-                        <i class="fa fa-star"></i>' . $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:goPremium') . '
-                    </a>
-                </div>';
-        }
+        $premiumText = $this->getPremiumText();
 
-        if ($this->data['tableName'] != 'pages' || in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
-            $firstFocusKeyword = YoastUtility::getFocusKeywordOfPage((int)$this->data['databaseRow']['uid'], $this->data['tableName']);
-
-            $labelReadability = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelReadability');
-            $labelSeo = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelSeo');
-            $labelBad = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelBad');
-            $labelOk = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelOk');
-            $labelGood = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelGood');
+        if ($this->data['tableName'] !== 'pages'
+            || in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
+            $firstFocusKeyword = YoastUtility::getFocusKeywordOfPage(
+                (int)$this->data['databaseRow']['uid'],
+                $this->data['tableName']
+            );
 
             $config = [
                 'urls' => [
                     'previewUrl' => $this->previewUrl,
-                    'saveScores' => $this->urlService->getUrlForType(1553260291),
+                    'saveScores' => $this->urlService->getSaveScoresUrl(),
                     'prominentWords' => $this->urlService->getUrlForType(1539541406),
                 ],
                 'TCA' => 1,
@@ -185,13 +172,7 @@ class SnippetPreview extends AbstractNode
                     'keyword' => (string)$this->data['databaseRow']['tx_yoastseo_focuskeyword'],
                     'synonyms' => (string)$this->data['databaseRow']['tx_yoastseo_focuskeyword_synonyms'],
                 ],
-                'labels' => [
-                    'readability' => $labelReadability,
-                    'seo' => $labelSeo,
-                    'bad' => $labelBad,
-                    'ok' => $labelOk,
-                    'good' => $labelGood
-                ],
+                'labels' => $this->localeService->getLabels(),
                 'data' => [
                     'table' => $this->data['tableName'],
                     'uid' => (int)$this->data['databaseRow']['uid'],
@@ -216,13 +197,11 @@ class SnippetPreview extends AbstractNode
 
             $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
 
-            $pageRenderer->addRequireJsConfiguration(
-                array(
-                    'paths' => array(
-                        'YoastSEO' => $publicResourcesPath . 'JavaScript/'
-                    )
-                )
-            );
+            $pageRenderer->addRequireJsConfiguration([
+                'paths' => [
+                    'YoastSEO' => $publicResourcesPath . 'JavaScript/'
+                ]
+            ]);
 
             if (YoastUtility::inProductionMode() === true) {
                 $pageRenderer->loadRequireJsModule('YoastSEO/dist/plugin');
@@ -232,19 +211,20 @@ class SnippetPreview extends AbstractNode
 
             $pageRenderer->loadRequireJsModule('YoastSEO/yoastModal');
 
-            $this->templateView->assign('previewUrl', $this->previewUrl);
-            $this->templateView->assign('previewTargetId', $this->data['fieldName']);
-            $this->templateView->assign('titleFieldSelector', $this->getFieldSelector($this->titleField));
-            $this->templateView->assign('descriptionFieldSelector', $this->getFieldSelector($this->descriptionField));
-            $this->templateView->assign('scoreReadabilityFieldSelector', $this->getFieldSelector('tx_yoastseo_score_readability'));
-            $this->templateView->assign('databaseRow', $this->data['databaseRow']);
-            $this->templateView->assign('scoreSeoFieldSelector', $this->getFieldSelector('tx_yoastseo_score_seo'));
-            $this->templateView->assign('focusKeyword', $firstFocusKeyword);
-            $this->templateView->assign('vanillaUid', $this->data['vanillaUid']);
-            $this->templateView->assign('tableName', $this->data['tableName']);
-            $this->templateView->assign('languageId', $this->languageId);
-            $this->templateView->assign('previewContent', $premiumText);
-            $this->templateView->assign('inlineJsLib', $inlineJsLib);
+            $this->templateView->assignMultiple([
+                'previewUrl' => $this->previewUrl,
+                'previewTargetId' => $this->data['fieldName'],
+                'titleFieldSelector' => $this->getFieldSelector($this->titleField),
+                'descriptionFieldSelector' => $this->getFieldSelector($this->descriptionField),
+                'scoreReadabilityFieldSelector' => $this->getFieldSelector('tx_yoastseo_score_readability'),
+                'databaseRow' => $this->data['databaseRow'],
+                'scoreSeoFieldSelector' => $this->getFieldSelector('tx_yoastseo_score_seo'),
+                'focusKeyword' => $firstFocusKeyword,
+                'vanillaUid' => $this->data['vanillaUid'],
+                'tableName' => $this->data['tableName'],
+                'languageId' => $this->languageId,
+                'previewContent' => $premiumText
+            ]);
         } else {
             $this->templateView->assign('wrongDoktype', true);
         }
@@ -254,7 +234,26 @@ class SnippetPreview extends AbstractNode
     }
 
     /**
+     * Get premium text
+     *
+     * @return string
+     */
+    protected function getPremiumText(): string
+    {
+        if (!YoastUtility::isPremiumInstalled()) {
+            return '
+                <div class="yoast-snippet-preview-premium">
+                    <a target="_blank" rel="noopener noreferrer" href="' . YoastUtility::getYoastLink('Go premium', 'page-properties-snippetpreview') . '">
+                        <i class="fa fa-star"></i>' . $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:goPremium') . '
+                    </a>
+                </div>';
+        }
+        return '';
+    }
+
+    /**
      * @param string $field
+     * @param bool $id
      * @return string
      */
     protected function getFieldSelector($field, $id = false)
@@ -279,39 +278,9 @@ class SnippetPreview extends AbstractNode
         $recordArray = BackendUtility::getRecord($this->table, $recordId);
 
         $pageTsConfig = BackendUtility::getPagesTSconfig($currentPageId);
-        $previewConfiguration = isset($pageTsConfig['TCEMAIN.']['preview.'][$this->table . '.'])
-            ? $pageTsConfig['TCEMAIN.']['preview.'][$this->table . '.']
-            : [];
+        $previewConfiguration = $pageTsConfig['TCEMAIN.']['preview.'][$this->table . '.'] ?? [];
 
-        // find the right preview page id
-        $previewPageId = 0;
-        if (isset($previewConfiguration['previewPageId'])) {
-            $previewPageId = $previewConfiguration['previewPageId'];
-        }
-
-        // if no preview page was configured
-        if (!$previewPageId) {
-            $rootPageData = null;
-            $rootLine = BackendUtility::BEgetRootLine((int)$currentPageId);
-            $currentPage = reset($rootLine);
-            // Allow all doktypes below 200
-            // This makes custom doktype work as well with opening a frontend page.
-            if ((int)$currentPage['doktype'] <= PageRepository::DOKTYPE_SPACER) {
-                // try the current page
-                $previewPageId = $currentPageId;
-            } else {
-                // or search for the root page
-                foreach ($rootLine as $page) {
-                    if ($page['is_siteroot']) {
-                        $rootPageData = $page;
-                        break;
-                    }
-                }
-                $previewPageId = isset($rootPageData)
-                    ? (int)$rootPageData['uid']
-                    : (int)$currentPageId;
-            }
-        }
+        $previewPageId = $this->getPreviewPageId($currentPageId, $previewConfiguration);
 
         $linkParameters = [];
         $languageId = 0;
@@ -366,20 +335,60 @@ class SnippetPreview extends AbstractNode
 
         $additionalParamsForUrl = GeneralUtility::implodeArrayForUrl('', $linkParameters, '', false, true);
 
-        return $this->urlService->getTargetUrl($previewPageId, $languageId, $additionalParamsForUrl);
+        return $this->urlService->getPreviewUrl($previewPageId, $languageId, $additionalParamsForUrl);
     }
 
     /**
-     * Migrates a set of (possibly nested) GET parameters in TypoScript syntax to a plain array
+     * @param $currentPageId
+     * @param $previewConfiguration
+     * @return int
+     */
+    protected function getPreviewPageId($currentPageId, $previewConfiguration)
+    {
+        // find the right preview page id
+        $previewPageId = $previewConfiguration['previewPageId'] ?? 0;
+
+        // if no preview page was configured
+        if (!$previewPageId) {
+            $rootPageData = null;
+            $rootLine = BackendUtility::BEgetRootLine((int)$currentPageId);
+            $currentPage = reset($rootLine);
+            // Allow all doktypes below 200
+            // This makes custom doktype work as well with opening a frontend page.
+            if ((int)$currentPage['doktype'] <= PageRepository::DOKTYPE_SPACER) {
+                // try the current page
+                $previewPageId = $currentPageId;
+            } else {
+                // or search for the root page
+                foreach ($rootLine as $page) {
+                    if ($page['is_siteroot']) {
+                        $rootPageData = $page;
+                        break;
+                    }
+                }
+                $previewPageId = isset($rootPageData)
+                    ? (int)$rootPageData['uid']
+                    : (int)$currentPageId;
+            }
+        }
+        return $previewPageId;
+    }
+
+    /**
+     * Migrates a set of (possibly nested) GET parameters in TypoScript syntax to a
+     * plain array
      *
      * This basically removes the trailing dots of sub-array keys in TypoScript.
-     * The result can be used to create a query string with GeneralUtility::implodeArrayForUrl().
+     * The result can be used to create a query string with
+     * GeneralUtility::implodeArrayForUrl().
      *
      * @param array $parameters Should be an empty array by default
      * @param array $typoScript The TypoScript configuration
      */
-    protected function parseAdditionalGetParameters(array &$parameters, array $typoScript)
-    {
+    protected function parseAdditionalGetParameters(
+        array &$parameters,
+        array $typoScript
+    ) {
         foreach ($typoScript as $key => $value) {
             if (is_array($value)) {
                 $key = rtrim($key, '.');

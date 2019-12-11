@@ -3,7 +3,6 @@ namespace YoastSeoForTypo3\YoastSeo\Controller;
 
 use TYPO3\CMS\Backend\Template\Components\ButtonBar;
 use TYPO3\CMS\Backend\View\BackendTemplateView;
-use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Page\PageRenderer;
@@ -17,7 +16,6 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class ModuleController extends ActionController
 {
-
     /**
      * Backend Template Container.
      * Takes care of outer "docheader" and other stuff this module is embedded in.
@@ -46,16 +44,16 @@ class ModuleController extends ActionController
     /**
      * @var array
      */
-    protected $configuration = array(
-        'translations' => array(
-            'availableLocales' => array(),
-            'languageKeyToLocaleMapping' => array()
-        ),
-        'menuActions' => array(),
+    protected $configuration = [
+        'translations' => [
+            'availableLocales' => [],
+            'languageKeyToLocaleMapping' => []
+        ],
+        'menuActions' => [],
         'previewDomain' => null,
         'previewUrlTemplate' => '',
-        'viewSettings' => array()
-    );
+        'viewSettings' => []
+    ];
 
     /**
      * @var Locales
@@ -126,30 +124,6 @@ class ModuleController extends ActionController
     }
 
     /**
-     * @param array $fields
-     * @param string $key
-     * @param string $fieldName
-     * @param array $replace
-     *
-     * @return void
-     */
-    protected function addFieldToArray(&$fields, $key, $fieldName = null, $replace = [])
-    {
-        if ($fieldName === null) {
-            $fieldName = $key;
-        }
-
-        if ($this->request->hasArgument($fieldName)) {
-            $value = $this->request->getArgument($fieldName);
-
-            if (!empty($replace)) {
-                $value = preg_replace($replace[0], $replace[1], $value);
-            }
-            $fields[$key] = $value;
-        }
-    }
-
-    /**
      * Registers the Icons into the docheader
      *
      * @return void
@@ -168,41 +142,40 @@ class ModuleController extends ActionController
         $shortcutName = $this->getLanguageService()->sL(
             'LLL:EXT:beuser/Resources/Private/Language/locallang.xml:backendUsers'
         );
-        if ($currentRequest->getControllerName() === 'Module') {
-            if ($currentRequest->getControllerActionName() === 'edit') {
-                if ($currentRequest->hasArgument('returnUrl') &&
-                    $currentRequest->getArgument('returnUrl')) {
-                    // CLOSE button:
-                    $closeButton = $buttonBar->makeLinkButton()
-                        ->setHref(urldecode($currentRequest->getArgument('returnUrl')))
-                        ->setClasses('t3js-editform-close')
-                        ->setTitle($lang->sL('LLL:EXT:lang/locallang_core.xlf:rm.closeDoc'))
-                        ->setIcon($this->view->getModuleTemplate()->getIconFactory()->getIcon(
-                            'actions-document-close',
-                            Icon::SIZE_SMALL
-                        ));
-                    $buttonBar->addButton($closeButton, ButtonBar::BUTTON_POSITION_LEFT, 1);
-                }
-
-                // SAVE button:
-                $saveButton = $buttonBar->makeInputButton()
-                    ->setTitle($lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:rm.saveDoc'))
-                    ->setName($modulePrefix . '[submit]')
-                    ->setValue('Save')
-                    ->setForm('editYoastSettings')
+        if (($currentRequest->getControllerName() === 'Module')
+            && $currentRequest->getControllerActionName() === 'edit') {
+            if ($currentRequest->hasArgument('returnUrl') &&
+                $currentRequest->getArgument('returnUrl')) {
+                // CLOSE button:
+                $closeButton = $buttonBar->makeLinkButton()
+                    ->setHref(urldecode($currentRequest->getArgument('returnUrl')))
+                    ->setClasses('t3js-editform-close')
+                    ->setTitle($lang->sL('LLL:EXT:lang/locallang_core.xlf:rm.closeDoc'))
                     ->setIcon($this->view->getModuleTemplate()->getIconFactory()->getIcon(
-                        'actions-document-save',
+                        'actions-document-close',
                         Icon::SIZE_SMALL
-                    ))
-                    ->setShowLabelText(true);
-
-                $buttonBar->addButton($saveButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
+                    ));
+                $buttonBar->addButton($closeButton, ButtonBar::BUTTON_POSITION_LEFT, 1);
             }
+
+            // SAVE button:
+            $saveButton = $buttonBar->makeInputButton()
+                ->setTitle($lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:rm.saveDoc'))
+                ->setName($modulePrefix . '[submit]')
+                ->setValue('Save')
+                ->setForm('editYoastSettings')
+                ->setIcon($this->view->getModuleTemplate()->getIconFactory()->getIcon(
+                    'actions-document-save',
+                    Icon::SIZE_SMALL
+                ))
+                ->setShowLabelText(true);
+
+            $buttonBar->addButton($saveButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
         }
         $shortcutButton = $buttonBar->makeShortcutButton()
             ->setModuleName($moduleName)
             ->setDisplayName($shortcutName)
-            ->setGetVariables(array('id' => (int)GeneralUtility::_GP('id')));
+            ->setGetVariables(['id' => (int)GeneralUtility::_GP('id')]);
         $buttonBar->addButton($shortcutButton);
     }
 
@@ -214,61 +187,6 @@ class ModuleController extends ActionController
     public function getLanguageService()
     {
         return $GLOBALS['LANG'];
-    }
-
-    /**
-     * Try to resolve a supported locale based on the user settings
-     * take the configured locale dependencies into account
-     * so if the TYPO3 interface is tailored for a specific dialect
-     * the local of a parent language might be used
-     *
-     * @return string|null
-     */
-    protected function getInterfaceLocale()
-    {
-        $locale = null;
-        $languageChain = null;
-
-        if ($GLOBALS['BE_USER'] instanceof BackendUserAuthentication
-            && is_array($GLOBALS['BE_USER']->uc)
-            && array_key_exists('lang', $GLOBALS['BE_USER']->uc)
-            && !empty($GLOBALS['BE_USER']->uc['lang'])
-        ) {
-            $languageChain = $this->localeService->getLocaleDependencies(
-                $GLOBALS['BE_USER']->uc['lang']
-            );
-
-            array_unshift($languageChain, $GLOBALS['BE_USER']->uc['lang']);
-        }
-
-        // try to find a matching locale available for this plugins UI
-        // take configured locale dependencies into account
-        if ($languageChain !== null
-            && ($suitableLocales = array_intersect(
-                $languageChain,
-                $this->configuration['translations']['availableLocales']
-            )) !== false
-            && count($suitableLocales) > 0
-        ) {
-            $locale = array_shift($suitableLocales);
-        }
-
-        // if a locale couldn't be resolved try if an entry of the
-        // language dependency chain matches legacy mapping
-        if ($locale === null && $languageChain !== null
-            && ($suitableLanguageKeys = array_intersect(
-                $languageChain,
-                array_flip(
-                    $this->configuration['translations']['languageKeyToLocaleMapping']
-                )
-            )) !== false
-            && count($suitableLanguageKeys) > 0
-        ) {
-            $locale =
-                $this->configuration['translations']['languageKeyToLocaleMapping'][array_shift($suitableLanguageKeys)];
-        }
-
-        return $locale;
     }
 
     /**

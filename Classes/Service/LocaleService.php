@@ -60,6 +60,23 @@ class LocaleService
     }
 
     /**
+     * Get labels
+     *
+     * @return array
+     */
+    public function getLabels(): array
+    {
+        $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:label';
+        return [
+            'readability' => $GLOBALS['LANG']->sL($llPrefix . 'Readability'),
+            'seo' => $GLOBALS['LANG']->sL($llPrefix . 'Seo'),
+            'bad' => $GLOBALS['LANG']->sL($llPrefix . 'Bad'),
+            'ok' => $GLOBALS['LANG']->sL($llPrefix . 'Ok'),
+            'good' => $GLOBALS['LANG']->sL($llPrefix . 'Good')
+        ];
+    }
+
+    /**
      * Try to resolve a supported locale based on the user settings
      * take the configured locale dependencies into account
      * so if the TYPO3 interface is tailored for a specific dialect

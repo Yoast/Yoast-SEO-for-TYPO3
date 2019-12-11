@@ -269,3 +269,27 @@ yoast_seo_sitemap {
     10 = USER_INT
     10.userFunc = YoastSeoForTypo3\YoastSeo\UserFunctions\XmlSitemap->render
 }
+
+yoast_seo_preview = PAGE
+yoast_seo_preview {
+    typeNum = {$config.yoast_seo.fe_preview_type}
+    config {
+        disableAllHeaderCode = 1
+        absRefPrefix = /
+
+        no_cache = 1
+
+        additionalHeaders {
+            10 {
+                header = Content-type: application/json; charset=UTF-8
+            }
+
+            20 {
+                header = Access-Control-Allow-Origin: *
+            }
+        }
+    }
+
+    10 = USER_INT
+    10.userFunc = YoastSeoForTypo3\YoastSeo\UserFunctions\SnippetPreview->render
+}

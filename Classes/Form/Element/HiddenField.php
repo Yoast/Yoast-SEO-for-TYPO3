@@ -17,7 +17,6 @@ class HiddenField extends AbstractNode
         $parameterArray = $this->data['parameterArray'];
         $resultArray = $this->initializeResultArray();
 
-//        DebuggerUtility::var_dump($resultArray);
         $resultArray['html'] = '<input class="yoastHiddenTcaField" type="text" name="' . $parameterArray['itemFormElName'] . '" value="' . htmlspecialchars($parameterArray['itemFormElValue']) . '" />';
         return $resultArray;
     }
