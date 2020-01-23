@@ -80,6 +80,7 @@ class SnippetPreview
             if (is_array($indexableContents[0]) && !empty($indexableContents[0])) {
                 $body = implode($indexableContents[0], '');
             }
+            $body = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $body);
         }
 
         if ($titleFound) {
