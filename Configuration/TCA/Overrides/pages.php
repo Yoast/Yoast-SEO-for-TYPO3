@@ -336,6 +336,32 @@ if (version_compare(TYPO3_branch, '9.5', '<')) {
                     $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext']
                 )
             ],
+            'canonical_link' => [
+                'label' => $llPrefix . 'canonical',
+                'exclude' => true,
+                'config' => [
+                    'type' => 'input',
+                    'size' => 50,
+                    'max' => 1024,
+                    'eval' => 'trim',
+                    'wizards' => [
+                        'link' => [
+                            'type' => 'popup',
+                            'title' => $llPrefix . 'canonical',
+                            'icon' => 'actions-wizard-link',
+                            'module' => [
+                                'name' => 'wizard_link',
+                            ],
+                            'params' => [
+                                'blindLinkOptions' => 'file, folder, mail, spec',
+                                'blindLinkFields' => '',
+                            ],
+                            'JSopenParams' => 'height=300,width=500,status=0,menubar=0,scrollbars=1'
+                        ]
+                    ],
+                    'softref' => 'typolink'
+                ]
+            ],
         ]
     );
 
@@ -369,6 +395,14 @@ if (version_compare(TYPO3_branch, '9.5', '<')) {
         'yoast-robot',
         '
             no_index;' . $llPrefix . 'pages.no_index_formlabel, no_follow;' . $llPrefix . 'pages.no_follow_formlabel,
+        '
+    );
+
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+        'pages',
+        'yoast-advanced',
+        '
+        --linebreak--, canonical_link
         '
     );
 
