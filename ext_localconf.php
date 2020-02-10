@@ -201,6 +201,8 @@ $iconRegistry->registerIcon(
 
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['seoTitleUpdate']
     = \YoastSeoForTypo3\YoastSeo\Install\SeoTitleUpdate::class;
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['canonicalFieldUpdate']
+    = \YoastSeoForTypo3\YoastSeo\Install\CanonicalFieldUpdate::class;
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScriptSetup(trim('
     config.structuredData.providers {
