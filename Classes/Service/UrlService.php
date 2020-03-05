@@ -67,7 +67,7 @@ class UrlService
                         (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams)
                     );
 
-                    $uri = '/?type=' . self::FE_PREVIEW_TYPE . '&uriToCheck=' . urlencode($uriToCheck);
+                    $uri = (string) $site->getRouter()->generateUri($site->getRootPageId(), ['type' => self::FE_PREVIEW_TYPE, 'uriToCheck' => $uriToCheck]);
                 } else {
                     $uri = BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
                 }
