@@ -36,7 +36,6 @@
     "nimut/testing-framework": "^4.1"
   },
   "replace": {
-    "yoast_seo": "self.version",
     "typo3-ter/yoast-seo": "self.version"
   },
   "autoload": {
