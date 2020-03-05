@@ -3,17 +3,8 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['cms/layout/db_layout.php']['drawHeade
     = \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::class . '->render';
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][]
     = \YoastSeoForTypo3\YoastSeo\StructuredData\StructuredDataProviderManager::class . '->render';
-
-if (version_compare(TYPO3_branch, '9.5', '<')) {
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][] =
-        \YoastSeoForTypo3\YoastSeo\Canonical\CanonicalGenerator::class . '->generate';
-
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][]
-        = \YoastSeoForTypo3\YoastSeo\Frontend\PageTitle::class . '->render';
-} else {
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['usePageCache'][]
-        = \YoastSeoForTypo3\YoastSeo\Frontend\UsePageCache::class;
-}
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['usePageCache'][]
+    = \YoastSeoForTypo3\YoastSeo\Frontend\UsePageCache::class;
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScriptConstants(
     'config.yoast_seo.fe_preview_type = '
@@ -25,22 +16,14 @@ if (version_compare(TYPO3_branch, '9.5', '<')) {
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
     'YoastSeo',
     'constants',
-    '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/constants.txt">'
+    '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/constants.typoscript">'
 );
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
     'YoastSeo',
     'setup',
-    '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/setup.txt">'
+    '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/setup.typoscript">'
 );
-
-if (version_compare(TYPO3_branch, '9.5', '<')) {
-    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
-        'YoastSeoCms8',
-        'setup',
-        '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/Setup/CMS8.typoscript">'
-    );
-}
 
 $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514550050] = array(
     'nodeName' => 'snippetPreview',
@@ -92,7 +75,7 @@ if (!\YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::isPremiumInstalled()) {
     );
 }
 
-$llFolder = 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/';
+$llFolder = 'LLL:EXT:yoast_seo/Resources/Private/Language/';
 
 $defaultConfiguration = [
     'allowedDoktypes' => [
@@ -196,7 +179,7 @@ $iconRegistry = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\
 $iconRegistry->registerIcon(
     'module-yoast',
     \TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
-    ['source' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Yoast-module-container.svg']
+    ['source' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-container.svg']
 );
 
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['seoTitleUpdate']

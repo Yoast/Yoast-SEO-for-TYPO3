@@ -1,25 +1,18 @@
 <?php
 
 if (TYPO3_MODE === 'BE') {
+    $_EXTKEY = 'yoast_seo';
+
     $GLOBALS['TBE_MODULES'] = array_slice($GLOBALS['TBE_MODULES'], 0, 1, true) +
         ['yoast' => ''] +
         array_slice($GLOBALS['TBE_MODULES'], 1, count($GLOBALS['TBE_MODULES']) - 1, true);
 
-    if (version_compare(TYPO3_branch, '8.0', '>=')) {
-        $GLOBALS['TBE_MODULES']['_configuration']['yoast'] = [
-            'iconIdentifier' => 'module-yoast',
-            'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf',
-            'name' => 'yoast'
-        ];
-    } else {
-        $GLOBALS['TBE_MODULES']['_configuration']['yoast'] = [
-            'iconIdentifier' => 'module-yoast',
-            'labels' => [
-                'll_ref' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf'
-            ],
-            'name' => 'yoast'
-        ];
-    }
+    $GLOBALS['TBE_MODULES']['_configuration']['yoast'] = [
+        'iconIdentifier' => 'module-yoast',
+        'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf',
+        'name' => 'yoast'
+    ];
+
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
         'YoastSeoForTypo3.' . $_EXTKEY,
         'yoast',

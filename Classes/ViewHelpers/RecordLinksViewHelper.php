@@ -17,8 +17,9 @@ namespace YoastSeoForTypo3\YoastSeo\ViewHelpers;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
+use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractViewHelper;
 
-class RecordLinksViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelper
+class RecordLinksViewHelper extends AbstractViewHelper
 {
     public function initializeArguments()
     {
@@ -31,7 +32,7 @@ class RecordLinksViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractVie
     public static function renderStatic(array $arguments, \Closure $renderChildrenClosure, RenderingContextInterface $renderingContext): string
     {
         $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
-        $returnUri = $uriBuilder->buildUriFromModule($arguments['module'], $_GET);
+        $returnUri = $uriBuilder->buildUriFromRoute($arguments['module'], $_GET);
 
         switch ($arguments['command']) {
             case 'edit':
