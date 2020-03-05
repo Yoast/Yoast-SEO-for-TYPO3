@@ -14,11 +14,10 @@ $EM_CONF[$_EXTKEY] = array(
     'constraints' => array(
         'depends' => array(
             'typo3' => '9.5.0-10.4.99',
-        ),
-        'conflicts' => array(),
-        'suggests' => array(
             'seo' => ''
         ),
+        'conflicts' => array(),
+        'suggests' => array(),
     ),
     'autoload' => array(
         'psr-4' => array('YoastSeoForTypo3\\YoastSeo\\' => 'Classes')
