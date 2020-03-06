@@ -25,10 +25,18 @@ class PageRequestMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        if (YoastRequestHash::isValid($request->getServerParams())) {
+        if (YoastRequestHash::isValid($request)) {
             $context = GeneralUtility::makeInstance(Context::class);
             $context->setAspect('visibility', new VisibilityAspect(true));
+
+            if (isset($request->getServerParams()['HTTP_ORIGIN'])) {
+                $response = $handler->handle($request);
+                $response = $response->withHeader('Access-Control-Allow-Origin', $request->getServerParams()['HTTP_ORIGIN']);
+
+                return $response;
+            }
         }
+
         return $handler->handle($request);
     }
 }

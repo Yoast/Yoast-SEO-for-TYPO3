@@ -67,7 +67,14 @@ class UrlService
                         (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams)
                     );
 
-                    $uri = (string) $site->getRouter()->generateUri($site->getRootPageId(), ['type' => self::FE_PREVIEW_TYPE, 'uriToCheck' => $uriToCheck]);
+                    $uri = (string) $site->getRouter()->generateUri(
+                        $site->getRootPageId(),
+                        [
+                            'type' => self::FE_PREVIEW_TYPE,
+                            'uriToCheck' => $uriToCheck,
+                            'xYoastPageRequest' => GeneralUtility::hmac($uriToCheck)
+                        ]
+                    );
                 } else {
                     $uri = BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
                 }
