@@ -1,5 +1,5 @@
 .yoast-seo {
-  padding: 15px 0;
+  padding: 15px;
   background-color: #FFF; }
 
 .yoast-seo-snippet-header {
@@ -75,6 +75,14 @@
   padding: 15px;
   border: 1px solid #cccccc;
   background-color: #FFF; }
+
+.yoast-seo-snippet-preview-styling fieldset legend {
+  font-size: 12px !important;
+  border-bottom: 0 !important; }
+
+.yoast-seo-snippet-preview-styling fieldset label {
+  font-size: 12px !important;
+  font-weight: normal; }
 
 div.yoast-analysis button {
   background-color: inherit !important;
