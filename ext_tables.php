@@ -3,9 +3,16 @@
 if (TYPO3_MODE === 'BE') {
     $_EXTKEY = 'yoast_seo';
 
-    $GLOBALS['TBE_MODULES'] = array_slice($GLOBALS['TBE_MODULES'], 0, 1, true) +
-        ['yoast' => ''] +
-        array_slice($GLOBALS['TBE_MODULES'], 1, count($GLOBALS['TBE_MODULES']) - 1, true);
+    $offset = 0;
+    \TYPO3\CMS\Extbase\Utility\DebuggerUtility::var_dump($GLOBALS['TBE_MODULES']);
+    foreach ($GLOBALS['TBE_MODULES'] as $key => $_) {
+        if ($key == 'web') {
+            $GLOBALS['TBE_MODULES'] = array_slice($GLOBALS['TBE_MODULES'], 0, ($offset + 1), true) +
+                ['yoast' => ''] +
+                array_slice($GLOBALS['TBE_MODULES'], $offset + 1, count($GLOBALS['TBE_MODULES']) - 1, true);
+        }
+        $offset++;
+    }
 
     $GLOBALS['TBE_MODULES']['_configuration']['yoast'] = [
         'iconIdentifier' => 'module-yoast',
