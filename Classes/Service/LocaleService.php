@@ -54,7 +54,7 @@ class LocaleService
             )) !== false
             && file_exists($translationFilePath)
         ) {
-            return json_decode(file_get_contents($translationFilePath));
+            return json_decode(file_get_contents($translationFilePath), true);
         }
         return [];
     }
