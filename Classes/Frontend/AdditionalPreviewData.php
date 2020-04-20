@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Frontend;
 
-
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\TypoScript\TemplateService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -41,7 +40,6 @@ class AdditionalPreviewData implements SingletonInterface
         $config = $this->getPageTitlePrependAppend();
         $params['headerData']['YoastPreview'] = '<meta name="x-yoast-title-config" value="' . (string)$config['prepend'] . '|||' . (string)$config['append'] . '" />';
     }
-
 
     /**
      * Get page title prepend append
