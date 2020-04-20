@@ -84,6 +84,7 @@ $defaultConfiguration = [
         'page' => 1,
         'backend_section' => 5
     ],
+    'allowDoktypesFromTypoScript' => true,
     'translations' => [
         'availableLocales' => [
             'bg_BG',
@@ -162,10 +163,12 @@ $defaultConfiguration = [
     ]
 ];
 
-$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = array_merge_recursive(
+\TYPO3\CMS\Core\Utility\ArrayUtility::mergeRecursiveWithOverrule(
     $defaultConfiguration,
     (array)$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']
 );
+$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = $defaultConfiguration;
+unset($defaultConfiguration);
 
 // allow social meta fields to be overlaid
 $GLOBALS['TYPO3_CONF_VARS']['FE']['pageOverlayFields'] .=

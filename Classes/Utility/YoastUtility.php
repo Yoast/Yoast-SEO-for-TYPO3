@@ -38,7 +38,7 @@ class YoastUtility
     {
         $allowedDoktypes = array_values((array)$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes']);
 
-        if ($configuration === null) {
+        if ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowDoktypesFromTypoScript'] && $configuration === null) {
             $configuration = self::getTypoScriptConfiguration();
         }
 
