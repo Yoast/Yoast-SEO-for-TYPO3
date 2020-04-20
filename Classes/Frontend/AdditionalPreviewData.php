@@ -4,8 +4,8 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Frontend;
 
 use TYPO3\CMS\Core\SingletonInterface;
-use TYPO3\CMS\Core\TypoScript\TemplateService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
 /**
  * This class will take care of the different providers and returns the title with
@@ -22,15 +22,18 @@ class AdditionalPreviewData implements SingletonInterface
      */
     private $siteTitle;
 
+    /**
+     * @var \TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer
+     */
+    private $cObj;
+
     public function __construct()
     {
-        $templateService = GeneralUtility::makeInstance(TemplateService::class);
-        $templateService->init();
-        $templateService->start($GLOBALS['TSFE']->rootLine);
-
-        $this->config = $templateService->setup['config.'] ?? [];
-        $this->siteTitle = $templateService->setup['sitetitle'] ?? '';
+        $this->config = $GLOBALS['TSFE']->tmpl->setup['config.'] ?? [];
+        $this->siteTitle = $GLOBALS['TSFE']->tmpl->setup['sitetitle'] ?? '';
+        $this->cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
     }
+
     /**
      * @param array $params
      * @param object $pObj
