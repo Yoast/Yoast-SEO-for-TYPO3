@@ -6,6 +6,7 @@ namespace YoastSeoForTypo3\YoastSeo\Frontend;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
+use YoastSeoForTypo3\YoastSeo\Utility\YoastRequestHash;
 
 /**
  * This class will take care of the different providers and returns the title with
@@ -40,6 +41,11 @@ class AdditionalPreviewData implements SingletonInterface
      */
     public function render(&$params, $pObj)
     {
+        $serverParams = $GLOBALS['TYPO3_REQUEST'] ? $GLOBALS['TYPO3_REQUEST']->getServerParams() : $_SERVER;
+        if (YoastRequestHash::isValid($serverParams)) {
+            return;
+        }
+
         $config = $this->getPageTitlePrependAppend();
         $params['headerData']['YoastPreview'] = '<meta name="x-yoast-title-config" value="' . (string)$config['prepend'] . '|||' . (string)$config['append'] . '" />';
     }

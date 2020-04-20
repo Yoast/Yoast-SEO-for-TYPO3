@@ -17,7 +17,8 @@ class UsePageCache
      */
     public function usePageCache($pObj, $usePageCache): bool
     {
-        if ($GLOBALS['TYPO3_REQUEST'] !== null && YoastRequestHash::isValid($GLOBALS['TYPO3_REQUEST']->getServerParams())) {
+        $serverParams = $GLOBALS['TYPO3_REQUEST'] ? $GLOBALS['TYPO3_REQUEST']->getServerParams() : $_SERVER;
+        if (YoastRequestHash::isValid($serverParams)) {
             return false;
         }
         return $usePageCache;
