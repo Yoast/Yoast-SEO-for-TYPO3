@@ -145,7 +145,7 @@ class PreviewService
         $baseUrl = preg_replace('/' . preg_quote('/', '/') . '$/', '', $url);
 
         $faviconSrc = $baseUrl . '/favicon.ico';
-        $favIconFound = preg_match('/<link rel=\"shortcut icon\" href=\"(.*)\"/i', $content, $matchesFavIcon);
+        $favIconFound = preg_match('/<link rel=\"shortcut icon\" href=\"([^"]*)\"/i', $content, $matchesFavIcon);
         if ($favIconFound) {
             $faviconSrc = $matchesFavIcon[1];
         }
