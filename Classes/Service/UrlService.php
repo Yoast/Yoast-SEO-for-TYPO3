@@ -2,8 +2,10 @@
 declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
+use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\Routing\RouteNotFoundException;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
@@ -28,6 +30,19 @@ class UrlService
     protected $routeEnhancerError = false;
 
     /**
+     * @var \TYPO3\CMS\Backend\Routing\UriBuilder
+     */
+    protected $uriBuilder;
+
+    /**
+     * UrlService constructor.
+     */
+    public function __construct()
+    {
+        $this->uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
+    }
+
+    /**
      * Get target url
      *
      * @param int $pageId
@@ -35,7 +50,7 @@ class UrlService
      * @param string $additionalGetVars
      * @return string
      */
-    public function getTargetUrl(
+    public function getPreviewUrl(
         int $pageId,
         int $languageId,
         $additionalGetVars = ''
@@ -67,12 +82,14 @@ class UrlService
                         (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams)
                     );
 
-                    $uri = '/?type=' . self::FE_PREVIEW_TYPE . '&uriToCheck=' . urlencode($uriToCheck);
+                    $uri = (string)$this->uriBuilder->buildUriFromRoute('ajax_yoast_preview', [
+                        'uriToCheck' => $uriToCheck, 'pageId' => $finalPageIdToShow
+                    ]);
                 } else {
                     $uri = BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
                 }
             } else {
-                $uri = '/?type=' . self::FE_PREVIEW_TYPE . '&pageIdToCheck=' . $pageId . '&languageIdToCheck=' . $languageId;
+                $uri = $this->getUrlForType(self::FE_PREVIEW_TYPE, '&pageIdToCheck=' . $pageId . '&languageIdToCheck=' . $languageId);
             }
 
             return $uri;
@@ -114,12 +131,27 @@ class UrlService
     }
 
     /**
-     * @param int $type
+     * Get save scores url
+     *
      * @return string
      */
-    public function getUrlForType($type): string
+    public function getSaveScoresUrl()
     {
-        return '/?type=' . $type;
+        try {
+            return (string)$this->uriBuilder->buildUriFromRoute('ajax_yoast_save_scores');
+        } catch (RouteNotFoundException $e) {
+            return '';
+        }
+    }
+
+    /**
+     * @param int $type
+     * @param string $additionalGetParameters
+     * @return string
+     */
+    public function getUrlForType($type, $additionalGetParameters = ''): string
+    {
+        return GeneralUtility::getIndpEnv('TYPO3_SITE_PATH') . '?type=' . $type . $additionalGetParameters;
     }
 
     /**
