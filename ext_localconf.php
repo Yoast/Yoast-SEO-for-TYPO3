@@ -3,6 +3,8 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['cms/layout/db_layout.php']['drawHeade
     = \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::class . '->render';
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][]
     = \YoastSeoForTypo3\YoastSeo\StructuredData\StructuredDataProviderManager::class . '->render';
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][]
+    = \YoastSeoForTypo3\YoastSeo\Frontend\AdditionalPreviewData::class . '->render';
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['usePageCache'][]
     = \YoastSeoForTypo3\YoastSeo\Frontend\UsePageCache::class;
 

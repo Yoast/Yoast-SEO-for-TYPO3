@@ -4,10 +4,13 @@ namespace YoastSeoForTypo3\YoastSeo\Controller;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Http\HtmlResponse;
+use TYPO3\CMS\Core\Http\NullResponse;
 use TYPO3\CMS\Core\TypoScript\TemplateService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Frontend\Page\PageRepository;
+use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use YoastSeoForTypo3\YoastSeo\Service\PreviewService;
 
 /**
@@ -23,24 +26,17 @@ class AjaxController
      * @throws \Exception
      */
     public function previewAction(
-        ServerRequestInterface $request,
-        ResponseInterface $response
+        ServerRequestInterface $request
     ): ResponseInterface {
         $queryParams = $request->getQueryParams();
 
-        $pageRepository = GeneralUtility::makeInstance(PageRepository::class);
-        $templateService = GeneralUtility::makeInstance(TemplateService::class);
-        $templateService->start($pageRepository->getRootLine((int)$queryParams['pageId']));
-
         $previewService = GeneralUtility::makeInstance(PreviewService::class);
-        $response->getBody()->write($previewService->getPreviewData(
+        $content = $previewService->getPreviewData(
             $queryParams['uriToCheck'],
-            (int)$queryParams['pageId'],
-            $templateService->setup['config.'] ?? [],
-            $templateService->setup['sitetitle'] ?? ''
-        ));
+            (int)$queryParams['pageId']
+        );
 
-        return $response;
+        return new HtmlResponse($content);
     }
 
     /**

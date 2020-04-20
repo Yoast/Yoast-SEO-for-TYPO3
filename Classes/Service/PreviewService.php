@@ -26,13 +26,6 @@ class PreviewService
     protected $config;
 
     /**
-     * Site title
-     *
-     * @var string
-     */
-    protected $siteTitle;
-
-    /**
      * @var \TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer
      */
     protected $cObj;
@@ -42,15 +35,12 @@ class PreviewService
      *
      * @param string $uriToCheck
      * @param int $pageId
-     * @param array $config
-     * @param string $siteTitle
      * @return false|string
      */
-    public function getPreviewData($uriToCheck, $pageId, $config, $siteTitle)
+    public function getPreviewData($uriToCheck, $pageId)
     {
         $this->pageId = $pageId;
-        $this->config = $config;
-        $this->siteTitle = $siteTitle;
+
         $this->cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
 
         try {
@@ -154,7 +144,9 @@ class PreviewService
             $faviconSrc = '';
         }
 
-        $titlePrependAppend = $this->getPageTitlePrependAppend();
+        preg_match('/<meta name=\"x-yoast-title-config\" value=\"([^"]*)\"/i', $content, $matchesTitleConfig);
+        list($titlePrepend, $titleAppend) = explode('|||', (string)$matchesTitleConfig[1]);
+
         if ($content !== null) {
             return [
                 'id' => $this->pageId,
@@ -164,67 +156,12 @@ class PreviewService
                 'title' => $title,
                 'description' => $metaDescription,
                 'locale' => $locale,
-                'body' => $body,
+                'body' => trim($body),
                 'faviconSrc' => $faviconSrc,
-                'pageTitlePrepend' => $titlePrependAppend['prepend'],
-                'pageTitleAppend' => $titlePrependAppend['append'],
+                'pageTitlePrepend' => $titlePrepend,
+                'pageTitleAppend' => $titleAppend,
             ];
         }
         return [];
-    }
-
-    /**
-     * Get page title prepend append
-     *
-     * @return array
-     */
-    protected function getPageTitlePrependAppend(): array
-    {
-        $prependAppend = ['prepend' => '', 'append' => ''];
-        $siteTitle = trim($this->siteTitle);
-        $pageTitleFirst = (bool)($this->config['pageTitleFirst'] ?? false);
-        $pageTitleSeparator = $this->getPageTitleSeparator();
-        // only show a separator if there are both site title and page title
-        if ($siteTitle === '') {
-            $pageTitleSeparator = '';
-        } elseif (empty($pageTitleSeparator)) {
-            // use the default separator if non given
-            $pageTitleSeparator = ': ';
-        }
-
-        if ($pageTitleFirst) {
-            $prependAppend['append'] = $pageTitleSeparator . $siteTitle;
-        } else {
-            $prependAppend['prepend'] = $siteTitle . $pageTitleSeparator;
-        }
-
-        return $prependAppend;
-    }
-
-    /**
-     * Get page title separator
-     *
-     * @return string
-     */
-    protected function getPageTitleSeparator(): string
-    {
-        $pageTitleSeparator = '';
-        // Check for a custom pageTitleSeparator, and perform stdWrap on it
-        if (isset($this->config['pageTitleSeparator'])
-            && $this->config['pageTitleSeparator'] !== '') {
-            $pageTitleSeparator = $this->config['pageTitleSeparator'];
-
-            if (isset($this->config['pageTitleSeparator.'])
-                && is_array($this->config['pageTitleSeparator.'])) {
-                $pageTitleSeparator = $this->cObj->stdWrap(
-                    $pageTitleSeparator,
-                    $this->config['pageTitleSeparator.']
-                );
-            } else {
-                $pageTitleSeparator .= ' ';
-            }
-        }
-
-        return $pageTitleSeparator;
     }
 }
