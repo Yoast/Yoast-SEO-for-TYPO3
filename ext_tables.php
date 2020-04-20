@@ -4,7 +4,6 @@ if (TYPO3_MODE === 'BE') {
     $_EXTKEY = 'yoast_seo';
 
     $offset = 0;
-    \TYPO3\CMS\Extbase\Utility\DebuggerUtility::var_dump($GLOBALS['TBE_MODULES']);
     foreach ($GLOBALS['TBE_MODULES'] as $key => $_) {
         if ($key == 'web') {
             $GLOBALS['TBE_MODULES'] = array_slice($GLOBALS['TBE_MODULES'], 0, ($offset + 1), true) +
