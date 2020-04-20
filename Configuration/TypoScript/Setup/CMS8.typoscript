@@ -278,6 +278,7 @@ yoast_seo_preview {
         absRefPrefix = /
 
         no_cache = 1
+        debug = 0
 
         additionalHeaders {
             10 {

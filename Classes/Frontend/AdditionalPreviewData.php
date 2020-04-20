@@ -26,6 +26,7 @@ class AdditionalPreviewData implements SingletonInterface
     public function __construct()
     {
         $templateService = GeneralUtility::makeInstance(TemplateService::class);
+        $templateService->init();
         $templateService->start($GLOBALS['TSFE']->rootLine);
 
         $this->config = $templateService->setup['config.'] ?? [];

@@ -27,6 +27,14 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['usePageCa
     '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/setup.typoscript">'
 );
 
+if (version_compare(TYPO3_branch, '9.5', '<')) {
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
+        'YoastSeoCms8',
+        'setup',
+        '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/Setup/CMS8.typoscript">'
+    );
+}
+
 $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514550050] = array(
     'nodeName' => 'snippetPreview',
     'priority' => 40,

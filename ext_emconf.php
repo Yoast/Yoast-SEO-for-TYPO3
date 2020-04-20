@@ -13,10 +13,11 @@ $EM_CONF[$_EXTKEY] = array(
     'version' => '6.0.0-dev',
     'constraints' => array(
         'depends' => array(
-            'typo3' => '9.5.0-10.4.99',
+            'typo3' => '8.7.0-10.4.99',
+        ),
+        'conflicts' => array(
             'seo' => ''
         ),
-        'conflicts' => array(),
         'suggests' => array(),
     ),
     'autoload' => array(
