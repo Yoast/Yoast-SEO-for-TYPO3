@@ -6,6 +6,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Http\HtmlResponse;
+use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Service\PreviewService;
 
@@ -42,7 +43,7 @@ class AjaxController
      */
     public function saveScoresAction(
         ServerRequestInterface $request,
-        ResponseInterface $response
+        ResponseInterface $response = null
     ): ResponseInterface {
         $json = file_get_contents('php://input');
         $data = json_decode($json);
@@ -50,6 +51,10 @@ class AjaxController
         if (!empty($data->table) && !empty($data->uid)) {
             $this->saveScores($data);
         }
+        if ($response === null) {
+            return new JsonResponse(['OK']);
+        }
+
         $response->getBody()->write(json_encode(['OK']));
         return $response;
     }
