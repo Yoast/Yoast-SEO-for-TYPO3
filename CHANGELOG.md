@@ -11,7 +11,7 @@ Besides the free version of our plugin, we also have a premium version. The free
 
 ## Unreleased 6.0.0-dev
 ### Added
-* You can use Yoast SEO now with TYPO3 v10 LTS as well without loosing support for TYPO3 v8
+* You can use Yoast SEO now with TYPO3 v10 LTS. We did the update without losing support for TYPO3 v8. So this update is available for TYPO3 v8, v9 and v10.
 * Added word form support for Dutch (Yoast library)
 * Added the transition word assessment for Hungarian (Yoast library)
 
