@@ -8,6 +8,16 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+
+## Unreleased 6.0.0-dev
+### Added
+* You can use Yoast SEO now with TYPO3 v10 LTS as well without loosing support for TYPO3 v8
+* Added word form support for Dutch (Yoast library)
+* Added the transition word assessment for Hungarian (Yoast library)
+
+### Changed
+* Updated Snippet Preview layout (Yoast library)
+
 ## 5.1.0 September 20, 2019
 ### Added
 * Visually updated snippet preview to match latest changes on Google.
