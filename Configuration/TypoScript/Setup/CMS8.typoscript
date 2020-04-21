@@ -255,6 +255,7 @@ yoast_seo_sitemap {
     config {
         disableAllHeaderCode = 1
         admPanel = 0
+        debug = 0
         removeDefaultJS = 1
         xhtml_cleaning = 0
         removeDefaultCss = 1
