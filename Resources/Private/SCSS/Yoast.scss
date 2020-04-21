@@ -2,7 +2,7 @@
 
 
 .yoast-seo {
-	padding: 15px 0;
+	padding: 15px;
 	background-color: $color-white;
 }
 
@@ -111,6 +111,20 @@
 	padding: 15px;
 	border: 1px solid $color_border;
 	background-color: $color-white;
+}
+
+.yoast-seo-snippet-preview-styling {
+	fieldset {
+		legend {
+			font-size: 12px !important;
+			border-bottom: 0 !important;
+		}
+
+		label {
+			font-size: 12px !important;
+			font-weight: normal;
+		}
+	}
 }
 
 div.yoast-analysis {

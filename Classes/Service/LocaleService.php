@@ -54,9 +54,26 @@ class LocaleService
             )) !== false
             && file_exists($translationFilePath)
         ) {
-            return json_decode(file_get_contents($translationFilePath));
+            return json_decode(file_get_contents($translationFilePath), true);
         }
         return [];
+    }
+
+    /**
+     * Get labels
+     *
+     * @return array
+     */
+    public function getLabels(): array
+    {
+        $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:label';
+        return [
+            'readability' => $GLOBALS['LANG']->sL($llPrefix . 'Readability'),
+            'seo' => $GLOBALS['LANG']->sL($llPrefix . 'Seo'),
+            'bad' => $GLOBALS['LANG']->sL($llPrefix . 'Bad'),
+            'ok' => $GLOBALS['LANG']->sL($llPrefix . 'Ok'),
+            'good' => $GLOBALS['LANG']->sL($llPrefix . 'Good')
+        ];
     }
 
     /**

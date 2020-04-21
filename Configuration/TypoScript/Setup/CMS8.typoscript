@@ -255,6 +255,7 @@ yoast_seo_sitemap {
     config {
         disableAllHeaderCode = 1
         admPanel = 0
+        debug = 0
         removeDefaultJS = 1
         xhtml_cleaning = 0
         removeDefaultCss = 1
@@ -268,4 +269,29 @@ yoast_seo_sitemap {
 
     10 = USER_INT
     10.userFunc = YoastSeoForTypo3\YoastSeo\UserFunctions\XmlSitemap->render
+}
+
+yoast_seo_preview = PAGE
+yoast_seo_preview {
+    typeNum = {$config.yoast_seo.fe_preview_type}
+    config {
+        disableAllHeaderCode = 1
+        absRefPrefix = /
+
+        no_cache = 1
+        debug = 0
+
+        additionalHeaders {
+            10 {
+                header = Content-type: application/json; charset=UTF-8
+            }
+
+            20 {
+                header = Access-Control-Allow-Origin: *
+            }
+        }
+    }
+
+    10 = USER_INT
+    10.userFunc = YoastSeoForTypo3\YoastSeo\UserFunctions\SnippetPreview->render
 }

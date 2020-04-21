@@ -27,8 +27,8 @@ class SnippetPreview extends React.Component {
             } else {
                 element = (
                     <React.Fragment>
-                        <YoastSnippetPreview {...this.props} mode={this.state.mode} onMouseUp={() => {}} />
                         <ModeSwitcher onChange={(newMode) => this.setState({mode: newMode})} active={this.state.mode}/>
+                        <YoastSnippetPreview {...this.props} mode={this.state.mode} onMouseUp={() => {}} />
                     </React.Fragment>
                 );
             }

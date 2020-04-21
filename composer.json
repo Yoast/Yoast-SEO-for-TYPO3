@@ -23,20 +23,19 @@
   ],
   "homepage": "https://yoast.com",
   "require": {
-    "typo3/cms-core": "^8.7|^9.5",
+    "typo3/cms-core": "^8.7|^9.5|^10.3",
     "ext-curl": "*",
     "ext-json": "*",
     "php": "^7.0"
   },
   "suggest": {
-    "typo3/cms-seo": "^9.5"
+    "typo3/cms-seo": "^9.5|^10.3"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^2.0",
     "nimut/testing-framework": "^4.1"
   },
   "replace": {
-    "yoast_seo": "self.version",
     "typo3-ter/yoast-seo": "self.version"
   },
   "autoload": {

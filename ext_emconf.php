@@ -10,15 +10,15 @@ $EM_CONF[$_EXTKEY] = array(
     'dependencies' => '',
     'state' => 'stable',
     'uploadfolder' => 0,
-    'version' => '5.1.1',
+    'version' => '6.0.0-dev',
     'constraints' => array(
         'depends' => array(
-            'typo3' => '8.7.0-9.5.99',
+            'typo3' => '8.7.0-10.4.99',
         ),
-        'conflicts' => array(),
-        'suggests' => array(
+        'conflicts' => array(
             'seo' => ''
         ),
+        'suggests' => array(),
     ),
     'autoload' => array(
         'psr-4' => array('YoastSeoForTypo3\\YoastSeo\\' => 'Classes')

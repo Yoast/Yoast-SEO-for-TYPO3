@@ -1,9 +1,14 @@
 <?php
 namespace YoastSeoForTypo3\YoastSeo\Backend;
 
+use TYPO3\CMS\Backend\Controller\PageLayoutController;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS;
+use TYPO3\CMS\Core\Utility\PathUtility;
 use YoastSeoForTypo3\YoastSeo\Service\LocaleService;
 use YoastSeoForTypo3\YoastSeo\Service\UrlService;
 use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
@@ -19,16 +24,16 @@ class PageLayoutHeader
     /**
      * @var array
      */
-    protected $configuration = array(
-        'translations' => array(
-            'availableLocales' => array(),
-            'languageKeyToLocaleMapping' => array()
-        ),
-        'menuActions' => array(),
+    protected $configuration = [
+        'translations' => [
+            'availableLocales' => [],
+            'languageKeyToLocaleMapping' => []
+        ],
+        'menuActions' => [],
         'previewDomain' => null,
         'previewUrlTemplate' => '',
-        'viewSettings' => array()
-    );
+        'viewSettings' => []
+    ];
 
     /**
      * @var \YoastSeoForTypo3\YoastSeo\Service\LocaleService
@@ -41,7 +46,7 @@ class PageLayoutHeader
     protected $urlService;
 
     /**
-     * @var CMS\Core\Page\PageRenderer
+     * @var \TYPO3\CMS\Core\Page\PageRenderer
      */
     protected $pageRenderer;
 
@@ -59,9 +64,9 @@ class PageLayoutHeader
             );
         }
 
-        $this->localeService = CMS\Core\Utility\GeneralUtility::makeInstance(LocaleService::class, $this->configuration);
+        $this->localeService = GeneralUtility::makeInstance(LocaleService::class, $this->configuration);
         $this->urlService = GeneralUtility::makeInstance(UrlService::class);
-        $this->pageRenderer = CMS\Core\Utility\GeneralUtility::makeInstance(CMS\Core\Page\PageRenderer::class);
+        $this->pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
     }
 
     /**
@@ -69,74 +74,31 @@ class PageLayoutHeader
      */
     public function render()
     {
-        $moduleData = CMS\Backend\Utility\BackendUtility::getModuleData(['language'], [], 'web_layout');
+        $moduleData = BackendUtility::getModuleData(['language'], [], 'web_layout');
         $pageId = (int)$_GET['id'];
 
-        if (!$GLOBALS['BE_USER'] instanceof CMS\Core\Authentication\BackendUserAuthentication ||
-            !$GLOBALS['BE_USER']->check('non_exclude_fields', 'pages:tx_yoastseo_snippetpreview')) {
+        if (!$this->showSnippetPreview()) {
             return '';
         }
 
-        if ((bool)$GLOBALS['BE_USER']->uc['hideYoastInPageModule']) {
+        $currentPage = $this->getCurrentPage($pageId, $moduleData);
+        if (!YoastUtility::snippetPreviewEnabled($pageId, $currentPage)) {
             return '';
         }
 
-        /** @var CMS\Backend\Controller\PageLayoutController $pageLayoutController */
-        $pageLayoutController = $GLOBALS['SOBE'];
-
-        $currentPage = null;
-        $recordId = $pageId;
-        $targetElementId = uniqid('_YoastSEO_panel_');
-        $publicResourcesPath = CMS\Core\Utility\PathUtility::getAbsoluteWebPath(CMS\Core\Utility\ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
-        if ($pageLayoutController instanceof CMS\Backend\Controller\PageLayoutController
-            && $pageId > 0
-            && (int)$moduleData['language'] === 0
-        ) {
-            $currentPage = CMS\Backend\Utility\BackendUtility::getRecord(
-                'pages',
-                $pageId
-            );
-        } elseif ($pageLayoutController instanceof CMS\Backend\Controller\PageLayoutController
-            && $pageId > 0
-            && (int)$moduleData['language'] > 0
-        ) {
-            $overlayRecords = CMS\Backend\Utility\BackendUtility::getRecordLocalization(
-                'pages',
-                $pageId,
-                (int)$moduleData['language']
-            );
-
-            if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
-                $recordId = $overlayRecords[0]['uid'];
-                $currentPage = $overlayRecords[0];
-            }
-        }
-
-        if (!YoastUtility::snippetPreviewEnabled(
-            $pageId,
-            $currentPage
-        )
-        ) {
-            return '';
-        }
+        $publicResourcesPath = PathUtility::getAbsoluteWebPath(
+            ExtensionManagementUtility::extPath('yoast_seo')
+        ) . 'Resources/Public/';
 
         $allowedDoktypes = YoastUtility::getAllowedDoktypes();
         if (is_array($currentPage) &&
             array_key_exists('doktype', $currentPage) &&
             in_array((int)$currentPage['doktype'], $allowedDoktypes, true)
         ) {
-            $labelReadability = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelReadability');
-            $labelSeo = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelSeo');
-            $labelBad = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelBad');
-            $labelOk = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelOk');
-            $labelGood = $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:labelGood');
-
-            $previewDataUrl = $this->urlService->getTargetUrl($pageId, (int)$moduleData['language']);
-
             $config = [
                 'urls' => [
-                    'previewUrl' => $previewDataUrl,
-                    'saveScores' => $this->urlService->getUrlForType(1553260291),
+                    'previewUrl' => $this->urlService->getPreviewUrl($pageId, (int)$moduleData['language']),
+                    'saveScores' => $this->urlService->getSaveScoresUrl(),
                     'prominentWords' => $this->urlService->getUrlForType(1539541406),
                 ],
                 'useKeywordDistribution' => YoastUtility::isPremiumInstalled(),
@@ -146,13 +108,7 @@ class PageLayoutHeader
                     'keyword' => (string)$currentPage['tx_yoastseo_focuskeyword'],
                     'synonyms' => (string)$currentPage['tx_yoastseo_focuskeyword_synonyms'],
                 ],
-                'labels' => [
-                    'readability' => $labelReadability,
-                    'seo' => $labelSeo,
-                    'bad' => $labelBad,
-                    'ok' => $labelOk,
-                    'good' => $labelGood
-                ],
+                'labels' => $this->localeService->getLabels(),
                 'fieldSelectors' => [],
                 'translations' => $this->localeService->getTranslations(),
                 'data' => [
@@ -166,13 +122,11 @@ class PageLayoutHeader
 
             $this->pageRenderer->addJsInlineCode('yoast-json-config', $jsonConfigUtility->render());
 
-            $this->pageRenderer->addRequireJsConfiguration(
-                array(
-                    'paths' => array(
-                        'YoastSEO' => $publicResourcesPath . 'JavaScript/'
-                    )
-                )
-            );
+            $this->pageRenderer->addRequireJsConfiguration([
+                'paths' => [
+                    'YoastSEO' => $publicResourcesPath . 'JavaScript/'
+                ]
+            ]);
 
             if (YoastUtility::inProductionMode() === true) {
                 $this->pageRenderer->loadRequireJsModule('YoastSEO/dist/plugin');
@@ -181,22 +135,77 @@ class PageLayoutHeader
             }
 
             $this->pageRenderer->loadRequireJsModule('YoastSEO/yoastModal');
+            $this->pageRenderer->addCssFile($publicResourcesPath . 'CSS/yoast.min.css');
 
-            $this->pageRenderer->addCssFile(
-                $publicResourcesPath . 'CSS/yoast.min.css'
+            return $this->getReturnHtml();
+        }
+        return '';
+    }
+
+    /**
+     * Check to see if snippet preview has to be shown
+     *
+     * @return bool
+     */
+    protected function showSnippetPreview(): bool
+    {
+        if (!$GLOBALS['BE_USER'] instanceof BackendUserAuthentication ||
+            !$GLOBALS['BE_USER']->check('non_exclude_fields', 'pages:tx_yoastseo_snippetpreview')) {
+            return false;
+        }
+
+        if ((bool)$GLOBALS['BE_USER']->uc['hideYoastInPageModule']) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @param $pageId
+     * @param $moduleData
+     * @return array|mixed|null
+     */
+    protected function getCurrentPage($pageId, $moduleData)
+    {
+        /** @var \TYPO3\CMS\Backend\Controller\PageLayoutController $pageLayoutController */
+        $pageLayoutController = $GLOBALS['SOBE'];
+
+        $currentPage = null;
+
+        if ($pageLayoutController instanceof PageLayoutController
+            && $pageId > 0
+            && (int)$moduleData['language'] === 0
+        ) {
+            $currentPage = BackendUtility::getRecord(
+                'pages',
+                $pageId
+            );
+        } elseif ($pageLayoutController instanceof PageLayoutController
+            && $pageId > 0
+            && (int)$moduleData['language'] > 0
+        ) {
+            $overlayRecords = BackendUtility::getRecordLocalization(
+                'pages',
+                $pageId,
+                (int)$moduleData['language']
             );
 
-            $premiumText = '';
-            if (!YoastUtility::isPremiumInstalled()) {
-                $premiumText = '
-                <div class="yoast-seo-snippet-header-premium">
-                    <a target="_blank" rel="noopener noreferrer" href="' . YoastUtility::getYoastLink('Go premium', 'pagemodule-snippetpreview') . '">
-                        <i class="fa fa-star"></i>' . $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:goPremium') . '
-                    </a>
-                </div>';
+            if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
+                $currentPage = $overlayRecords[0];
             }
+        }
+        return $currentPage;
+    }
 
-            $returnHtml = '
+    /**
+     * @return string
+     */
+    protected function getReturnHtml(): string
+    {
+        $premiumText = $this->getPremiumText();
+        $targetElementId = uniqid('_YoastSEO_panel_');
+
+        $returnHtml = '
                 <div class="yoast-seo-score-bar">
                     <span class="yoast-seo-score-bar--analysis yoast-seo-page" data-yoast-analysis-type="readability"></span>
                     <span class="yoast-seo-score-bar--analysis yoast-seo-page" data-yoast-analysis-type="seo"></span>
@@ -206,10 +215,10 @@ class PageLayoutHeader
                     <div class="yoast-snippet-header-label">Yoast SEO</div>
                 </div>';
 
-            if ($this->urlService->getRouteEnhancerError() === false) {
-                $returnHtml .= '
+        if ($this->urlService->getRouteEnhancerError() === false) {
+            $returnHtml .= '
                 <input id="focusKeyword" style="display: none" />
-                <div id="' . $targetElementId . '" class="t3-grid-cell yoast-seo" data-yoast-snippetpreview>
+                <div id="' . $targetElementId . '" class="t3-grid-cell yoast-seo yoast-seo-snippet-preview-styling" style="padding: 10px;" data-yoast-snippetpreview>
                     <!-- ' . $targetElementId . ' -->
                     <div class="spinner">
                       <div class="bounce bounce1"></div>
@@ -220,8 +229,8 @@ class PageLayoutHeader
                 <div data-yoast-analysis="readability" id="YoastPageHeaderAnalysisReadability" data-yoast-subtype="" class="hidden yoast-analysis"></div>
                 <div data-yoast-analysis="seo" id="YoastPageHeaderAnalysisSeo" data-yoast-subtype="" class="hidden yoast-analysis"></div>
                 ';
-            } else {
-                $returnHtml .= '
+        } else {
+            $returnHtml .= '
                 <div class="t3-grid-cell yoast yoast-seo" style="background-color: #fff;">
                     <div class="callout callout-warning callout-body">
                         It seems that you have configured routeEnhancers for this site with type pageType. When you do this, it is necessary that you also add the pageType for the Yoast Snippetpreview.<br />
@@ -229,8 +238,25 @@ class PageLayoutHeader
                         <strong><a href="https://docs.typo3.org/typo3cms/extensions/core/Changelog/9.5/Feature-86160-PageTypeEnhancerForMappingTypeParameter.html" target="_blank">You can find an example configuration here.</a></strong>
                     </div>
                 </div>';
-            }
-            return $returnHtml;
+        }
+
+        return $returnHtml;
+    }
+
+    /**
+     * Get premium text
+     *
+     * @return string
+     */
+    protected function getPremiumText(): string
+    {
+        if (!YoastUtility::isPremiumInstalled()) {
+            return '
+                <div class="yoast-seo-snippet-header-premium">
+                    <a target="_blank" rel="noopener noreferrer" href="' . YoastUtility::getYoastLink('Go premium', 'pagemodule-snippetpreview') . '">
+                        <i class="fa fa-star"></i>' . $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:goPremium') . '
+                    </a>
+                </div>';
         }
         return '';
     }
