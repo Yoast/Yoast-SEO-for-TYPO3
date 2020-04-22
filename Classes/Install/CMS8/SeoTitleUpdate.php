@@ -1,5 +1,5 @@
 <?php
-namespace YoastSeoForTypo3\YoastSeo\Install;
+namespace YoastSeoForTypo3\YoastSeo\Install\CMS8;
 
 /*
  * This file is part of the TYPO3 CMS project.
@@ -18,13 +18,12 @@ use Doctrine\DBAL\Exception\InvalidFieldNameException;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Install\Updates\AbstractUpdate;
-use TYPO3\CMS\Install\Updates\UpgradeWizardInterface;
 
 /**
  * Class SeoTitleUpdate
  * @package YoastSeoForTypo3\YoastSeo\Install
  */
-class SeoTitleUpdate implements UpgradeWizardInterface
+class SeoTitleUpdate extends AbstractUpdate
 {
     public function getIdentifier(): string
     {
@@ -41,7 +40,7 @@ class SeoTitleUpdate implements UpgradeWizardInterface
         return 'Migrate data from tx_yoastseo_title to seo_title in pages table';
     }
 
-    public function executeUpdate(): bool
+    public function performUpdate(array &$databaseQueries, &$customMessage): bool
     {
         $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('pages');
         $qb->getRestrictions()->removeAll();
@@ -70,8 +69,12 @@ class SeoTitleUpdate implements UpgradeWizardInterface
         return true;
     }
 
-    public function updateNecessary(): bool
+    public function checkForUpdate(&$description): bool
     {
+        if ($this->isWizardDone()) {
+            return false;
+        }
+
         $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('pages');
         $qb->getRestrictions()->removeAll();
 
@@ -90,10 +93,5 @@ class SeoTitleUpdate implements UpgradeWizardInterface
             // Not needed to update when the old column doesn't exist
             return false;
         }
-    }
-
-    public function getPrerequisites(): array
-    {
-        return [];
     }
 }

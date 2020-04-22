@@ -1,18 +1,30 @@
 <?php
-namespace YoastSeoForTypo3\YoastSeo\Install;
+namespace YoastSeoForTypo3\YoastSeo\Install\CMS8;
+
+/*
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ */
 
 use Doctrine\DBAL\Exception\InvalidFieldNameException;
-use Doctrine\DBAL\Exception\TableNotFoundException;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Install\Updates\UpgradeWizardInterface;
+use TYPO3\CMS\Install\Updates\AbstractUpdate;
 
 /**
  * Class CanonicalFieldUpdate
  * @package YoastSeoForTypo3\YoastSeo\Install
  */
-class CanonicalFieldUpdate implements UpgradeWizardInterface
+class CanonicalFieldUpdate extends AbstractUpdate
 {
     /**
      * @return string
@@ -39,39 +51,11 @@ class CanonicalFieldUpdate implements UpgradeWizardInterface
     }
 
     /**
-     * Check for migration
-     *
-     * @param $tableName
+     * @param array $databaseQueries
+     * @param string $customMessage
      * @return bool
      */
-    protected function checkForMigration($tableName): bool
-    {
-        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($tableName);
-        $qb->getRestrictions()->removeAll();
-
-        try {
-            $qb->select('*')
-                ->from($tableName)
-                ->where(
-                    $qb->expr()->andX(
-                        $qb->expr()->orX(
-                            $qb->expr()->isNotNull('canonical_url'),
-                            $qb->expr()->neq('canonical_url', $qb->createNamedParameter(''))
-                        ),
-                        $qb->expr()->eq('canonical_link', $qb->createNamedParameter(''))
-                    )
-                );
-            return (bool)$qb->execute()->rowCount();
-        } catch (TableNotFoundException $e) {
-            // Not needed to update when the table doesn't exist
-            return false;
-        } catch (InvalidFieldNameException $e) {
-            // Not needed to update when the old column doesn't exist
-            return false;
-        }
-    }
-
-    public function executeUpdate(): bool
+    public function performUpdate(array &$databaseQueries, &$customMessage): bool
     {
         foreach (['pages', 'pages_language_overlay'] as $tableName) {
             if ($this->checkForMigration($tableName)) {
@@ -100,25 +84,61 @@ class CanonicalFieldUpdate implements UpgradeWizardInterface
                         ->where(
                             $qb->expr()->eq('uid', $qb->createNamedParameter($row['uid'], Connection::PARAM_INT))
                         );
+                    $databaseQueries[] = $qb->getSQL();
                     $qb->execute();
                 }
             }
         }
+        $this->markWizardAsDone();
+
+        return true;
     }
 
-    public function updateNecessary(): bool
+    /**
+     * @param string $description
+     * @return bool
+     */
+    public function checkForUpdate(&$description): bool
     {
+        if ($this->isWizardDone()) {
+            return false;
+        }
+
         if ($this->checkForMigration('pages') === false
             && $this->checkForMigration('pages_language_overlay') === false) {
             return false;
         }
 
         return true;
-
     }
 
-    public function getPrerequisites(): array
+    /**
+     * Check for migration
+     *
+     * @param $tableName
+     * @return bool
+     */
+    protected function checkForMigration($tableName): bool
     {
-        return [];
+        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($tableName);
+        $qb->getRestrictions()->removeAll();
+
+        try {
+            $qb->select('*')
+                ->from($tableName)
+                ->where(
+                    $qb->expr()->andX(
+                        $qb->expr()->orX(
+                            $qb->expr()->isNotNull('canonical_url'),
+                            $qb->expr()->neq('canonical_url', $qb->createNamedParameter(''))
+                        ),
+                        $qb->expr()->eq('canonical_link', $qb->createNamedParameter(''))
+                    )
+                );
+            return (bool)$qb->execute()->rowCount();
+        } catch (InvalidFieldNameException $e) {
+            // Not needed to update when the old column doesn't exist
+            return false;
+        }
     }
 }

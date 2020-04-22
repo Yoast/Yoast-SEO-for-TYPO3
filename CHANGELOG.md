@@ -9,6 +9,10 @@ We will follow [Semantic Versioning](http://semver.org/).
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
 
+## Unreleased
+### Fixed
+* We fixed the error in the Upgrade Wizard in CMS 9 and 10.
+
 ## 6.0.0 April 21, 2020
 ### Added
 * You can use Yoast SEO now with TYPO3 v10 LTS. We did the update without losing support for TYPO3 v8. So this update is available for TYPO3 v8, v9 and v10.
@@ -32,7 +36,7 @@ Besides the free version of our plugin, we also have a premium version. The free
 * Restored the compatibility with PHP 7.0 ([#266](https://github.com/Yoast/Yoast-SEO-for-TYPO3/issues/266))
 * Prevent caching of page when analysing a page that is disabled. ([#272](https://github.com/Yoast/Yoast-SEO-for-TYPO3/issues/272))
 * When the base in site configuration is only `/`, the absolute URL (which is needed by the analysis) will now be based on the current domain. [#279](https://github.com/Yoast/Yoast-SEO-for-TYPO3/issues/279)
-* Made sure that if you set the allowed doktypes via `$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes']`, the doktypes will always be available when defining which fields in the page properties.  ([#283](https://github.com/Yoast/Yoast-SEO-for-TYPO3/issues/283))  
+* Made sure that if you set the allowed doktypes via `$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes']`, the doktypes will always be available when defining which fields in the page properties.  ([#283](https://github.com/Yoast/Yoast-SEO-for-TYPO3/issues/283))
 * The right URL to analyse the content is now generated when you have a multi-site setup
 
 ## 5.0.1 May 2, 2019
@@ -53,7 +57,7 @@ Besides the free version of our plugin, we also have a premium version. The free
 * Basic schema.org integration helping you to give structured data to search engines. In this basic version, we will help you with your breadcrumbs and your general site information.
 * Possibility for extension developers to create their own schema.org data providers
 * Focus keyword is now renamed to Focus keyphrase. You can find more information about the difference on https://yoast.com/difference-between-keyword-and-keyphrase/
-* All latest features now available for TYPO3 CMS v8LTS and v9LTS 
+* All latest features now available for TYPO3 CMS v8LTS and v9LTS
 * New single H1 assessment to check if only one H1 is used within the text
 
 ### Changed
@@ -73,30 +77,30 @@ Besides the free version of our plugin, we also have a premium version. The free
 
 ### Changed
 * Add check if route-enhancers are configured.
- 
+
 ### Fixed
 * We fixed some multi-domain and SSL related bugs.
-* Fixed HTML markup in modals in the page view. 
+* Fixed HTML markup in modals in the page view.
 
 ## 3.0.5 January 16, 2019
 ### Fixed
-* The sitemap will now also show mountpoints and other expected pages and will not show pages that are not available. 
+* The sitemap will now also show mountpoints and other expected pages and will not show pages that are not available.
 * Fixed problem with RealURL auto configuration that might override earlier set configuration.
 
 ## 4.0.0 November 23, 2018
 ### Changed
 * Added support for TYPO3 CMS 9LTS
-* In the v4.x branch, we dropped support for 7LTS and 8LTS. The v3.x will still support 7LTS and 8LTS   
+* In the v4.x branch, we dropped support for 7LTS and 8LTS. The v3.x will still support 7LTS and 8LTS
 
 ## 3.0.4 August 24, 2018
 ### Fixed
 * The update of YoastSEO.js caused some errors that needs to be investigated more. For now we reverted the update of YoastSEO.js
-* Fixed error about wrong value hidden when saving a page 
+* Fixed error about wrong value hidden when saving a page
 
 ## 3.0.3 August 23, 2018
 ### Fixed
 * Error when creating a page via the context menu is fixed now
-* Fixed the last_mod date for page records of the sitemap.xml 
+* Fixed the last_mod date for page records of the sitemap.xml
 
 ### Changed
 * Updated YoastSEO.js to version 1.38.1
@@ -151,7 +155,7 @@ get info on how to configure EXT:news or EXT:cal to use Yoast SEO for TYPO3.
 
 ## 2.0.2 February 26, 2018
 ### Fixed
-* Before showing the snippet preview in the Page module, we will now check if the user has the permissions for the right backend module 
+* Before showing the snippet preview in the Page module, we will now check if the user has the permissions for the right backend module
 * Fixed some linting issues causing some CI processes to fail
 
 ## 2.0.1 February 16, 2018
@@ -170,7 +174,7 @@ get info on how to configure EXT:news or EXT:cal to use Yoast SEO for TYPO3.
 * Changed way of defining metatags from template based to TypoScript to make it possible to use the core features to render metatags.
 * Show score of analysis in icon and text for accessibility reasons
 * Prepared several fields to be named the same as it will be in CMS9.
-* Updated YoastSEO.js to version 1.29.0 
+* Updated YoastSEO.js to version 1.29.0
 
 ### Fixed
 * The title prepend and append will not be saved in the databased anymore when saving the SEO title of the field.
