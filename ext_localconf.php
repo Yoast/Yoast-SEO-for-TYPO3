@@ -195,11 +195,17 @@ $iconRegistry->registerIcon(
     ['source' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-container.svg']
 );
 
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['seoTitleUpdate']
-    = \YoastSeoForTypo3\YoastSeo\Install\SeoTitleUpdate::class;
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['canonicalFieldUpdate']
-    = \YoastSeoForTypo3\YoastSeo\Install\CanonicalFieldUpdate::class;
-
+if (version_compare(TYPO3_branch, '9.5', '<')) {
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['seoTitleUpdate']
+        = \YoastSeoForTypo3\YoastSeo\Install\CMS8\SeoTitleUpdate::class;
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['canonicalFieldUpdate']
+        = \YoastSeoForTypo3\YoastSeo\Install\CMS8\CanonicalFieldUpdate::class;
+} else {
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['seoTitleUpdate']
+        = \YoastSeoForTypo3\YoastSeo\Install\SeoTitleUpdate::class;
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['canonicalFieldUpdate']
+        = \YoastSeoForTypo3\YoastSeo\Install\CanonicalFieldUpdate::class;
+}
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScriptSetup(trim('
     config.structuredData.providers {
         breadcrumb {
