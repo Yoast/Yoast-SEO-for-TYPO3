@@ -116,7 +116,7 @@ class PreviewService
             );
 
             if (is_array($indexableContents[0]) && !empty($indexableContents[0])) {
-                $body = implode($indexableContents[0], '');
+                $body = implode('', $indexableContents[0]);
             }
         }
 
