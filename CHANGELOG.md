@@ -8,6 +8,9 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## Unreleased
+### Fixed
+* Removed include of empty TypoScript file which caused errors in TypoScript Object Manager when installed in non-composer-mode. 
 
 ## 6.0.1 April 22, 2020
 ### Fixed

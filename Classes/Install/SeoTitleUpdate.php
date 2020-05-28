@@ -17,7 +17,6 @@ namespace YoastSeoForTypo3\YoastSeo\Install;
 use Doctrine\DBAL\Exception\InvalidFieldNameException;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Install\Updates\AbstractUpdate;
 use TYPO3\CMS\Install\Updates\UpgradeWizardInterface;
 
 /**
