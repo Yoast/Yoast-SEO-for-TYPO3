@@ -11,6 +11,7 @@ Besides the free version of our plugin, we also have a premium version. The free
 ## Unreleased
 ### Fixed
 * Removed include of empty TypoScript file which caused errors in TypoScript Object Manager when installed in non-composer-mode. 
+* Add missing return true to executeUpdate function in CanonicalFieldUpdate.php.
 
 ## 6.0.1 April 22, 2020
 ### Fixed

@@ -104,6 +104,8 @@ class CanonicalFieldUpdate implements UpgradeWizardInterface
                 }
             }
         }
+
+        return true;
     }
 
     public function updateNecessary(): bool
