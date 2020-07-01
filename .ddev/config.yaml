@@ -14,6 +14,7 @@ additional_hostnames:
 additional_fqdns: []
 provider: default
 use_dns_when_possible: true
+nfs_mount_enabled: true
 omit_containers:
     - dba
 extra_services:

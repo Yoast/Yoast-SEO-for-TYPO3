@@ -146,6 +146,8 @@ class PreviewService
         preg_match('/<meta name=\"x-yoast-title-config\" value=\"([^"]*)\"/i', $content, $matchesTitleConfig);
         list($titlePrepend, $titleAppend) = explode('|||', (string)$matchesTitleConfig[1]);
 
+        $body = $this->prepareBody($body);
+
         if ($content !== null) {
             return [
                 'id' => $this->pageId,
@@ -155,12 +157,39 @@ class PreviewService
                 'title' => $title,
                 'description' => $metaDescription,
                 'locale' => $locale,
-                'body' => trim($body),
+                'body' => $body,
                 'faviconSrc' => $faviconSrc,
                 'pageTitlePrepend' => $titlePrepend,
                 'pageTitleAppend' => $titleAppend,
             ];
         }
         return [];
+    }
+
+    protected function prepareBody(string $body): string
+    {
+        $body = $this->stripTagsContent($body, '<script><noscript>', true);
+        $body = preg_replace(['/\s?\n\s?/', '/\s{2,}/'], [' ', ' '], $body);
+        $body = strip_tags($body, '<h1><h2><h3><h4><h5><p><a><img>');
+
+        return trim($body);
+    }
+
+    protected function stripTagsContent($text, $tags = '', $invert = false)
+    {
+        preg_match_all('/<(.+?)[\s]*\/?[\s]*>/si', trim($tags), $tags);
+        $tagsArray = array_unique($tags[1]);
+
+        if (is_array($tagsArray) && count($tagsArray) > 0) {
+            if ($invert === false) {
+                return preg_replace('@<(?!(?:' . implode('|', $tagsArray) . ')\b)(\w+)\b.*?>.*?</\1>@si', '', $text);
+            }
+
+            return preg_replace('@<(' . implode('|', $tagsArray) . ')\b.*?>.*?</\1>@si', '', $text);
+        } elseif ($invert === false) {
+            return preg_replace('@<(\w+)\b.*?>.*?</\1>@si', '', $text);
+        }
+
+        return $text;
     }
 }
