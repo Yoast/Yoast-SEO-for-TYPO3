@@ -32,4 +32,19 @@ There are various ways you can contribute:
 * [Raise an issue](https://github.com/Yoast/t3ext-yoast-seo/issues) on GitHub.
 * Send us a Pull Request with your bug fixes and/or new features.
 
+### Using DDEV to test
+In this repository we added a DDEV setup so you can easily test your contributions in all the TYPO3 versions the extension should work with.
 
+First of all, make sure you have installed DDEV and Docker. See the [documentation](https://ddev.readthedocs.io/en/stable/#installation) how to do that. After you have installed DDEV, run the following command in the root of this repository.
+```bash
+ddev start
+```
+
+After the setup is started, you can use the following command to make sure all installations are up and running.
+```bash
+ddev install-all
+```
+
+When the script is finished, you can go to https://yoast-seo.ddev.site and check the TYPO3 installations that are available to test your work.
+
+If you change the code, you can directly see the changes in all the installations of your DDEV setup.
