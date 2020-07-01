@@ -7,7 +7,6 @@ use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
 /**
  * Class PreviewService
- * @package YoastSeoForTypo3\YoastSeo\Service
  */
 class PreviewService
 {

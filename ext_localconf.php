@@ -35,54 +35,54 @@ if (version_compare(TYPO3_branch, '9.5', '<')) {
     );
 }
 
-$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514550050] = array(
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514550050] = [
     'nodeName' => 'snippetPreview',
     'priority' => 40,
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\SnippetPreview::class,
-);
+];
 
-$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514728465] = array(
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514728465] = [
     'nodeName' => 'readabilityAnalysis',
     'priority' => 40,
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\ReadabilityAnalysis::class,
-);
+];
 
-$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514830899] = array(
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514830899] = [
     'nodeName' => 'focusKeywordAnalysis',
     'priority' => 40,
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\FocusKeywordAnalysis::class,
-);
+];
 
-$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1552342645] = array(
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1552342645] = [
     'nodeName' => 'cornerstone',
     'priority' => 43,
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\Cornerstone::class,
-);
+];
 
-$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1537991862] = array(
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1537991862] = [
     'nodeName' => 'hiddenField',
     'priority' => 40,
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\HiddenField::class
-);
+];
 
 if (!\YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::isPremiumInstalled()) {
-    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1553888878] = array(
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1553888878] = [
         'nodeName' => 'synonyms',
         'priority' => 40,
         'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\Synonyms::class
-    );
+    ];
 
-    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1553977739] = array(
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1553977739] = [
         'nodeName' => 'relatedKeyphrases',
         'priority' => 40,
         'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\RelatedKeyphrases::class
-    );
+    ];
 
-    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1554381790] = array(
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1554381790] = [
         'nodeName' => 'internalLinkingSuggestion',
         'priority' => 40,
         'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\InternalLinkingSuggestion::class
-    );
+    ];
 }
 
 $llFolder = 'LLL:EXT:yoast_seo/Resources/Private/Language/';

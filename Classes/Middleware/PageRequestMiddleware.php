@@ -12,7 +12,6 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastRequestHash;
 
 /**
  * Class PageRequestMiddleware
- * @package YoastSeoForTypo3\YoastSeo\Middleware
  */
 class PageRequestMiddleware implements MiddlewareInterface
 {

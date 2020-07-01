@@ -1,5 +1,5 @@
 <?php
-$EM_CONF[$_EXTKEY] = array(
+$EM_CONF[$_EXTKEY] = [
     'title' => 'Yoast SEO for TYPO3',
     'description' => 'Optimise your website for search engines with Yoast SEO for TYPO3. With this extension you get all the technical SEO stuff you need and will help editors to write high quality content.',
     'category' => 'misc',
@@ -11,16 +11,16 @@ $EM_CONF[$_EXTKEY] = array(
     'state' => 'stable',
     'uploadfolder' => 0,
     'version' => '6.0.2-dev',
-    'constraints' => array(
-        'depends' => array(
+    'constraints' => [
+        'depends' => [
             'typo3' => '8.7.0-10.4.99',
-        ),
-        'conflicts' => array(),
-        'suggests' => array(
+        ],
+        'conflicts' => [],
+        'suggests' => [
             'seo' => ''
-        ),
-    ),
-    'autoload' => array(
-        'psr-4' => array('YoastSeoForTypo3\\YoastSeo\\' => 'Classes')
-    ),
-);
+        ],
+    ],
+    'autoload' => [
+        'psr-4' => ['YoastSeoForTypo3\\YoastSeo\\' => 'Classes']
+    ],
+];

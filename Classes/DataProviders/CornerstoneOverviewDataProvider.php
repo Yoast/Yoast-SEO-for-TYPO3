@@ -19,7 +19,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class CornerstoneOverviewDataProvider
- * @package YoastSeoForTypo3\YoastSeo\DataProviders
  */
 class CornerstoneOverviewDataProvider extends AbstractOverviewDataProvider
 {

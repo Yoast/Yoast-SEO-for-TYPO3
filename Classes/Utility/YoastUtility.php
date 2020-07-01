@@ -19,7 +19,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class YoastUtility
- * @package YoastSeoForTypo3\YoastSeo\Utility
  */
 class YoastUtility
 {

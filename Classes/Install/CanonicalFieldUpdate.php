@@ -10,7 +10,6 @@ use TYPO3\CMS\Install\Updates\UpgradeWizardInterface;
 
 /**
  * Class CanonicalFieldUpdate
- * @package YoastSeoForTypo3\YoastSeo\Install
  */
 class CanonicalFieldUpdate implements UpgradeWizardInterface
 {

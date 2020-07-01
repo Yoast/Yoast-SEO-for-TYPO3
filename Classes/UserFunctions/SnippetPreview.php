@@ -7,7 +7,6 @@ use YoastSeoForTypo3\YoastSeo\Service\PreviewService;
 
 /**
  * Class SnippetPreview
- * @package YoastSeoForTypo3\YoastSeo\UserFunctions
  */
 class SnippetPreview
 {

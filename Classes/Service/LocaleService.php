@@ -8,7 +8,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class LocaleService
- * @package YoastSeoForTypo3\YoastSeo\Service
  */
 class LocaleService
 {

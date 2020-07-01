@@ -22,7 +22,6 @@ use TYPO3\CMS\Install\Updates\AbstractUpdate;
 
 /**
  * Class CanonicalFieldUpdate
- * @package YoastSeoForTypo3\YoastSeo\Install
  */
 class CanonicalFieldUpdate extends AbstractUpdate
 {
