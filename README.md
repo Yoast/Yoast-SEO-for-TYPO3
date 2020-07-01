@@ -48,3 +48,5 @@ ddev install-all
 When the script is finished, you can go to https://yoast-seo.ddev.site and check the TYPO3 installations that are available to test your work.
 
 If you change the code, you can directly see the changes in all the installations of your DDEV setup.
+
+> Thanks to [Armin Vieweg](https://github.com/a-r-m-i-n/ddev-for-typo3-extensions) for this example DDEV setup for extensions
