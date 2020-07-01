@@ -46,7 +46,15 @@
   "extra": {
     "branch-alias": {
       "dev-master": "6.x-dev"
+    },
+    "typo3/cms": {
+      "cms-package-dir": "{$vendor-dir}/typo3/cms",
+      "web-dir": "public"
     }
+  },
+  "config": {
+    "vendor-dir": "vendor",
+    "bin-dir": "vendor/bin"
   },
   "scripts": {
     "test:php:lint": [
