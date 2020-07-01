@@ -124,7 +124,7 @@ class CanonicalFieldUpdate extends AbstractUpdate
         $qb->getRestrictions()->removeAll();
 
         try {
-            $qb->select('*')
+            $qb->count('uid')
                 ->from($tableName)
                 ->where(
                     $qb->expr()->andX(
@@ -135,7 +135,7 @@ class CanonicalFieldUpdate extends AbstractUpdate
                         $qb->expr()->eq('canonical_link', $qb->createNamedParameter(''))
                     )
                 );
-            return (bool)$qb->execute()->rowCount();
+            return (bool)$qb->execute()->fetchColumn();
         } catch (InvalidFieldNameException $e) {
             // Not needed to update when the old column doesn't exist
             return false;

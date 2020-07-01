@@ -50,7 +50,7 @@ class CanonicalFieldUpdate implements UpgradeWizardInterface
         $qb->getRestrictions()->removeAll();
 
         try {
-            $qb->select('*')
+            $qb->count('uid')
                 ->from($tableName)
                 ->where(
                     $qb->expr()->andX(
@@ -61,7 +61,7 @@ class CanonicalFieldUpdate implements UpgradeWizardInterface
                         $qb->expr()->eq('canonical_link', $qb->createNamedParameter(''))
                     )
                 );
-            return (bool)$qb->execute()->rowCount();
+            return (bool)$qb->execute()->fetchColumn();
         } catch (TableNotFoundException $e) {
             // Not needed to update when the table doesn't exist
             return false;
