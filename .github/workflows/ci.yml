@@ -28,3 +28,5 @@ jobs:
           git checkout composer.json
       - name: Lint
         run: composer test:php:lint
+      - name: CGL
+        run: composer cgl
