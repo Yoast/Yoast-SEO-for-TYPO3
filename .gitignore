@@ -10,3 +10,5 @@ yarn.lock
 !.Build/.php_cs
 !.Build/create_ter_package.sh
 !.Build/get_version_of_extension.php
+Documentation-GENERATED-temp
+public

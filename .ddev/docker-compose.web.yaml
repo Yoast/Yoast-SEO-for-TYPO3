@@ -1,0 +1,34 @@
+version: "3.6"
+services:
+    web:
+        environment:
+            - EXTENSION_KEY=yoast_seo
+            - PACKAGE_NAME=yoast-seo-for-typo3/yoast_seo
+
+            - TYPO3_INSTALL_DB_DRIVER=mysqli
+            - TYPO3_INSTALL_DB_USER=root
+            - TYPO3_INSTALL_DB_PASSWORD=root
+            - TYPO3_INSTALL_DB_HOST=db
+            - TYPO3_INSTALL_DB_PORT=3306
+            - TYPO3_INSTALL_DB_UNIX_SOCKET=
+            - TYPO3_INSTALL_DB_USE_EXISTING=0
+            - TYPO3_INSTALL_ADMIN_USER=admin
+            - TYPO3_INSTALL_ADMIN_PASSWORD=password
+            - TYPO3_INSTALL_SITE_NAME=EXT:yoast_seo Dev Environment
+            - TYPO3_INSTALL_SITE_SETUP_TYPE=site
+            - TYPO3_INSTALL_WEB_SERVER_CONFIG=apache
+        volumes:
+            - type: bind
+              source: ../
+              target: /var/www/yoast_seo
+              consistency: cached
+            - v8-data:/var/www/html/v8
+            - v9-data:/var/www/html/v9
+            - v10-data:/var/www/html/v10
+volumes:
+    v8-data:
+        name: "${DDEV_SITENAME}-v8-data"
+    v9-data:
+        name: "${DDEV_SITENAME}-v9-data"
+    v10-data:
+        name: "${DDEV_SITENAME}-v10-data"
