@@ -26,3 +26,5 @@ jobs:
         run: |
           composer require ${{ matrix.typo3 }} --no-progress
           git checkout composer.json
+      - name: Lint
+          run: composer test:php:lint

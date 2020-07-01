@@ -32,7 +32,8 @@
     "typo3/cms-seo": "^9.5|^10.3"
   },
   "require-dev": {
-    "friendsofphp/php-cs-fixer": "^2.0"
+    "friendsofphp/php-cs-fixer": "^2.0",
+    "overtrue/phplint": "^2.0"
   },
   "replace": {
     "typo3-ter/yoast-seo": "self.version"
@@ -46,5 +47,16 @@
     "branch-alias": {
       "dev-master": "6.x-dev"
     }
+  },
+  "scripts": {
+    "test:php:lint": [
+      "phplint"
+    ],
+    "cgl": [
+      "php-cs-fixer fix -v --dry-run --using-cache false --diff --diff-format=udiff"
+    ],
+    "cgl-fix": [
+      "php-cs-fixer fix -v --using-cache false"
+    ]
   }
 }
