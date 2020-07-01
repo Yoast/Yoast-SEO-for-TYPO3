@@ -12,3 +12,4 @@ yarn.lock
 !.Build/get_version_of_extension.php
 Documentation-GENERATED-temp
 public
+.phplint.cache
