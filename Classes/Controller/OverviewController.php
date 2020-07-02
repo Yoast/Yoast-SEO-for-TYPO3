@@ -29,7 +29,6 @@ use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
 
 /**
  * Class OverviewController
- * @package YoastSeoForTypo3\YoastSeo\Controller
  */
 class OverviewController extends ActionController
 {
@@ -220,11 +219,11 @@ class OverviewController extends ActionController
             $languageMenu->setLabel($lang->sL('LLL:EXT:lang/locallang_general.xlf:LGL.language'));
             $returnUrl = ($this->request->hasArgument('returnUrl')) ? $this->request->getArgument('returnUrl') : '';
             foreach ($this->MOD_MENU['language'] as $key => $language) {
-                $parameters = array(
+                $parameters = [
                     'tx_yoastseo_yoast_yoastseooverview[filter]' => $filter,
                     'tx_yoastseo_yoast_yoastseooverview[language]' => $key,
                     'tx_yoastseo_yoast_yoastseooverview[returnUrl]' => $returnUrl
-                );
+                ];
 
                 $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
                 try {

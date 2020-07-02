@@ -24,14 +24,14 @@ if (TYPO3_MODE === 'BE') {
         'yoast',
         'dashboard',
         '',
-        array(
+        [
             'Module' => 'dashboard',
-        ),
-        array(
+        ],
+        [
             'access' => 'user,group',
             'icon' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Yoast-module-dashboard.svg',
             'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/BackendModuleDashboard.xlf',
-        )
+        ]
     );
 
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
@@ -39,14 +39,14 @@ if (TYPO3_MODE === 'BE') {
         'yoast',
         'overview',
         '',
-        array(
+        [
             'Overview' => 'list',
-        ),
-        array(
+        ],
+        [
             'access' => 'user,group',
             'icon' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Yoast-module-overview.svg',
             'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/BackendModuleOverview.xlf',
-        )
+        ]
     );
 
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
@@ -54,14 +54,14 @@ if (TYPO3_MODE === 'BE') {
         'yoast',
         'premium',
         '',
-        array(
+        [
             'Module' => 'premium',
-        ),
-        array(
+        ],
+        [
             'access' => 'user,group',
             'icon' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Yoast-module-premium.svg',
             'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/BackendModulePremium.xlf',
-        )
+        ]
     );
 
     // Extend user settings

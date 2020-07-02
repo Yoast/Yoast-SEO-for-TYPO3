@@ -18,7 +18,6 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 /**
  * Class YoastUtilityTest
- * @package YoastSeoForTypo3\YoastSeo\Tests\Unit\Utility
  */
 class YoastUtilityTest extends UnitTestCase
 {

@@ -6,7 +6,6 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastRequestHash;
 
 /**
  * Class UsePageCache
- * @package YoastSeoForTypo3\YoastSeo\Frontend
  */
 class UsePageCache
 {

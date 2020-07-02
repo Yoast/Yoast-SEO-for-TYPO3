@@ -12,7 +12,6 @@ use YoastSeoForTypo3\YoastSeo\Service\PreviewService;
 
 /**
  * Class AjaxController
- * @package YoastSeoForTypo3\YoastSeo\Controller
  */
 class AjaxController
 {

@@ -17,12 +17,11 @@ namespace YoastSeoForTypo3\YoastSeo\ViewHelpers;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractViewHelper;
 use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
+use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractViewHelper;
 
 /**
  * Class RecordIconViewHelper
- * @package YoastSeoForTypo3\YoastSeo\ViewHelpers
  */
 class RecordIconViewHelper extends AbstractViewHelper
 {

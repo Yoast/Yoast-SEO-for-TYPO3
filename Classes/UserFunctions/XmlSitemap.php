@@ -24,7 +24,6 @@ use TYPO3\CMS\Frontend\Page\PageRepository;
 
 /**
  * Class XmlSitemap
- * @package YoastSeoForTypo3\YoastSeo\UserFunctions
  */
 class XmlSitemap
 {

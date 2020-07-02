@@ -1,0 +1,32 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build-php:
+    name: Build PHP
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 6
+      fail-fast: false
+      matrix:
+        typo3: ['typo3/cms-core:^8', 'typo3/cms-core:^9', 'typo3/cms-core:^10']
+        php: ['php7.2', 'php7.3', 'php7.4']
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up PHP Version
+        run: |
+          sudo update-alternatives --set php /usr/bin/${{ matrix.php }}
+          php -v
+      - name: Update Composer
+        run: |
+          sudo composer self-update
+          composer --version
+      - name: Install
+        run: |
+          composer require ${{ matrix.typo3 }} --no-progress
+          git checkout composer.json
+      - name: Lint
+        run: composer test:php:lint
+      - name: CGL
+        run: composer cgl

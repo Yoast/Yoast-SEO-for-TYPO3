@@ -20,7 +20,6 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 /**
  * Class PagesWithoutDescriptionOverviewDataProvider
- * @package YoastSeoForTypo3\YoastSeo\DataProviders
  */
 class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataProvider
 {

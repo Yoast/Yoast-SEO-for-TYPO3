@@ -25,11 +25,11 @@ class InternalLinkingSuggestion extends AbstractNode
         $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
 
         $pageRenderer->addRequireJsConfiguration(
-            array(
-                'paths' => array(
+            [
+                'paths' => [
                     'YoastSEO' => $publicResourcesPath . 'JavaScript/'
-                )
-            )
+                ]
+            ]
         );
 
         $pageRenderer->loadRequireJsModule('YoastSEO/yoastModal');

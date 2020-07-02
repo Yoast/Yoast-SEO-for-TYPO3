@@ -1,0 +1,16 @@
+#!/bin/bash
+
+
+FULLURL="Documentation-GENERATED-temp/Result/project/0.0.0/Index.html"
+
+case $OSTYPE in
+  linux-gnu)
+    xdg-open ${FULLURL}
+    ;;
+  "darwin"*)
+    open ${FULLURL}
+    ;;
+  "win*"* | "msys"*)
+    start ${FULLURL}
+    ;;
+esac

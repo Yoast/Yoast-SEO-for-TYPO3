@@ -16,7 +16,6 @@ namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 
 /**
  * Class CornerstoneOverviewDataProvider
- * @package YoastSeoForTypo3\YoastSeo\DataProviders
  */
 abstract class AbstractOverviewDataProvider implements OverviewDataProviderInterface
 {

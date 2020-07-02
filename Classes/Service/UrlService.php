@@ -15,7 +15,6 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 /**
  * Class UrlService
- * @package YoastSeoForTypo3\YoastSeo\Service
  */
 class UrlService
 {

@@ -16,7 +16,6 @@ namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 
 /**
  * Interface OverviewDataProviderInterface
- * @package YoastSeoForTypo3\YoastSeo\DataProviders
  */
 interface OverviewDataProviderInterface
 {
