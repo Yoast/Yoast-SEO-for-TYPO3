@@ -35,3 +35,7 @@ vendor/bin/typo3cms extension:setup realurl
 vendor/bin/typo3cms database:updateschema
 
 cp ../v9/public/.htaccess ./public
+cp ~/realurl_conf.php ./public/typo3conf
+cp ~/favicon.ico ./public
+
+mysql -uroot -proot v8 < ~/v8.sql
