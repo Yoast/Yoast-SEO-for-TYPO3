@@ -81,6 +81,18 @@ class UrlService
                         (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams)
                     );
 
+                    if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][UrlService::class]['urlToCheck'])) {
+                        foreach($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][UrlService::class]['urlToCheck'] as $_funcRef) {
+                            $_params = array(
+                                'urlToCheck' => $uriToCheck,
+                                'site' => $site,
+                                'finalPageIdToShow' => $finalPageIdToShow,
+                                'languageId' => $languageId
+                            );
+
+                            $uriToCheck = GeneralUtility::callUserFunction($_funcRef, $_params, $this);
+                        }
+                    }
                     $uri = (string)$this->uriBuilder->buildUriFromRoute('ajax_yoast_preview', [
                         'uriToCheck' => $uriToCheck, 'pageId' => $finalPageIdToShow
                     ]);
