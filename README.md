@@ -47,6 +47,16 @@ ddev install-all
 
 When the script is finished, you can go to https://yoast-seo.ddev.site and check the TYPO3 installations that are available to test your work.
 
+If you want to reset the instances? Use the following two commands. Be aware that this will also reset the databases!
+
+```bash
+ddev rm -O -R
+```
+and after that:
+```bash
+docker volume rm yoast-seo-v8-data yoast-seo-v9-data yoast-seo-v10-data
+```
+
 If you change the code, you can directly see the changes in all the installations of your DDEV setup.
 
 > Thanks to [Armin Vieweg](https://github.com/a-r-m-i-n/ddev-for-typo3-extensions) for this example DDEV setup for extensions

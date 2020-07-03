@@ -6,7 +6,7 @@ rm -rf /var/www/html/$VERSION/*
 composer init -n -d /var/www/html/$VERSION
 composer config extra.typo3/cms.web-dir public -d /var/www/html/$VERSION
 composer config repositories.$EXTENSION_KEY path ../../$EXTENSION_KEY -d /var/www/html/$VERSION
-composer req t3/cms:'^8.7' jigal/t3adminer:'^9.1' $PACKAGE_NAME:'*@dev' --no-progress --no-suggest -n -d /var/www/html/$VERSION
+composer req t3/cms:'^8.7' $PACKAGE_NAME:'*@dev' --no-progress --no-suggest -n -d /var/www/html/$VERSION
 
 
 cd /var/www/html/$VERSION
@@ -27,3 +27,11 @@ vendor/bin/typo3cms configuration:set 'GFX/processor_path_lzw' '/usr/bin/'
 vendor/bin/typo3cms install:generatepackagestates
 
 vendor/bin/typo3cms cache:flush
+
+composer req dmitryd/typo3-realurl:^2.6
+vendor/bin/typo3cms extension:setup realurl
+vendor/bin/typo3cms install:generatepackagestates
+vendor/bin/typo3cms extension:setup realurl
+vendor/bin/typo3cms database:updateschema
+
+cp ../v9/public/.htaccess ./public
