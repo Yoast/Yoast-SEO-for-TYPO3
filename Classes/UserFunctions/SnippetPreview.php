@@ -20,7 +20,7 @@ class SnippetPreview
         $additionalGetVars = urldecode(GeneralUtility::_GET('additionalGetVars'));
         $cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
         $uriToCheck = $cObj->typolink_URL([
-            'parameter' => (int)$_GET['pageIdToCheck'],
+            'parameter' => (int)GeneralUtility::_GET('pageIdToCheck'),
             'forceAbsoluteUrl' => 1,
             'additionalParams' => $additionalGetVars . '&L=' . (int)GeneralUtility::_GET('languageIdToCheck'),
             'linkAccessRestrictedPages' => 1,
