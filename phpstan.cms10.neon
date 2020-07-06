@@ -8,7 +8,6 @@ parameters:
       message: '#Call to an undefined static method TYPO3\\CMS\\Backend\\Utility\\BackendUtility::getModuleUrl\(\)#'
       path: Classes/Controller/OverviewController.php
   excludes_analyse:
-    # These should be removed once we've fixed each module
     - Classes/Install/CMS8
     - Classes/UserFunctions/XmlSitemap.php
     - Classes/UserFunctions/SnippetPreview.php
