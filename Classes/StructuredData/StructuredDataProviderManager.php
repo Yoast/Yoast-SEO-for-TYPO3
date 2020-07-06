@@ -164,7 +164,7 @@ class StructuredDataProviderManager implements SingletonInterface
         try {
             $this->pageCache = GeneralUtility::makeInstance(CacheManager::class)->getCache('cache_pages');
         } catch (NoSuchCacheException $e) {
-            // Intended fall-through
+            // @ignoreException
         }
     }
 

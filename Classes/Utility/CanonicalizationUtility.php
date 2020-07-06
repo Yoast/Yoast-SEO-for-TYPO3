@@ -67,6 +67,7 @@ class CanonicalizationUtility
             // This callback filters empty strings, array and null but keeps zero integers
             $parameters = self::filterRecursive(
                 $parameters,
+                // @phpstan-ignore-next-line
                 function ($item) {
                     return $item !== '' && $item !== [] && $item !== null;
                 }
@@ -89,6 +90,7 @@ class CanonicalizationUtility
      */
     public static function filterRecursive(array $array, callable $callback = null): array
     {
+        // @phpstan-ignore-next-line
         $callback = $callback ?: function ($value) {
             return (bool)$value;
         };
