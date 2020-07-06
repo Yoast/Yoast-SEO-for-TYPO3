@@ -47,6 +47,20 @@ ddev install-all
 
 When the script is finished, you can go to https://yoast-seo.ddev.site and check the TYPO3 installations that are available to test your work.
 
+#### Instances
+The following instances will be up and running for you after you have installed the DDEV setup.
+
+- https://v8.yoast-seo.ddev.site
+- https://v9.yoast-seo.ddev.site
+- https://v10.yoast-seo.ddev.site 
+
+#### Login
+You will be able to login to the backend of the instances above, by using the following credentials:
+
+    Username: admin
+    Password: password 
+
+#### Reset setup
 If you want to reset the instances? Use the following two commands. Be aware that this will also reset the databases!
 
 ```bash
