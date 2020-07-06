@@ -31,4 +31,4 @@ jobs:
       - name: CGL
         run: composer cgl
       - name: PHPStan
-        run: php -d memory_limit=-1 -c phpstan.cms{{ matrix.typo3 }}.neon vendor/bin/phpstan analyse
+        run: php -d memory_limit=-1 -c phpstan.cms${{ matrix.typo3 }}.neon vendor/bin/phpstan analyse
