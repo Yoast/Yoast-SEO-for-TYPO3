@@ -1,7 +1,7 @@
 Yoast SEO for TYPO3
 ======================
 
-![](https://github.com/Yoast/Yoast-SEO-for-TYPO3/workflows/.github/workflows/ci.yml/badge.svg)
+![](https://github.com/Yoast/Yoast-SEO-for-TYPO3/workflows/CI/badge.svg)
 [![Stable Version](https://poser.pugx.org/yoast-seo-for-typo3/yoast_seo/v/stable.svg)](https://packagist.org/packages/yoast-seo-for-typo3/yoast_seo)
 [![License](https://poser.pugx.org/yoast-seo-for-typo3/yoast_seo/license.svg)](https://packagist.org/packages/yoast-seo-for-typo3/yoast_seo)
 
