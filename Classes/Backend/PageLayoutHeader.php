@@ -75,7 +75,7 @@ class PageLayoutHeader
     public function render()
     {
         $moduleData = BackendUtility::getModuleData(['language'], [], 'web_layout');
-        $pageId = (int)$_GET['id'];
+        $pageId = (int)GeneralUtility::_GET('id');
 
         if (!$this->showSnippetPreview()) {
             return '';

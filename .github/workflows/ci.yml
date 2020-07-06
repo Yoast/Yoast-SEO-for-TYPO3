@@ -10,7 +10,7 @@ jobs:
       max-parallel: 6
       fail-fast: false
       matrix:
-        typo3: ['typo3/cms-core:^8', 'typo3/cms-core:^9', 'typo3/cms-core:^10']
+        typo3: ['8', '9', '10']
         php: ['php7.2', 'php7.3', 'php7.4']
     steps:
       - uses: actions/checkout@v1
@@ -24,11 +24,11 @@ jobs:
           composer --version
       - name: Install
         run: |
-          composer require ${{ matrix.typo3 }} --no-progress
+          composer require typo3/cms-core:^${{ matrix.typo3 }} --no-progress
           git checkout composer.json
       - name: Lint
         run: composer test:php:lint
       - name: CGL
         run: composer cgl
       - name: PHPStan
-        run: php -d memory_limit=-1 vendor/bin/phpstan analyse
+        run: php -d memory_limit=-1 -c phpstan.cms{{ matrix.typo3 }}.neon vendor/bin/phpstan analyse
