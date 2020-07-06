@@ -76,6 +76,10 @@ class OverviewController extends ActionController
      * @var Locales
      */
     protected $localeService;
+    /**
+     * @var array[]
+     */
+    private $MOD_MENU;
 
     /**
      * @param ViewInterface $view

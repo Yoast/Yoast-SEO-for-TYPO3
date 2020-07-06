@@ -22,8 +22,6 @@ class Cornerstone extends AbstractNode
     {
         parent::__construct($nodeFactory, $data);
 
-        $this->localeService = GeneralUtility::makeInstance(Locales::class);
-
         $this->templateView = GeneralUtility::makeInstance(StandaloneView::class);
         $this->templateView->setTemplatePathAndFilename(
             GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Templates/TCA/Cornerstone.html')

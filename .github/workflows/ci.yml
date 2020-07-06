@@ -30,3 +30,5 @@ jobs:
         run: composer test:php:lint
       - name: CGL
         run: composer cgl
+      - name: PHPStan
+        run: php -d memory_limit=-1 vendor/bin/phpstan analyse
