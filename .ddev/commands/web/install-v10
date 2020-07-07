@@ -28,4 +28,6 @@ vendor/bin/typo3cms install:generatepackagestates
 sed -i -e "s/base: ht\//base: \//g" /var/www/html/$VERSION/config/sites/main/config.yaml
 sed -i -e 's/base: \/en\//base: \//g' /var/www/html/$VERSION/config/sites/main/config.yaml
 
+cp ~/favicon.ico ./public
+
 vendor/bin/typo3cms cache:flush
