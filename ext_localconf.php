@@ -98,7 +98,6 @@ $defaultConfiguration = [
         'page' => 1,
         'backend_section' => 5
     ],
-    'allowDoktypesFromTypoScript' => true,
     'translations' => [
         'availableLocales' => [
             'bg_BG',
