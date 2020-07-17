@@ -3,7 +3,6 @@ declare(strict_types = 1);
 
 namespace YoastSeoForTypo3\YoastSeo\Utility;
 
-use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Page\CacheHashCalculator;
 
@@ -28,7 +27,7 @@ class CanonicalizationUtility
     {
         $cacheHashCalculator = GeneralUtility::makeInstance(CacheHashCalculator::class);
 
-        $GET = ($GLOBALS['TYPO3_REQUEST'] instanceof ServerRequestInterface) ? $GLOBALS['TYPO3_REQUEST']->getQueryParams() : [];
+        $GET = GeneralUtility::_GET() ?? [];
         $GET['id'] = $pageId;
 
         $queryString = self::buildQueryString($GET, '&');
