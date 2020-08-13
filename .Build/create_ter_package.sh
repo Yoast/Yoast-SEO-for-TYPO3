@@ -22,5 +22,5 @@ if [ -f .Build/packages/yoast_seo_$version.zip ]
 then
     rm .Build/packages/yoast_seo_$version.zip
 fi
-zip --exclude=*.git* --exclude=*.DS_Store* --exclude=*Gruntfile.js* --exclude=*yarn.lock* --exclude=*package.json* --exclude=*config.js* --exclude=*package-lock.json* --exclude=*composer.lock* --exclude=*.php_cs.cache* --exclude=*.travis.yml* --exclude=*.idea* --exclude=*node_modules* --exclude=*grunt* --exclude=*.Build* -r .Build/packages/yoast_seo_$version.zip ./
+zip --exclude=*.git* --exclude=*.DS_Store* --exclude=*Gruntfile.js* --exclude=public/* --exclude=Documentation-* --exclude=vendor/* --exclude=Tests/* --exclude=*yarn.lock* --exclude=*package.json* --exclude=*config.js* --exclude=*package-lock.json* --exclude=*composer.lock* --exclude=*.php_cs.cache* --exclude=*.travis.yml* --exclude=*.idea* --exclude=*node_modules* --exclude=*grunt* --exclude=*.Build* -r .Build/packages/yoast_seo_$version.zip ./
 echo ""
