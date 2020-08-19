@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\StructuredData;
 
 use TYPO3\CMS\Core\Context\Context;
+use TYPO3\CMS\Core\Exception\SiteNotFoundException;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
@@ -42,8 +43,6 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
 
     /**
      * @return array
-     * @throws \TYPO3\CMS\Core\Exception\SiteNotFoundException
-     * @throws \TYPO3\CMS\Core\Routing\InvalidRouteArgumentsException
      * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
      */
     public function getData(): array
@@ -60,15 +59,18 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         foreach ($rootLine as $k => $page) {
             $siteRootFound = $siteRootFound || $page['is_siteroot'];
             if ($siteRootFound && !in_array((int)$page['doktype'], $excludedDoktypes, true)) {
-                $breadcrumbs[] = [
-                    '@type' => 'ListItem',
-                    'position' => $iterator,
-                    'item' => [
-                        '@id' => $this->getUrlForPage($page['uid']),
-                        'name' => $page['nav_title'] ?: $page['title']
-                    ]
-                ];
-                $iterator++;
+                $url = $this->getUrlForPage($page['uid']);
+                if (!empty($url)) {
+                    $breadcrumbs[] = [
+                        '@type' => 'ListItem',
+                        'position' => $iterator,
+                        'item' => [
+                            '@id' => $url,
+                            'name' => $page['nav_title'] ?: $page['title']
+                        ]
+                    ];
+                    $iterator++;
+                }
             }
         }
 
@@ -98,14 +100,16 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
     /**
      * @param $pageId
      * @return string
-     * @throws \TYPO3\CMS\Core\Exception\SiteNotFoundException
-     * @throws \TYPO3\CMS\Core\Routing\InvalidRouteArgumentsException
      * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
      */
     protected function getUrlForPage($pageId): string
     {
         if (class_exists(SiteFinder::class)) {
-            $site = $this->siteFinder->getSiteByPageId((int)$pageId);
+            try {
+                $site = $this->siteFinder->getSiteByPageId((int)$pageId);
+            } catch (SiteNotFoundException $e) {
+                return '';
+            }
 
             return (string)$site->getRouter()->generateUri($pageId, ['_language' => $this->getLanguage()]);
         }
