@@ -4,6 +4,8 @@ const initialState = {
     isFetching: false
 };
 
+let updateQueue = [];
+
 function contentReducer (state = initialState, action) {
     switch(action.type) {
         case GET_CONTENT_REQUEST:
@@ -12,10 +14,22 @@ function contentReducer (state = initialState, action) {
             YoastConfig.pageTitlePrepend = action.payload.pageTitlePrepend;
             YoastConfig.pageTitleAppend = action.payload.pageTitleAppend;
 
-            return {...state, isFetching: false, ...action.payload};
-        case GET_CONTENT_ERROR:
+            let newState = {...state, isFetching: false, ...action.payload};
+
+            updateQueue.forEach((action) => {
+                newState = contentReducer(newState, action)
+            })
+            updateQueue = []
+
+            return newState
+        case GET_CONTENT_ERROR:git
             return {...state, isFetching: false, error: action.error}
         case UPDATE_CONTENT:
+            // Queue content updates until content has been fetched. Otherwise partial updates will break component props assumptions.
+            if (state.isFetching) {
+                updateQueue.push(action);
+                return state;
+            }
             return {...state, isFetching: false, ...action.payload}
         default:
             return state;
