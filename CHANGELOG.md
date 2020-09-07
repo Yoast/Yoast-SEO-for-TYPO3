@@ -8,6 +8,15 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## 7.0.1 September 7, 2020
+### Changed
+* Added a placeholder to seo_title field to show the user what the value will be if no specific SEO title is set
+* Removed negative margin to avoid issues with other plugins
+* Updated dependencies
+
+### Fixed
+* When changing tabs in the page properties, tje preview keeps working
+
 ## 7.0.0 August 10, 2020
 ### Breaking changes
 * We removed the possibility to set the doktypes that needs to be analysed from within TypoScript. The doktypes are needed during the TCA setup and by using TypoScript some installations did crash when no database connection was already in place. The feature was never documented but it was possible so this is marked as a breaking change. Please set your allowed doktypes in your ext_localconf.php as described in the [documentation](https://docs.typo3.org/p/yoast-seo-for-typo3/yoast_seo/6.0/en-us/Configuration/SnippetPreview/Index.html#enable-snippet-preview-on-specific-page-types).  
