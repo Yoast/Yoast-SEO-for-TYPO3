@@ -1,5 +1,6 @@
 plugin.tx_yoastseo {
 	titleField = seo_title
+	pageTitleField = title
 	descriptionField = description
 	canonicalTagField = canonical_url
 	noIndexField = no_index

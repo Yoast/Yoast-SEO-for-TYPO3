@@ -172,6 +172,13 @@ if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
             item.input.addEventListener('input', debounce(_ => {
                 let value = item.input.value;
 
+                let pageTitleElement = document.querySelector(`[data-formengine-input-name="${YoastConfig.fieldSelectors.pageTitle}"]`);
+                let titleValue = pageTitleElement.value;
+
+                if (value === '') {
+                    value = titleValue;
+                }
+
                 if (item.storeKey === 'title') {
                     if (typeof YoastConfig.pageTitlePrepend !== "undefined" &&
                         YoastConfig.pageTitlePrepend !== null &&
@@ -252,13 +259,32 @@ if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
 
 if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
     typeof YoastConfig.fieldSelectors.title !== 'undefined' &&
-    YoastConfig.fieldSelectors.title !== ''
+    YoastConfig.fieldSelectors.title !== '' &&
+    YoastConfig.fieldSelectors.pageTitle !== ''
 ) {
+    let pageTitleElement = document.querySelector(`[data-formengine-input-name="${YoastConfig.fieldSelectors.pageTitle}"]`);
+
+    pageTitleElement.addEventListener('change', function(event) {
+        setSeoTitlePlaceholder();
+    });
+
+    window.addEventListener('load', function(event) {
+        setSeoTitlePlaceholder();
+    });
+
     document.querySelectorAll(`li.t3js-tabmenu-item`).forEach(item => {
        if (item.innerHTML.includes('SEO')) {
            item.addEventListener('click', debounce(_ => {
                let element = document.querySelector(`[data-formengine-input-name="${YoastConfig.fieldSelectors.title}"]`);
                let value = element.value;
+
+               let pageTitleElement = document.querySelector(`[data-formengine-input-name="${YoastConfig.fieldSelectors.pageTitle}"]`);
+               let titleValue = pageTitleElement.value;
+
+               element.setAttribute('placeholder', titleValue);
+               if (value === '') {
+                   value = titleValue;
+               }
 
                if (typeof YoastConfig.pageTitlePrepend !== "undefined" &&
                    YoastConfig.pageTitlePrepend !== null &&
@@ -279,4 +305,13 @@ if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
            }, 100));
        }
     });
+}
+
+function setSeoTitlePlaceholder()
+{
+    let seoTitleElement = document.querySelector(`[data-formengine-input-name="${YoastConfig.fieldSelectors.title}"]`);
+    let pageTitleElement = document.querySelector(`[data-formengine-input-name="${YoastConfig.fieldSelectors.pageTitle}"]`);
+
+    let titleValue = pageTitleElement.value;
+    seoTitleElement.setAttribute('placeholder', titleValue);
 }

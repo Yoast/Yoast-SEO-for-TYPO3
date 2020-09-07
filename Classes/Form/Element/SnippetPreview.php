@@ -32,6 +32,11 @@ class SnippetPreview extends AbstractNode
     /**
      * @var string
      */
+    protected $pageTitleField = 'title';
+
+    /**
+     * @var string
+     */
     protected $descriptionField = 'description';
 
     /**
@@ -123,6 +128,12 @@ class SnippetPreview extends AbstractNode
             $this->titleField = $this->data['parameterArray']['fieldConf']['config']['settings']['titleField'];
         }
 
+        if (array_key_exists('titleField', (array)$this->data['parameterArray']['fieldConf']['config']['settings']) &&
+            $this->data['parameterArray']['fieldConf']['config']['settings']['pageTitleField']
+        ) {
+            $this->pageTitleField = $this->data['parameterArray']['fieldConf']['config']['settings']['pageTitleField'];
+        }
+
         if (array_key_exists('descriptionField', (array)$this->data['parameterArray']['fieldConf']['config']['settings'])
             && $this->data['parameterArray']['fieldConf']['config']['settings']['descriptionField']
         ) {
@@ -180,6 +191,7 @@ class SnippetPreview extends AbstractNode
                 ],
                 'fieldSelectors' => [
                     'title' => $this->getFieldSelector($this->titleField),
+                    'pageTitle' => $this->getFieldSelector($this->pageTitleField),
                     'description' => $this->getFieldSelector($this->descriptionField),
                     'focusKeyword' => $this->getFieldSelector($this->focusKeywordField),
                     'cornerstone' => $this->getFieldSelector($this->cornerstoneField),
