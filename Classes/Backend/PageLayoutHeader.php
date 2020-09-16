@@ -135,7 +135,7 @@ class PageLayoutHeader
             }
 
             $this->pageRenderer->loadRequireJsModule('YoastSEO/yoastModal');
-            $this->pageRenderer->addCssFile($publicResourcesPath . 'CSS/yoast.min.css');
+            $this->pageRenderer->addCssFile('EXT:yoast_seo/Resources/Public/CSS/yoast.min.css');
 
             return $this->getReturnHtml();
         }

@@ -157,8 +157,7 @@ class SnippetPreview extends AbstractNode
         $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigUtility::class);
         $allowedDoktypes = YoastUtility::getAllowedDoktypes();
         $resultArray = $this->initializeResultArray();
-        $publicResourcesPath = PathUtility::getAbsoluteWebPath('../typo3conf/ext/yoast_seo/Resources/Public/');
-        $resultArray['stylesheetFiles'][] = $publicResourcesPath . 'CSS/yoast.min.css';
+        $resultArray['stylesheetFiles'][] = 'EXT:yoast_seo/Resources/Public/CSS/yoast.min.css';
 
         $premiumText = $this->getPremiumText();
 
@@ -208,6 +207,7 @@ class SnippetPreview extends AbstractNode
             $jsonConfigUtility->addConfig($config);
 
             $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
+            $publicResourcesPath = PathUtility::getAbsoluteWebPath('../typo3conf/ext/yoast_seo/Resources/Public/');
 
             $pageRenderer->addRequireJsConfiguration([
                 'paths' => [
