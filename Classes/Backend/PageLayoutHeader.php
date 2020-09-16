@@ -6,7 +6,9 @@ use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\PathUtility;
 use YoastSeoForTypo3\YoastSeo\Service\LocaleService;
 use YoastSeoForTypo3\YoastSeo\Service\UrlService;
 use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
@@ -89,8 +91,13 @@ class PageLayoutHeader
             array_key_exists('doktype', $currentPage) &&
             in_array((int)$currentPage['doktype'], $allowedDoktypes, true)
         ) {
+            $publicResourcesPath =
+                PathUtility::getAbsoluteWebPath(ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
+
             $config = [
                 'urls' => [
+                    'workerUrl' => $publicResourcesPath . '/JavaScript/dist/worker.js',
+                    'backendCss' => $publicResourcesPath . '/CSS/yoast-seo-backend.min.css',
                     'previewUrl' => $this->urlService->getPreviewUrl($pageId, (int)$moduleData['language']),
                     'saveScores' => $this->urlService->getSaveScoresUrl(),
                     'prominentWords' => $this->urlService->getUrlForType(1539541406),

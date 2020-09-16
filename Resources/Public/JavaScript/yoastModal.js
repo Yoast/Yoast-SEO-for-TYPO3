@@ -8,7 +8,7 @@ define(['jquery', 'TYPO3/CMS/Backend/Modal'], function ($, Modal) {
     'a.yoast-modal-link { text-decoration: underline; }' +
     'svg.yoast-modal-logo { height: 125px; width: 125px; float: right; margin: 0px 0px 16px 16px; }' +
     '</style>' +
-    '<link rel="stylesheet" type="text/css" href="/typo3conf/ext/yoast_seo/Resources/Public/CSS/yoast-seo-backend.min.css">';
+    '<link rel="stylesheet" type="text/css" href="' + YoastConfig.urls.backendCss + '">';
 
   $('*[data-yoast-modal-type="synonyms"]').on('click', function (e) {
     e.preventDefault();
