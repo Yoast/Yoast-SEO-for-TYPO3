@@ -20,19 +20,9 @@ class InternalLinkingSuggestion extends AbstractNode
 
     public function render()
     {
-        $publicResourcesPath = PathUtility::getAbsoluteWebPath('../typo3conf/ext/yoast_seo/Resources/Public/');
-
         $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
 
-        $pageRenderer->addRequireJsConfiguration(
-            [
-                'paths' => [
-                    'YoastSEO' => $publicResourcesPath . 'JavaScript/'
-                ]
-            ]
-        );
-
-        $pageRenderer->loadRequireJsModule('YoastSEO/yoastModal');
+        $pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/yoastModal');
 
         $resultArray = $this->initializeResultArray();
 

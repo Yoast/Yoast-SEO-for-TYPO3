@@ -207,21 +207,14 @@ class SnippetPreview extends AbstractNode
             $jsonConfigUtility->addConfig($config);
 
             $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
-            $publicResourcesPath = PathUtility::getAbsoluteWebPath('../typo3conf/ext/yoast_seo/Resources/Public/');
-
-            $pageRenderer->addRequireJsConfiguration([
-                'paths' => [
-                    'YoastSEO' => $publicResourcesPath . 'JavaScript/'
-                ]
-            ]);
 
             if (YoastUtility::inProductionMode() === true) {
-                $pageRenderer->loadRequireJsModule('YoastSEO/dist/plugin');
+                $pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/dist/plugin');
             } else {
                 $pageRenderer->addHeaderData('<script type="text/javascript" src="https://localhost:3333/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/plugin.js" async></script>');
             }
 
-            $pageRenderer->loadRequireJsModule('YoastSEO/yoastModal');
+            $pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/yoastModal');
 
             $this->templateView->assignMultiple([
                 'previewUrl' => $this->previewUrl,
