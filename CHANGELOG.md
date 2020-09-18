@@ -8,6 +8,11 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## 7.0.2 September 19, 2020
+### Fixed
+* Removed hardcoded links to typo3conf/ext folder
+* Fixed fontsize of text width measurement to ensure we get same calculations as in the WordPress plugin of Yoast SEO
+
 ## 7.0.1 September 7, 2020
 ### Changed
 * Added a placeholder to seo_title field to show the user what the value will be if no specific SEO title is set
