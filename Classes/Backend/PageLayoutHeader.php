@@ -97,7 +97,6 @@ class PageLayoutHeader
             $config = [
                 'urls' => [
                     'workerUrl' => $publicResourcesPath . '/JavaScript/dist/worker.js',
-                    'backendCss' => $publicResourcesPath . '/CSS/yoast-seo-backend.min.css',
                     'previewUrl' => $this->urlService->getPreviewUrl($pageId, (int)$moduleData['language']),
                     'saveScores' => $this->urlService->getSaveScoresUrl(),
                     'prominentWords' => $this->urlService->getUrlForType(1539541406),
