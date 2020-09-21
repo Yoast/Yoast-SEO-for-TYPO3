@@ -223,3 +223,12 @@ if (version_compare(TYPO3_branch, '9.5', '<')) {
         }
     }
 '));
+
+if (TYPO3_MODE === 'BE') {
+    $publicResourcesPath =
+        \TYPO3\CMS\Core\Utility\PathUtility::getAbsoluteWebPath(\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
+
+    /** @var \TYPO3\CMS\Core\Page\PageRenderer $pageRenderer */
+    $pageRenderer = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Core\Page\PageRenderer::class);
+    $pageRenderer->addInlineSetting('Yoast', 'backendCssUrl', $publicResourcesPath . 'CSS/yoast-seo-backend.min.css');
+}
