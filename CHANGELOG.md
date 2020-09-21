@@ -8,6 +8,10 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## 7.0.3 September 21, 2020
+### Fixed
+* Make sure the path to the backend CSS is always available to show a modal. This should fix the problem of a not being able to edit a content element after updating to 7.0.2
+
 ## 7.0.2 September 19, 2020
 ### Fixed
 * Removed hardcoded links to typo3conf/ext folder
