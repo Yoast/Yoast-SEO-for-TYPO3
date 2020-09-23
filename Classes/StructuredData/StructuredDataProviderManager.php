@@ -80,6 +80,10 @@ class StructuredDataProviderManager implements SingletonInterface
             }
         }
 
+        if (empty($data)) {
+            return '';
+        }
+
         return '<script type="application/ld+json">' . json_encode($data, JSON_UNESCAPED_SLASHES) . ';</script>';
     }
 
