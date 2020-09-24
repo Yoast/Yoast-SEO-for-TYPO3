@@ -142,6 +142,11 @@ class XmlSitemap
 
         $docs = [];
         $sitemapSettings = $this->settings[$sitemapConfig . '.'];
+
+        if (is_array($sitemapSettings)) {
+            $this->renderContentObjectsInFields($sitemapSettings);
+        }
+
         if (is_array($sitemapSettings) && array_key_exists('table', $sitemapSettings)) {
             if ($sitemapSettings['table'] === 'pages') {
                 $docs = $this->getPages($sitemapSettings);
@@ -346,5 +351,36 @@ class XmlSitemap
     protected function getDb()
     {
         return $GLOBALS['TYPO3_DB'];
+    }
+
+    /**
+     * Loop through a config array and render the cObjects in it
+     *
+     * @param array $fields
+     */
+    protected function renderContentObjectsInFields(&$fields)
+    {
+        // Look for keys ending with "."
+        $cObjConfKeys = preg_grep('/\.$/', array_keys($fields));
+
+        // If no cObj conf was found, return early
+        if (!count($cObjConfKeys)) {
+            return;
+        }
+
+        /** @var ContentObjectRenderer $contentObjectRenderer */
+        $contentObjectRenderer = GeneralUtility::makeInstance(ContentObjectRenderer::class);
+
+        foreach ($cObjConfKeys as $index) {
+            // Main property (same as key without the "." at the end)
+            $name = substr($index, 0, -1);
+            $cType = $fields[$name];
+
+            // Render cObject and save it in place of the cType
+            $fields[$name] = $contentObjectRenderer->cObjGetSingle($cType, $fields[$index]);
+
+            // Remove the cObj conf from the array
+            unset($fields[$index]);
+        }
     }
 }
