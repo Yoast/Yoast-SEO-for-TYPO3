@@ -1,8 +1,6 @@
 <?php
 
 if (TYPO3_MODE === 'BE') {
-    $_EXTKEY = 'yoast_seo';
-
     $offset = 0;
     foreach ($GLOBALS['TBE_MODULES'] as $key => $_) {
         if ($key == 'web') {
@@ -20,7 +18,7 @@ if (TYPO3_MODE === 'BE') {
     ];
 
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
-        'YoastSeoForTypo3.' . $_EXTKEY,
+        'YoastSeoForTypo3.yoast_seo',
         'yoast',
         'dashboard',
         '',
@@ -29,13 +27,13 @@ if (TYPO3_MODE === 'BE') {
         ],
         [
             'access' => 'user,group',
-            'icon' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Yoast-module-dashboard.svg',
-            'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/BackendModuleDashboard.xlf',
+            'icon' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-dashboard.svg',
+            'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleDashboard.xlf',
         ]
     );
 
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
-        'YoastSeoForTypo3.' . $_EXTKEY,
+        'YoastSeoForTypo3.yoast_seo',
         'yoast',
         'overview',
         '',
@@ -44,13 +42,13 @@ if (TYPO3_MODE === 'BE') {
         ],
         [
             'access' => 'user,group',
-            'icon' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Yoast-module-overview.svg',
-            'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/BackendModuleOverview.xlf',
+            'icon' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-overview.svg',
+            'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf',
         ]
     );
 
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
-        'YoastSeoForTypo3.' . $_EXTKEY,
+        'YoastSeoForTypo3.yoast_seo',
         'yoast',
         'premium',
         '',
@@ -59,8 +57,8 @@ if (TYPO3_MODE === 'BE') {
         ],
         [
             'access' => 'user,group',
-            'icon' => 'EXT:' . $_EXTKEY . '/Resources/Public/Images/Yoast-module-premium.svg',
-            'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/BackendModulePremium.xlf',
+            'icon' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-premium.svg',
+            'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf',
         ]
     );
 
