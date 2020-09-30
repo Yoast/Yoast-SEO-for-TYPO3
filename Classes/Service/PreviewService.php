@@ -1,6 +1,7 @@
 <?php
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
+use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Exception;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
@@ -44,6 +45,7 @@ class PreviewService
         $this->cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
 
         try {
+            $uriToCheck = $this->appendSimulateUser($uriToCheck);
             $content = $this->getContentFromUrl($uriToCheck);
             $data = $this->getDataFromContent($content, $uriToCheck);
         } catch (Exception $e) {
@@ -163,5 +165,21 @@ class PreviewService
             ];
         }
         return [];
+    }
+
+    /**
+     * Append TYPO3 ADMCMD_simUser parameter to access all pages
+     * 
+     * @param string $uriToCheck
+     * @return string
+     */
+    protected function appendSimulateUser(string $uriToCheck) : string {
+        $context = GeneralUtility::makeInstance(Context::class);
+        $backendUserId = $context->getPropertyFromAspect('backend.user', 'id') ?? 0;
+        if ($backendUserId > 0) {
+            $uriToCheck .= '?ADMCMD_simUser=' . $backendUserId;
+        }
+
+        return $uriToCheck;
     }
 }
