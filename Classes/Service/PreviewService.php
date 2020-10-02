@@ -1,7 +1,6 @@
 <?php
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
-use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Exception;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
@@ -203,10 +202,20 @@ class PreviewService
      */
     protected function appendSimulateUser(string $uriToCheck) : string
     {
-        $context = GeneralUtility::makeInstance(Context::class);
-        $backendUserId = $context->getPropertyFromAspect('backend.user', 'id') ?? 0;
+        if (version_compare(TYPO3_branch, '8.7', '<=')) {
+            $backendUserId = $GLOBALS['BE_USER']->user['uid'] ?? 0;
+        } else {
+            $context = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Context\Context::class);
+            $backendUserId = $context->getPropertyFromAspect('backend.user', 'id') ?? 0;
+        };
+
         if ($backendUserId > 0) {
-            $uriToCheck .= '?ADMCMD_simUser=' . $backendUserId;
+            $uri = parse_url($uriToCheck);
+            if (empty($uri['query'])) {
+                $uriToCheck .= '?ADMCMD_simUser=' . $backendUserId;
+            } else {
+                $uriToCheck .= '&ADMCMD_simUser=' . $backendUserId;
+            }
         }
 
         return $uriToCheck;
