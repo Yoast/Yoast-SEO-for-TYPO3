@@ -201,7 +201,8 @@ class PreviewService
      * @param string $uriToCheck
      * @return string
      */
-    protected function appendSimulateUser(string $uriToCheck) : string {
+    protected function appendSimulateUser(string $uriToCheck) : string
+    {
         $context = GeneralUtility::makeInstance(Context::class);
         $backendUserId = $context->getPropertyFromAspect('backend.user', 'id') ?? 0;
         if ($backendUserId > 0) {
