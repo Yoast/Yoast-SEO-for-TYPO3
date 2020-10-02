@@ -1,4 +1,5 @@
 <?php
+
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
 use TYPO3\CMS\Core\Exception;
@@ -200,14 +201,14 @@ class PreviewService
      * @param string $uriToCheck
      * @return string
      */
-    protected function appendSimulateUser(string $uriToCheck) : string
+    protected function appendSimulateUser(string $uriToCheck): string
     {
         if (version_compare(TYPO3_branch, '8.7', '<=')) {
             $backendUserId = $GLOBALS['BE_USER']->user['uid'] ?? 0;
         } else {
             $context = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Context\Context::class);
             $backendUserId = $context->getPropertyFromAspect('backend.user', 'id') ?? 0;
-        };
+        }
 
         if ($backendUserId > 0) {
             $uri = parse_url($uriToCheck);
