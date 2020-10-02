@@ -7,6 +7,7 @@ use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
@@ -28,6 +29,11 @@ class SnippetPreview extends AbstractNode
      * @var string
      */
     protected $titleField = 'title';
+
+    /**
+     * @var string
+     */
+    protected $pageTitleField = 'title';
 
     /**
      * @var string
@@ -123,6 +129,12 @@ class SnippetPreview extends AbstractNode
             $this->titleField = $this->data['parameterArray']['fieldConf']['config']['settings']['titleField'];
         }
 
+        if (array_key_exists('titleField', (array)$this->data['parameterArray']['fieldConf']['config']['settings']) &&
+            $this->data['parameterArray']['fieldConf']['config']['settings']['pageTitleField']
+        ) {
+            $this->pageTitleField = $this->data['parameterArray']['fieldConf']['config']['settings']['pageTitleField'];
+        }
+
         if (array_key_exists('descriptionField', (array)$this->data['parameterArray']['fieldConf']['config']['settings'])
             && $this->data['parameterArray']['fieldConf']['config']['settings']['descriptionField']
         ) {
@@ -146,8 +158,7 @@ class SnippetPreview extends AbstractNode
         $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigUtility::class);
         $allowedDoktypes = YoastUtility::getAllowedDoktypes();
         $resultArray = $this->initializeResultArray();
-        $publicResourcesPath = PathUtility::getAbsoluteWebPath('../typo3conf/ext/yoast_seo/Resources/Public/');
-        $resultArray['stylesheetFiles'][] = $publicResourcesPath . 'CSS/yoast.min.css';
+        $resultArray['stylesheetFiles'][] = 'EXT:yoast_seo/Resources/Public/CSS/yoast.min.css';
 
         $premiumText = $this->getPremiumText();
 
@@ -158,8 +169,13 @@ class SnippetPreview extends AbstractNode
                 $this->data['tableName']
             );
 
+            $publicResourcesPath =
+                PathUtility::getAbsoluteWebPath(ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
+            $workerUrl = $publicResourcesPath . '/JavaScript/dist/worker.js';
+
             $config = [
                 'urls' => [
+                    'workerUrl' => $workerUrl,
                     'previewUrl' => $this->previewUrl,
                     'saveScores' => $this->urlService->getSaveScoresUrl(),
                     'prominentWords' => $this->urlService->getUrlForType(1539541406),
@@ -180,6 +196,7 @@ class SnippetPreview extends AbstractNode
                 ],
                 'fieldSelectors' => [
                     'title' => $this->getFieldSelector($this->titleField),
+                    'pageTitle' => $this->getFieldSelector($this->pageTitleField),
                     'description' => $this->getFieldSelector($this->descriptionField),
                     'focusKeyword' => $this->getFieldSelector($this->focusKeywordField),
                     'cornerstone' => $this->getFieldSelector($this->cornerstoneField),
@@ -197,19 +214,13 @@ class SnippetPreview extends AbstractNode
 
             $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
 
-            $pageRenderer->addRequireJsConfiguration([
-                'paths' => [
-                    'YoastSEO' => $publicResourcesPath . 'JavaScript/'
-                ]
-            ]);
-
             if (YoastUtility::inProductionMode() === true) {
-                $pageRenderer->loadRequireJsModule('YoastSEO/dist/plugin');
+                $pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/dist/plugin');
             } else {
                 $pageRenderer->addHeaderData('<script type="text/javascript" src="https://localhost:3333/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/plugin.js" async></script>');
             }
 
-            $pageRenderer->loadRequireJsModule('YoastSEO/yoastModal');
+            $pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/yoastModal');
 
             $this->templateView->assignMultiple([
                 'previewUrl' => $this->previewUrl,

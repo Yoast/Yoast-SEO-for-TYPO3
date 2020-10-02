@@ -21,7 +21,6 @@ use TYPO3\CMS\Install\Updates\AbstractUpdate;
 
 /**
  * Class SeoTitleUpdate
- * @package YoastSeoForTypo3\YoastSeo\Install
  */
 class SeoTitleUpdate extends AbstractUpdate
 {

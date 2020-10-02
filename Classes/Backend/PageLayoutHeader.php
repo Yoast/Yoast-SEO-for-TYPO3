@@ -75,7 +75,7 @@ class PageLayoutHeader
     public function render()
     {
         $moduleData = BackendUtility::getModuleData(['language'], [], 'web_layout');
-        $pageId = (int)$_GET['id'];
+        $pageId = (int)GeneralUtility::_GET('id');
 
         if (!$this->showSnippetPreview()) {
             return '';
@@ -86,17 +86,17 @@ class PageLayoutHeader
             return '';
         }
 
-        $publicResourcesPath = PathUtility::getAbsoluteWebPath(
-            ExtensionManagementUtility::extPath('yoast_seo')
-        ) . 'Resources/Public/';
-
         $allowedDoktypes = YoastUtility::getAllowedDoktypes();
         if (is_array($currentPage) &&
             array_key_exists('doktype', $currentPage) &&
             in_array((int)$currentPage['doktype'], $allowedDoktypes, true)
         ) {
+            $publicResourcesPath =
+                PathUtility::getAbsoluteWebPath(ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
+
             $config = [
                 'urls' => [
+                    'workerUrl' => $publicResourcesPath . '/JavaScript/dist/worker.js',
                     'previewUrl' => $this->urlService->getPreviewUrl($pageId, (int)$moduleData['language']),
                     'saveScores' => $this->urlService->getSaveScoresUrl(),
                     'prominentWords' => $this->urlService->getUrlForType(1539541406),
@@ -122,20 +122,14 @@ class PageLayoutHeader
 
             $this->pageRenderer->addJsInlineCode('yoast-json-config', $jsonConfigUtility->render());
 
-            $this->pageRenderer->addRequireJsConfiguration([
-                'paths' => [
-                    'YoastSEO' => $publicResourcesPath . 'JavaScript/'
-                ]
-            ]);
-
             if (YoastUtility::inProductionMode() === true) {
-                $this->pageRenderer->loadRequireJsModule('YoastSEO/dist/plugin');
+                $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/dist/plugin');
             } else {
                 $this->pageRenderer->addHeaderData('<script type="text/javascript" src="https://localhost:3333/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/plugin.js" async></script>');
             }
 
-            $this->pageRenderer->loadRequireJsModule('YoastSEO/yoastModal');
-            $this->pageRenderer->addCssFile($publicResourcesPath . 'CSS/yoast.min.css');
+            $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/yoastModal');
+            $this->pageRenderer->addCssFile('EXT:yoast_seo/Resources/Public/CSS/yoast.min.css');
 
             return $this->getReturnHtml();
         }

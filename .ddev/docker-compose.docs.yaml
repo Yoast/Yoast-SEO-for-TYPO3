@@ -1,0 +1,8 @@
+version: "3.6"
+services:
+    docs:
+        image: t3docs/render-documentation:latest
+        command: makehtml
+        volumes:
+            - ../:/PROJECT:ro
+            - ../Documentation-GENERATED-temp:/RESULT

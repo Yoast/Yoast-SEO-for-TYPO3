@@ -36,11 +36,7 @@ With this TypoScript you can also add more constraints to which pages you want t
 
 How to configure EXT:realurl
 ----------------------------
-If you are using the auto-configuration option on EXT:realurl, you are all set. You can find your sitemap by browsing
-to https://domain.com/sitemap.xml. It will show you an index of sitemaps, containing 1 sitemap for pages. Only pages
-where indexing is enabled in the page properties are mentioned here.
-
-When you have a manual configuration for EXT:realurl, you add to set the follow to your configuration array:
+You have to do a manual configuration for EXT:realurl. You can add the following code to your configuration array of EXT:realurl:
 
 .. code-block:: php
 

@@ -33,56 +33,62 @@ if (version_compare(TYPO3_branch, '9.5', '<')) {
         'setup',
         '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/Setup/CMS8.typoscript">'
     );
+
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][] =
+        \YoastSeoForTypo3\YoastSeo\Canonical\CanonicalGenerator::class . '->generate';
+
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][]
+        = \YoastSeoForTypo3\YoastSeo\Frontend\PageTitle::class . '->render';
 }
 
-$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514550050] = array(
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514550050] = [
     'nodeName' => 'snippetPreview',
     'priority' => 40,
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\SnippetPreview::class,
-);
+];
 
-$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514728465] = array(
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514728465] = [
     'nodeName' => 'readabilityAnalysis',
     'priority' => 40,
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\ReadabilityAnalysis::class,
-);
+];
 
-$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514830899] = array(
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514830899] = [
     'nodeName' => 'focusKeywordAnalysis',
     'priority' => 40,
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\FocusKeywordAnalysis::class,
-);
+];
 
-$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1552342645] = array(
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1552342645] = [
     'nodeName' => 'cornerstone',
     'priority' => 43,
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\Cornerstone::class,
-);
+];
 
-$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1537991862] = array(
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1537991862] = [
     'nodeName' => 'hiddenField',
     'priority' => 40,
     'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\HiddenField::class
-);
+];
 
 if (!\YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::isPremiumInstalled()) {
-    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1553888878] = array(
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1553888878] = [
         'nodeName' => 'synonyms',
         'priority' => 40,
         'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\Synonyms::class
-    );
+    ];
 
-    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1553977739] = array(
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1553977739] = [
         'nodeName' => 'relatedKeyphrases',
         'priority' => 40,
         'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\RelatedKeyphrases::class
-    );
+    ];
 
-    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1554381790] = array(
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1554381790] = [
         'nodeName' => 'internalLinkingSuggestion',
         'priority' => 40,
         'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\InternalLinkingSuggestion::class
-    );
+    ];
 }
 
 $llFolder = 'LLL:EXT:yoast_seo/Resources/Private/Language/';
@@ -92,7 +98,6 @@ $defaultConfiguration = [
         'page' => 1,
         'backend_section' => 5
     ],
-    'allowDoktypesFromTypoScript' => true,
     'translations' => [
         'availableLocales' => [
             'bg_BG',
@@ -218,3 +223,12 @@ if (version_compare(TYPO3_branch, '9.5', '<')) {
         }
     }
 '));
+
+if (TYPO3_MODE === 'BE') {
+    $publicResourcesPath =
+        \TYPO3\CMS\Core\Utility\PathUtility::getAbsoluteWebPath(\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
+
+    /** @var \TYPO3\CMS\Core\Page\PageRenderer $pageRenderer */
+    $pageRenderer = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Core\Page\PageRenderer::class);
+    $pageRenderer->addInlineSetting('Yoast', 'backendCssUrl', $publicResourcesPath . 'CSS/yoast-seo-backend.min.css');
+}

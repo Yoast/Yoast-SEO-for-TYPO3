@@ -1,0 +1,41 @@
+#!/bin/bash
+
+VERSION=v8
+
+rm -rf /var/www/html/$VERSION/*
+composer init -n -d /var/www/html/$VERSION
+composer config extra.typo3/cms.web-dir public -d /var/www/html/$VERSION
+composer config repositories.$EXTENSION_KEY path ../../$EXTENSION_KEY -d /var/www/html/$VERSION
+composer req t3/cms:'^8.7' $PACKAGE_NAME:'*@dev' --no-progress --no-suggest -n -d /var/www/html/$VERSION
+
+
+cd /var/www/html/$VERSION
+
+TYPO3_INSTALL_DB_DBNAME=$VERSION
+vendor/bin/typo3cms install:setup -n --database-name $VERSION
+vendor/bin/typo3cms configuration:set 'BE/debug' 1
+vendor/bin/typo3cms configuration:set 'FE/debug' 1
+vendor/bin/typo3cms configuration:set 'SYS/devIPmask' '*'
+vendor/bin/typo3cms configuration:set 'SYS/displayErrors' 1
+vendor/bin/typo3cms configuration:set 'SYS/systemLogLevel' 0
+vendor/bin/typo3cms configuration:set 'SYS/trustedHostsPattern' '.*.*'
+vendor/bin/typo3cms configuration:set 'MAIL/transport' 'smtp'
+vendor/bin/typo3cms configuration:set 'MAIL/transport_smtp_server' 'localhost:1025'
+vendor/bin/typo3cms configuration:set 'GFX/processor' 'ImageMagick'
+vendor/bin/typo3cms configuration:set 'GFX/processor_path' '/usr/bin/'
+vendor/bin/typo3cms configuration:set 'GFX/processor_path_lzw' '/usr/bin/'
+vendor/bin/typo3cms install:generatepackagestates
+
+vendor/bin/typo3cms cache:flush
+
+composer req dmitryd/typo3-realurl:^2.6
+vendor/bin/typo3cms extension:setup realurl
+vendor/bin/typo3cms install:generatepackagestates
+vendor/bin/typo3cms extension:setup realurl
+vendor/bin/typo3cms database:updateschema
+
+cp ../v9/public/.htaccess ./public
+cp ~/realurl_conf.php ./public/typo3conf
+cp ~/favicon.ico ./public
+
+mysql -uroot -proot v8 < ~/v8.sql

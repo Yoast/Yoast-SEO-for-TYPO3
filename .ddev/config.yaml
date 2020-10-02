@@ -1,0 +1,23 @@
+name: yoast-seo
+type: php
+docroot: ~
+no_project_mount: true
+php_version: "7.2"
+webserver_type: apache-fpm
+router_http_port: "80"
+router_https_port: "443"
+xdebug_enabled: false
+additional_hostnames:
+    - v8.yoast-seo
+    - v9.yoast-seo
+    - v10.yoast-seo
+additional_fqdns: []
+provider: default
+use_dns_when_possible: true
+nfs_mount_enabled: true
+omit_containers:
+    - dba
+extra_services:
+    - v8-data
+    - v9-data
+    - v10-data

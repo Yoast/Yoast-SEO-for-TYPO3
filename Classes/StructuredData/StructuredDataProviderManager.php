@@ -80,7 +80,11 @@ class StructuredDataProviderManager implements SingletonInterface
             }
         }
 
-        return '<script type="application/ld+json">' . json_encode($data, JSON_UNESCAPED_SLASHES) . '</script>';
+        if (empty($data)) {
+            return '';
+        }
+
+        return '<script type="application/ld+json">' . json_encode($data, JSON_UNESCAPED_SLASHES) . ';</script>';
     }
 
     /**
@@ -164,7 +168,7 @@ class StructuredDataProviderManager implements SingletonInterface
         try {
             $this->pageCache = GeneralUtility::makeInstance(CacheManager::class)->getCache('cache_pages');
         } catch (NoSuchCacheException $e) {
-            // Intended fall-through
+            // @ignoreException
         }
     }
 

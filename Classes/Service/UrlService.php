@@ -15,7 +15,6 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 /**
  * Class UrlService
- * @package YoastSeoForTypo3\YoastSeo\Service
  */
 class UrlService
 {
@@ -82,6 +81,18 @@ class UrlService
                         (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams)
                     );
 
+                    if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][self::class]['urlToCheck'])) {
+                        foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][self::class]['urlToCheck'] as $_funcRef) {
+                            $_params = [
+                                'urlToCheck' => $uriToCheck,
+                                'site' => $site,
+                                'finalPageIdToShow' => $finalPageIdToShow,
+                                'languageId' => $languageId
+                            ];
+
+                            $uriToCheck = GeneralUtility::callUserFunction($_funcRef, $_params, $this);
+                        }
+                    }
                     $uri = (string)$this->uriBuilder->buildUriFromRoute('ajax_yoast_preview', [
                         'uriToCheck' => $uriToCheck, 'pageId' => $finalPageIdToShow
                     ]);

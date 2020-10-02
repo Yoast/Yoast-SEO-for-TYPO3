@@ -21,7 +21,6 @@ use TYPO3\CMS\Fluid\View\StandaloneView;
 
 /**
  * Class Insights
- * @package YoastSeoForTypo3\YoastSeoPremium\Form\Element
  */
 class Insights extends AbstractNode
 {

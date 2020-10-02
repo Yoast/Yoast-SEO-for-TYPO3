@@ -3,7 +3,6 @@ namespace YoastSeoForTypo3\YoastSeo\Form\Element;
 
 use TYPO3\CMS\Backend\Form\AbstractNode;
 use TYPO3\CMS\Backend\Form\NodeFactory;
-use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 
@@ -21,8 +20,6 @@ class Cornerstone extends AbstractNode
     public function __construct(NodeFactory $nodeFactory, array $data)
     {
         parent::__construct($nodeFactory, $data);
-
-        $this->localeService = GeneralUtility::makeInstance(Locales::class);
 
         $this->templateView = GeneralUtility::makeInstance(StandaloneView::class);
         $this->templateView->setTemplatePathAndFilename(

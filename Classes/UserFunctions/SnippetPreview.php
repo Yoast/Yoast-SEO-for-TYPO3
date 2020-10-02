@@ -7,7 +7,6 @@ use YoastSeoForTypo3\YoastSeo\Service\PreviewService;
 
 /**
  * Class SnippetPreview
- * @package YoastSeoForTypo3\YoastSeo\UserFunctions
  */
 class SnippetPreview
 {
@@ -18,19 +17,19 @@ class SnippetPreview
      */
     public function render(): string
     {
-        $additionalGetVars = urldecode($_GET['additionalGetVars']);
+        $additionalGetVars = urldecode(GeneralUtility::_GET('additionalGetVars'));
         $cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
         $uriToCheck = $cObj->typolink_URL([
-            'parameter' => (int)$_GET['pageIdToCheck'],
+            'parameter' => (int)GeneralUtility::_GET('pageIdToCheck'),
             'forceAbsoluteUrl' => 1,
-            'additionalParams' => $additionalGetVars . '&L=' . (int)$_GET['languageIdToCheck'],
+            'additionalParams' => $additionalGetVars . '&L=' . (int)GeneralUtility::_GET('languageIdToCheck'),
             'linkAccessRestrictedPages' => 1,
         ]);
 
         $previewService = GeneralUtility::makeInstance(PreviewService::class);
         return $previewService->getPreviewData(
             $uriToCheck,
-            (int)$_GET['pageIdToCheck'],
+            (int)GeneralUtility::_GET('pageIdToCheck'),
             $GLOBALS['TSFE']->config['config'] ?? [],
             $GLOBALS['TSFE']->tmpl->setup['sitetitle'] ?? ''
         );

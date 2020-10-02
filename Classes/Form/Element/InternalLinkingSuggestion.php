@@ -5,7 +5,6 @@ use TYPO3\CMS\Backend\Form\AbstractNode;
 use TYPO3\CMS\Backend\Form\NodeFactory;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\PathUtility;
 
 class InternalLinkingSuggestion extends AbstractNode
 {
@@ -20,19 +19,9 @@ class InternalLinkingSuggestion extends AbstractNode
 
     public function render()
     {
-        $publicResourcesPath = PathUtility::getAbsoluteWebPath('../typo3conf/ext/yoast_seo/Resources/Public/');
-
         $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
 
-        $pageRenderer->addRequireJsConfiguration(
-            array(
-                'paths' => array(
-                    'YoastSEO' => $publicResourcesPath . 'JavaScript/'
-                )
-            )
-        );
-
-        $pageRenderer->loadRequireJsModule('YoastSEO/yoastModal');
+        $pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/yoastModal');
 
         $resultArray = $this->initializeResultArray();
 

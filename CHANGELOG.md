@@ -8,6 +8,43 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## 7.0.3 September 21, 2020
+### Fixed
+* Make sure the path to the backend CSS is always available to show a modal. This should fix the problem of a not being able to edit a content element after updating to 7.0.2
+
+## 7.0.2 September 19, 2020
+### Fixed
+* Removed hardcoded links to typo3conf/ext folder
+* Fixed fontsize of text width measurement to ensure we get same calculations as in the WordPress plugin of Yoast SEO
+
+## 7.0.1 September 7, 2020
+### Changed
+* Added a placeholder to seo_title field to show the user what the value will be if no specific SEO title is set
+* Removed negative margin to avoid issues with other plugins
+* Updated dependencies
+
+### Fixed
+* When changing tabs in the page properties, tje preview keeps working
+
+## 7.0.0 August 10, 2020
+### Breaking changes
+* We removed the possibility to set the doktypes that needs to be analysed from within TypoScript. The doktypes are needed during the TCA setup and by using TypoScript some installations did crash when no database connection was already in place. The feature was never documented but it was possible so this is marked as a breaking change. Please set your allowed doktypes in your ext_localconf.php as described in the [documentation](https://docs.typo3.org/p/yoast-seo-for-typo3/yoast_seo/6.0/en-us/Configuration/SnippetPreview/Index.html#enable-snippet-preview-on-specific-page-types).  
+
+### Added
+* A [DDEV](https://ddev.readthedocs.io/en/stable/) setup is now included in the repository to make it easy to contribute to this project and check the results in TYPO3 v8, 9 and 10. We added some information in the documentation as well. 
+* To be able to alter the URL that should be analysed, we introduced a hook after the link is generated. With this hook, you have the possibility to add your own logic to determine which URL to analyse. More information can be found in the [documentation](https://docs.typo3.org/p/yoast-seo-for-typo3/yoast_seo/6.0/en-us/).
+
+### Changed
+* There was a library included which was not used anymore so we removed the dependency to the nimut/testing-framework package.
+* Moved from Travis to GitHub actions for the CI process
+
+### Fixed
+* Removed include of empty TypoScript file which caused errors in TypoScript Object Manager when installed in non-composer-mode. 
+* Add missing return true to executeUpdate function in CanonicalFieldUpdate.php.
+* The canonical and title fields are now rendered correctly in frontend again in TYPO3 v8
+* Removed wrong information about usage of EXT:realurl in the documentation
+* Fixed issue in output of structured data that caused warnings when more inline javascript was added to the frontend.
+* The canonical link in TYPO3 v8 is now checking the right GET parameters while building the canonical 
 
 ## 6.0.1 April 22, 2020
 ### Fixed

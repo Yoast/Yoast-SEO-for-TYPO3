@@ -1,7 +1,7 @@
 Yoast SEO for TYPO3
 ======================
 
-[![Build Status](https://travis-ci.org/Yoast/Yoast-SEO-for-TYPO3.svg?branch=master)](https://travis-ci.org/Yoast/Yoast-SEO-for-TYPO3)
+[![CI status](https://github.com/Yoast/Yoast-SEO-for-TYPO3/workflows/CI/badge.svg)](https://github.com/Yoast/Yoast-SEO-for-TYPO3/actions?query=branch%3Amaster)
 [![Stable Version](https://poser.pugx.org/yoast-seo-for-typo3/yoast_seo/v/stable.svg)](https://packagist.org/packages/yoast-seo-for-typo3/yoast_seo)
 [![License](https://poser.pugx.org/yoast-seo-for-typo3/yoast_seo/license.svg)](https://packagist.org/packages/yoast-seo-for-typo3/yoast_seo)
 
@@ -32,4 +32,45 @@ There are various ways you can contribute:
 * [Raise an issue](https://github.com/Yoast/t3ext-yoast-seo/issues) on GitHub.
 * Send us a Pull Request with your bug fixes and/or new features.
 
+### Using DDEV to test
+In this repository we added a DDEV setup so you can easily test your contributions in all the TYPO3 versions the extension should work with.
 
+First of all, make sure you have installed DDEV and Docker. See the [documentation](https://ddev.readthedocs.io/en/stable/#installation) how to do that. After you have installed DDEV, run the following command in the root of this repository.
+```bash
+ddev start
+```
+
+After the setup is started, you can use the following command to make sure all installations are up and running.
+```bash
+ddev install-all
+```
+
+When the script is finished, you can go to https://yoast-seo.ddev.site and check the TYPO3 installations that are available to test your work.
+
+#### Instances
+The following instances will be up and running for you after you have installed the DDEV setup.
+
+- https://v8.yoast-seo.ddev.site
+- https://v9.yoast-seo.ddev.site
+- https://v10.yoast-seo.ddev.site 
+
+#### Login
+You will be able to login to the backend of the instances above, by using the following credentials:
+
+    Username: admin
+    Password: password 
+
+#### Reset setup
+If you want to reset the instances? Use the following two commands. Be aware that this will also reset the databases!
+
+```bash
+ddev rm -O -R
+```
+and after that:
+```bash
+docker volume rm yoast-seo-v8-data yoast-seo-v9-data yoast-seo-v10-data
+```
+
+If you change the code, you can directly see the changes in all the installations of your DDEV setup.
+
+> Thanks to [Armin Vieweg](https://github.com/a-r-m-i-n/ddev-for-typo3-extensions) for this example DDEV setup for extensions

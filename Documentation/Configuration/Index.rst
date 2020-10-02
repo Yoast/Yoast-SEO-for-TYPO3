@@ -26,3 +26,4 @@ However, a few things can still be configured using an extension that overwrites
     	TCA/Index
     	Sitemap/Index
     	OtherPlugins/Index
+    	Hooks/Index
