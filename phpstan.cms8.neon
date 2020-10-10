@@ -9,6 +9,7 @@ parameters:
     - Classes/Install/CanonicalFieldUpdate.php
     - Classes/Install/SeoTitleUpdate.php
     - Classes/Controller/AjaxController.php
+    - Classes/Service/PreviewService.php
     - Classes/Service/UrlService.php
     - Classes/StructuredData/BreadcrumbStructuredDataProvider.php
     - Classes/StructuredData/SiteStructuredDataProvider.php
