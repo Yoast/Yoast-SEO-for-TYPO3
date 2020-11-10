@@ -35,7 +35,10 @@ class YoastUtility
      */
     public static function getAllowedDoktypes($configuration = null, $returnInString = false)
     {
-        $allowedDoktypes = array_values((array)$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes']);
+        // @phpstan-ignore-next-line
+        $allowedDoktypes = array_map(function ($doktype) {
+            return (int)$doktype;
+        }, array_values((array)$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes']));
 
         if (is_array($configuration) &&
             array_key_exists('allowedDoktypes', $configuration) &&
