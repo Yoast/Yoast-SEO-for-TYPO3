@@ -8,6 +8,16 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## 7.0.4 November 16, 2020
+### Fixed
+* Make sure both strings and integers can be used when setting allowed doktypes
+* Use the site title of the site configuration when this property is set. 
+* Removed usage of $_EXTKEY in ext_tables.php to prevent other extensions to crash.
+
+### Changed
+* Changed the link to TypoScript file in documentation
+* The JSON-LD tag will only be rendered when structured data is available
+
 ## 7.0.3 September 21, 2020
 ### Fixed
 * Make sure the path to the backend CSS is always available to show a modal. This should fix the problem of a not being able to edit a content element after updating to 7.0.2
