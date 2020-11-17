@@ -44,7 +44,7 @@ class AdditionalPreviewData implements SingletonInterface
         }
 
         $config = $this->getPageTitlePrependAppend();
-        setcookie('yoast-preview-tstamp', time()); // To prevent caching in for example varnish
+        setcookie('yoast-preview-tstamp', (string)time()); // To prevent caching in for example varnish
         $params['headerData']['YoastPreview'] = '<meta name="x-yoast-title-config" value="' . (string)$config['prepend'] . '|||' . (string)$config['append'] . '" />';
     }
 
