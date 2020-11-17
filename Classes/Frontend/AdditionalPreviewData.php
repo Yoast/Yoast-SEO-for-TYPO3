@@ -56,7 +56,7 @@ class AdditionalPreviewData implements SingletonInterface
         $request = $GLOBALS['TYPO3_REQUEST'];
         if (class_exists(SiteLanguage::class)) {
             $language = $request->getAttribute('language');
-            if ($language instanceof SiteLanguage && trim($language->getWebsiteTitle())) {
+            if ($language instanceof SiteLanguage && method_exists($language, 'getWebsiteTitle') && trim($language->getWebsiteTitle())) {
                 return trim($language->getWebsiteTitle());
             }
         }
