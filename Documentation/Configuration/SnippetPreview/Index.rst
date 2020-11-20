@@ -15,7 +15,7 @@ Enable snippet preview on specific page types
 ---------------------------------------------
 By default, the snippet preview is only shown on pages with doktype 1 (Standard page) and 6 (Backend user section). You can
 add your own doktypes like the example below by adding a doktype to the :php:`$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes']`
-array.
+array in the :file:`ext_localconf.php` of your own extension.
 
 .. code-block:: php
 
