@@ -8,6 +8,10 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## 7.0.7 December 9, 2020
+### Fixed
+* It should not matter if a backend user has backend access to the page which is used to preview. This is mainly when using Yoast SEO for records other than pages and the detail page itself is not accessible for the backend user. 
+
 ## 7.0.6 November 20, 2020
 ### Fixed
 * The script adding additional information for the preview now checks if the getWebsiteTitle method exists before calling it. This prevents errors in TYPO3 v9 as this method is not availalbe there.
