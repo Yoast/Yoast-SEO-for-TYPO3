@@ -50,8 +50,6 @@ class ModuleController extends ActionController
             'languageKeyToLocaleMapping' => []
         ],
         'menuActions' => [],
-        'previewDomain' => null,
-        'previewUrlTemplate' => '',
         'viewSettings' => []
     ];
 

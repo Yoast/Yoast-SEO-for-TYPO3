@@ -155,7 +155,13 @@ $defaultConfiguration = [
         'showSocialTab' => true,
         'showAdvancedTab' => true
     ],
-    'previewUrlTemplate' => '/?id=%d&type=%d&L=%d',
+    'previewSettings' => [
+        'disablePreview' => false,
+        'basicAuth' => [
+            'username' => '',
+            'password' => '',
+        ]
+    ],
     'overview_filters' => [
         '10' => [
             'key' => 'cornerstone',

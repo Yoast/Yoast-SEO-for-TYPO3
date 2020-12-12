@@ -30,8 +30,6 @@ class PageLayoutHeader
             'languageKeyToLocaleMapping' => []
         ],
         'menuActions' => [],
-        'previewDomain' => null,
-        'previewUrlTemplate' => '',
         'viewSettings' => []
     ];
 
@@ -145,6 +143,11 @@ class PageLayoutHeader
     {
         if (!$GLOBALS['BE_USER'] instanceof BackendUserAuthentication ||
             !$GLOBALS['BE_USER']->check('non_exclude_fields', 'pages:tx_yoastseo_snippetpreview')) {
+            return false;
+        }
+
+        if (isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewSettings']['disablePreview']) &&
+            $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewSettings']['disablePreview'] === true) {
             return false;
         }
 

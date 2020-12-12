@@ -65,7 +65,7 @@ class PreviewService
      */
     protected function getContentFromUrl($uriToCheck): string
     {
-        $GLOBALS['TYPO3_CONF_VARS']['HTTP']['verify'] = false;
+        $this->setHttpOptions();
         $report = [];
         $content = GeneralUtility::getUrl(
             $uriToCheck,
@@ -191,5 +191,28 @@ class PreviewService
         }
 
         return $text;
+    }
+
+    /**
+     * Set http options for the preview request
+     */
+    protected function setHttpOptions()
+    {
+        $GLOBALS['TYPO3_CONF_VARS']['HTTP']['verify'] = false;
+        if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewSettings']['basicAuth'])) {
+            return;
+        }
+
+        $basicAuth = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewSettings']['basicAuth'];
+        if (!is_array($basicAuth) || !isset($basicAuth['username'], $basicAuth['password'])) {
+            return;
+        }
+
+        if (!empty($basicAuth['username']) && !empty($basicAuth['password'])) {
+            $GLOBALS['TYPO3_CONF_VARS']['HTTP']['auth'] = [
+                $basicAuth['username'],
+                $basicAuth['password']
+            ];
+        }
     }
 }
