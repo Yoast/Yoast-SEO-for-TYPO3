@@ -19,6 +19,7 @@ namespace YoastSeoForTypo3\YoastSeo\StructuredData;
 use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException;
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
+use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Service\DependencyOrderingService;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\TypoScript\TypoScriptService;
@@ -37,20 +38,15 @@ class StructuredDataProviderManager implements SingletonInterface
      */
     protected $pageCache;
 
-    /**
-     * @var string
-     */
-    protected $sourceComment = '';
-
     public function __construct()
     {
         $this->initCaches();
 
-        if (YoastUtility::isPremiumInstalled()) {
-            $this->sourceComment = '<!-- This site is optimized with the Yoast SEO Premium for TYPO3 plugin - https://yoast.com/typo3-extensions-seo/ -->';
-        } else {
-            $this->sourceComment = '<!-- This site is optimized with the Yoast SEO for TYPO3 plugin - https://yoast.com/typo3-extensions-seo/ -->';
-        }
+        $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
+        $premiumText = YoastUtility::isPremiumInstalled() ? 'Premium' : '';
+        $pageRenderer->addInlineComment(
+            "\t" . 'This site is optimized with the Yoast SEO ' . $premiumText . ' for TYPO3 plugin - https://yoast.com/typo3-extensions-seo/' . LF
+        );
     }
 
     /**
@@ -60,9 +56,9 @@ class StructuredDataProviderManager implements SingletonInterface
     public function render(&$params, $pObj)
     {
         if (TYPO3_MODE === 'FE') {
-            $data = $this->getStructuredData();
-
-            $params['headerData']['StructuredDataManager'] = $this->sourceComment . PHP_EOL . $this->buildJsonLdBlob($data);
+            $params['headerData']['StructuredDataManager'] = $this->buildJsonLdBlob(
+                $this->getStructuredData()
+            );
         }
     }
 
