@@ -38,14 +38,6 @@ also disable the snippet preview based on PageTs. Below an example to hide page 
         }
     [global]
 
-Disable snippet preview globally
---------------------------------
-If you want to disable the snippet preview completely, for example for a specific environment, it's possible to set this through :php:`$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewSettings']['disablePreview']`
-
-.. code-block:: php
-
-    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewSettings']['disablePreview'] = true;
-
 Basic auth configuration
 ------------------------
 For environments which are protected by Basic auth, it's possible to set username and password through :php:`$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewSettings']['basicAuth']`
