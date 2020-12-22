@@ -37,3 +37,14 @@ also disable the snippet preview based on PageTs. Below an example to hide page 
             disableSnippetPreview = 1
         }
     [global]
+
+Basic auth configuration
+------------------------
+For environments which are protected by Basic auth, it's possible to set username and password through :php:`$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewSettings']['basicAuth']`
+
+.. code-block:: php
+
+    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewSettings']['basicAuth'] = [
+        'username' => 'authUsername',
+        'password' => 'authPassword'
+    ];
