@@ -3,7 +3,6 @@ namespace YoastSeoForTypo3\YoastSeo\Backend;
 
 use TYPO3\CMS\Backend\Controller\PageLayoutController;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
-use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
@@ -74,12 +73,8 @@ class PageLayoutHeader
     {
         $moduleData = BackendUtility::getModuleData(['language'], [], 'web_layout');
         $pageId = (int)GeneralUtility::_GET('id');
-
-        if (!$this->showSnippetPreview()) {
-            return '';
-        }
-
         $currentPage = $this->getCurrentPage($pageId, $moduleData);
+
         if (!YoastUtility::snippetPreviewEnabled($pageId, $currentPage)) {
             return '';
         }
@@ -132,29 +127,6 @@ class PageLayoutHeader
             return $this->getReturnHtml();
         }
         return '';
-    }
-
-    /**
-     * Check to see if snippet preview has to be shown
-     *
-     * @return bool
-     */
-    protected function showSnippetPreview(): bool
-    {
-        if (!$GLOBALS['BE_USER'] instanceof BackendUserAuthentication ||
-            !$GLOBALS['BE_USER']->check('non_exclude_fields', 'pages:tx_yoastseo_snippetpreview')) {
-            return false;
-        }
-
-        if (isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewSettings']['disablePreview']) &&
-            $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewSettings']['disablePreview'] === true) {
-            return false;
-        }
-
-        if ((bool)$GLOBALS['BE_USER']->uc['hideYoastInPageModule']) {
-            return false;
-        }
-        return true;
     }
 
     /**

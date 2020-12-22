@@ -65,6 +65,7 @@ class PreviewService
      */
     protected function getContentFromUrl($uriToCheck): string
     {
+        $backupSettings = $GLOBALS['TYPO3_CONF_VARS']['HTTP'];
         $this->setHttpOptions();
         $report = [];
         $content = GeneralUtility::getUrl(
@@ -78,6 +79,7 @@ class PreviewService
             $report
         );
 
+        $GLOBALS['TYPO3_CONF_VARS']['HTTP'] = $backupSettings;
         if ((int)$report['error'] === 0) {
             return $content;
         }

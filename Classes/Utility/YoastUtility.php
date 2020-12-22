@@ -14,8 +14,16 @@ namespace YoastSeoForTypo3\YoastSeo\Utility;
  * The TYPO3 project - inspiring people to share!
  */
 
-use TYPO3\CMS;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Package\Exception;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
+use TYPO3\CMS\Extbase\Configuration\ConfigurationManager;
+use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
+use TYPO3\CMS\Extbase\Object\ObjectManager;
 
 /**
  * Class YoastUtility
@@ -69,10 +77,17 @@ class YoastUtility
      */
     public static function snippetPreviewEnabled($pageId, array $pageRecord, $pageTs = null)
     {
-        $showPreview = !$pageRecord['tx_yoastseo_hide_snippet_preview'];
+        if (!$GLOBALS['BE_USER'] instanceof BackendUserAuthentication ||
+            !$GLOBALS['BE_USER']->check('non_exclude_fields', 'pages:tx_yoastseo_snippetpreview')) {
+            return false;
+        }
+
+        if ((bool)$GLOBALS['BE_USER']->uc['hideYoastInPageModule']) {
+            return false;
+        }
 
         if ($pageTs === null) {
-            $pageTs = CMS\Backend\Utility\BackendUtility::getPagesTSconfig($pageId);
+            $pageTs = BackendUtility::getPagesTSconfig($pageId);
         }
 
         if (is_array($pageTs) &&
@@ -83,10 +98,10 @@ class YoastUtility
             array_key_exists('disableSnippetPreview', $pageTs['mod.']['web_SeoPlugin.']) &&
             (int)$pageTs['mod.']['web_SeoPlugin.']['disableSnippetPreview'] === 1
         ) {
-            $showPreview = false;
+            return false;
         }
 
-        return $showPreview;
+        return ($pageRecord['tx_yoastseo_hide_snippet_preview']) ? false : true;
     }
 
     /**
@@ -102,7 +117,7 @@ class YoastUtility
             return '';
         }
 
-        $record = CMS\Backend\Utility\BackendUtility::getRecord($table, $uid);
+        $record = BackendUtility::getRecord($table, $uid);
         if (\is_array($record) && array_key_exists(self::COLUMN_NAME_FOCUSKEYWORD, $record)) {
             $focusKeyword = $record[self::COLUMN_NAME_FOCUSKEYWORD];
         }
@@ -117,7 +132,7 @@ class YoastUtility
             foreach ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['get_focus_keyword'] as $_funcRef) {
                 if ($_funcRef) {
                     $tmp = new \stdClass();
-                    CMS\Core\Utility\GeneralUtility::callUserFunction($_funcRef, $params, $tmp);
+                    GeneralUtility::callUserFunction($_funcRef, $params, $tmp);
                 }
             }
         }
@@ -133,7 +148,7 @@ class YoastUtility
     public static function getRelatedKeyphrases($parentTable, $parentId): array
     {
         $config = [];
-        $queryBuilder = CMS\Core\Utility\GeneralUtility::makeInstance(CMS\Core\Database\ConnectionPool::class)->getQueryBuilderForTable('tx_yoast_seo_premium_focus_keywords');
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tx_yoast_seo_premium_focus_keywords');
         if ($queryBuilder) {
             $relatedKeyphrases = $queryBuilder->select('*')
                 ->from('tx_yoast_seo_premium_focus_keywords')
@@ -160,7 +175,7 @@ class YoastUtility
      */
     public static function isPremiumInstalled()
     {
-        return (bool)CMS\Core\Utility\ExtensionManagementUtility::isLoaded('yoast_seo_premium');
+        return (bool)ExtensionManagementUtility::isLoaded('yoast_seo_premium');
     }
 
     /**
@@ -187,23 +202,21 @@ class YoastUtility
 
     protected static function getTypoScriptConfiguration()
     {
-        /** @var CMS\Extbase\Object\ObjectManager $objectManager */
-        $objectManager = CMS\Core\Utility\GeneralUtility::makeInstance(CMS\Extbase\Object\ObjectManager::class);
-        /** @var CMS\Extbase\Configuration\ConfigurationManager $configurationManager */
-        $configurationManager = $objectManager->get(CMS\Extbase\Configuration\ConfigurationManager::class);
-        $configuration = $configurationManager->getConfiguration(
-            CMS\Extbase\Configuration\ConfigurationManagerInterface::CONFIGURATION_TYPE_SETTINGS,
+        /** @var ObjectManager $objectManager */
+        $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
+        /** @var ConfigurationManager $configurationManager */
+        $configurationManager = $objectManager->get(ConfigurationManager::class);
+        return $configurationManager->getConfiguration(
+            ConfigurationManagerInterface::CONFIGURATION_TYPE_SETTINGS,
             'yoastseo'
         );
-
-        return $configuration;
     }
     /**
      * @param string $utm_term
      * @param string $utm_content
      * @param string $utm_source
      * @return string
-     * @throws CMS\Core\Package\Exception
+     * @throws Exception
      */
     public static function getYoastLink($utm_term = 'Go premium', $utm_content = '', $utm_source = 'yoast-seo-for-typo3')
     {
@@ -216,9 +229,9 @@ class YoastUtility
             'utm_campaign' => 'typo3-ad',
             'php_version' => $php_version[1] ?: 'unknown',
             'platform' => 'TYPO3',
-            'platform_version' => CMS\Core\Utility\VersionNumberUtility::getNumericTypo3Version(),
+            'platform_version' => VersionNumberUtility::getNumericTypo3Version(),
             'software' => self::isPremiumInstalled() ? 'premium' : 'free',
-            'software_version' => CMS\Core\Utility\ExtensionManagementUtility::getExtensionVersion('yoast_seo'),
+            'software_version' => ExtensionManagementUtility::getExtensionVersion('yoast_seo'),
             'role' => ''
         ];
 

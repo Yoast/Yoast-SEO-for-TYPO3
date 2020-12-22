@@ -156,7 +156,6 @@ $defaultConfiguration = [
         'showAdvancedTab' => true
     ],
     'previewSettings' => [
-        'disablePreview' => false,
         'basicAuth' => [
             'username' => '',
             'password' => '',
