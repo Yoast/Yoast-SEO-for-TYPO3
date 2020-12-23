@@ -6,8 +6,8 @@
 conf.py:
   copyright: 2017
   project: Yoast SEO for TYPO3
-  version: 1.0
-  release: 1.0.0
+  version: master
+  release: master
   latex_documents:
   - - Index
     - yoast_seo.tex
