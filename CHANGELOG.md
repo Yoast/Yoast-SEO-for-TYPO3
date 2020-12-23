@@ -8,6 +8,10 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## 7.1.1 December 23, 2020
+### Fixed
+* Added missing extension key for TER release script
+
 ## 7.1.0 December 23, 2020
 ### Added
 * If your site is secured with basic auth, we have you covered now. You can set the username and password in the settings so you are able to analyse pages that are secured by basic auth. Please be careful with adding credentials to your repository!
