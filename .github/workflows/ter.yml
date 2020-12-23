@@ -57,4 +57,4 @@ jobs:
           fi
 
       - name: Publish to TER
-        run: TYPO3_API_USERNAME=${{ secrets.TYPO3_API_USERNAME }} TYPO3_API_PASSWORD=${{ secrets.TYPO3_API_PASSWORD }} TYPO3_API_TOKEN=$(awk '/Access token:(.*)/ { print $3 }' token.txt) vendor/bin/tailor ter:publish --comment "${{ steps.get-comment.outputs.comment }}" ${{ steps.get-version.outputs.version }}
+        run: TYPO3_API_USERNAME=${{ secrets.TYPO3_API_USERNAME }} TYPO3_API_PASSWORD=${{ secrets.TYPO3_API_PASSWORD }} TYPO3_API_TOKEN=$(awk '/Access token:(.*)/ { print $3 }' token.txt) vendor/bin/tailor ter:publish --comment "${{ steps.get-comment.outputs.comment }}" ${{ steps.get-version.outputs.version }} yoast_seo
