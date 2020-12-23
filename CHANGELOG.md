@@ -8,6 +8,10 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## 7.1.2 December 23, 2020
+### Fixed
+* Excluded unnecessary files and folders from the TER release so it is not to big to publish  
+
 ## 7.1.1 December 23, 2020
 ### Fixed
 * Added missing extension key for TER release script
