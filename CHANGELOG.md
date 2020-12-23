@@ -8,6 +8,17 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## 7.1.0 December 23, 2020
+### Added
+* If your site is secured with basic auth, we have you covered now. You can set the username and password in the settings so you are able to analyse pages that are secured by basic auth. Please be careful with adding credentials to your repository!
+
+### Fixed
+* Special characters in the title of a page are now rendered correctly in the snippet preview
+
+### Changed
+* Added automatic deployments to the TYPO3 Extension Repository
+* A warning is added to the documentation that the Sitemap of EXT:yoast_seo should only be used in TYPO3 v8.
+
 ## 7.0.7 December 9, 2020
 ### Fixed
 * It should not matter if a backend user has backend access to the page which is used to preview. This is mainly when using Yoast SEO for records other than pages and the detail page itself is not accessible for the backend user. 
