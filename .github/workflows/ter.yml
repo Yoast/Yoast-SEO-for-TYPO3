@@ -45,16 +45,5 @@ jobs:
         run: |
           echo ::set-output name=version::${GITHUB_REF/refs\/tags\//}
 
-      - name: Get comment
-        id: get-comment
-        run: |
-          readonly local comment=$(git tag -n10 -l ${{ steps.get-version.outputs.version }} | sed "s/^[0-9.]*[ ]*//g")
-
-          if [[ -z "${comment// }" ]]; then
-            echo ::set-output name=comment::Released version ${{ steps.get-version.outputs.version }} of EXT:yoast_seo
-          else
-            echo ::set-output name=comment::$comment
-          fi
-
       - name: Publish to TER
-        run: TYPO3_API_USERNAME=${{ secrets.TYPO3_API_USERNAME }} TYPO3_API_PASSWORD=${{ secrets.TYPO3_API_PASSWORD }} TYPO3_API_TOKEN=$(awk '/Access token:(.*)/ { print $3 }' token.txt) TYPO3_EXCLUDE_FROM_PACKAGING=./.Build/ExcludeFromPackaging.php vendor/bin/tailor ter:publish --comment "${{ steps.get-comment.outputs.comment }}" ${{ steps.get-version.outputs.version }} yoast_seo
+        run: TYPO3_API_USERNAME=${{ secrets.TYPO3_API_USERNAME }} TYPO3_API_PASSWORD=${{ secrets.TYPO3_API_PASSWORD }} TYPO3_API_TOKEN=$(awk '/Access token:(.*)/ { print $3 }' token.txt) TYPO3_EXCLUDE_FROM_PACKAGING=./.Build/ExcludeFromPackaging.php vendor/bin/tailor ter:publish --comment "Check https://github.com/Yoast/Yoast-SEO-for-TYPO3/blob/master/CHANGELOG.md for the latest changes." ${{ steps.get-version.outputs.version }} yoast_seo
