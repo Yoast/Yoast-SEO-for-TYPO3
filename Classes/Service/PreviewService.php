@@ -132,7 +132,8 @@ class PreviewService
         if ($localeFound) {
             $locale = trim($matchesLocale[1]);
         }
-        $url = preg_replace('/\/$/', '', $uriToCheck);
+        $urlParts = parse_url(preg_replace('/\/$/', '', $uriToCheck));
+        $url = $urlParts['scheme'] . '://' . $urlParts['host'] . $urlParts['path'];
         $baseUrl = preg_replace('/' . preg_quote('/', '/') . '$/', '', $url);
 
         $faviconSrc = $baseUrl . '/favicon.ico';
