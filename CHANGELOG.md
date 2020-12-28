@@ -8,6 +8,52 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## 7.1.3 December 23, 2020
+### Fixed
+* Excluded some more unnecessary files and folders from the TER release
+* Changed comment for TER release and mention this changelog
+
+## 7.1.2 December 23, 2020
+### Fixed
+* Excluded unnecessary files and folders from the TER release so it is not to big to publish  
+
+## 7.1.1 December 23, 2020
+### Fixed
+* Added missing extension key for TER release script
+
+## 7.1.0 December 23, 2020
+### Added
+* If your site is secured with basic auth, we have you covered now. You can set the username and password in the settings so you are able to analyse pages that are secured by basic auth. Please be careful with adding credentials to your repository!
+
+### Fixed
+* Special characters in the title of a page are now rendered correctly in the snippet preview
+
+### Changed
+* Added automatic deployments to the TYPO3 Extension Repository
+* A warning is added to the documentation that the Sitemap of EXT:yoast_seo should only be used in TYPO3 v8.
+
+## 7.0.7 December 9, 2020
+### Fixed
+* It should not matter if a backend user has backend access to the page which is used to preview. This is mainly when using Yoast SEO for records other than pages and the detail page itself is not accessible for the backend user. 
+
+## 7.0.6 November 20, 2020
+### Fixed
+* The script adding additional information for the preview now checks if the getWebsiteTitle method exists before calling it. This prevents errors in TYPO3 v9 as this method is not availalbe there.
+
+## 7.0.5 November 17, 2020
+### Fixed
+* Cast value of cookie to a string to prevent errors in log
+
+## 7.0.4 November 16, 2020
+### Fixed
+* Make sure both strings and integers can be used when setting allowed doktypes
+* Use the site title of the site configuration when this property is set. 
+* Removed usage of $_EXTKEY in ext_tables.php to prevent other extensions to crash.
+
+### Changed
+* Changed the link to TypoScript file in documentation
+* The JSON-LD tag will only be rendered when structured data is available
+
 ## 7.0.3 September 21, 2020
 ### Fixed
 * Make sure the path to the backend CSS is always available to show a modal. This should fix the problem of a not being able to edit a content element after updating to 7.0.2

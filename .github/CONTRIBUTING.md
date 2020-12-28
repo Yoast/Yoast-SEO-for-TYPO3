@@ -57,6 +57,16 @@ At this point you're waiting on us to merge your pull request. We'll review all 
 
 Some issues are labeled "Patch-welcome". This means we see the value in the particular enhancement being suggested but have decided for now not to prioritize it. If you however decide to write a patch for it we'll gladly include it after some code review.
 
+## Releasing a new version of the extension
+
+To release a new version of the extension, you should follow these steps:
+1. Make sure the `CHANGELOG.md` is updated
+2. Make sure the new version is updated in `ext_emconf.php`
+3. All latest code should be in the `master` branch
+4. Create a new release and use the syntax `x.y.z` for the title of the release as well as the title of the tag.
+5. A GitHub action `Publish new version to TER` should be triggered and will make sure the new version is released to TER
+6. Check for the new version on https://packagist.org/packages/yoast-seo-for-typo3/yoast_seo
+
 # Additional Resources
 * [General GitHub Documentation](http://help.github.com/)
 * [GitHub Pull Request documentation](http://help.github.com/send-pull-requests/)

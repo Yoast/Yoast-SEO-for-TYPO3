@@ -15,7 +15,7 @@ Enable snippet preview on specific page types
 ---------------------------------------------
 By default, the snippet preview is only shown on pages with doktype 1 (Standard page) and 6 (Backend user section). You can
 add your own doktypes like the example below by adding a doktype to the :php:`$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes']`
-array.
+array in the :file:`ext_localconf.php` of your own extension.
 
 .. code-block:: php
 
@@ -37,3 +37,14 @@ also disable the snippet preview based on PageTs. Below an example to hide page 
             disableSnippetPreview = 1
         }
     [global]
+
+Basic auth configuration
+------------------------
+For environments which are protected by Basic auth, it's possible to set username and password through :php:`$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewSettings']['basicAuth']`
+
+.. code-block:: php
+
+    $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewSettings']['basicAuth'] = [
+        'username' => 'authUsername',
+        'password' => 'authPassword'
+    ];

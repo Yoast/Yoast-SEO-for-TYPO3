@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Frontend;
 
 use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Core\Site\Entity\SiteInterface;
+use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastRequestHash;
@@ -18,10 +20,6 @@ class AdditionalPreviewData implements SingletonInterface
      * @var array
      */
     private $config;
-    /**
-     * @var string
-     */
-    private $siteTitle;
 
     /**
      * @var \TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer
@@ -31,7 +29,6 @@ class AdditionalPreviewData implements SingletonInterface
     public function __construct()
     {
         $this->config = $GLOBALS['TSFE']->tmpl->setup['config.'] ?? [];
-        $this->siteTitle = $GLOBALS['TSFE']->tmpl->setup['sitetitle'] ?? '';
         $this->cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
     }
 
@@ -47,7 +44,38 @@ class AdditionalPreviewData implements SingletonInterface
         }
 
         $config = $this->getPageTitlePrependAppend();
+        setcookie('yoast-preview-tstamp', (string)time()); // To prevent caching in for example varnish
         $params['headerData']['YoastPreview'] = '<meta name="x-yoast-title-config" value="' . (string)$config['prepend'] . '|||' . (string)$config['append'] . '" />';
+    }
+
+    /**
+     * @return string
+     */
+    protected function getWebsiteTitle(): string
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'];
+        if (class_exists(SiteLanguage::class)) {
+            $language = $request->getAttribute('language');
+            if ($language instanceof SiteLanguage && method_exists($language, 'getWebsiteTitle') && trim($language->getWebsiteTitle())) {
+                return trim($language->getWebsiteTitle());
+            }
+        }
+
+        if (class_exists(SiteInterface::class)) {
+            $site = $request->getAttribute('site');
+            if ($site instanceof SiteInterface) {
+                $siteConfig = $site->getConfiguration();
+
+                if (array_key_exists('websiteTitle', $siteConfig) && !empty($siteConfig['websiteTitle'])) {
+                    return trim($siteConfig['websiteTitle']);
+                }
+            }
+        }
+        if (!empty($GLOBALS['TSFE']->tmpl->setup['sitetitle'])) {
+            return trim($GLOBALS['TSFE']->tmpl->setup['sitetitle']);
+        }
+
+        return '';
     }
 
     /**
@@ -58,11 +86,11 @@ class AdditionalPreviewData implements SingletonInterface
     protected function getPageTitlePrependAppend(): array
     {
         $prependAppend = ['prepend' => '', 'append' => ''];
-        $siteTitle = trim($this->siteTitle);
+        $siteTitle = $this->getWebsiteTitle();
         $pageTitleFirst = (bool)($this->config['pageTitleFirst'] ?? false);
         $pageTitleSeparator = $this->getPageTitleSeparator();
         // only show a separator if there are both site title and page title
-        if ($siteTitle === '') {
+        if (empty($siteTitle)) {
             $pageTitleSeparator = '';
         } elseif (empty($pageTitleSeparator)) {
             // use the default separator if non given

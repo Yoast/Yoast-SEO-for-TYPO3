@@ -20,7 +20,7 @@ There is no need for configuration although it is recommended to remove all othe
 This repository uses [the Yoast grunt tasks plugin](https://github.com/Yoast/plugin-grunt-tasks).
 
 ### Changing Frontend behaviour
-As it has always been, you can change frontend behaviour of `yoast_seo` via TypoScript. Check the [current file](Configuration/TypoScript/setup.txt) for reference.
+As it has always been, you can change frontend behaviour of `yoast_seo` via TypoScript. Check the [current file](Configuration/TypoScript/setup.typoscript) for reference.
 
 ## Reporting bugs / Contributions
 Anyone is welcome to contribute to Yoast SEO for TYPO3. Please
