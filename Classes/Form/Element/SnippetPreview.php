@@ -307,7 +307,9 @@ class SnippetPreview extends AbstractNode
                     $recordId = $recordArray[$l18nPointer];
                 }
 
-                $previewPageId = $recordArray[$l18nPointer];
+                if ($this->table === 'pages') {
+                    $previewPageId = $recordArray[$l18nPointer];
+                }
             }
             $languageId = $recordArray[$languageField];
         }
