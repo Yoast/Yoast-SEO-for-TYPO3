@@ -38,6 +38,46 @@ you can create as many sitemaps you want. Remember to use unique names. In this 
 
 Within the sitemap configuration you can set some fields:
 
+.. tip::
+
+    It is possible to use cObjects whithin fields.
+
+    .. code-block:: typoscript
+
+        plugin.tx_yoastseo {
+            sitemap {
+                config {
+                    news {
+                        # Use a custom function to find appropriate pid
+                        detailPid = USER
+                        detailPid {
+                            userFunc = My\Custom\Package\UserFunction\NewsUserFunction->findNewsPid
+                            attribute = news_detail_page
+                        }
+
+                        # Different WHERE case depending on current language settings
+                        additionalWhere = CASE
+                        additionalWhere {
+                            key.data = TSFE:sys_language_uid
+
+                            # Default case for sys_language_uid=0
+                            0 = TEXT
+                            0.value = `type` = '0' AND `sys_language_uid` = '0'
+
+                            # Specific case for sys_language_uid > 0
+                            default = TEXT
+                            default {
+                                data = TSFE:sys_language_uid
+                                stdWrap.intval = true
+                                wrap = `type` = '0' AND `uid` IN (SELECT `l10n_parent` FROM `tx_news_domain_model_news` WHERE `sys_language_uid` = '|')
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
 tables
 ~~~~~~
 
