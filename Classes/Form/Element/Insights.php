@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Form\Element;
 
 /*
@@ -48,7 +49,7 @@ class Insights extends AbstractNode
         );
     }
 
-    public function render()
+    public function render(): array
     {
         $resultArray = $this->initializeResultArray();
 

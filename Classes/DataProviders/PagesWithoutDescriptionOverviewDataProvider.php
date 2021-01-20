@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 
 /*
@@ -31,14 +32,7 @@ class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataPr
     public function getData($returnOnlyCount = false)
     {
         $doktypes = implode(',', YoastUtility::getAllowedDoktypes()) ?: '-1';
-
-        if (version_compare(TYPO3_branch, '9.5', '>=')) {
-            $table = 'pages';
-        } elseif ((int)$this->callerParams['language'] > 0) {
-            $table = 'pages_language_overlay';
-        } else {
-            $table = 'pages';
-        }
+        $table = 'pages';
 
         $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($table);
 
@@ -48,12 +42,9 @@ class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataPr
                 $qb->expr()->isNull('description')
             ),
             $qb->expr()->in('doktype', $doktypes),
-            $qb->expr()->eq('tx_yoastseo_hide_snippet_preview', 0)
+            $qb->expr()->eq('tx_yoastseo_hide_snippet_preview', 0),
+            $qb->expr()->eq('sys_language_uid', (int)$this->callerParams['language'])
         ];
-
-        if (version_compare(TYPO3_branch, '9.5', '>=') || $table === 'pages_language_overlay') {
-            $constraints[] = $qb->expr()->eq('sys_language_uid', (int)$this->callerParams['language']);
-        }
 
         $query = $qb->select('*')
             ->from($table)

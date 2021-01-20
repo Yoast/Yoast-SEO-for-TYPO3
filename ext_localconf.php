@@ -8,13 +8,6 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php'][
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['usePageCache'][]
     = \YoastSeoForTypo3\YoastSeo\Frontend\UsePageCache::class;
 
-\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScriptConstants(
-    'config.yoast_seo.fe_preview_type = '
-        . \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::FE_PREVIEW_TYPE . PHP_EOL .
-    'config.yoast_seo.sitemap_xml_type = '
-        . \YoastSeoForTypo3\YoastSeo\UserFunctions\XmlSitemap::DOKTYPE
-);
-
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
     'YoastSeo',
     'constants',
@@ -26,20 +19,6 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['usePageCa
     'setup',
     '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/setup.typoscript">'
 );
-
-if (version_compare(TYPO3_branch, '9.5', '<')) {
-    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
-        'YoastSeoCms8',
-        'setup',
-        '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/Setup/CMS8.typoscript">'
-    );
-
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][] =
-        \YoastSeoForTypo3\YoastSeo\Canonical\CanonicalGenerator::class . '->generate';
-
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][]
-        = \YoastSeoForTypo3\YoastSeo\Frontend\PageTitle::class . '->render';
-}
 
 $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514550050] = [
     'nodeName' => 'snippetPreview',
@@ -205,17 +184,11 @@ $iconRegistry->registerIcon(
     ['source' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-container.svg']
 );
 
-if (version_compare(TYPO3_branch, '9.5', '<')) {
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['seoTitleUpdate']
-        = \YoastSeoForTypo3\YoastSeo\Install\CMS8\SeoTitleUpdate::class;
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['canonicalFieldUpdate']
-        = \YoastSeoForTypo3\YoastSeo\Install\CMS8\CanonicalFieldUpdate::class;
-} else {
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['seoTitleUpdate']
-        = \YoastSeoForTypo3\YoastSeo\Install\SeoTitleUpdate::class;
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['canonicalFieldUpdate']
-        = \YoastSeoForTypo3\YoastSeo\Install\CanonicalFieldUpdate::class;
-}
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['seoTitleUpdate']
+    = \YoastSeoForTypo3\YoastSeo\Install\SeoTitleUpdate::class;
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['canonicalFieldUpdate']
+    = \YoastSeoForTypo3\YoastSeo\Install\CanonicalFieldUpdate::class;
+
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScriptSetup(trim('
     config.structuredData.providers {
         breadcrumb {

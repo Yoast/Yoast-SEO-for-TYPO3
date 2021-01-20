@@ -1,7 +1,0 @@
-<url>
-    <loc><f:uri.page pageUid="{doc.uid}" absolute="true" noCacheHash="true" /></loc>
-    <f:if condition="{doc.last_mod}">
-        <f:then><lastmod>{doc.last_mod -> f:format.date(format: 'c')}</lastmod></f:then>
-        <f:else><lastmod>{doc.tstamp -> f:format.date(format: 'c')}</lastmod></f:else>
-    </f:if>
-</url>

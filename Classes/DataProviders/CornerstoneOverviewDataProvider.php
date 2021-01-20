@@ -32,13 +32,10 @@ class CornerstoneOverviewDataProvider extends AbstractOverviewDataProvider
         $language = (int)$this->callerParams['language'];
         $constraints = [];
         $table = 'pages';
-        if ($language > 0 && version_compare(TYPO3_branch, '9.5', '<')) {
-            $table = 'pages_language_overlay';
-        }
 
         $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($table);
 
-        if ($language > 0 || version_compare(TYPO3_branch, '9.5', '>=')) {
+        if ($language > 0) {
             $constraints[] = $qb->expr()->eq('sys_language_uid', $language);
         }
 

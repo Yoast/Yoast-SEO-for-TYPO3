@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\ViewHelpers;
 
 /*
@@ -27,13 +28,17 @@ class RecordIconViewHelper extends AbstractViewHelper
 {
     protected $escapeOutput = false;
 
-    public function initializeArguments()
+    public function initializeArguments(): void
     {
         $this->registerArgument('table', 'string', '', true);
         $this->registerArgument('row', 'array', '', true, []);
         $this->registerArgument('size', 'string', '', false, Icon::SIZE_DEFAULT);
     }
+
     /**
+     * @param array                                                      $arguments
+     * @param \Closure                                                   $renderChildrenClosure
+     * @param \TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface $renderingContext
      * @return string
      */
     public static function renderStatic(array $arguments, \Closure $renderChildrenClosure, RenderingContextInterface $renderingContext): string
@@ -42,19 +47,5 @@ class RecordIconViewHelper extends AbstractViewHelper
         $icon = $iconFactory->getIconForRecord($arguments['table'], $arguments['row'], $arguments['size']);
 
         return $icon->render();
-    }
-
-    /**
-     * Render the view helper
-     *
-     * @return string
-     */
-    public function render()
-    {
-        return self::renderStatic(
-            $this->arguments,
-            $this->buildRenderChildrenClosure(),
-            $this->renderingContext
-        );
     }
 }

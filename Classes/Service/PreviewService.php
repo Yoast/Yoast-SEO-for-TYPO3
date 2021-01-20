@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
 use TYPO3\CMS\Core\Exception;
@@ -36,7 +37,7 @@ class PreviewService
      * @param int $pageId
      * @return false|string
      */
-    public function getPreviewData($uriToCheck, $pageId)
+    public function getPreviewData(string $uriToCheck, int $pageId)
     {
         $this->pageId = $pageId;
 
@@ -59,11 +60,11 @@ class PreviewService
     /**
      * Get content from url
      *
-     * @param $uriToCheck
+     * @param string $uriToCheck
      * @return null|string
      * @throws \TYPO3\CMS\Core\Exception
      */
-    protected function getContentFromUrl($uriToCheck): string
+    protected function getContentFromUrl(string $uriToCheck): ?string
     {
         $backupSettings = $GLOBALS['TYPO3_CONF_VARS']['HTTP'];
         $this->setHttpOptions();
@@ -89,11 +90,11 @@ class PreviewService
     /**
      * Get data from content
      *
-     * @param string $content
+     * @param string|null $content
      * @param string $uriToCheck
      * @return array
      */
-    protected function getDataFromContent($content, $uriToCheck): array
+    protected function getDataFromContent(?string $content, string $uriToCheck): array
     {
         $title = $body = $metaDescription = '';
         $locale = 'en';
@@ -146,7 +147,7 @@ class PreviewService
         }
 
         preg_match('/<meta name=\"x-yoast-title-config\" value=\"([^"]*)\"/i', $content, $matchesTitleConfig);
-        list($titlePrepend, $titleAppend) = explode('|||', (string)$matchesTitleConfig[1]);
+        [$titlePrepend, $titleAppend] = explode('|||', (string)$matchesTitleConfig[1]);
 
         $body = $this->prepareBody($body);
 
@@ -170,26 +171,25 @@ class PreviewService
 
     protected function prepareBody(string $body): string
     {
-        $body = $this->stripTagsContent($body, '<script><noscript>', true);
+        $body = $this->stripTagsContent($body, '<script><noscript>');
         $body = preg_replace(['/\s?\n\s?/', '/\s{2,}/'], [' ', ' '], $body);
         $body = strip_tags($body, '<h1><h2><h3><h4><h5><p><a><img>');
 
         return trim($body);
     }
 
-    protected function stripTagsContent($text, $tags = '', $invert = false)
+    /**
+     * @param string $text
+     * @param string $tags
+     * @return string
+     */
+    protected function stripTagsContent(string $text, string $tags = ''): string
     {
-        preg_match_all('/<(.+?)[\s]*\/?[\s]*>/si', trim($tags), $tags);
-        $tagsArray = array_unique($tags[1]);
+        preg_match_all('/<(.+?)[\s]*\/?[\s]*>/si', trim($tags), $foundTags);
+        $tagsArray = array_unique($foundTags[1]);
 
         if (is_array($tagsArray) && count($tagsArray) > 0) {
-            if ($invert === false) {
-                return preg_replace('@<(?!(?:' . implode('|', $tagsArray) . ')\b)(\w+)\b.*?>.*?</\1>@si', '', $text);
-            }
-
             return preg_replace('@<(' . implode('|', $tagsArray) . ')\b.*?>.*?</\1>@si', '', $text);
-        } elseif ($invert === false) {
-            return preg_replace('@<(\w+)\b.*?>.*?</\1>@si', '', $text);
         }
 
         return $text;
@@ -198,7 +198,7 @@ class PreviewService
     /**
      * Set http options for the preview request
      */
-    protected function setHttpOptions()
+    protected function setHttpOptions(): void
     {
         $GLOBALS['TYPO3_CONF_VARS']['HTTP']['verify'] = false;
         if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['previewSettings']['basicAuth'])) {

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Form\Element;
 
 use TYPO3\CMS\Backend\Form\AbstractNode;
@@ -17,7 +18,7 @@ class InternalLinkingSuggestion extends AbstractNode
         parent::__construct($nodeFactory, $data);
     }
 
-    public function render()
+    public function render(): array
     {
         $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
 

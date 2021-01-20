@@ -1,6 +1,5 @@
 <?php
 declare(strict_types=1);
-
 namespace YoastSeoForTypo3\YoastSeo\StructuredData;
 
 use TYPO3\CMS\Core\Site\SiteFinder;
@@ -63,7 +62,7 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
             ];
         }
 
-        return (array)$data;
+        return $data;
     }
 
     /**
@@ -98,7 +97,7 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
     /**
      * @param TypoScriptFrontendController|null $tsfe
      */
-    protected function setTsfe($tsfe = null)
+    protected function setTsfe(?TypoScriptFrontendController $tsfe): void
     {
         if ($tsfe instanceof TypoScriptFrontendController) {
             $this->tsfe = $tsfe;
@@ -110,7 +109,7 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
     /**
      * @param PageRepository|null $pageRepository
      */
-    protected function setPageRepository($pageRepository = null)
+    protected function setPageRepository(?PageRepository $pageRepository): void
     {
         if ($pageRepository instanceof PageRepository) {
             $this->pageRepository = $pageRepository;
@@ -122,7 +121,7 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
     /**
      * @param SiteFinder|null $siteFinder
      */
-    protected function setSiteFinder($siteFinder = null)
+    protected function setSiteFinder(?SiteFinder $siteFinder): void
     {
         if ($siteFinder instanceof SiteFinder) {
             $this->siteFinder = $siteFinder;
@@ -134,7 +133,7 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
     /**
      * @param array $configuration
      */
-    public function setConfiguration($configuration)
+    public function setConfiguration(array $configuration): void
     {
         $this->configuration = $configuration;
     }

@@ -14,7 +14,7 @@ class LocaleService
     /**
      * @var string
      */
-    const APP_TRANSLATION_FILE_PATTERN = 'EXT:yoast_seo/Resources/Private/Language/wordpress-seo-%s.json';
+    protected const APP_TRANSLATION_FILE_PATTERN = 'EXT:yoast_seo/Resources/Private/Language/wordpress-seo-%s.json';
 
     /**
      * @var array
@@ -28,9 +28,9 @@ class LocaleService
 
     /**
      * LocaleService constructor.
-     * @param $configuration
+     * @param array $configuration
      */
-    public function __construct($configuration)
+    public function __construct(array $configuration)
     {
         $this->configuration = $configuration;
         $this->locales = GeneralUtility::makeInstance(Locales::class);
@@ -83,7 +83,7 @@ class LocaleService
      *
      * @return string|null
      */
-    protected function getInterfaceLocale()
+    protected function getInterfaceLocale(): ?string
     {
         $locale = null;
         $languageChain = null;

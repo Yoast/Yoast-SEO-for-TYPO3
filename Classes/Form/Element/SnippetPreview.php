@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Form\Element;
 
 use TYPO3\CMS\Backend\Form\AbstractNode;
@@ -103,7 +104,7 @@ class SnippetPreview extends AbstractNode
     {
         parent::__construct($nodeFactory, $data);
 
-        if (array_key_exists('yoast_seo', $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'])
+        if (isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'])
             && is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'])
         ) {
             ArrayUtility::mergeRecursiveWithOverrule(
@@ -153,7 +154,7 @@ class SnippetPreview extends AbstractNode
         $this->previewUrl = $this->getPreviewUrl();
     }
 
-    public function render()
+    public function render(): array
     {
         $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigUtility::class);
         $allowedDoktypes = YoastUtility::getAllowedDoktypes();
@@ -267,7 +268,7 @@ class SnippetPreview extends AbstractNode
      * @param bool $id
      * @return string
      */
-    protected function getFieldSelector($field, $id = false)
+    protected function getFieldSelector($field, $id = false): string
     {
         if ($id === true) {
             $element = 'data-' . $this->data['vanillaUid'] . '-' . $this->data['tableName'] . '-' . $this->data['vanillaUid'] . '-' . $field;
@@ -281,7 +282,7 @@ class SnippetPreview extends AbstractNode
     /**
      * @return string
      */
-    protected function getPreviewUrl()
+    protected function getPreviewUrl(): string
     {
         $currentPageId = $this->data['effectivePid'];
         $recordId = $this->data['vanillaUid'];
@@ -352,11 +353,11 @@ class SnippetPreview extends AbstractNode
     }
 
     /**
-     * @param $currentPageId
-     * @param $previewConfiguration
+     * @param int $currentPageId
+     * @param array $previewConfiguration
      * @return int
      */
-    protected function getPreviewPageId($currentPageId, $previewConfiguration)
+    protected function getPreviewPageId(int $currentPageId, array $previewConfiguration): int
     {
         // find the right preview page id
         $previewPageId = $previewConfiguration['previewPageId'] ?? 0;
@@ -364,7 +365,7 @@ class SnippetPreview extends AbstractNode
         // if no preview page was configured
         if (!$previewPageId) {
             $rootPageData = null;
-            $rootLine = BackendUtility::BEgetRootLine((int)$currentPageId);
+            $rootLine = BackendUtility::BEgetRootLine($currentPageId);
             $currentPage = reset($rootLine);
             // Allow all doktypes below 200
             // This makes custom doktype work as well with opening a frontend page.
@@ -381,7 +382,7 @@ class SnippetPreview extends AbstractNode
                 }
                 $previewPageId = isset($rootPageData)
                     ? (int)$rootPageData['uid']
-                    : (int)$currentPageId;
+                    : $currentPageId;
             }
         }
         return $previewPageId;
@@ -401,7 +402,7 @@ class SnippetPreview extends AbstractNode
     protected function parseAdditionalGetParameters(
         array &$parameters,
         array $typoScript
-    ) {
+    ): void {
         foreach ($typoScript as $key => $value) {
             if (is_array($value)) {
                 $key = rtrim($key, '.');

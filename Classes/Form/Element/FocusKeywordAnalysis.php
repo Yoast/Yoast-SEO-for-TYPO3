@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Form\Element;
 
 use TYPO3\CMS\Backend\Form\AbstractNode;
@@ -50,7 +51,7 @@ class FocusKeywordAnalysis extends AbstractNode
         }
     }
 
-    public function render()
+    public function render(): array
     {
         $resultArray = $this->initializeResultArray();
 
@@ -64,7 +65,7 @@ class FocusKeywordAnalysis extends AbstractNode
         }
 
         $allowedDoktypes = YoastUtility::getAllowedDoktypes();
-        if ($this->data['tableName'] == 'pages' && !\in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
+        if ($this->data['tableName'] === 'pages' && !\in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
             $this->templateView->assign('wrongDoktype', true);
         }
         $subtype = '';
@@ -81,7 +82,7 @@ class FocusKeywordAnalysis extends AbstractNode
      * @param string $field
      * @return string
      */
-    protected function getFieldSelector($field)
+    protected function getFieldSelector(string $field): string
     {
         $uid = $this->data['vanillaUid'];
 

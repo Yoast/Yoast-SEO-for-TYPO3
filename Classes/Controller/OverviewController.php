@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Controller;
 
 /*
@@ -14,11 +15,14 @@ namespace YoastSeoForTypo3\YoastSeo\Controller;
  * The TYPO3 project - inspiring people to share!
  */
 
+use TYPO3\CMS\Backend\Routing\Exception\RouteNotFoundException;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Backend\View\BackendTemplateView;
+use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
+use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
@@ -86,7 +90,7 @@ class OverviewController extends ActionController
      *
      * @return void
      */
-    protected function initializeView(ViewInterface $view)
+    protected function initializeView(ViewInterface $view): void
     {
         parent::initializeView($view);
 
@@ -98,7 +102,7 @@ class OverviewController extends ActionController
         $this->makeLanguageMenu();
     }
 
-    protected function initializeAction()
+    protected function initializeAction(): void
     {
         parent::initializeAction();
 
@@ -121,7 +125,7 @@ class OverviewController extends ActionController
         );
     }
 
-    public function listAction()
+    public function listAction(): void
     {
         $params = $this->getParams();
         $items = GeneralUtility::callUserFunction($this->currentFilter['dataProvider'], $params, $this) ?: [];
@@ -140,9 +144,9 @@ class OverviewController extends ActionController
     /**
      * Returns LanguageService
      *
-     * @return \TYPO3\CMS\Lang\LanguageService
+     * @return \TYPO3\CMS\Core\Localization\LanguageService
      */
-    public function getLanguageService()
+    public function getLanguageService(): LanguageService
     {
         return $GLOBALS['LANG'];
     }
@@ -168,7 +172,7 @@ class OverviewController extends ActionController
     /**
      * @return string
      */
-    protected function getActiveFilter()
+    protected function getActiveFilter(): string
     {
         $activeFilter = '';
 
@@ -186,13 +190,13 @@ class OverviewController extends ActionController
             $activeFilter = key($this->filters);
         }
 
-        return $activeFilter;
+        return (string)$activeFilter;
     }
 
     /**
      * @throws \TYPO3\CMS\Extbase\Mvc\Exception\NoSuchArgumentException
      */
-    protected function makeLanguageMenu()
+    protected function makeLanguageMenu(): void
     {
         $lang = $this->getLanguageService();
 
@@ -220,7 +224,7 @@ class OverviewController extends ActionController
             $lang = $this->getLanguageService();
             $languageMenu = $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->makeMenu();
             $languageMenu->setIdentifier('languageMenu');
-            $languageMenu->setLabel($lang->sL('LLL:EXT:lang/locallang_general.xlf:LGL.language'));
+            $languageMenu->setLabel($lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.language'));
             $returnUrl = ($this->request->hasArgument('returnUrl')) ? $this->request->getArgument('returnUrl') : '';
             foreach ($this->MOD_MENU['language'] as $key => $language) {
                 $parameters = [
@@ -232,8 +236,8 @@ class OverviewController extends ActionController
                 $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
                 try {
                     $url = $uriBuilder->buildUriFromRoute('yoast_YoastSeoOverview', $parameters);
-                } catch (\TYPO3\CMS\Backend\Routing\Exception\RouteNotFoundException $e) {
-                    $url = BackendUtility::getModuleUrl('yoast_YoastSeoOverview', $parameters);
+                } catch (RouteNotFoundException $e) {
+                    $url = '';
                 }
 
                 $menuItem = $languageMenu
@@ -255,7 +259,7 @@ class OverviewController extends ActionController
      *
      * @return \TYPO3\CMS\Core\Authentication\BackendUserAuthentication
      */
-    protected function getBackendUser()
+    protected function getBackendUser(): BackendUserAuthentication
     {
         return $GLOBALS['BE_USER'];
     }
@@ -263,7 +267,7 @@ class OverviewController extends ActionController
     /**
      * @return array
      */
-    protected function getParams()
+    protected function getParams(): array
     {
         $language = $this->request->hasArgument('language') ? (int)$this->request->getArgument('language') : 0;
         $table = 'pages';

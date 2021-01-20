@@ -71,7 +71,7 @@ class StructuredDataProviderManager implements SingletonInterface
      *
      * @return string
      */
-    protected function buildJsonLdBlob($src): string
+    protected function buildJsonLdBlob(array $src): string
     {
         $data = [];
         foreach ($src as $provider => $dataItems) {

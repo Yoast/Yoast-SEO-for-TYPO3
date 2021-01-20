@@ -1,6 +1,5 @@
 <?php
 declare(strict_types=1);
-
 namespace YoastSeoForTypo3\YoastSeo\Frontend;
 
 use TYPO3\CMS\Core\SingletonInterface;
@@ -36,7 +35,7 @@ class AdditionalPreviewData implements SingletonInterface
      * @param array $params
      * @param object $pObj
      */
-    public function render(&$params, $pObj)
+    public function render(array &$params, object $pObj): void
     {
         $serverParams = $GLOBALS['TYPO3_REQUEST'] ? $GLOBALS['TYPO3_REQUEST']->getServerParams() : $_SERVER;
         if (!YoastRequestHash::isValid($serverParams)) {
@@ -45,7 +44,7 @@ class AdditionalPreviewData implements SingletonInterface
 
         $config = $this->getPageTitlePrependAppend();
         setcookie('yoast-preview-tstamp', (string)time()); // To prevent caching in for example varnish
-        $params['headerData']['YoastPreview'] = '<meta name="x-yoast-title-config" value="' . (string)$config['prepend'] . '|||' . (string)$config['append'] . '" />';
+        $params['headerData']['YoastPreview'] = '<meta name="x-yoast-title-config" value="' . $config['prepend'] . '|||' . $config['append'] . '" />';
     }
 
     /**
@@ -66,7 +65,7 @@ class AdditionalPreviewData implements SingletonInterface
             if ($site instanceof SiteInterface) {
                 $siteConfig = $site->getConfiguration();
 
-                if (array_key_exists('websiteTitle', $siteConfig) && !empty($siteConfig['websiteTitle'])) {
+                if (isset($siteConfig['websiteTitle']) && !empty($siteConfig['websiteTitle'])) {
                     return trim($siteConfig['websiteTitle']);
                 }
             }

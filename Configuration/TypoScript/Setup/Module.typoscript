@@ -1,13 +1,6 @@
 module.tx_yoastseo {
     settings {
         itemsPerPage = 20
-
-        og < plugin.tx_yoastseo.settings.og
-        twitter < plugin.tx_yoastseo.settings.twitter
-
-        titleFieldName = {$plugin.tx_yoastseo.titleField}
-        descriptionFieldName = {$plugin.tx_yoastseo.descriptionField}
-        canonicalTagFieldName = {$plugin.tx_yoastseo.canonicalTagField}
     }
 
     view {

@@ -8,7 +8,6 @@ router_http_port: "80"
 router_https_port: "443"
 xdebug_enabled: false
 additional_hostnames:
-    - v8.yoast-seo
     - v9.yoast-seo
     - v10.yoast-seo
 additional_fqdns: []
@@ -18,6 +17,5 @@ nfs_mount_enabled: true
 omit_containers:
     - dba
 extra_services:
-    - v8-data
     - v9-data
     - v10-data

@@ -16,11 +16,6 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 class PageLayoutHeader
 {
     /**
-     * @deprecated Moved to UrlService, but used in ext_localconf (breaking change)
-     */
-    const FE_PREVIEW_TYPE = 1480321830;
-
-    /**
      * @var array
      */
     protected $configuration = [

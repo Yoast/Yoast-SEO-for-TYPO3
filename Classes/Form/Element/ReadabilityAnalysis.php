@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Form\Element;
 
 use TYPO3\CMS\Backend\Form\AbstractNode;
@@ -31,12 +32,12 @@ class ReadabilityAnalysis extends AbstractNode
         );
     }
 
-    public function render()
+    public function render(): array
     {
         $resultArray = $this->initializeResultArray();
 
         $allowedDoktypes = YoastUtility::getAllowedDoktypes();
-        if ($this->data['tableName'] == 'pages' && !\in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
+        if ($this->data['tableName'] === 'pages' && !\in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
             $this->templateView->assign('wrongDoktype', true);
         }
         $this->templateView->assign('subtype', '');

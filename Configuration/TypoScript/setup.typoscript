@@ -1,2 +1,1 @@
-<INCLUDE_TYPOSCRIPT: source="FILE:EXT:yoast_seo/Configuration/TypoScript/Setup/Config.typoscript">
-<INCLUDE_TYPOSCRIPT: source="FILE:EXT:yoast_seo/Configuration/TypoScript/Setup/Module.typoscript">
+@import 'EXT:yoast_seo/Configuration/TypoScript/Setup/'

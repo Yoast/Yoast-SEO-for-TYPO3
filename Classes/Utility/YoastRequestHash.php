@@ -10,10 +10,10 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 class YoastRequestHash
 {
     /**
-     * @param $serverParams
+     * @param array $serverParams
      * @return bool
      */
-    public static function isValid($serverParams): bool
+    public static function isValid(array $serverParams): bool
     {
         return isset($serverParams['HTTP_X_YOAST_PAGE_REQUEST'])
             && $serverParams['HTTP_X_YOAST_PAGE_REQUEST'] === GeneralUtility::hmac(

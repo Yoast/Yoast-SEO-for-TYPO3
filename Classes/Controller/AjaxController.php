@@ -17,7 +17,6 @@ class AjaxController
 {
     /**
      * @param \Psr\Http\Message\ServerRequestInterface $request
-     * @param \Psr\Http\Message\ResponseInterface $response
      * @return \Psr\Http\Message\ResponseInterface
      * @throws \Exception
      */
@@ -37,7 +36,7 @@ class AjaxController
 
     /**
      * @param \Psr\Http\Message\ServerRequestInterface $request
-     * @param \Psr\Http\Message\ResponseInterface $response
+     * @param \Psr\Http\Message\ResponseInterface|null $response
      * @return \Psr\Http\Message\ResponseInterface
      */
     public function saveScoresAction(
@@ -45,9 +44,9 @@ class AjaxController
         ResponseInterface $response = null
     ): ResponseInterface {
         $json = file_get_contents('php://input');
-        $data = json_decode($json);
+        $data = json_decode($json, true);
 
-        if (!empty($data->table) && !empty($data->uid)) {
+        if (!empty($data['table']) && !empty($data['uid'])) {
             $this->saveScores($data);
         }
         if ($response === null) {
@@ -61,18 +60,18 @@ class AjaxController
     /**
      * Save scores
      *
-     * @param $data
+     * @param array $data
      */
-    protected function saveScores($data)
+    protected function saveScores(array $data): void
     {
-        $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable($data->table);
-        $row = $connection->select(['*'], $data->table, ['uid' => (int)$data->uid], [], [], 1)->fetch();
+        $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable($data['table']);
+        $row = $connection->select(['*'], $data['table'], ['uid' => (int)$data['uid']], [], [], 1)->fetch();
 
         if ($row !== false && isset($row['tx_yoastseo_score_readability'], $row['tx_yoastseo_score_seo'])) {
-            $connection->update($data->table, [
-                'tx_yoastseo_score_readability' => (string)$data->readabilityScore,
-                'tx_yoastseo_score_seo' => (string)$data->seoScore
-            ], ['uid' => (int)$data->uid]);
+            $connection->update($data['table'], [
+                'tx_yoastseo_score_readability' => (string)$data['readabilityScore'],
+                'tx_yoastseo_score_seo' => (string)$data['seoScore']
+            ], ['uid' => (int)$data['uid']]);
         }
     }
 }

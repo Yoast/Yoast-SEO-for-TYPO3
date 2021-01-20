@@ -64,42 +64,38 @@ class UrlService
             $additionalGetVars .= '&MP=' . $mountPointInformation['MPvar'];
         }
 
-        if (version_compare(TYPO3_branch, '9.5', '>=')) {
-            $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
-            $site = $siteFinder->getSiteByPageId($finalPageIdToShow, $rootLine);
-            if ($site instanceof Site) {
-                $this->checkRouteEnhancers($site);
+        $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
+        $site = $siteFinder->getSiteByPageId($finalPageIdToShow, $rootLine);
+        if ($site instanceof Site) {
+            $this->checkRouteEnhancers($site);
 
-                $additionalQueryParams = [];
-                parse_str($additionalGetVars, $additionalQueryParams);
-                $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
-                $uriToCheck = YoastUtility::fixAbsoluteUrl(
-                    (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams)
-                );
+            $additionalQueryParams = [];
+            parse_str($additionalGetVars, $additionalQueryParams);
+            $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
+            $uriToCheck = YoastUtility::fixAbsoluteUrl(
+                (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams)
+            );
 
-                if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][self::class]['urlToCheck'])) {
-                    foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][self::class]['urlToCheck'] as $_funcRef) {
-                        $_params = [
-                            'urlToCheck' => $uriToCheck,
-                            'site' => $site,
-                            'finalPageIdToShow' => $finalPageIdToShow,
-                            'languageId' => $languageId
-                        ];
+            if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][self::class]['urlToCheck'])) {
+                foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][self::class]['urlToCheck'] as $_funcRef) {
+                    $_params = [
+                        'urlToCheck' => $uriToCheck,
+                        'site' => $site,
+                        'finalPageIdToShow' => $finalPageIdToShow,
+                        'languageId' => $languageId
+                    ];
 
-                        $uriToCheck = GeneralUtility::callUserFunction($_funcRef, $_params, $this);
-                    }
+                    $uriToCheck = GeneralUtility::callUserFunction($_funcRef, $_params, $this);
                 }
-                $uri = (string)$this->uriBuilder->buildUriFromRoute('ajax_yoast_preview', [
-                    'uriToCheck' => $uriToCheck, 'pageId' => $finalPageIdToShow
-                ]);
-            } else {
-                $uri = BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
             }
+            $uri = (string)$this->uriBuilder->buildUriFromRoute('ajax_yoast_preview', [
+                'uriToCheck' => $uriToCheck, 'pageId' => $finalPageIdToShow
+            ]);
         } else {
-            $uri = $this->getUrlForType(self::FE_PREVIEW_TYPE, '&pageIdToCheck=' . $pageId . '&languageIdToCheck=' . $languageId);
+            $uri = BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
         }
 
-        return (string)$uri;
+        return $uri;
     }
 
     /**
@@ -107,7 +103,7 @@ class UrlService
      *
      * @param \TYPO3\CMS\Core\Site\Entity\Site $site
      */
-    protected function checkRouteEnhancers(Site $site)
+    protected function checkRouteEnhancers(Site $site): void
     {
         if (isset($site->getConfiguration()['routeEnhancers'])) {
             $typeEnhancer = $yoastTypeEnhancer = false;
@@ -140,7 +136,7 @@ class UrlService
      *
      * @return string
      */
-    public function getSaveScoresUrl()
+    public function getSaveScoresUrl(): string
     {
         try {
             return (string)$this->uriBuilder->buildUriFromRoute('ajax_yoast_save_scores');
@@ -154,7 +150,7 @@ class UrlService
      * @param string $additionalGetParameters
      * @return string
      */
-    public function getUrlForType($type, $additionalGetParameters = ''): string
+    public function getUrlForType(int $type, $additionalGetParameters = ''): string
     {
         return GeneralUtility::getIndpEnv('TYPO3_SITE_PATH') . '?type=' . $type . $additionalGetParameters;
     }

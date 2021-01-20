@@ -22,12 +22,9 @@ services:
               source: ../
               target: /var/www/yoast_seo
               consistency: cached
-            - v8-data:/var/www/html/v8
             - v9-data:/var/www/html/v9
             - v10-data:/var/www/html/v10
 volumes:
-    v8-data:
-        name: "${DDEV_SITENAME}-v8-data"
     v9-data:
         name: "${DDEV_SITENAME}-v9-data"
     v10-data:
