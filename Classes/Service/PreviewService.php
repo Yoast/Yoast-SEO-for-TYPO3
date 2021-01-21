@@ -1,4 +1,5 @@
 <?php
+
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
 use TYPO3\CMS\Core\Exception;
@@ -43,6 +44,7 @@ class PreviewService
         $this->cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
 
         try {
+            $uriToCheck = $this->appendSimulateUser($uriToCheck);
             $content = $this->getContentFromUrl($uriToCheck);
             $data = $this->getDataFromContent($content, $uriToCheck);
         } catch (Exception $e) {
@@ -132,7 +134,8 @@ class PreviewService
         if ($localeFound) {
             $locale = trim($matchesLocale[1]);
         }
-        $url = preg_replace('/\/$/', '', $uriToCheck);
+        $urlParts = parse_url(preg_replace('/\/$/', '', $uriToCheck));
+        $url = $urlParts['scheme'] . '://' . $urlParts['host'] . $urlParts['path'];
         $baseUrl = preg_replace('/' . preg_quote('/', '/') . '$/', '', $url);
 
         $faviconSrc = $baseUrl . '/favicon.ico';
@@ -216,5 +219,32 @@ class PreviewService
                 $basicAuth['password']
             ];
         }
+    }
+
+    /**
+     * Append TYPO3 ADMCMD_simUser parameter to access all pages
+     *
+     * @param string $uriToCheck
+     * @return string
+     */
+    protected function appendSimulateUser(string $uriToCheck): string
+    {
+        if (version_compare(TYPO3_branch, '8.7', '<=')) {
+            $backendUserId = $GLOBALS['BE_USER']->user['uid'] ?? 0;
+        } else {
+            $context = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Context\Context::class);
+            $backendUserId = $context->getPropertyFromAspect('backend.user', 'id') ?? 0;
+        }
+
+        if ($backendUserId > 0) {
+            $uri = parse_url($uriToCheck);
+            if (empty($uri['query'])) {
+                $uriToCheck .= '?ADMCMD_simUser=' . $backendUserId;
+            } else {
+                $uriToCheck .= '&ADMCMD_simUser=' . $backendUserId;
+            }
+        }
+
+        return $uriToCheck;
     }
 }
