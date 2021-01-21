@@ -41,9 +41,9 @@
     "overtrue/phplint": "^2.0",
     "phpstan/phpstan": "^0.12.32",
     "phpstan/extension-installer": "^1.0",
-    "saschaegerer/phpstan-typo3": "^0.13.1",
     "slam/phpstan-extensions": "^5.0",
-    "typo3/tailor": "^1.1"
+    "typo3/tailor": "^1.1",
+    "saschaegerer/phpstan-typo3": "dev-master"
   },
   "replace": {
     "typo3-ter/yoast-seo": "self.version"
