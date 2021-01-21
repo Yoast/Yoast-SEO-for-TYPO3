@@ -3,7 +3,3 @@ parameters:
   paths:
     - Classes
     - Configuration
-  excludes_analyse:
-    - Classes/Install/CMS8
-    - Classes/UserFunctions/SnippetPreview.php
-    - Classes/Utility/CanonicalizationUtility.php
