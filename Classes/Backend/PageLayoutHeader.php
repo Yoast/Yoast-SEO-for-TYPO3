@@ -132,7 +132,7 @@ class PageLayoutHeader
     protected function getCurrentPage($pageId, $moduleData)
     {
         /** @var \TYPO3\CMS\Backend\Controller\PageLayoutController $pageLayoutController */
-        $pageLayoutController = $GLOBALS['SOBE'];
+        $pageLayoutController = GeneralUtility::makeInstance(PageLayoutController::class);
 
         $currentPage = null;
 
