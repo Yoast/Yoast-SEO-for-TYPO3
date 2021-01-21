@@ -15,9 +15,9 @@ jobs:
         php: ['php7.2', 'php7.3', 'php7.4']
         experimental: [false]
       include:
-        typo3: '11'
-        php: 'php7.4'
-        experimental: true
+        - typo3: '11'
+          php: 'php7.4'
+          experimental: true
     steps:
       - uses: actions/checkout@v1
       - name: Set up PHP Version
