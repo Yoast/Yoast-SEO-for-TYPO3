@@ -105,7 +105,7 @@ class PreviewService
             $content,
             $matchesDescription
         );
-        $bodyFound = preg_match("/<body[^>]*>(.*?)<\/body>/is", $content, $matchesBody);
+        $bodyFound = preg_match("/<body[^>]*>(.*)<\/body>/is", $content, $matchesBody);
 
         if ($bodyFound) {
             $body = $matchesBody[1];
