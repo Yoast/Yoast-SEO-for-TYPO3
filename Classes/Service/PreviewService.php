@@ -132,8 +132,9 @@ class PreviewService
         if ($localeFound) {
             $locale = trim($matchesLocale[1]);
         }
-        $url = preg_replace('/\/$/', '', $uriToCheck);
-        $baseUrl = preg_replace('/' . preg_quote('/', '/') . '$/', '', $url);
+        $urlParts = parse_url(preg_replace('/\/$/', '', $uriToCheck));
+        $baseUrl = $urlParts['scheme'] . '://' . $urlParts['host'];
+        $url = $baseUrl . $urlParts['path'];
 
         $faviconSrc = $baseUrl . '/favicon.ico';
         $favIconFound = preg_match('/<link rel=\"shortcut icon\" href=\"([^"]*)\"/i', $content, $matchesFavIcon);
