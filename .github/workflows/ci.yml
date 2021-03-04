@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   build-php:
     name: Build PHP
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       max-parallel: 6
