@@ -4,11 +4,5 @@ parameters:
     - Classes
     - Configuration
   ignoreErrors:
-    -
-      message: '#Call to an undefined static method TYPO3\\CMS\\Backend\\Utility\\BackendUtility::getModuleUrl\(\)#'
-      path: Classes/Controller/OverviewController.php
-  excludes_analyse:
-    - Classes/Install/CMS8
-    - Classes/UserFunctions/XmlSitemap.php
-    - Classes/UserFunctions/SnippetPreview.php
-    - Classes/Utility/CanonicalizationUtility.php
+    - '#Access to constant DOKTYPE_SPACER on an unknown class#'
+    - '#Class TYPO3\\CMS\\Frontend\\Page\\PageRepository not found.#'
