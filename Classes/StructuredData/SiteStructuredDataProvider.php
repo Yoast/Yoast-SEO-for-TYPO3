@@ -2,11 +2,11 @@
 declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\StructuredData;
 
+use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
-use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 
 class SiteStructuredDataProvider implements StructuredDataProviderInterface
 {
