@@ -111,10 +111,14 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
      */
     protected function setPageRepository($pageRepository): void
     {
-        if ($pageRepository instanceof PageRepository || $pageRepository instanceof \TYPO3\CMS\Frontend\Page\PageRepository) {
+        if (class_exists(PageRepository::class)) {
+            if ($pageRepository instanceof PageRepository) {
+                $this->pageRepository = $pageRepository;
+            } else {
+                $this->pageRepository = GeneralUtility::makeInstance(PageRepository::class);
+            }
+        } elseif ($pageRepository instanceof \TYPO3\CMS\Frontend\Page\PageRepository) {
             $this->pageRepository = $pageRepository;
-        } elseif (class_exists(PageRepository::class)) {
-            $this->pageRepository = GeneralUtility::makeInstance(PageRepository::class);
         } else {
             $this->pageRepository = GeneralUtility::makeInstance(\TYPO3\CMS\Frontend\Page\PageRepository::class);
         }
