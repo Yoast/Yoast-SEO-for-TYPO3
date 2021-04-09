@@ -13,7 +13,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use TYPO3\CMS\Frontend\Page\CacheHashCalculator;
-use TYPO3\CMS\Frontend\Page\PageRepository;
+use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use YoastSeoForTypo3\YoastSeo\Service\LocaleService;
 use YoastSeoForTypo3\YoastSeo\Service\UrlService;
 use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
@@ -369,7 +369,7 @@ class SnippetPreview extends AbstractNode
             $currentPage = reset($rootLine);
             // Allow all doktypes below 200
             // This makes custom doktype work as well with opening a frontend page.
-            if ((int)$currentPage['doktype'] <= PageRepository::DOKTYPE_SPACER) {
+            if ((int)$currentPage['doktype'] <= $this->getSpacerDoktype()) {
                 // try the current page
                 $previewPageId = $currentPageId;
             } else {
@@ -412,6 +412,17 @@ class SnippetPreview extends AbstractNode
                 $parameters[$key] = $value;
             }
         }
+    }
+
+    /**
+     * @return int
+     */
+    protected function getSpacerDoktype(): int
+    {
+        if (class_exists(PageRepository::class)) {
+            return PageRepository::DOKTYPE_SPACER;
+        }
+        return \TYPO3\CMS\Frontend\Page\PageRepository::DOKTYPE_SPACER;
     }
 
     /**

@@ -6,7 +6,7 @@ use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
-use TYPO3\CMS\Frontend\Page\PageRepository;
+use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 
 class SiteStructuredDataProvider implements StructuredDataProviderInterface
 {
@@ -107,14 +107,16 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
     }
 
     /**
-     * @param PageRepository|null $pageRepository
+     * @param PageRepository|\TYPO3\CMS\Frontend\Page\PageRepository|null $pageRepository
      */
-    protected function setPageRepository(?PageRepository $pageRepository): void
+    protected function setPageRepository($pageRepository): void
     {
-        if ($pageRepository instanceof PageRepository) {
+        if ($pageRepository instanceof PageRepository || $pageRepository instanceof \TYPO3\CMS\Frontend\Page\PageRepository) {
             $this->pageRepository = $pageRepository;
-        } else {
+        } elseif (class_exists(PageRepository::class)) {
             $this->pageRepository = GeneralUtility::makeInstance(PageRepository::class);
+        } else {
+            $this->pageRepository = GeneralUtility::makeInstance(\TYPO3\CMS\Frontend\Page\PageRepository::class);
         }
     }
 

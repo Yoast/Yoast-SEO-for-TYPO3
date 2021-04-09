@@ -62,13 +62,15 @@ class PageLayoutHeader
     }
 
     /**
+     * @param array|null $params
+     * @param null  $parentObj
      * @return string
      */
-    public function render()
+    public function render(array $params = null, $parentObj = null)
     {
         $moduleData = BackendUtility::getModuleData(['language'], [], 'web_layout');
         $pageId = (int)GeneralUtility::_GET('id');
-        $currentPage = $this->getCurrentPage($pageId, $moduleData);
+        $currentPage = $this->getCurrentPage($pageId, $moduleData, $parentObj);
 
         if (!YoastUtility::snippetPreviewEnabled($pageId, $currentPage)) {
             return '';
@@ -125,37 +127,31 @@ class PageLayoutHeader
     }
 
     /**
-     * @param $pageId
-     * @param $moduleData
-     * @return array|mixed|null
+     * @param int $pageId
+     * @param array $moduleData
+     * @param object $parentObj
+     * @return array|null
      */
-    protected function getCurrentPage($pageId, $moduleData)
+    protected function getCurrentPage(int $pageId, array $moduleData, object $parentObj): ?array
     {
-        /** @var \TYPO3\CMS\Backend\Controller\PageLayoutController $pageLayoutController */
-        $pageLayoutController = $GLOBALS['SOBE'];
-
         $currentPage = null;
 
-        if ($pageLayoutController instanceof PageLayoutController
-            && $pageId > 0
-            && (int)$moduleData['language'] === 0
-        ) {
-            $currentPage = BackendUtility::getRecord(
-                'pages',
-                $pageId
-            );
-        } elseif ($pageLayoutController instanceof PageLayoutController
-            && $pageId > 0
-            && (int)$moduleData['language'] > 0
-        ) {
-            $overlayRecords = BackendUtility::getRecordLocalization(
-                'pages',
-                $pageId,
-                (int)$moduleData['language']
-            );
+        if ($parentObj instanceof PageLayoutController && $pageId > 0) {
+            if ((int)$moduleData['language'] === 0) {
+                $currentPage = BackendUtility::getRecord(
+                    'pages',
+                    $pageId
+                );
+            } elseif ((int)$moduleData['language'] > 0) {
+                $overlayRecords = BackendUtility::getRecordLocalization(
+                    'pages',
+                    $pageId,
+                    (int)$moduleData['language']
+                );
 
-            if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
-                $currentPage = $overlayRecords[0];
+                if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
+                    $currentPage = $overlayRecords[0];
+                }
             }
         }
         return $currentPage;
@@ -179,30 +175,19 @@ class PageLayoutHeader
                     <div class="yoast-snippet-header-label">Yoast SEO</div>
                 </div>';
 
-        if ($this->urlService->getRouteEnhancerError() === false) {
-            $returnHtml .= '
-                <input id="focusKeyword" style="display: none" />
-                <div id="' . $targetElementId . '" class="t3-grid-cell yoast-seo yoast-seo-snippet-preview-styling" style="padding: 10px;" data-yoast-snippetpreview>
-                    <!-- ' . $targetElementId . ' -->
-                    <div class="spinner">
-                      <div class="bounce bounce1"></div>
-                      <div class="bounce bounce2"></div>
-                      <div class="bounce bounce3"></div>
-                    </div>
+        $returnHtml .= '
+            <input id="focusKeyword" style="display: none" />
+            <div id="' . $targetElementId . '" class="t3-grid-cell yoast-seo yoast-seo-snippet-preview-styling" style="padding: 10px;" data-yoast-snippetpreview>
+                <!-- ' . $targetElementId . ' -->
+                <div class="spinner">
+                  <div class="bounce bounce1"></div>
+                  <div class="bounce bounce2"></div>
+                  <div class="bounce bounce3"></div>
                 </div>
-                <div data-yoast-analysis="readability" id="YoastPageHeaderAnalysisReadability" data-yoast-subtype="" class="hidden yoast-analysis"></div>
-                <div data-yoast-analysis="seo" id="YoastPageHeaderAnalysisSeo" data-yoast-subtype="" class="hidden yoast-analysis"></div>
-                ';
-        } else {
-            $returnHtml .= '
-                <div class="t3-grid-cell yoast yoast-seo" style="background-color: #fff;">
-                    <div class="callout callout-warning callout-body">
-                        It seems that you have configured routeEnhancers for this site with type pageType. When you do this, it is necessary that you also add the pageType for the Yoast Snippetpreview.<br />
-                        Please add a mapping for type ' . UrlService::FE_PREVIEW_TYPE . ' and map it for example to \'yoast-snippetpreview.json\'.<br />
-                        <strong><a href="https://docs.typo3.org/typo3cms/extensions/core/Changelog/9.5/Feature-86160-PageTypeEnhancerForMappingTypeParameter.html" target="_blank">You can find an example configuration here.</a></strong>
-                    </div>
-                </div>';
-        }
+            </div>
+            <div data-yoast-analysis="readability" id="YoastPageHeaderAnalysisReadability" data-yoast-subtype="" class="hidden yoast-analysis"></div>
+            <div data-yoast-analysis="seo" id="YoastPageHeaderAnalysisSeo" data-yoast-subtype="" class="hidden yoast-analysis"></div>
+            ';
 
         return $returnHtml;
     }

@@ -81,10 +81,10 @@ class PreviewService
         );
 
         $GLOBALS['TYPO3_CONF_VARS']['HTTP'] = $backupSettings;
-        if ((int)$report['error'] === 0) {
+        if ((int)$report['error'] === 0 && $content !== false) {
             return $content;
         }
-        throw new Exception($report['error']);
+        throw new Exception((string)$report['error']);
     }
 
     /**
