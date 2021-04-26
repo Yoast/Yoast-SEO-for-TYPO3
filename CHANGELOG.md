@@ -8,6 +8,10 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## 7.2.1 April 26, 2021
+### Fixed
+- Passing through the completely generated uri as an `uriToCheck` parameter has been removed, url generating now happens within AjaxController based on page and language parameter
+
 ## 7.2.0 Februari 19, 2021
 ### Added
 - Possibility to use stdWrap within sitemap typoscript
