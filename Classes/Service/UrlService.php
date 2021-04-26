@@ -3,14 +3,10 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
 use TYPO3\CMS\Backend\Routing\UriBuilder;
-use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Routing\RouteNotFoundException;
 use TYPO3\CMS\Core\Site\Entity\Site;
-use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Frontend\Page\PageRepository;
-use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 /**
  * Class UrlService
@@ -53,53 +49,12 @@ class UrlService
         int $languageId,
         $additionalGetVars = ''
     ): string {
-        $rootLine = BackendUtility::BEgetRootLine($pageId);
-        // Mount point overlay: Set new target page id and mp parameter
-        $pageRepository = GeneralUtility::makeInstance(PageRepository::class);
-        $finalPageIdToShow = $pageId;
-        $mountPointInformation = $pageRepository->getMountPointInfo($pageId);
-        if ($mountPointInformation && $mountPointInformation['overlay']) {
-            // New page id
-            $finalPageIdToShow = $mountPointInformation['mount_pid'];
-            $additionalGetVars .= '&MP=' . $mountPointInformation['MPvar'];
-        }
-
         if (version_compare(TYPO3_branch, '9.5', '>=')) {
-            $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
-            $site = $siteFinder->getSiteByPageId($finalPageIdToShow, $rootLine);
-            if ($site instanceof Site) {
-                $this->checkRouteEnhancers($site);
-
-                $additionalQueryParams = [];
-                parse_str($additionalGetVars, $additionalQueryParams);
-                $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
-                $uriToCheck = YoastUtility::fixAbsoluteUrl(
-                    (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams)
-                );
-
-                if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][self::class]['urlToCheck'])) {
-                    foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][self::class]['urlToCheck'] as $_funcRef) {
-                        $_params = [
-                            'urlToCheck' => $uriToCheck,
-                            'site' => $site,
-                            'finalPageIdToShow' => $finalPageIdToShow,
-                            'languageId' => $languageId
-                        ];
-
-                        $uriToCheck = GeneralUtility::callUserFunction($_funcRef, $_params, $this);
-                    }
-                }
-                $uri = (string)$this->uriBuilder->buildUriFromRoute('ajax_yoast_preview', [
-                    'uriToCheck' => $uriToCheck, 'pageId' => $finalPageIdToShow
-                ]);
-            } else {
-                $uri = BackendUtility::getPreviewUrl($finalPageIdToShow, '', $rootLine, '', '', $additionalGetVars);
-            }
-        } else {
-            $uri = $this->getUrlForType(self::FE_PREVIEW_TYPE, '&pageIdToCheck=' . $pageId . '&languageIdToCheck=' . $languageId);
+            return (string)$this->uriBuilder->buildUriFromRoute('ajax_yoast_preview', [
+                'pageId' => $pageId, 'languageId' => $languageId, 'additionalGetVars' => urlencode($additionalGetVars)
+            ]);
         }
-
-        return (string)$uri;
+        return $this->getUrlForType(self::FE_PREVIEW_TYPE, '&pageIdToCheck=' . $pageId . '&languageIdToCheck=' . $languageId);
     }
 
     /**
