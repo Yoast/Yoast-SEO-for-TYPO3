@@ -1,6 +1,8 @@
 <?php
 
 if (TYPO3_MODE === 'BE') {
+    $isV11 = version_compare(TYPO3_version, '11.0.0', '>=');
+
     $offset = 0;
     foreach ($GLOBALS['TBE_MODULES'] as $key => $_) {
         if ($key == 'web') {
@@ -17,13 +19,14 @@ if (TYPO3_MODE === 'BE') {
         'name' => 'yoast'
     ];
 
+    $controller = !$isV11 ? 'Module' : \YoastSeoForTypo3\YoastSeo\Controller\ModuleController::class;
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
         'YoastSeoForTypo3.yoast_seo',
         'yoast',
         'dashboard',
         '',
         [
-            'Module' => 'dashboard',
+            $controller => 'dashboard',
         ],
         [
             'access' => 'user,group',
@@ -32,13 +35,14 @@ if (TYPO3_MODE === 'BE') {
         ]
     );
 
+    $controller = !$isV11 ? 'Overview' : \YoastSeoForTypo3\YoastSeo\Controller\OverviewController::class;
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
         'YoastSeoForTypo3.yoast_seo',
         'yoast',
         'overview',
         '',
         [
-            'Overview' => 'list',
+            $controller => 'list',
         ],
         [
             'access' => 'user,group',
@@ -47,13 +51,14 @@ if (TYPO3_MODE === 'BE') {
         ]
     );
 
+    $controller = !$isV11 ? 'Module' : \YoastSeoForTypo3\YoastSeo\Controller\ModuleController::class;
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
         'YoastSeoForTypo3.yoast_seo',
         'yoast',
         'premium',
         '',
         [
-            'Module' => 'premium',
+            $controller => 'premium',
         ],
         [
             'access' => 'user,group',

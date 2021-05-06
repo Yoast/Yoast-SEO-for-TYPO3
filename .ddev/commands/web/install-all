@@ -5,3 +5,4 @@ ABSOLUTE_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_
 $ABSOLUTE_PATH/install-v10
 $ABSOLUTE_PATH/install-v9
 $ABSOLUTE_PATH/install-v8
+$ABSOLUTE_PATH/install-v11
