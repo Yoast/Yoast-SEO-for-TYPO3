@@ -172,7 +172,6 @@ $GLOBALS['TYPO3_CONF_VARS']['FE']['pageOverlayFields'] .=
     ',canonical_url'
     . ',og_title'
     . ',og_description'
-    . ',tx_yoastseo_robot_instructions'
     . ',seo_title'
     . ',twitter_title'
     . ',twitter_description';
