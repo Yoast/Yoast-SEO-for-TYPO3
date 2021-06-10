@@ -9,6 +9,7 @@ use TYPO3\CMS\Core\Http\HtmlResponse;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Service\PreviewService;
+use YoastSeoForTypo3\YoastSeo\Service\UrlService;
 
 /**
  * Class AjaxController
@@ -25,9 +26,18 @@ class AjaxController
     ): ResponseInterface {
         $queryParams = $request->getQueryParams();
 
+        if (!isset($queryParams['pageId'], $queryParams['languageId'], $queryParams['additionalGetVars'])) {
+            return new JsonResponse();
+        }
+
         $previewService = GeneralUtility::makeInstance(PreviewService::class);
+        $urlService = GeneralUtility::makeInstance(UrlService::class);
         $content = $previewService->getPreviewData(
-            $queryParams['uriToCheck'],
+            $urlService->getUriToCheck(
+                (int)$queryParams['pageId'],
+                (int)$queryParams['languageId'],
+                (string)$queryParams['additionalGetVars']
+            ),
             (int)$queryParams['pageId']
         );
 

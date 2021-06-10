@@ -51,6 +51,19 @@ class UrlService implements SingletonInterface
         int $languageId,
         $additionalGetVars = ''
     ): string {
+        return (string)$this->uriBuilder->buildUriFromRoute('ajax_yoast_preview', [
+            'pageId' => $pageId, 'languageId' => $languageId, 'additionalGetVars' => urlencode($additionalGetVars)
+        ]);
+    }
+
+    /**
+     * @param int    $pageId
+     * @param int    $languageId
+     * @param string $additionalGetVars
+     * @return string
+     */
+    public function getUriToCheck(int $pageId, int $languageId, string $additionalGetVars): string
+    {
         $this->checkMountpoint($pageId, $additionalGetVars);
         $rootLine = $this->getRootLine($pageId);
         $site = $this->getSite($pageId, $rootLine);
@@ -72,14 +85,9 @@ class UrlService implements SingletonInterface
                     $uriToCheck = GeneralUtility::callUserFunction($_funcRef, $_params, $this);
                 }
             }
-            $uri = (string)$this->uriBuilder->buildUriFromRoute('ajax_yoast_preview', [
-                'uriToCheck' => $uriToCheck, 'pageId' => $pageId
-            ]);
-        } else {
-            $uri = BackendUtility::getPreviewUrl($pageId, '', $rootLine, '', '', $additionalGetVars);
+            return $uriToCheck;
         }
-
-        return $uri;
+        return '';
     }
 
     /**
@@ -138,6 +146,17 @@ class UrlService implements SingletonInterface
     }
 
     /**
+     * @return \TYPO3\CMS\Core\Domain\Repository\PageRepository|\TYPO3\CMS\Frontend\Page\PageRepository
+     */
+    protected function getPageRepository()
+    {
+        if (class_exists(PageRepository::class)) {
+            return GeneralUtility::makeInstance(PageRepository::class);
+        }
+        return GeneralUtility::makeInstance(\TYPO3\CMS\Frontend\Page\PageRepository::class);
+    }
+
+    /**
      * Get save scores url
      *
      * @return string
@@ -167,17 +186,6 @@ class UrlService implements SingletonInterface
     public function getGeneratedUri(): ?UriInterface
     {
         return $this->generatedUri;
-    }
-
-    /**
-     * @return \TYPO3\CMS\Core\Domain\Repository\PageRepository|\TYPO3\CMS\Frontend\Page\PageRepository
-     */
-    protected function getPageRepository()
-    {
-        if (class_exists(PageRepository::class)) {
-            return GeneralUtility::makeInstance(PageRepository::class);
-        }
-        return GeneralUtility::makeInstance(\TYPO3\CMS\Frontend\Page\PageRepository::class);
     }
 
     /**

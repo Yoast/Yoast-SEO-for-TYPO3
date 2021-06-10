@@ -15,6 +15,10 @@ Besides the free version of our plugin, we also have a premium version. The free
 ### Fixed
 * 
 
+## 7.2.1 April 26, 2021
+### Fixed
+- Passing through the completely generated uri as an `uriToCheck` parameter has been removed, url generating now happens within AjaxController based on page and language parameter
+
 ## 7.2.0 Februari 19, 2021
 ### Added
 - Possibility to use stdWrap within sitemap typoscript
