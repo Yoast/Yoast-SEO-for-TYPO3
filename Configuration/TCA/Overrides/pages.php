@@ -9,7 +9,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
             'exclude' => true,
             'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
             'config' => [
-                'type' => 'text',
+                'type' => 'none',
                 'renderType' => 'snippetPreview',
                 'settings' => [
                     'titleField' => 'seo_title',
@@ -22,7 +22,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
             'exclude' => true,
             'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
             'config' => [
-                'type' => 'text',
+                'type' => 'none',
                 'renderType' => 'readabilityAnalysis'
             ]
         ],
@@ -46,7 +46,7 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
             'exclude' => true,
             'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
             'config' => [
-                'type' => 'input',
+                'type' => 'none',
                 'renderType' => 'focusKeywordAnalysis',
                 'settings' => [
                     'focusKeywordField' => 'tx_yoastseo_focuskeyword',
