@@ -22,9 +22,7 @@ class PageLayoutHeader
         'translations' => [
             'availableLocales' => [],
             'languageKeyToLocaleMapping' => []
-        ],
-        'menuActions' => [],
-        'viewSettings' => []
+        ]
     ];
 
     /**

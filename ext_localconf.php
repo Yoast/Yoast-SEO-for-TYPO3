@@ -128,15 +128,6 @@ $defaultConfiguration = [
             'tr' => 'tr_TR'
         ]
     ],
-    'menuActions' => [
-        ['action' => 'dashboard', 'label' => 'dashboard'],
-        ['action' => 'update', 'label' => 'update']
-    ],
-    'viewSettings' => [
-        'showAnalysisTab' => true,
-        'showSocialTab' => true,
-        'showAdvancedTab' => true
-    ],
     'previewSettings' => [
         'basicAuth' => [
             'username' => '',

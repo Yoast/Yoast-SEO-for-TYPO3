@@ -73,13 +73,6 @@ class ModuleController extends ActionController
     {
     }
 
-    /**
-     * @return void
-     */
-    public function updateAction(): void
-    {
-    }
-
     public function premiumAction(): void
     {
         $this->view->assign('premiumInstalled', YoastUtility::isPremiumInstalled());
