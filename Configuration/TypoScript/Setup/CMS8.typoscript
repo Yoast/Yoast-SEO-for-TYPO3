@@ -229,6 +229,7 @@ page.meta {
     og:image.cObject < lib.yoastSEO.og.images
     og:image.attribute = property
     twitter:title.cObject < lib.yoastSEO.twitter.title
+    twitter:card.cObject < lib.yoastSEO.twitter.card
     twitter:description.cObject < lib.yoastSEO.twitter.description
     twitter:image.cObject < lib.yoastSEO.twitter.images
 }
