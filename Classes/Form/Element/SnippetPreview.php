@@ -310,7 +310,7 @@ class SnippetPreview extends AbstractNode
                     $previewPageId = $recordArray[$l18nPointer];
                 }
             }
-            $languageId = $recordArray[$languageField];
+            $languageId = $recordArray[$languageField] > -1 ? $recordArray[$languageField] : 0;
         }
 
         // map record data to GET parameters

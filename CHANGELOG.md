@@ -15,6 +15,13 @@ Besides the free version of our plugin, we also have a premium version. The free
 ### Fixed
 * 
 
+## 7.2.2 June 25, 2021
+### Fixed
+- `twitter:card` is now rendered for CMS8
+- Records with language setting "All" (`-1`) have a fallback to language id `0` now
+- `urltoCheck` hook works again, regression fix as the url-generation had been moved to `AjaxController`
+- Minor updates in various javascript-dependencies
+
 ## 7.2.1 April 26, 2021
 ### Fixed
 - Passing through the completely generated uri as an `uriToCheck` parameter has been removed, url generating now happens within AjaxController based on page and language parameter
