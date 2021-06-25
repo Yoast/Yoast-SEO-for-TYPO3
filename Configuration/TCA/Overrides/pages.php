@@ -66,16 +66,14 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
             'label' => '',
             'exclude' => false,
             'config' => [
-                'type' => 'input',
-                'renderType' => 'hiddenField'
+                'type' => 'passthrough'
             ]
         ],
         'tx_yoastseo_score_seo' => [
             'label' => '',
             'exclude' => false,
             'config' => [
-                'type' => 'input',
-                'renderType' => 'hiddenField'
+                'type' => 'passthrough'
             ]
         ],
     ]
