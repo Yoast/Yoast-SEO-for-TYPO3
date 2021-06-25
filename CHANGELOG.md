@@ -8,6 +8,13 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## 7.2.2 June 25, 2021
+### Fixed
+- `twitter:card` is now rendered for CMS8
+- Records with language setting "All" (`-1`) have a fallback to language id `0` now
+- `urltoCheck` hook works again, regression fix as the url-generation had been moved to `AjaxController`
+- Minor updates in various javascript-dependencies
+
 ## 7.2.1 April 26, 2021
 ### Fixed
 - Passing through the completely generated uri as an `uriToCheck` parameter has been removed, url generating now happens within AjaxController based on page and language parameter
