@@ -13,6 +13,7 @@ use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Page\PageRepository;
 use YoastSeoForTypo3\YoastSeo\Service\PreviewService;
+use YoastSeoForTypo3\YoastSeo\Service\UrlService;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 /**
@@ -108,8 +109,12 @@ class AjaxController
             (string)$site->getRouter()->generateUri($finalPageIdToShow, $additionalQueryParams)
         );
 
-        if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][self::class]['urlToCheck'])) {
-            foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][self::class]['urlToCheck'] as $_funcRef) {
+        $urlToCheckHook = $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][self::class]['urlToCheck']
+            ?? $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][UrlService::class]['urlToCheck']
+            ?? [];
+
+        if (is_array($urlToCheckHook)) {
+            foreach ($urlToCheckHook as $_funcRef) {
                 $_params = [
                     'urlToCheck' => $uriToCheck,
                     'site' => $site,
