@@ -65,19 +65,6 @@ class ArrayPaginator
         return count($this->items);
     }
 
-    protected function getAmountOfItemsOnCurrentPage(): int
-    {
-        return count($this->paginatedItems);
-    }
-
-    /**
-     * States whether there are items on the current page
-     */
-    protected function hasItemsOnCurrentPage(): bool
-    {
-        return $this->getAmountOfItemsOnCurrentPage() > 0;
-    }
-
     public function getNumberOfPages(): int
     {
         return $this->numberOfPages;
@@ -120,17 +107,6 @@ class ArrayPaginator
         }
 
         $this->updatePaginatedItems($this->itemsPerPage, $offset);
-
-        if (!$this->hasItemsOnCurrentPage()) {
-            $this->keyOfFirstPaginatedItem = 0;
-            $this->keyOfLastPaginatedItem = 0;
-            return;
-        }
-
-        $indexOfLastPaginatedItem = min($offset + $this->itemsPerPage, $totalAmountOfItems);
-
-        $this->keyOfFirstPaginatedItem = $offset;
-        $this->keyOfLastPaginatedItem = $indexOfLastPaginatedItem - 1;
     }
 
     protected function setItemsPerPage(int $itemsPerPage): void
