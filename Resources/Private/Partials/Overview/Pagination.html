@@ -1,0 +1,88 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+		xmlns:core="http://typo3.org/ns/TYPO3/CMS/Core/ViewHelpers"
+		data-namespace-typo3-fluid="true">
+
+	<tr>
+		<td class="col-title col-responsive nowrap" colspan="6">
+			<nav class="pagination-wrap">
+				<ul class="pagination pagination-block">
+					<f:if condition="{paginator.currentPageNumber} > 1">
+						<f:then>
+							<li class="page-item">
+								<f:link.action action="{actionName}" addQueryString="1" arguments="{currentPage: 1}" class="page-link">
+									<core:icon identifier="actions-view-paging-first" />
+								</f:link.action>
+							</li>
+							<li class="page-item">
+								<f:link.action action="{actionName}" addQueryString="1" arguments="{currentPage: pagination.previousPageNumber}" class="page-link">
+									<core:icon identifier="actions-view-paging-previous" />
+								</f:link.action>
+							</li>
+						</f:then>
+						<f:else>
+							<li class="disabled page-item">
+								<span class="page-link">
+									<core:icon identifier="actions-view-paging-first" />
+								</span>
+							</li>
+							<li class="disabled page-item">
+								<span class="page-link">
+									<core:icon identifier="actions-view-paging-previous" />
+								</span>
+							</li>
+						</f:else>
+					</f:if>
+					<f:for each="{pagination.allPageNumbers}" as="page">
+						<f:if condition="{page} == {paginator.currentPageNumber}">
+							<f:then>
+								<li class="current page-item">
+									<span class="page-link"><strong>{page}</strong></span>
+								</li>
+							</f:then>
+							<f:else>
+								<li class="page-item">
+									<f:if condition="{page} > 1">
+										<f:then>
+											<f:link.action action="{actionName}" addQueryString="1" arguments="{currentPage: page}" class="page-link">{page}</f:link.action>
+										</f:then>
+										<f:else>
+											<f:link.action action="{actionName}" addQueryString="1" arguments="{currentPage: 1}" class="page-link">{page}</f:link.action>
+										</f:else>
+									</f:if>
+								</li>
+							</f:else>
+						</f:if>
+					</f:for>
+					<f:if condition="{pagination.nextPageNumber}">
+						<f:then>
+							<li class="page-item">
+								<f:link.action action="{actionName}" addQueryString="1" arguments="{currentPage: pagination.nextPageNumber}" class="page-link">
+									<core:icon identifier="actions-view-paging-next" />
+								</f:link.action>
+							</li>
+							<li class="page-item">
+								<f:link.action action="{actionName}" addQueryString="1" arguments="{currentPage: pagination.lastPageNumber}" class="page-link">
+									<core:icon identifier="actions-view-paging-last" />
+								</f:link.action>
+							</li>
+						</f:then>
+						<f:else>
+							<li class="disabled page-item">
+								<span class="page-link">
+									<core:icon identifier="actions-view-paging-next" />
+								</span>
+							</li>
+							<li class="disabled page-item">
+								<span class="page-link">
+									<core:icon identifier="actions-view-paging-last" />
+								</span>
+							</li>
+						</f:else>
+					</f:if>
+				</ul>
+			</nav>
+
+		</td>
+	</tr>
+
+</html>

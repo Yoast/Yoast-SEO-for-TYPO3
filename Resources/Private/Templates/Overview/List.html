@@ -46,12 +46,12 @@
 			<tbody>
 			<f:if condition="{items -> f:count()} > {settings.itemsPerPage}">
 				<f:then>
-					<f:widget.paginate objects="{items}" as="paginatedItems" configuration="{itemsPerPage: settings.itemsPerPage, insertAbove: 1, insertBelow: 1, maximumNumberOfLinks: 6}">
-						<f:render section="itemsOverview" arguments="{items: paginatedItems, params: params}"/>
-					</f:widget.paginate>
+					<f:render partial="Overview/Pagination" arguments="{pagination: pagination, paginator: paginator, action: 'list'}" />
+					<f:render section="itemsOverview" arguments="{items: paginator.paginatedItems, params: params}" />
+					<f:render partial="Overview/Pagination" arguments="{pagination: pagination, paginator: paginator, action: 'list'}" />
 				</f:then>
 				<f:else>
-					<f:render section="itemsOverview" arguments="{items: items, params: params}"/>
+					<f:render section="itemsOverview" arguments="{items: paginator.paginatedItems, params: params}" />
 				</f:else>
 			</f:if>
 			</tbody>

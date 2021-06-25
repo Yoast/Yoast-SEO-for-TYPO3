@@ -24,6 +24,8 @@ use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Page\PageRenderer;
+use TYPO3\CMS\Core\Pagination\ArrayPaginator;
+use TYPO3\CMS\Core\Pagination\SimplePagination;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
@@ -124,13 +126,21 @@ class OverviewController extends ActionController
         );
     }
 
-    public function listAction(): void
+    /**
+     * @param int $currentPage
+     */
+    public function listAction(int $currentPage = 1): void
     {
         $params = $this->getParams();
         $items = GeneralUtility::callUserFunction($this->currentFilter['dataProvider'], $params, $this) ?: [];
 
+        $arrayPaginator = $this->getArrayPaginator($items, $currentPage, (int)$this->settings['itemsPerPage']);
+        $pagination = $this->getPagination($arrayPaginator);
+
         $this->view->assignMultiple([
             'items' => $items,
+            'paginator' => $arrayPaginator,
+            'pagination' => $pagination,
             'filters' => $this->filters,
             'activeFilter' => $this->activeFilter,
             'params' => $params,
@@ -251,6 +261,32 @@ class OverviewController extends ActionController
             }
             $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->addMenu($languageMenu);
         }
+    }
+
+    /**
+     * @param array $items
+     * @param int   $currentPage
+     * @param int   $itemsPerPage
+     * @return \TYPO3\CMS\Core\Pagination\ArrayPaginator|\YoastSeoForTypo3\YoastSeo\Pagination\ArrayPaginator
+     */
+    protected function getArrayPaginator(array $items, int $currentPage, int $itemsPerPage)
+    {
+        if (class_exists(ArrayPaginator::class)) {
+            return new ArrayPaginator($items, $currentPage, $itemsPerPage);
+        }
+        return new \YoastSeoForTypo3\YoastSeo\Pagination\ArrayPaginator($items, $currentPage, $itemsPerPage);
+    }
+
+    /**
+     * @param $arrayPaginator
+     * @return \TYPO3\CMS\Core\Pagination\SimplePagination|\YoastSeoForTypo3\YoastSeo\Pagination\SimplePagination
+     */
+    protected function getPagination($arrayPaginator)
+    {
+        if (class_exists(SimplePagination::class)) {
+            return new SimplePagination($arrayPaginator);
+        }
+        return new \YoastSeoForTypo3\YoastSeo\Pagination\SimplePagination($arrayPaginator);
     }
 
     /**
