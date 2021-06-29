@@ -22,7 +22,7 @@
 				<source>Pages without meta description</source>
 			</trans-unit>
 			<trans-unit id="withoutDescription.description" resname="withoutDescription.description">
-				<source><![CDATA[Optimizing the meta description is a very important aspect of on-page SEO. Consider adding a meta description to these pages. <a href="%s">Learn more about writing the right meta description.</a>]]></source>
+				<source><![CDATA[Optimizing the meta description is a very important aspect of on-page SEO. Consider adding a meta description to these pages. <a href="%s" target="_blank">Learn more about writing the right meta description.</a>]]></source>
 			</trans-unit>
 			<trans-unit id="no_pages.title" resname="no_pages.title">
 				<source>No pages found</source>
