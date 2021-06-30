@@ -11,7 +11,7 @@ class RelevantWords extends React.Component {
 
     render() {
         if (this.props.relevantWords) {
-            let keywords = this.props.relevantWords.result.slice( 0, 5 ).map( word => word.getCombination() );
+            let keywords = this.props.relevantWords.result.prominentWords.slice( 0, 5 ).map( word => word.getCombination() );
 
             return (
                 <ol className="yoast-keyword-suggestions__list">

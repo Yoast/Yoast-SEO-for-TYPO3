@@ -23,7 +23,7 @@ export function getRelevantWords(worker, paper) {
 export function saveRelevantWords(object, uid, languageId, table, url)
 {
     return dispatch => {
-        let words = object.relevantWords.result.slice( 0, 25 );
+        let words = object.relevantWords.result.prominentWords.slice( 0, 25 );
 
         fetch(url, {
             method: 'post',

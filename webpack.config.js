@@ -7,7 +7,7 @@ module.exports = {
     entry: {
         plugin: ['@babel/polyfill', './Resources/Public/JavaScript/plugin.js'],
         linkingSuggestions: ['@babel/polyfill', './Resources/Public/JavaScript/linkingSuggestions.js'],
-        /*worker: './Resources/Public/JavaScript/worker.js'*/
+        worker: ['@babel/polyfill', './Resources/Public/JavaScript/worker.js']
     },
     output: {
         filename: '[name].js',
