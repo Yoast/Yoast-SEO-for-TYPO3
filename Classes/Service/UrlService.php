@@ -171,13 +171,15 @@ class UrlService implements SingletonInterface
     }
 
     /**
-     * @param int $type
-     * @param string $additionalGetParameters
      * @return string
      */
-    public function getUrlForType(int $type, $additionalGetParameters = ''): string
+    public function getProminentWordsUrl(): string
     {
-        return GeneralUtility::getIndpEnv('TYPO3_SITE_PATH') . '?type=' . $type . $additionalGetParameters;
+        try {
+            return (string)$this->uriBuilder->buildUriFromRoute('ajax_yoast_prominent_words');
+        } catch (RouteNotFoundException $e) {
+            return '';
+        }
     }
 
     /**

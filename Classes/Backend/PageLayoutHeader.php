@@ -75,10 +75,7 @@ class PageLayoutHeader
         }
 
         $allowedDoktypes = YoastUtility::getAllowedDoktypes();
-        if (is_array($currentPage) &&
-            array_key_exists('doktype', $currentPage) &&
-            in_array((int)$currentPage['doktype'], $allowedDoktypes, true)
-        ) {
+        if (isset($currentPage['doktype']) && in_array((int)$currentPage['doktype'], $allowedDoktypes, true)) {
             $publicResourcesPath =
                 PathUtility::getAbsoluteWebPath(ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
 
@@ -87,7 +84,7 @@ class PageLayoutHeader
                     'workerUrl' => $publicResourcesPath . '/JavaScript/dist/worker.js',
                     'previewUrl' => $this->urlService->getPreviewUrl($pageId, (int)$moduleData['language']),
                     'saveScores' => $this->urlService->getSaveScoresUrl(),
-                    'prominentWords' => $this->urlService->getUrlForType(1539541406),
+                    'prominentWords' => $this->urlService->getProminentWordsUrl(),
                 ],
                 'useKeywordDistribution' => YoastUtility::isPremiumInstalled(),
                 'useRelevantWords' => YoastUtility::isPremiumInstalled(),

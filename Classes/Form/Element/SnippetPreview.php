@@ -172,14 +172,14 @@ class SnippetPreview extends AbstractNode
 
             $publicResourcesPath =
                 PathUtility::getAbsoluteWebPath(ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
-            $workerUrl = $publicResourcesPath . '/JavaScript/dist/worker.js';
+            $workerUrl = $publicResourcesPath . 'JavaScript/dist/worker.js';
 
             $config = [
                 'urls' => [
                     'workerUrl' => $workerUrl,
                     'previewUrl' => $this->previewUrl,
                     'saveScores' => $this->urlService->getSaveScoresUrl(),
-                    'prominentWords' => $this->urlService->getUrlForType(1539541406),
+                    'prominentWords' => $this->urlService->getProminentWordsUrl(),
                 ],
                 'TCA' => 1,
                 'useKeywordDistribution' => YoastUtility::isPremiumInstalled(),
