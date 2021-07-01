@@ -38,7 +38,7 @@ var linkingSuggestions = {
 
     getLinkingSuggestions: function (content) {
         const paper = new Paper( content, {});
-        this._worker.runResearch('relevantWords', paper)
+        this._worker.runResearch('prominentWordsForInternalLinking', paper)
             .then((results) => {
                 let words = results.result.prominentWords.slice( 0, 5 );
 
