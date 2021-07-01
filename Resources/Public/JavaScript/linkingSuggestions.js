@@ -62,12 +62,16 @@ var linkingSuggestions = {
         for (let word in links) {
             content += '<p><strong>' + word + '</strong></p>';
             content += '<ol>';
-            for (let link in links[word]) {
-                content += '<li>' + links[word][link]['label'] + cornerstone + ' [ID: ' + links[word][link]['id'] + ']';
-                if (links[word][link]['cornerstone'] == 1) {
-                    content += ' *';
+            if (links.hasOwnProperty(word)) {
+                for (let link in links[word]) {
+                    if (links[word].hasOwnProperty(link)) {
+                        content += '<li>' + links[word][link]['label'];
+                        if (links[word][link].cornerstone === 1) {
+                            content += ' *';
+                        }
+                        content += ' [ID: ' + links[word][link].id + ']</li>';
+                    }
                 }
-                content += '</li>';
             }
             content += '</ol>';
         }
