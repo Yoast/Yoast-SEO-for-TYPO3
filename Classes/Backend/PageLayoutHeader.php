@@ -105,8 +105,6 @@ class PageLayoutHeader
             $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigUtility::class);
             $jsonConfigUtility->addConfig($config);
 
-            $this->pageRenderer->addJsInlineCode('yoast-json-config', $jsonConfigUtility->render());
-
             if (YoastUtility::inProductionMode() === true) {
                 $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/dist/plugin');
             } else {
