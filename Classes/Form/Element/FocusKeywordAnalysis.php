@@ -4,10 +4,8 @@ namespace YoastSeoForTypo3\YoastSeo\Form\Element;
 
 use TYPO3\CMS\Backend\Form\AbstractNode;
 use TYPO3\CMS\Backend\Form\NodeFactory;
-use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
-use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class FocusKeywordAnalysis extends AbstractNode
@@ -54,11 +52,6 @@ class FocusKeywordAnalysis extends AbstractNode
     public function render(): array
     {
         $resultArray = $this->initializeResultArray();
-
-        $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigUtility::class);
-
-        $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
-        $pageRenderer->addJsInlineCode('yoast-json-config', $jsonConfigUtility->render());
 
         if ($this->focusKeywordField) {
             $this->templateView->assign('focusKeywordField', $this->getFieldSelector($this->focusKeywordField));

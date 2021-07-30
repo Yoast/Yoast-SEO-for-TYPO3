@@ -77,4 +77,7 @@ if (TYPO3_MODE === 'BE') {
     ];
     $GLOBALS['TYPO3_USER_SETTINGS']['showitem'] .= ',
             --div--;LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:usersettings.title,hideYoastInPageModule';
+
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-preProcess'][]
+        = \YoastSeoForTypo3\YoastSeo\Hooks\YoastConfigInlineJs::class . '->renderJsonConfig';
 }
