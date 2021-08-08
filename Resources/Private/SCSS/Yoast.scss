@@ -144,3 +144,9 @@ div.yoast-analysis {
 		text-decoration: underline;
 	}
 }
+
+#facebookPreview {
+	span.screen-reader-text {
+		visibility: hidden;
+	}
+}

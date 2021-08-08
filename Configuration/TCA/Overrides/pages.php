@@ -76,6 +76,22 @@ $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
                 'type' => 'passthrough'
             ]
         ],
+        'tx_yoastseo_facebook_preview' => [
+            'label' => $llPrefix . 'facebookPreview',
+            'exclude' => true,
+            'config' => [
+                'type' => 'none',
+                'renderType' => 'facebookPreview'
+            ]
+        ],
+        'tx_yoastseo_twitter_preview' => [
+            'label' => $llPrefix . 'twitterPreview',
+            'exclude' => true,
+            'config' => [
+                'type' => 'none',
+                'renderType' => 'twitterPreview'
+            ]
+        ]
     ]
 );
 
@@ -190,4 +206,18 @@ try {
 ',
     $dokTypes,
     'after: twitter_image'
+);
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+    'pages',
+    'opengraph',
+    'tx_yoastseo_facebook_preview,--linebreak--',
+    'before:og_title'
+);
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+    'pages',
+    'twittercards',
+    'tx_yoastseo_twitter_preview,--linebreak--',
+    'before:twitter_title'
 );

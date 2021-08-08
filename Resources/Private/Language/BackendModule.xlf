@@ -147,6 +147,12 @@
 			<trans-unit id="snippetPreview" resname="snippetPreview">
 				<source>Yoast SEO Snippet preview</source>
 			</trans-unit>
+			<trans-unit id="facebookPreview" resname="facebookPreview">
+				<source>Facebook preview</source>
+			</trans-unit>
+			<trans-unit id="twitterPreview" resname="twitterPreview">
+				<source>Twitter preview</source>
+			</trans-unit>
 			<trans-unit id="analysis" resname="analysis">
 				<source>Analysis results</source>
 			</trans-unit>

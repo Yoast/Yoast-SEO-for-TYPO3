@@ -94,3 +94,6 @@ div.yoast-analysis div:not(.bounce) {
 
 div.yoast-analysis a {
   text-decoration: underline; }
+
+#facebookPreview span.screen-reader-text {
+  display: none; }

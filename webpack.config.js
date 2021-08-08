@@ -7,6 +7,7 @@ module.exports = {
     entry: {
         plugin: ['@babel/polyfill', './Resources/Public/JavaScript/plugin.js'],
         linkingSuggestions: ['@babel/polyfill', './Resources/Public/JavaScript/linkingSuggestions.js'],
+        socialPreviews: ['@babel/polyfill', './Resources/Public/JavaScript/socialPreviews.js'],
         worker: ['@babel/polyfill', './Resources/Public/JavaScript/worker.js']
     },
     output: {

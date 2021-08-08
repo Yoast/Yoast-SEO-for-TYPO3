@@ -38,6 +38,7 @@
     "@yoast/components": "^2.19.0",
     "@yoast/grunt-plugin-tasks": "^2.1.1",
     "@yoast/search-metadata-previews": "^2.24.0",
+    "@yoast/social-metadata-previews": "^1.17.0",
     "cross-env": "^5.2.1",
     "css-loader": "^3.4.2",
     "fstream": "^1.0.12",
