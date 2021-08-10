@@ -8,6 +8,10 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## 7.2.3 August 10, 2021
+### Fixed
+- Removed XSS possibilities within snippet preview and structured data
+
 ## 7.2.2 June 25, 2021
 ### Fixed
 - `twitter:card` is now rendered for CMS8
