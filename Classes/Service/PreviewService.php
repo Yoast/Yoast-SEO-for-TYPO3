@@ -98,7 +98,7 @@ class PreviewService
         $title = $body = $metaDescription = '';
         $locale = 'en';
 
-        $localeFound = preg_match('/<html lang="([a-z]*)"/is', $content, $matchesLocale);
+        $localeFound = preg_match('/<html[^>]*lang="([a-z\-A-Z]*)"/is', $content, $matchesLocale);
         $titleFound = preg_match("/<title[^>]*>(.*?)<\/title>/is", $content, $matchesTitle);
         $descriptionFound = preg_match(
             "/<meta[^>]*name=[\" | \']description[\"|\'][^>]*content=[\"]([^\"]*)[\"][^>]*>/i",
@@ -130,7 +130,7 @@ class PreviewService
         }
 
         if ($localeFound) {
-            $locale = trim($matchesLocale[1]);
+            list($locale) = explode('-', trim($matchesLocale[1]));
         }
         $urlParts = parse_url(preg_replace('/\/$/', '', $uriToCheck));
         $baseUrl = $urlParts['scheme'] . '://' . $urlParts['host'];
