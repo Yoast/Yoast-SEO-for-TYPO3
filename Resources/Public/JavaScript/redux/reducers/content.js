@@ -22,7 +22,7 @@ function contentReducer (state = initialState, action) {
             updateQueue = []
 
             return newState
-        case GET_CONTENT_ERROR:git
+        case GET_CONTENT_ERROR:
             return {...state, isFetching: false, error: action.error}
         case UPDATE_CONTENT:
             // Queue content updates until content has been fetched. Otherwise partial updates will break component props assumptions.
