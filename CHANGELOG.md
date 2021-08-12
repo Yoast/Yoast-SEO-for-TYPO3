@@ -8,6 +8,12 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## 7.2.4 August 12, 2021
+### Fixed
+- additionalGetVars are working again for CMS8 (used for record analysis)
+- Removed accidental `git` keyword within content reducer to avoid javascript console errors
+- `locale` extraction, which is used to determine the language for analysis, now works for locales with a hyphen (e.g. `en-US`) and for html tags with extra attributes
+
 ## 7.2.3 August 10, 2021
 ### Fixed
 - Removed XSS possibilities within snippet preview and structured data
