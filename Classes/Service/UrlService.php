@@ -54,7 +54,7 @@ class UrlService
                 'pageId' => $pageId, 'languageId' => $languageId, 'additionalGetVars' => urlencode($additionalGetVars)
             ]);
         }
-        return $this->getUrlForType(self::FE_PREVIEW_TYPE, '&pageIdToCheck=' . $pageId . '&languageIdToCheck=' . $languageId);
+        return $this->getUrlForType(self::FE_PREVIEW_TYPE, '&pageIdToCheck=' . $pageId . '&languageIdToCheck=' . $languageId . '&additionalGetVars=' . urlencode($additionalGetVars));
     }
 
     /**
