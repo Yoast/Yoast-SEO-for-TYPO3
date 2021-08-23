@@ -40,15 +40,17 @@ class CanonicalGenerator
         if ($typoScriptFrontendController === null) {
             $typoScriptFrontendController = $this->getTypoScriptFrontendController();
 
-            if (empty($typoScriptFrontendController->page)) {
-                $typoScriptFrontendController->getPageAndRootLine();
-            }
+            if (!is_null($typoScriptFrontendController)) {
+                if (empty($typoScriptFrontendController->page)) {
+                    $typoScriptFrontendController->getPageAndRootLine();
+                }
 
-            if (!is_object($this->typoScriptFrontendController->cObj)) {
-                $typoScriptFrontendController->initTemplate();
-                $typoScriptFrontendController->getConfigArray();
-                $typoScriptFrontendController->settingLanguage();
-                $typoScriptFrontendController->newCObj();
+                if (!is_object($this->typoScriptFrontendController->cObj)) {
+                    $typoScriptFrontendController->initTemplate();
+                    $typoScriptFrontendController->getConfigArray();
+                    $typoScriptFrontendController->settingLanguage();
+                    $typoScriptFrontendController->newCObj();
+                }
             }
         }
         if ($signalSlotDispatcher === null) {
