@@ -129,21 +129,25 @@ class CanonicalGenerator
      */
     protected function checkDefaultCanonical(): string
     {
-        return $this->typoScriptFrontendController->cObj->typoLink_URL([
-            'parameter' => $this->typoScriptFrontendController->id . ',' . $this->typoScriptFrontendController->type,
-            'forceAbsoluteUrl' => true,
-            'addQueryString' => true,
-            'addQueryString.' => [
-                'method' => 'GET',
-                'exclude' => implode(
-                    ',',
-                    CanonicalizationUtility::getParamsToExcludeForCanonicalizedUrl(
-                        (int)$this->typoScriptFrontendController->id,
-                        (array)$GLOBALS['TYPO3_CONF_VARS']['FE']['additionalCanonicalizedUrlParameters']
-                    )
-                )
-            ]
-        ]);
+        if (!empty($this->typoScriptFrontendController->cObj)) {
+            return $this->typoScriptFrontendController->cObj->typoLink_URL([
+                'parameter' => $this->typoScriptFrontendController->id . ',' . $this->typoScriptFrontendController->type,
+                'forceAbsoluteUrl' => true,
+                'addQueryString' => true,
+                'addQueryString.' => [
+                    'method' => 'GET',
+                    'exclude' => implode(
+                        ',',
+                        CanonicalizationUtility::getParamsToExcludeForCanonicalizedUrl(
+                            (int)$this->typoScriptFrontendController->id,
+                            (array)$GLOBALS['TYPO3_CONF_VARS']['FE']['additionalCanonicalizedUrlParameters']
+                            )
+                            )
+                        ]
+                    ]);
+        } else {
+            return '';
+        }
     }
 
     /**
