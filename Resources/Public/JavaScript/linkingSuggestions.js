@@ -18,7 +18,7 @@ var linkingSuggestions = {
     },
 
     checkAnalysis: function () {
-        if (typeof CKEDITOR == "undefined") {
+        if (typeof CKEDITOR === "undefined") {
             return;
         }
 
@@ -45,7 +45,7 @@ var linkingSuggestions = {
                 fetch(this._url, {
                     method: 'post',
                     headers : new Headers(),
-                    body: JSON.stringify({words: words, excludedPage: YoastConfig.linkingSuggestions.excludedPage, language: YoastConfig.data.languageId})
+                    body: JSON.stringify({words: words, excludedPage: YoastConfig.linkingSuggestions.excludedPage, language: YoastConfig.data.languageId, content: content})
                 })
                     .then(response => {
                         return response.json();
@@ -59,25 +59,35 @@ var linkingSuggestions = {
     updateLinkingSuggestions: function(links) {
         let content = '';
 
-        for (let word in links) {
-            content += '<p><strong>' + word + '</strong></p>';
-            content += '<ol>';
-            if (links.hasOwnProperty(word)) {
-                for (let link in links[word]) {
-                    if (links[word].hasOwnProperty(link)) {
-                        content += '<li>' + links[word][link]['label'];
-                        if (links[word][link].cornerstone === 1) {
-                            content += ' *';
-                        }
-                        content += ' [ID: ' + links[word][link].id + ']</li>';
+        if (links && links.length > 0) {
+            content += '<table class="table" style="width: auto;">';
+            content += '<thead><tr>' +
+                '<th>Label</th><th>Record</th><th>Linked</th>' +
+                '</tr></thead>' +
+                '<tbody>';
+            for (let link in links) {
+                if (links.hasOwnProperty(link)) {
+                    content += '<tr><td>';
+                    content += links[link].label;
+                    if (links[link].cornerstone === 1) {
+                        content += ' *';
                     }
+                    content += '</td><td>Page [uid=' + links[link].id + ']</td>';
+                    if (links[link].active) {
+                        content += '<td class="text-center"><btn class="btn btn-success btn-sm">&nbsp;&check;&nbsp;</btn></td>';
+                    } else {
+                        content += '<td class="text-center"><btn class="btn btn-danger btn-sm">&nbsp;&cross;&nbsp;</btn></td>';
+                    }
+
+                    content += '</tr>';
                 }
             }
-            content += '</ol>';
+            content += '</tbody>' +
+                '</table>';
         }
 
         if (content === '') {
-            content = '> No results found';
+            content = '&gt; No results found, make sure you have more than 100 words to analyze.';
         }
 
         document.querySelector(`[data-yoast-linking-suggestion]`).innerHTML = content;
