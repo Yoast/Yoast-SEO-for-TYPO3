@@ -1,3 +1,5 @@
+import {stripFullTags} from 'yoastseo/src/stringProcessing/stripHTMLTags';
+
 export const GET_CONTENT_REQUEST = 'GET_CONTENT_REQUEST';
 export const GET_CONTENT_SUCCESS = 'GET_CONTENT_SUCCESS';
 export const GET_CONTENT_ERROR = 'GET_CONTENT_ERROR';
@@ -21,6 +23,12 @@ export function getContent() {
 }
 
 export function updateContent(content) {
+    if (typeof content.title !== "undefined") {
+        content.title = stripFullTags(content.title);
+    }
+    if (typeof content.description !== "undefined") {
+        content.description = stripFullTags(content.description);
+    }
     return {
         type: UPDATE_CONTENT,
         payload: content
