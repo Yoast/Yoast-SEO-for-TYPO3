@@ -27,7 +27,12 @@ class AjaxController
         $queryParams = $request->getQueryParams();
 
         if (!isset($queryParams['pageId'], $queryParams['languageId'], $queryParams['additionalGetVars'])) {
-            return new JsonResponse();
+            $json = json_decode($request->getBody()->getContents(), true);
+            if (isset($json['pageId'], $json['languageId'], $json['additionalGetVars'])) {
+                $queryParams = $json;
+            } else {
+                return new JsonResponse([]);
+            }
         }
 
         $previewService = GeneralUtility::makeInstance(PreviewService::class);
