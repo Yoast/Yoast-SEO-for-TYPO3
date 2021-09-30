@@ -1,81 +1,30 @@
 <?php
 namespace YoastSeoForTypo3\YoastSeo\Backend;
 
-use TYPO3\CMS\Backend\Controller\PageLayoutController;
-use TYPO3\CMS\Backend\Utility\BackendUtility;
-use TYPO3\CMS\Core\Page\PageRenderer;
-use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
-use YoastSeoForTypo3\YoastSeo\Service\LocaleService;
-use YoastSeoForTypo3\YoastSeo\Service\UrlService;
 use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
-class PageLayoutHeader
+class PageLayoutHeader extends AbstractPageLayoutHeader
 {
-    /**
-     * @var array
-     */
-    protected $configuration = [
-        'translations' => [
-            'availableLocales' => [],
-            'languageKeyToLocaleMapping' => []
-        ]
-    ];
-
-    /**
-     * @var \YoastSeoForTypo3\YoastSeo\Service\LocaleService
-     */
-    protected $localeService;
-
-    /**
-     * @var \YoastSeoForTypo3\YoastSeo\Service\UrlService
-     */
-    protected $urlService;
-
-    /**
-     * @var \TYPO3\CMS\Core\Page\PageRenderer
-     */
-    protected $pageRenderer;
-
-    /**
-     * Initialize the page renderer
-     */
-    public function __construct()
-    {
-        if (array_key_exists('yoast_seo', $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'])
-            && is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'])
-        ) {
-            ArrayUtility::mergeRecursiveWithOverrule(
-                $this->configuration,
-                $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']
-            );
-        }
-
-        $this->localeService = GeneralUtility::makeInstance(LocaleService::class, $this->configuration);
-        $this->urlService = GeneralUtility::makeInstance(UrlService::class);
-        $this->pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
-    }
-
     /**
      * @param array|null $params
      * @param null  $parentObj
      * @return string
      */
-    public function render(array $params = null, $parentObj = null)
+    public function render(array $params = null, $parentObj = null): string
     {
-        $moduleData = BackendUtility::getModuleData(['language'], [], 'web_layout');
-        $pageId = (int)GeneralUtility::_GET('id');
+        $moduleData = $this->getModuleData();
+        $pageId = $this->getPageId();
         $currentPage = $this->getCurrentPage($pageId, $moduleData, $parentObj);
 
-        if (!YoastUtility::snippetPreviewEnabled($pageId, $currentPage)) {
-            return '';
-        }
+        if ($this->shouldShowPreview($pageId, $currentPage)) {
+            $this->pageHeaderService->setSnippetPreviewEnabled(true);
+            $this->pageHeaderService->setModuleData($moduleData);
+            $this->pageHeaderService->setPageId($pageId);
 
-        $allowedDoktypes = YoastUtility::getAllowedDoktypes();
-        if (isset($currentPage['doktype']) && in_array((int)$currentPage['doktype'], $allowedDoktypes, true)) {
             $publicResourcesPath =
                 PathUtility::getAbsoluteWebPath(ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
 
@@ -117,37 +66,6 @@ class PageLayoutHeader
             return $this->getReturnHtml();
         }
         return '';
-    }
-
-    /**
-     * @param int $pageId
-     * @param array $moduleData
-     * @param object $parentObj
-     * @return array|null
-     */
-    protected function getCurrentPage(int $pageId, array $moduleData, object $parentObj): ?array
-    {
-        $currentPage = null;
-
-        if ($parentObj instanceof PageLayoutController && $pageId > 0) {
-            if ((int)$moduleData['language'] === 0) {
-                $currentPage = BackendUtility::getRecord(
-                    'pages',
-                    $pageId
-                );
-            } elseif ((int)$moduleData['language'] > 0) {
-                $overlayRecords = BackendUtility::getRecordLocalization(
-                    'pages',
-                    $pageId,
-                    (int)$moduleData['language']
-                );
-
-                if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
-                    $currentPage = $overlayRecords[0];
-                }
-            }
-        }
-        return $currentPage;
     }
 
     /**

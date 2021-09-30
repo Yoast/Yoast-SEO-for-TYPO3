@@ -26,11 +26,6 @@ class UrlService implements SingletonInterface
     protected $uriBuilder;
 
     /**
-     * @var \Psr\Http\Message\UriInterface|null
-     */
-    protected $generatedUri;
-
-    /**
      * UrlService constructor.
      */
     public function __construct()
@@ -142,7 +137,7 @@ class UrlService implements SingletonInterface
         $additionalQueryParams = [];
         parse_str($additionalGetVars, $additionalQueryParams);
         $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
-        return $this->generatedUri = $site->getRouter()->generateUri($pageId, $additionalQueryParams);
+        return $site->getRouter()->generateUri($pageId, $additionalQueryParams);
     }
 
     /**
@@ -180,14 +175,6 @@ class UrlService implements SingletonInterface
         } catch (RouteNotFoundException $e) {
             return '';
         }
-    }
-
-    /**
-     * @return \Psr\Http\Message\UriInterface|null
-     */
-    public function getGeneratedUri(): ?UriInterface
-    {
-        return $this->generatedUri;
     }
 
     /**
