@@ -88,18 +88,31 @@ if (!\YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::isPremiumInstalled()) {
                 'exclude' => false,
                 'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
                 'config' => [
-                    'type' => 'text',
+                    'type' => 'none',
                     'renderType' => 'synonyms',
                 ]
             ],
             'tx_yoastseo_focuskeyword_premium' => [
-                'label' => $llPrefix . 'seoRelatedKeywords',
                 'exclude' => true,
                 'config' => [
-                    'type' => 'text',
+                    'type' => 'none',
                     'renderType' => 'relatedKeyphrases'
                 ]
             ],
+            'tx_yoastseo_insights' => [
+                'exclude' => true,
+                'config' => [
+                    'type' => 'none',
+                    'renderType' => 'insights'
+                ]
+            ],
+            'tx_yoastseo_robots_noimageindex' => [
+                'exclude' => true,
+                'config' => [
+                    'type' => 'none',
+                    'renderType' => 'advancedRobots'
+                ]
+            ]
         ]
     );
 }
@@ -147,6 +160,20 @@ if (!\YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::isPremiumInstalled()) {
 );
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
     'pages',
+    'yoast-insights',
+    '
+    --linebreak--, tx_yoastseo_insights 
+    '
+);
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+    'pages',
+    'yoast-advanced-robots',
+    '
+    --linebreak--, tx_yoastseo_robots_noimageindex 
+    '
+);
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette(
+    'pages',
     'yoast-advanced',
     '
     --linebreak--, tx_yoastseo_hide_snippet_preview
@@ -178,9 +205,19 @@ try {
     --palette--;' . $llPrefix . 'pages.palettes.readability;yoast-readability,
     --palette--;' . $llPrefix . 'pages.palettes.focusKeyphrase;yoast-focuskeyword,
     --palette--;' . $llPrefix . 'pages.palettes.focusRelatedKeyphrases;yoast-relatedkeywords,
+    --palette--;' . $llPrefix . 'pages.palettes.insights;yoast-insights,
 ',
     $dokTypes,
     'after: tx_yoastseo_cornerstone'
+);
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(
+    'pages',
+    '
+        --palette--;' . $llPrefix . 'pages.palettes.robots;yoast-advanced-robots,
+    ',
+    '',
+    'after:no_follow'
 );
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes(

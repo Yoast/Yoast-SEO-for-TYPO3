@@ -18,24 +18,6 @@
 			<trans-unit id="mod_premium_subtitle" resname="mod_premium_subtitle">
 				<source>, take your optimization to the next level!</source>
 			</trans-unit>
-			<trans-unit id="mod_premium_redirectmanager" resname="mod_premium_redirectmanager">
-				<source>Redirect manager</source>
-			</trans-unit>
-			<trans-unit id="mod_premium_redirectmanager_descr" resname="mod_premium_redirectmanager_descr">
-				<source>create and manage redirects from within your TYPO3 installation</source>
-			</trans-unit>
-			<trans-unit id="mod_premium_multiple_focus_keywords" resname="mod_premium_multiple_focus_keywords">
-				<source>Multiple focus keyphrases</source>
-			</trans-unit>
-			<trans-unit id="mod_premium_multiple_focus_keywords_descr" resname="mod_premium_multiple_focus_keywords_descr">
-				<source>optimize a single post for up to 5 keyphrases</source>
-			</trans-unit>
-			<trans-unit id="mod_premium_support" resname="mod_premium_support">
-				<source>Premium support</source>
-			</trans-unit>
-			<trans-unit id="mod_premium_support_descr" resname="mod_premium_support_descr">
-				<source>gain access to our 24/7 support team</source>
-			</trans-unit>
 			<trans-unit id="installed" resname="installed">
 				<source>Yoast SEO Premium for TYPO3 is installed</source>
 			</trans-unit>
@@ -51,10 +33,10 @@
 			<trans-unit id="free" resname="free">
 				<source>Yoast SEO free</source>
 			</trans-unit>
-
-			<trans-unit id="table.check" resname="table.check">
-				<source>Check!</source>
+			<trans-unit id="upcoming" resname="upcoming">
+				<source>Exciting upcoming features from the Wordpress plugin:</source>
 			</trans-unit>
+
 			<trans-unit id="table.feature" resname="table.feature">
 				<source>Feature</source>
 			</trans-unit>
@@ -67,9 +49,6 @@
 			<trans-unit id="table.feature.readability" resname="table.feature.readability">
 				<source>Readability check</source>
 			</trans-unit>
-			<trans-unit id="table.feature.content" resname="table.feature.content">
-				<source>No duplicate content</source>
-			</trans-unit>
 			<trans-unit id="table.feature.algorithm" resname="table.feature.algorithm">
 				<source>Always updated for Google’s algorithm</source>
 			</trans-unit>
@@ -79,14 +58,23 @@
 			<trans-unit id="table.feature.insights" resname="table.feature.insights">
 				<source>Content insights</source>
 			</trans-unit>
-			<trans-unit id="table.feature.redirect" resname="table.feature.redirect">
-				<source>Redirect manager</source>
+			<trans-unit id="table.feature.advanced_robots" resname="table.feature.insights">
+				<source>Advanced meta robots</source>
+			</trans-unit>
+			<trans-unit id="table.feature.orphanedcontent" resname="table.feature.insights">
+				<source>Orphaned content</source>
 			</trans-unit>
 			<trans-unit id="table.feature.support" resname="table.feature.support">
 				<source>1 year free access to 24/7 support</source>
 			</trans-unit>
 			<trans-unit id="table.feature.ad_free" resname="table.feature.ad_free">
 				<source>Ad-free</source>
+			</trans-unit>
+			<trans-unit id="table.feature.word_forms" resname="table.feature.ad_free">
+				<source>Word forms</source>
+			</trans-unit>
+			<trans-unit id="table.feature.social_previews" resname="table.feature.ad_free">
+				<source>Social previews</source>
 			</trans-unit>
 
 			<trans-unit id="table.premium.keywords" resname="table.premium.keywords">
@@ -98,30 +86,45 @@
 			<trans-unit id="table.premium.readability" resname="table.premium.readability">
 				<source><![CDATA[We check the readability of the text your wrote and calculate the <b>Flesch Reading Ease Score</b>.]]></source>
 			</trans-unit>
-			<trans-unit id="table.premium.content" resname="table.premium.content">
-				<source><![CDATA[Your rankings can suffer from duplicate content. Yoast SEO sets canonical URLs to avoid confusing Google.]]></source>
-			</trans-unit>
 			<trans-unit id="table.premium.algorithm" resname="table.premium.algorithm">
 				<source><![CDATA[The extension is updated every month, so you’re sure that your website is optimized for the most recent Google algorithm.]]></source>
-			</trans-unit>
-			<trans-unit id="table.premium.insights" resname="table.premium.insights">
-				<source><![CDATA[See the <b>5 words or phrases</b> you use the most on your page and check if they match what you want to rank for.]]></source>
 			</trans-unit>
 			<trans-unit id="table.premium.linking_suggestions" resname="table.premium.linking_suggestions">
 				<source><![CDATA[Get <strong>suggestions for links</strong> to other pages on your website, as you write.]]></source>
 			</trans-unit>
+			<trans-unit id="table.premium.insights" resname="table.premium.insights">
+				<source><![CDATA[See the <b>most prominent words</b> you use the most on your page and check if they match what you want to rank for.]]></source>
+			</trans-unit>
+			<trans-unit id="table.premium.advanced_robots" resname="table.feature.insights">
+				<source><![CDATA[Set the meta robots tag for: <strong>Image index, Snippet preview and Archive</strong>]]></source>
+			</trans-unit>
+			<trans-unit id="table.premium.orphanedcontent" resname="table.feature.insights">
+				<source><![CDATA[Get an overview of <strong>orphaned content</strong>, which is content that doesn't get any links from other pages.]]></source>
+			</trans-unit>
 			<trans-unit id="table.premium.ad_free" resname="table.premium.ad_free">
 				<source><![CDATA[In Yoast SEO Premium there are <strong>no ads</strong>.]]></source>
-			</trans-unit>
-			<trans-unit id="table.premium.redirect" resname="table.premium.redirect">
-				<source><![CDATA[Get alerts and easily redirect old URLs to new ones. You don’t want your visitors to encounter a <b>404 Not Found</b> page.]]></source>
 			</trans-unit>
 			<trans-unit id="table.premium.support" resname="table.premium.support">
 				<source><![CDATA[Get email access to our amazing and <b>helpful support team</b>.]]></source>
 			</trans-unit>
+			<trans-unit id="table.premium.word_forms" resname="table.feature.word_forms">
+				<source><![CDATA[<a href="https://www.youtube.com/watch?v=WH9GmEicvRg" target="_blank">Find out more about <strong>word forms</strong></a>]]></source>
+			</trans-unit>
+			<trans-unit id="table.premium.social_previews" resname="table.feature.social_previews">
+				<source><![CDATA[<a href="https://yoast.com/features/content-previews/social-previews/" target="_blank">Find out more about <strong>social previews</strong></a>]]></source>
+			</trans-unit>
 
 			<trans-unit id="table.free.keywords" resname="table.free.keywords">
 				<source>Only 1 keyword or keyphrase</source>
+			</trans-unit>
+			<trans-unit id="table.free.preview" resname="table.feature.preview">
+				<source>Check!</source>
+			</trans-unit>
+			<trans-unit id="table.free.readability" resname="table.feature.readability">
+				<source>Check!</source>
+			</trans-unit>
+			<trans-unit id="table.free.algorithm" resname="table.feature.algorithm">
+				<source>Check!</source>
 			</trans-unit>
 			<trans-unit id="table.free.insights" resname="table.free.insights">
 				<source>You have to check this yourself, we’re afraid.</source>
@@ -129,14 +132,23 @@
 			<trans-unit id="table.free.linking_suggestions" resname="table.free.linking_suggestions">
 				<source>You have to manually look up related pages to create links.</source>
 			</trans-unit>
+			<trans-unit id="table.free.advanced_robots" resname="table.feature.insights">
+				<source>You can only set the default "No index" and "No follow" meta robots.</source>
+			</trans-unit>
+			<trans-unit id="table.free.orphanedcontent" resname="table.feature.insights">
+				<source>You will have to find orphaned content yourself.</source>
+			</trans-unit>
 			<trans-unit id="table.free.ad_free" resname="table.free.ad_free">
 				<source>You’ll see ads for our other awesome products and services.</source>
 			</trans-unit>
-			<trans-unit id="table.free.redirect" resname="table.free.redirect">
-				<source>Don’t forget (to ask your developer) to create a redirect each time you delete a page.</source>
-			</trans-unit>
 			<trans-unit id="table.free.support" resname="table.free.support">
 				<source>We offer an extensive FAQ section and knowledge base.</source>
+			</trans-unit>
+			<trans-unit id="table.free.word_forms" resname="table.feature.ad_free">
+				<source>You will have to match exact words for a good analysis of your content.</source>
+			</trans-unit>
+			<trans-unit id="table.free.social_previews" resname="table.feature.ad_free">
+				<source>You will have to use online tools to get a preview of your social shares.</source>
 			</trans-unit>
 		</body>
 	</file>

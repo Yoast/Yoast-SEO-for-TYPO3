@@ -135,8 +135,11 @@
 			<trans-unit id="pages.palettes.focusRelatedKeyphrases" resname="pages.palettes.focusRelatedKeyphrases">
 				<source>Related keyphrases</source>
 			</trans-unit>
-			<trans-unit id="pages.palettes.robot" resname="pages.palettes.robot">
-				<source>Robot instructions</source>
+			<trans-unit id="pages.palettes.insights" resname="pages.palettes.insights">
+				<source>Insights</source>
+			</trans-unit>
+			<trans-unit id="pages.palettes.robots" resname="pages.palettes.robots">
+				<source>Advanced robot instructions</source>
 			</trans-unit>
 			<trans-unit id="pages.palettes.readability" resname="pages.palettes.readability">
 				<source>Readability analysis</source>
@@ -231,15 +234,6 @@
 			</trans-unit>
 			<trans-unit id="tx_yoast_seo_premium_focus_keywords.fields.synonyms" resname="tx_yoast_seo_premium_focus_keywords.fields.synonyms">
 				<source>Synonyms</source>
-			</trans-unit>
-			<trans-unit id="pages.fields.tx_yoastseo_insights" resname="pages.fields.tx_yoastseo_insights">
-				<source>Most relevant words</source>
-			</trans-unit>
-			<trans-unit id="pages.fields.tx_yoastseo_insights.intro" resname="pages.fields.tx_yoastseo_insights.intro">
-				<source>The following words and word combinations occur the most in the content. These give an indication of what your content focuses on. If the words differ a lot from your topic, you might want to rewrite your content accordingly.</source>
-			</trans-unit>
-			<trans-unit id="pages.fields.tx_yoastseo_insights.more_information" resname="pages.fields.tx_yoastseo_insights.more_information">
-				<source><![CDATA[Read our <a href="%s" target="_blank">ultimate guide to keyword research</a> to learn more about keyword research and keyword strategy.]]></source>
 			</trans-unit>
 
 			<trans-unit id="tx_yoastseo_linking_suggestions" resname="tx_yoastseo_linking_suggestions">

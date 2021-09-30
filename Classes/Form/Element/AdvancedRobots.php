@@ -5,7 +5,7 @@ namespace YoastSeoForTypo3\YoastSeo\Form\Element;
 use TYPO3\CMS\Backend\Form\AbstractNode;
 use TYPO3\CMS\Backend\Form\NodeFactory;
 
-class Insights extends AbstractNode
+class AdvancedRobots extends AbstractNode
 {
     /**
      * @param NodeFactory $nodeFactory
@@ -20,7 +20,7 @@ class Insights extends AbstractNode
     {
         $resultArray = $this->initializeResultArray();
 
-        $resultArray['html'] = '<div><a href="#" data-yoast-modal-type="insights" class="btn btn-default">Get insights</a></div>';
+        $resultArray['html'] = '<div><a href="#" data-yoast-modal-type="advanced-robots" class="btn btn-default">Get advanced robots</a></div>';
 
         return $resultArray;
     }

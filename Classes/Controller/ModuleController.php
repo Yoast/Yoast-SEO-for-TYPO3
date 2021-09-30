@@ -75,7 +75,25 @@ class ModuleController extends ActionController
 
     public function premiumAction(): void
     {
-        $this->view->assign('premiumInstalled', YoastUtility::isPremiumInstalled());
+        $this->view->assignMultiple([
+            'features' => [
+                ['name' => 'keywords', 'free' => true],
+                ['name' => 'preview', 'free' => true],
+                ['name' => 'readability', 'free' => true],
+                ['name' => 'algorithm', 'free' => true],
+                ['name' => 'linking_suggestions', 'free' => false],
+                ['name' => 'insights', 'free' => false],
+                ['name' => 'advanced_robots', 'free' => false],
+                ['name' => 'orphanedcontent', 'free' => false],
+                ['name' => 'ad_free', 'free' => false],
+                ['name' => 'support', 'free' => false],
+            ],
+            'upcomingFeatures' => [
+                ['name' => 'word_forms', 'free' => false],
+                ['name' => 'social_previews', 'free' => false],
+            ],
+            'premiumInstalled' => YoastUtility::isPremiumInstalled()
+        ]);
     }
 
     /**

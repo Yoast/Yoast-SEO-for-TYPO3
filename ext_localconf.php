@@ -71,6 +71,18 @@ if (!\YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::isPremiumInstalled()) {
         'priority' => 40,
         'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\InternalLinkingSuggestion::class
     ];
+
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1519937113] = [
+        'nodeName' => 'insights',
+        'priority' => 40,
+        'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\Insights::class
+    ];
+
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1633024835] = [
+        'nodeName' => 'advancedRobots',
+        'priority' => 40,
+        'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\AdvancedRobots::class
+    ];
 }
 
 $llFolder = 'LLL:EXT:yoast_seo/Resources/Private/Language/';

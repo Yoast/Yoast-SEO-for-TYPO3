@@ -9,7 +9,7 @@ if (!\YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::isPremiumInstalled()) {
                 'label' => $llPrefix . 'tx_yoastseo_linking_suggestions',
                 'exclude' => true,
                 'config' => [
-                    'type' => 'text',
+                    'type' => 'none',
                     'renderType' => 'internalLinkingSuggestion'
                 ]
             ]
