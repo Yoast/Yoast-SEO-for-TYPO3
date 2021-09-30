@@ -110,7 +110,7 @@ class StructuredDataProviderManager implements SingletonInterface
                 if (!empty($data)) {
                     $structuredData[$provider] = $data;
                 }
-                break;
+                continue;
             }
             if (class_exists($configuration['provider'])
                 && is_subclass_of($configuration['provider'], StructuredDataProviderInterface::class)) {
