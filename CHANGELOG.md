@@ -9,11 +9,39 @@ We will follow [Semantic Versioning](http://semver.org/).
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
 ## [UNRELEASED]
+### Breaking changes
+- Dropped CMS8 support
+  - All AJAX requests are now done through the Backend AjaxRoutes
+  - Canonical and XmlSitemap functionality has been removed, provided by `EXT:seo`
+  - Support for `pages_language_overlay` is removed
+- Dropped the `urlToCheck` hook for `PageLayoutHeader` which was introduced by moving the `getUriToCheck`, this is now only available for `UrlService` (as it was before)
+- Without a meta description, only a placeholder is being shown in the snippet preview. Previously content from the page was being shown, but this hurts the analysis.
+
+### Added
+- CMS11 support
+- Introduced strict typing and return-types to all classes
+- `YoastConfigInlineJs` hook to make it possible to add to the YoastConfig JSON from multiple classes
+- Replaced the `widget.paginate` viewhelper call with within the Overview functionality with the Pagination API, added backport classes for CMS9
+- Placeholders for the Premium functionalities "Insights" and "Advanced robots"
+
 ### Changed
-* Dropped CMS8 support, removed all 8-related classes and configuration
-* Introduced strict typing and return-types to all classes
+- Updated underlying yoastseo javascript libraries
+- Restructured `PageLayoutHeader` hook by introducing `AbstractPageLayoutHeader` and `PageHeaderService` to save generated information
+- Removed RouteEnhancerError check within `PageLayoutHeader` because all AJAX requests are now done through Backend AjaxRoutes
+- Moved `getUriToCheck` method to `UrlService`
+- Updated Premium information within backend module and all modals
+- Removed `linkingSuggestions` javascript from extension, unused and caused an extra 2.5MB on the extension size
+- Huge cleanup of whole extension
+
 ### Fixed
-* 
+- Check if the content returned by the HTTP request for the snippet preview is not `false`
+- Removed unused `$invert` functionality within `stripTagsContent` in `PreviewService`
+- Removed semicolon from generated LD+JSON
+- Changed `break` to `continue` within `StructuredDataProviderManager` to prevent only first provider rendering from cache
+- Set TCA fields without a database column to `type=none`
+- `TYPO3_MODE=FE` checks added to the pageRenderer hooks to prevent errors in other extensions
+- Re-added `worker.js` to Javascript build
+- php-cs-fixer configuration
 
 ## 7.2.4 August 12, 2021
 ### Fixed
@@ -51,7 +79,7 @@ Besides the free version of our plugin, we also have a premium version. The free
 
 ## 7.1.2 December 23, 2020
 ### Fixed
-* Excluded unnecessary files and folders from the TER release so it is not to big to publish  
+* Excluded unnecessary files and folders from the TER release so it is not to big to publish
 
 ## 7.1.1 December 23, 2020
 ### Fixed
@@ -70,7 +98,7 @@ Besides the free version of our plugin, we also have a premium version. The free
 
 ## 7.0.7 December 9, 2020
 ### Fixed
-* It should not matter if a backend user has backend access to the page which is used to preview. This is mainly when using Yoast SEO for records other than pages and the detail page itself is not accessible for the backend user. 
+* It should not matter if a backend user has backend access to the page which is used to preview. This is mainly when using Yoast SEO for records other than pages and the detail page itself is not accessible for the backend user.
 
 ## 7.0.6 November 20, 2020
 ### Fixed
@@ -83,7 +111,7 @@ Besides the free version of our plugin, we also have a premium version. The free
 ## 7.0.4 November 16, 2020
 ### Fixed
 * Make sure both strings and integers can be used when setting allowed doktypes
-* Use the site title of the site configuration when this property is set. 
+* Use the site title of the site configuration when this property is set.
 * Removed usage of $_EXTKEY in ext_tables.php to prevent other extensions to crash.
 
 ### Changed
@@ -110,10 +138,10 @@ Besides the free version of our plugin, we also have a premium version. The free
 
 ## 7.0.0 August 10, 2020
 ### Breaking changes
-* We removed the possibility to set the doktypes that needs to be analysed from within TypoScript. The doktypes are needed during the TCA setup and by using TypoScript some installations did crash when no database connection was already in place. The feature was never documented but it was possible so this is marked as a breaking change. Please set your allowed doktypes in your ext_localconf.php as described in the [documentation](https://docs.typo3.org/p/yoast-seo-for-typo3/yoast_seo/6.0/en-us/Configuration/SnippetPreview/Index.html#enable-snippet-preview-on-specific-page-types).  
+* We removed the possibility to set the doktypes that needs to be analysed from within TypoScript. The doktypes are needed during the TCA setup and by using TypoScript some installations did crash when no database connection was already in place. The feature was never documented but it was possible so this is marked as a breaking change. Please set your allowed doktypes in your ext_localconf.php as described in the [documentation](https://docs.typo3.org/p/yoast-seo-for-typo3/yoast_seo/6.0/en-us/Configuration/SnippetPreview/Index.html#enable-snippet-preview-on-specific-page-types).
 
 ### Added
-* A [DDEV](https://ddev.readthedocs.io/en/stable/) setup is now included in the repository to make it easy to contribute to this project and check the results in TYPO3 v8, 9 and 10. We added some information in the documentation as well. 
+* A [DDEV](https://ddev.readthedocs.io/en/stable/) setup is now included in the repository to make it easy to contribute to this project and check the results in TYPO3 v8, 9 and 10. We added some information in the documentation as well.
 * To be able to alter the URL that should be analysed, we introduced a hook after the link is generated. With this hook, you have the possibility to add your own logic to determine which URL to analyse. More information can be found in the [documentation](https://docs.typo3.org/p/yoast-seo-for-typo3/yoast_seo/6.0/en-us/).
 
 ### Changed
@@ -121,12 +149,12 @@ Besides the free version of our plugin, we also have a premium version. The free
 * Moved from Travis to GitHub actions for the CI process
 
 ### Fixed
-* Removed include of empty TypoScript file which caused errors in TypoScript Object Manager when installed in non-composer-mode. 
+* Removed include of empty TypoScript file which caused errors in TypoScript Object Manager when installed in non-composer-mode.
 * Add missing return true to executeUpdate function in CanonicalFieldUpdate.php.
 * The canonical and title fields are now rendered correctly in frontend again in TYPO3 v8
 * Removed wrong information about usage of EXT:realurl in the documentation
 * Fixed issue in output of structured data that caused warnings when more inline javascript was added to the frontend.
-* The canonical link in TYPO3 v8 is now checking the right GET parameters while building the canonical 
+* The canonical link in TYPO3 v8 is now checking the right GET parameters while building the canonical
 
 ## 6.0.1 April 22, 2020
 ### Fixed
