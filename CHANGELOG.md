@@ -8,7 +8,7 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
-## [UNRELEASED]
+## 8.0.0 October 4, 2021
 ### Breaking changes
 - Dropped CMS8 support
   - All AJAX requests are now done through the Backend AjaxRoutes
