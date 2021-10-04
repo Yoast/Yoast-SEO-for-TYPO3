@@ -3,7 +3,7 @@
 if (TYPO3_MODE === 'BE') {
     $offset = 0;
     foreach ($GLOBALS['TBE_MODULES'] as $key => $_) {
-        if ($key == 'web') {
+        if ($key === 'web') {
             $GLOBALS['TBE_MODULES'] = array_slice($GLOBALS['TBE_MODULES'], 0, ($offset + 1), true) +
                 ['yoast' => ''] +
                 array_slice($GLOBALS['TBE_MODULES'], $offset + 1, count($GLOBALS['TBE_MODULES']) - 1, true);
@@ -17,13 +17,21 @@ if (TYPO3_MODE === 'BE') {
         'name' => 'yoast'
     ];
 
+    $moduleController = \YoastSeoForTypo3\YoastSeo\Controller\ModuleController::class;
+    $overviewController = \YoastSeoForTypo3\YoastSeo\Controller\OverviewController::class;
+    if (\TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Core\Information\Typo3Version::class)
+            ->getMajorVersion() < 10) {
+        $moduleController = 'Module';
+        $overviewController = 'Overview';
+    }
+
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
         'YoastSeoForTypo3.yoast_seo',
         'yoast',
         'dashboard',
         '',
         [
-            'Module' => 'dashboard',
+            $moduleController => 'dashboard',
         ],
         [
             'access' => 'user,group',
@@ -38,7 +46,7 @@ if (TYPO3_MODE === 'BE') {
         'overview',
         '',
         [
-            'Overview' => 'list',
+            $overviewController => 'list',
         ],
         [
             'access' => 'user,group',
@@ -53,7 +61,7 @@ if (TYPO3_MODE === 'BE') {
         'premium',
         '',
         [
-            'Module' => 'premium',
+            $moduleController => 'premium',
         ],
         [
             'access' => 'user,group',
@@ -69,4 +77,7 @@ if (TYPO3_MODE === 'BE') {
     ];
     $GLOBALS['TYPO3_USER_SETTINGS']['showitem'] .= ',
             --div--;LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:usersettings.title,hideYoastInPageModule';
+
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-preProcess'][]
+        = \YoastSeoForTypo3\YoastSeo\Hooks\YoastConfigInlineJs::class . '->renderJsonConfig';
 }

@@ -1,13 +1,12 @@
 <?php
 declare(strict_types=1);
-
 namespace YoastSeoForTypo3\YoastSeo\StructuredData;
 
+use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
-use TYPO3\CMS\Frontend\Page\PageRepository;
 
 class SiteStructuredDataProvider implements StructuredDataProviderInterface
 {
@@ -63,7 +62,7 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
             ];
         }
 
-        return (array)$data;
+        return $data;
     }
 
     /**
@@ -98,7 +97,7 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
     /**
      * @param TypoScriptFrontendController|null $tsfe
      */
-    protected function setTsfe($tsfe = null)
+    protected function setTsfe(?TypoScriptFrontendController $tsfe): void
     {
         if ($tsfe instanceof TypoScriptFrontendController) {
             $this->tsfe = $tsfe;
@@ -108,21 +107,27 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
     }
 
     /**
-     * @param PageRepository|null $pageRepository
+     * @param PageRepository|\TYPO3\CMS\Frontend\Page\PageRepository|null $pageRepository
      */
-    protected function setPageRepository($pageRepository = null)
+    protected function setPageRepository($pageRepository): void
     {
-        if ($pageRepository instanceof PageRepository) {
+        if (class_exists(PageRepository::class)) {
+            if ($pageRepository instanceof PageRepository) {
+                $this->pageRepository = $pageRepository;
+            } else {
+                $this->pageRepository = GeneralUtility::makeInstance(PageRepository::class);
+            }
+        } elseif ($pageRepository instanceof \TYPO3\CMS\Frontend\Page\PageRepository) {
             $this->pageRepository = $pageRepository;
         } else {
-            $this->pageRepository = GeneralUtility::makeInstance(PageRepository::class);
+            $this->pageRepository = GeneralUtility::makeInstance(\TYPO3\CMS\Frontend\Page\PageRepository::class);
         }
     }
 
     /**
      * @param SiteFinder|null $siteFinder
      */
-    protected function setSiteFinder($siteFinder = null)
+    protected function setSiteFinder(?SiteFinder $siteFinder): void
     {
         if ($siteFinder instanceof SiteFinder) {
             $this->siteFinder = $siteFinder;
@@ -134,7 +139,7 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
     /**
      * @param array $configuration
      */
-    public function setConfiguration($configuration)
+    public function setConfiguration(array $configuration): void
     {
         $this->configuration = $configuration;
     }

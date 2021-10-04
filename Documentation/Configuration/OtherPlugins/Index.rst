@@ -27,7 +27,7 @@ SEO analysis is only done on pages. If you want more type of records to use the 
                 'exclude' => true,
                 'displayCond' => 'REC:NEW:false',
                 'config' => [
-                    'type' => 'text',
+                    'type' => 'none',
                     'renderType' => 'snippetPreview',
                     'settings' => [
                         'titleField' => 'alternative_title',
@@ -39,7 +39,7 @@ SEO analysis is only done on pages. If you want more type of records to use the 
                 'label' => $llPrefix . 'analysis',
                 'exclude' => true,
                 'config' => [
-                    'type' => 'text',
+                    'type' => 'none',
                     'renderType' => 'readabilityAnalysis'
                 ]
             ],
@@ -54,7 +54,7 @@ SEO analysis is only done on pages. If you want more type of records to use the 
                 'label' => $llPrefix . 'analysis',
                 'exclude' => true,
                 'config' => [
-                    'type' => 'input',
+                    'type' => 'none',
                     'renderType' => 'focusKeywordAnalysis',
                     'settings' => [
                         'focusKeywordField' => 'tx_yoastseo_focuskeyword',

@@ -1,34 +1,12 @@
 <?php
+declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Form\Element;
-
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
 
 use TYPO3\CMS\Backend\Form\AbstractNode;
 use TYPO3\CMS\Backend\Form\NodeFactory;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Fluid\View\StandaloneView;
 
-/**
- * Class Insights
- */
 class Insights extends AbstractNode
 {
-    /**
-     * @var StandaloneView
-     */
-    protected $templateView;
-
     /**
      * @param NodeFactory $nodeFactory
      * @param array $data
@@ -36,24 +14,14 @@ class Insights extends AbstractNode
     public function __construct(NodeFactory $nodeFactory, array $data)
     {
         parent::__construct($nodeFactory, $data);
-
-        $this->templateView = GeneralUtility::makeInstance(StandaloneView::class);
-        $this->templateView->setPartialRootPaths(
-            [GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Partials/TCA')]
-        );
-        $this->templateView->setTemplatePathAndFilename(
-            GeneralUtility::getFileAbsFileName(
-                'EXT:yoast_seo/Resources/Private/Templates/TCA/Insights.html'
-            )
-        );
     }
 
-    public function render()
+    public function render(): array
     {
         $resultArray = $this->initializeResultArray();
 
-        $this->templateView->assign('data', $this->data);
-        $resultArray['html'] = $this->templateView->render();
+        $resultArray['html'] = '<div><a href="#" data-yoast-modal-type="insights" class="btn btn-default">Get insights</a></div>';
+
         return $resultArray;
     }
 }

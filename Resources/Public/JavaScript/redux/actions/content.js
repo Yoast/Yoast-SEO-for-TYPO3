@@ -14,12 +14,6 @@ export function getContent() {
                 return response.json();
             })
             .then(data => {
-                if (!data.description) {
-                    const bodyText = document.createElement('div');
-                    bodyText.innerHTML = data.body;
-                    data.description = stripFullTags(bodyText.innerText);
-                }
-
                 dispatch({type: GET_CONTENT_SUCCESS, payload: data});
             })
             .catch(error => {

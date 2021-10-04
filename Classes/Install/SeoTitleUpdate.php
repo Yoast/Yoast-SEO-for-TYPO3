@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Install;
 
 /*
@@ -15,6 +16,7 @@ namespace YoastSeoForTypo3\YoastSeo\Install;
  */
 
 use Doctrine\DBAL\Exception\InvalidFieldNameException;
+use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Install\Updates\UpgradeWizardInterface;
@@ -60,7 +62,7 @@ class SeoTitleUpdate implements UpgradeWizardInterface
             $qb->update('pages')
                 ->set('seo_title', $qb->createNamedParameter($row['tx_yoastseo_title']), false)
                 ->where(
-                    $qb->expr()->eq('uid', $qb->createNamedParameter($row['uid'], \PDO::PARAM_INT))
+                    $qb->expr()->eq('uid', $qb->createNamedParameter($row['uid'], Connection::PARAM_INT))
                 )
                 ->execute();
         }

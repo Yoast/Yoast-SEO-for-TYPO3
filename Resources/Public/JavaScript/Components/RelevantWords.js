@@ -11,15 +11,15 @@ class RelevantWords extends React.Component {
 
     render() {
         if (this.props.relevantWords) {
-            let keywords = this.props.relevantWords.result.slice( 0, 5 ).map( word => word.getCombination() );
+            let keywords = this.props.relevantWords.result.prominentWords.slice( 0, 20 );
 
             return (
                 <ol className="yoast-keyword-suggestions__list">
                 { keywords.map( ( word ) => {
                         return (
-                            <li key={word}
-                        className="yoast-keyword-suggestions__item">
-                            { word }
+                            <li key={word.getStem()}
+                                className="yoast-keyword-suggestions__item">
+                                <strong>{ word.getStem() }</strong> ({ word.getOccurrences() })
                             </li>
                     );
                     } ) }
@@ -33,7 +33,6 @@ class RelevantWords extends React.Component {
 }
 
 function mapStateToProps (state) {
-
     return {
         ...state.content,
         ...state.analysis,

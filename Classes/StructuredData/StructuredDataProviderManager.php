@@ -71,7 +71,7 @@ class StructuredDataProviderManager implements SingletonInterface
      *
      * @return string
      */
-    protected function buildJsonLdBlob($src): string
+    protected function buildJsonLdBlob(array $src): string
     {
         $data = [];
         foreach ($src as $provider => $dataItems) {
@@ -84,7 +84,7 @@ class StructuredDataProviderManager implements SingletonInterface
             return '';
         }
 
-        return '<script type="application/ld+json">' . json_encode($data) . ';</script>';
+        return '<script type="application/ld+json">' . json_encode($data) . '</script>';
     }
 
     /**
@@ -110,7 +110,7 @@ class StructuredDataProviderManager implements SingletonInterface
                 if (!empty($data)) {
                     $structuredData[$provider] = $data;
                 }
-                break;
+                continue;
             }
             if (class_exists($configuration['provider'])
                 && is_subclass_of($configuration['provider'], StructuredDataProviderInterface::class)) {

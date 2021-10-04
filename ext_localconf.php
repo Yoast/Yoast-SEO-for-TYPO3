@@ -1,19 +1,15 @@
 <?php
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['cms/layout/db_layout.php']['drawHeaderHook'][]
     = \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::class . '->render';
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][]
-    = \YoastSeoForTypo3\YoastSeo\StructuredData\StructuredDataProviderManager::class . '->render';
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][]
-    = \YoastSeoForTypo3\YoastSeo\Frontend\AdditionalPreviewData::class . '->render';
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['usePageCache'][]
-    = \YoastSeoForTypo3\YoastSeo\Frontend\UsePageCache::class;
 
-\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScriptConstants(
-    'config.yoast_seo.fe_preview_type = '
-        . \YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader::FE_PREVIEW_TYPE . PHP_EOL .
-    'config.yoast_seo.sitemap_xml_type = '
-        . \YoastSeoForTypo3\YoastSeo\UserFunctions\XmlSitemap::DOKTYPE
-);
+if (TYPO3_MODE === 'FE') {
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][]
+        = \YoastSeoForTypo3\YoastSeo\StructuredData\StructuredDataProviderManager::class . '->render';
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][]
+        = \YoastSeoForTypo3\YoastSeo\Frontend\AdditionalPreviewData::class . '->render';
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['usePageCache'][]
+        = \YoastSeoForTypo3\YoastSeo\Frontend\UsePageCache::class;
+}
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
     'YoastSeo',
@@ -26,20 +22,6 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['usePageCa
     'setup',
     '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/setup.typoscript">'
 );
-
-if (version_compare(TYPO3_branch, '9.5', '<')) {
-    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
-        'YoastSeoCms8',
-        'setup',
-        '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/Setup/CMS8.typoscript">'
-    );
-
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][] =
-        \YoastSeoForTypo3\YoastSeo\Canonical\CanonicalGenerator::class . '->generate';
-
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][]
-        = \YoastSeoForTypo3\YoastSeo\Frontend\PageTitle::class . '->render';
-}
 
 $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514550050] = [
     'nodeName' => 'snippetPreview',
@@ -89,6 +71,18 @@ if (!\YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::isPremiumInstalled()) {
         'priority' => 40,
         'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\InternalLinkingSuggestion::class
     ];
+
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1519937113] = [
+        'nodeName' => 'insights',
+        'priority' => 40,
+        'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\Insights::class
+    ];
+
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1633024835] = [
+        'nodeName' => 'advancedRobots',
+        'priority' => 40,
+        'class' => \YoastSeoForTypo3\YoastSeo\Form\Element\AdvancedRobots::class
+    ];
 }
 
 $llFolder = 'LLL:EXT:yoast_seo/Resources/Private/Language/';
@@ -100,31 +94,58 @@ $defaultConfiguration = [
     ],
     'translations' => [
         'availableLocales' => [
+            'ar',
             'bg_BG',
+            'bs_BA',
             'ca',
             'da_DK',
+            'de_CH',
             'de_DE',
+            'el',
             'en_AU',
+            'en_CA',
             'en_GB',
+            'en_NZ',
+            'en_ZA',
+            'es_AR',
+            'es_CL',
+            'es_CR',
+            'es_EC',
             'es_ES',
             'es_MX',
             'fa_IR',
             'fi',
+            'fr_BE',
+            'fr_CA',
             'fr_FR',
+            'gl_ES',
             'he_IL',
+            'hi_IN',
             'hr',
             'id_ID',
             'it_IT',
             'ja',
+            'ko_KR',
+            'it_LT',
             'nb_NO',
+            'nl_BE',
             'nl_NL',
             'pl_PL',
+            'pl_AO',
             'pt_BR',
             'pt_PT',
+            'ro_RO',
             'ru_RU',
             'sk_SK',
+            'sq',
+            'sr_RS',
             'sv_SE',
-            'tr_TR'
+            'tr_TR',
+            'uk',
+            'vi',
+            'zh_CN',
+            'zh_HK',
+            'zh_TW'
         ],
         'languageKeyToLocaleMapping' => [
             'bg' => 'bg_BG',
@@ -145,15 +166,6 @@ $defaultConfiguration = [
             'sv' => 'sv_SE',
             'tr' => 'tr_TR'
         ]
-    ],
-    'menuActions' => [
-        ['action' => 'dashboard', 'label' => 'dashboard'],
-        ['action' => 'update', 'label' => 'update']
-    ],
-    'viewSettings' => [
-        'showAnalysisTab' => true,
-        'showSocialTab' => true,
-        'showAdvancedTab' => true
     ],
     'previewSettings' => [
         'basicAuth' => [
@@ -193,7 +205,6 @@ $GLOBALS['TYPO3_CONF_VARS']['FE']['pageOverlayFields'] .=
     ',canonical_url'
     . ',og_title'
     . ',og_description'
-    . ',tx_yoastseo_robot_instructions'
     . ',seo_title'
     . ',twitter_title'
     . ',twitter_description';
@@ -205,17 +216,11 @@ $iconRegistry->registerIcon(
     ['source' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-container.svg']
 );
 
-if (version_compare(TYPO3_branch, '9.5', '<')) {
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['seoTitleUpdate']
-        = \YoastSeoForTypo3\YoastSeo\Install\CMS8\SeoTitleUpdate::class;
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['canonicalFieldUpdate']
-        = \YoastSeoForTypo3\YoastSeo\Install\CMS8\CanonicalFieldUpdate::class;
-} else {
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['seoTitleUpdate']
-        = \YoastSeoForTypo3\YoastSeo\Install\SeoTitleUpdate::class;
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['canonicalFieldUpdate']
-        = \YoastSeoForTypo3\YoastSeo\Install\CanonicalFieldUpdate::class;
-}
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['seoTitleUpdate']
+    = \YoastSeoForTypo3\YoastSeo\Install\SeoTitleUpdate::class;
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['canonicalFieldUpdate']
+    = \YoastSeoForTypo3\YoastSeo\Install\CanonicalFieldUpdate::class;
+
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScriptSetup(trim('
     config.structuredData.providers {
         breadcrumb {

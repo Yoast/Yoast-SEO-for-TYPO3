@@ -50,9 +50,9 @@ When the script is finished, you can go to https://yoast-seo.ddev.site and check
 #### Instances
 The following instances will be up and running for you after you have installed the DDEV setup.
 
-- https://v8.yoast-seo.ddev.site
 - https://v9.yoast-seo.ddev.site
 - https://v10.yoast-seo.ddev.site 
+- https://v11.yoast-seo.ddev.site 
 
 #### Login
 You will be able to login to the backend of the instances above, by using the following credentials:
@@ -68,7 +68,7 @@ ddev rm -O -R
 ```
 and after that:
 ```bash
-docker volume rm yoast-seo-v8-data yoast-seo-v9-data yoast-seo-v10-data
+docker volume rm yoast-seo-v9-data yoast-seo-v10-data yoast-seo-v11-data
 ```
 
 If you change the code, you can directly see the changes in all the installations of your DDEV setup.

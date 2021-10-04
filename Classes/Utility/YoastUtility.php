@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Utility;
 
 /*
@@ -39,7 +40,7 @@ class YoastUtility
      * @param array $configuration
      * @param bool $returnInString
      *
-     * @return array
+     * @return array|string
      */
     public static function getAllowedDoktypes($configuration = null, $returnInString = false)
     {
@@ -48,9 +49,8 @@ class YoastUtility
             return (int)$doktype;
         }, array_values((array)$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes']));
 
-        if (is_array($configuration) &&
-            array_key_exists('allowedDoktypes', $configuration) &&
-            is_array($configuration['allowedDoktypes'])
+        if (isset($configuration['allowedDoktypes'])
+            && is_array($configuration['allowedDoktypes'])
         ) {
             foreach ($configuration['allowedDoktypes'] as $doktype) {
                 if (!in_array($doktype, $allowedDoktypes)) {
@@ -69,13 +69,13 @@ class YoastUtility
     }
 
     /**
-     * @param $pageId
+     * @param int $pageId
      * @param array $pageRecord
      * @param array $pageTs
      *
      * @return bool
      */
-    public static function snippetPreviewEnabled($pageId, array $pageRecord, $pageTs = null)
+    public static function snippetPreviewEnabled(int $pageId, array $pageRecord, $pageTs = null): bool
     {
         if (!$GLOBALS['BE_USER'] instanceof BackendUserAuthentication ||
             !$GLOBALS['BE_USER']->check('non_exclude_fields', 'pages:tx_yoastseo_snippetpreview')) {
@@ -90,13 +90,8 @@ class YoastUtility
             $pageTs = BackendUtility::getPagesTSconfig($pageId);
         }
 
-        if (is_array($pageTs) &&
-            array_key_exists('mod.', $pageTs) &&
-            is_array($pageTs['mod.']) &&
-            array_key_exists('web_SeoPlugin.', $pageTs['mod.']) &&
-            is_array($pageTs['mod.']['web_SeoPlugin.']) &&
-            array_key_exists('disableSnippetPreview', $pageTs['mod.']['web_SeoPlugin.']) &&
-            (int)$pageTs['mod.']['web_SeoPlugin.']['disableSnippetPreview'] === 1
+        if (isset($pageTs['mod.']['web_SeoPlugin.']['disableSnippetPreview'])
+            && (int)$pageTs['mod.']['web_SeoPlugin.']['disableSnippetPreview'] === 1
         ) {
             return false;
         }
@@ -108,9 +103,9 @@ class YoastUtility
      * @param int $uid
      * @param string $table
      *
-     * @return string
+     * @return string|null
      */
-    public static function getFocusKeywordOfPage($uid, $table = 'pages')
+    public static function getFocusKeywordOfPage(int $uid, $table = 'pages'): ?string
     {
         $focusKeyword = '';
         if (empty((int)$uid)) {
@@ -145,26 +140,24 @@ class YoastUtility
      * @param int $parentId
      * @return array
      */
-    public static function getRelatedKeyphrases($parentTable, $parentId): array
+    public static function getRelatedKeyphrases(string $parentTable, int $parentId): array
     {
         $config = [];
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tx_yoast_seo_premium_focus_keywords');
-        if ($queryBuilder) {
-            $relatedKeyphrases = $queryBuilder->select('*')
-                ->from('tx_yoast_seo_premium_focus_keywords')
-                ->where(
-                    $queryBuilder->expr()->eq('parenttable', $queryBuilder->createNamedParameter($parentTable)),
-                    $queryBuilder->expr()->eq('parentid', (int)$parentId)
-                )
-                ->execute()
-                ->fetchAll();
+        $relatedKeyphrases = $queryBuilder->select('*')
+            ->from('tx_yoast_seo_premium_focus_keywords')
+            ->where(
+                $queryBuilder->expr()->eq('parenttable', $queryBuilder->createNamedParameter($parentTable)),
+                $queryBuilder->expr()->eq('parentid', $parentId)
+            )
+            ->execute()
+            ->fetchAll();
 
-            foreach ($relatedKeyphrases as $relatedKeyphrase) {
-                $config['rk' . (int)$relatedKeyphrase['uid']] = [
-                    'keyword' => (string)$relatedKeyphrase['keyword'],
-                    'synonyms' => (string)$relatedKeyphrase['synonyms']
-                ];
-            }
+        foreach ($relatedKeyphrases as $relatedKeyphrase) {
+            $config['rk' . (int)$relatedKeyphrase['uid']] = [
+                'keyword' => (string)$relatedKeyphrase['keyword'],
+                'synonyms' => (string)$relatedKeyphrase['synonyms']
+            ];
         }
 
         return $config;
@@ -173,7 +166,7 @@ class YoastUtility
     /**
      * @return bool
      */
-    public static function isPremiumInstalled()
+    public static function isPremiumInstalled(): bool
     {
         return (bool)ExtensionManagementUtility::isLoaded('yoast_seo_premium');
     }
@@ -187,20 +180,16 @@ class YoastUtility
      * @param array|null $configuration
      * @return bool
      */
-    public static function inProductionMode($configuration = null)
+    public static function inProductionMode($configuration = null): bool
     {
         if ($configuration === null) {
             $configuration = self::getTypoScriptConfiguration();
         }
 
-        if ((int)$_ENV['YOAST_DEVELOPMENT_MODE'] === 1 || (int)$configuration['developmentMode'] === 1) {
-            return false;
-        }
-
-        return true;
+        return !((int)$_ENV['YOAST_DEVELOPMENT_MODE'] === 1 || (int)$configuration['developmentMode'] === 1);
     }
 
-    protected static function getTypoScriptConfiguration()
+    protected static function getTypoScriptConfiguration(): array
     {
         /** @var ObjectManager $objectManager */
         $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
@@ -218,7 +207,7 @@ class YoastUtility
      * @return string
      * @throws Exception
      */
-    public static function getYoastLink($utm_term = 'Go premium', $utm_content = '', $utm_source = 'yoast-seo-for-typo3')
+    public static function getYoastLink($utm_term = 'Go premium', $utm_content = '', $utm_source = 'yoast-seo-for-typo3'): string
     {
         preg_match('/^(\d+\.\d+\.\d+).*/', phpversion(), $php_version);
         $parameters = [

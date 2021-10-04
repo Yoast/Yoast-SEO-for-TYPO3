@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Utility;
 
 use TYPO3\CMS\Core\SingletonInterface;
@@ -9,9 +10,9 @@ class JsonConfigUtility implements SingletonInterface
     protected $config = [];
 
     /**
-     * @param $config
+     * @param array $config
      */
-    public function addConfig($config)
+    public function addConfig(array $config)
     {
         ArrayUtility::mergeRecursiveWithOverrule($this->config, $config, true, false);
     }

@@ -46,7 +46,6 @@ return [
         'php_cs',
         'phplint.yml',
         'phpstan.neon',
-        'phpstan.cms8.neon',
         'phpstan.cms9.neon',
         'phpstan.cms10.neon',
         'phpunit.xml',

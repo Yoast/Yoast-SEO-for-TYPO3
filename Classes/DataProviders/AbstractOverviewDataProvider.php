@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 
 /*
@@ -30,7 +31,7 @@ abstract class AbstractOverviewDataProvider implements OverviewDataProviderInter
      *
      * @return array
      */
-    public function process($params)
+    public function process(array $params): array
     {
         $this->callerParams = $params;
 
@@ -42,7 +43,7 @@ abstract class AbstractOverviewDataProvider implements OverviewDataProviderInter
      *
      * @return int
      */
-    public function numberOfItems($params)
+    public function numberOfItems(array $params): int
     {
         $this->callerParams = $params;
 

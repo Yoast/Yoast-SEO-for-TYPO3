@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Install;
 
 use Doctrine\DBAL\Exception\InvalidFieldNameException;
@@ -40,10 +41,10 @@ class CanonicalFieldUpdate implements UpgradeWizardInterface
     /**
      * Check for migration
      *
-     * @param $tableName
+     * @param string $tableName
      * @return bool
      */
-    protected function checkForMigration($tableName): bool
+    protected function checkForMigration(string $tableName): bool
     {
         $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($tableName);
         $qb->getRestrictions()->removeAll();
@@ -109,12 +110,8 @@ class CanonicalFieldUpdate implements UpgradeWizardInterface
 
     public function updateNecessary(): bool
     {
-        if ($this->checkForMigration('pages') === false
-            && $this->checkForMigration('pages_language_overlay') === false) {
-            return false;
-        }
-
-        return true;
+        return !($this->checkForMigration('pages') === false
+            && $this->checkForMigration('pages_language_overlay') === false);
     }
 
     public function getPrerequisites(): array

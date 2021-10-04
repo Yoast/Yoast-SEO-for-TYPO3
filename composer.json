@@ -23,18 +23,16 @@
   ],
   "homepage": "https://yoast.com",
   "require": {
-    "typo3/cms-core": "^8.7|^9.5|^10.3",
-    "typo3/cms-backend": "^8.7|^9.5|^10.3",
-    "typo3/cms-extbase": "^8.7|^9.5|^10.3",
-    "typo3/cms-fluid": "^8.7|^9.5|^10.3",
-    "typo3/cms-frontend": "^8.7|^9.5|^10.3",
-    "typo3/cms-install": "^8.7|^9.5|^10.3",
+    "typo3/cms-core": "^9.5|^10.4|^11.0",
+    "typo3/cms-backend": "^9.5|^10.4|^11.0",
+    "typo3/cms-extbase": "^9.5|^10.4|^11.0",
+    "typo3/cms-fluid": "^9.5|^10.4|^11.0",
+    "typo3/cms-frontend": "^9.5|^10.4|^11.0",
+    "typo3/cms-install": "^9.5|^10.4|^11.0",
+    "typo3/cms-seo": "^9.5|^10.4|^11.0",
     "ext-curl": "*",
     "ext-json": "*",
-    "php": "^7.0"
-  },
-  "suggest": {
-    "typo3/cms-seo": "^9.5|^10.3"
+    "php": "^7.2"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^2.0",
@@ -72,10 +70,10 @@
       "phplint"
     ],
     "cgl": [
-      "php-cs-fixer fix -v --dry-run --using-cache false --diff --diff-format=udiff"
+      "php-cs-fixer fix -v --dry-run --using-cache no --diff"
     ],
     "cgl-fix": [
-      "php-cs-fixer fix -v --using-cache false"
+      "php-cs-fixer fix -v --using-cache no"
     ],
     "test:php:phpstan": [
       "phpstan analyse"

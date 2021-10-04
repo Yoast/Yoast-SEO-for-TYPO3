@@ -6,7 +6,7 @@ rm -rf /var/www/html/$VERSION/*
 composer init -n -d /var/www/html/$VERSION
 composer config extra.typo3/cms.web-dir public -d /var/www/html/$VERSION
 composer config repositories.$EXTENSION_KEY path ../../$EXTENSION_KEY -d /var/www/html/$VERSION
-composer req t3/cms:'^10.4' typo3/cms-seo:'^10.4' $PACKAGE_NAME:'*@dev' --no-progress --no-suggest -n -d /var/www/html/$VERSION
+composer req t3/cms:'^10.4' $PACKAGE_NAME:'*@dev' --no-progress --no-suggest -n -d /var/www/html/$VERSION
 
 
 cd /var/www/html/$VERSION

@@ -1,19 +1,5 @@
 module.tx_yoastseo {
     settings {
         itemsPerPage = 20
-
-        og < plugin.tx_yoastseo.settings.og
-        twitter < plugin.tx_yoastseo.settings.twitter
-
-        titleFieldName = {$plugin.tx_yoastseo.titleField}
-        descriptionFieldName = {$plugin.tx_yoastseo.descriptionField}
-        canonicalTagFieldName = {$plugin.tx_yoastseo.canonicalTagField}
-    }
-
-    view {
-        widget.TYPO3\CMS\Fluid\ViewHelpers\Widget\PaginateViewHelper.templateRootPath = EXT:yoast_seo/Resources/Private/Templates/
-        widget.TYPO3\CMS\Fluid\ViewHelpers\Widget\PaginateViewHelper.templateRootPaths {
-            10 = EXT:yoast_seo/Resources/Private/Templates/
-        }
     }
 }

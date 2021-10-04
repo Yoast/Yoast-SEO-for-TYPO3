@@ -88,7 +88,7 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
     /**
      * @param TypoScriptFrontendController|null $tsfe
      */
-    protected function setTsfe($tsfe = null)
+    protected function setTsfe(?TypoScriptFrontendController $tsfe): void
     {
         if ($tsfe instanceof TypoScriptFrontendController) {
             $this->tsfe = $tsfe;
@@ -98,11 +98,11 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
     }
 
     /**
-     * @param $pageId
+     * @param int $pageId
      * @return string
      * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
      */
-    protected function getUrlForPage($pageId): string
+    protected function getUrlForPage(int $pageId): string
     {
         if (class_exists(SiteFinder::class)) {
             try {
@@ -119,9 +119,9 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
     }
 
     /**
-     * @param $siteFinder
+     * @param SiteFinder|null $siteFinder
      */
-    protected function setSiteFinder($siteFinder)
+    protected function setSiteFinder(?SiteFinder $siteFinder): void
     {
         if ($siteFinder instanceof SiteFinder) {
             $this->siteFinder = $siteFinder;
@@ -144,7 +144,7 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
     /**
      * @param array $configuration
      */
-    public function setConfiguration($configuration)
+    public function setConfiguration(array $configuration): void
     {
         $this->configuration = $configuration;
     }

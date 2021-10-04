@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\ViewHelpers;
 
 /*
@@ -21,7 +22,7 @@ use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractViewHelper;
 
 class RecordLinksViewHelper extends AbstractViewHelper
 {
-    public function initializeArguments()
+    public function initializeArguments(): void
     {
         $this->registerArgument('uid', 'int', 'uid of record to be edited', true);
         $this->registerArgument('table', 'string', 'target database table', true);
@@ -29,16 +30,21 @@ class RecordLinksViewHelper extends AbstractViewHelper
         $this->registerArgument('module', 'string', '', true, '');
     }
 
+    /**
+     * @param array                                                      $arguments
+     * @param \Closure                                                   $renderChildrenClosure
+     * @param \TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface $renderingContext
+     * @return string
+     * @throws \TYPO3\CMS\Backend\Routing\Exception\RouteNotFoundException
+     */
     public static function renderStatic(array $arguments, \Closure $renderChildrenClosure, RenderingContextInterface $renderingContext): string
     {
         $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
 
-        if (version_compare(TYPO3_branch, '8.7', '<=')) {
-            $returnUri = $uriBuilder->buildUriFromModule($arguments['module'], GeneralUtility::_GET());
-        } else {
-            $returnUri = $uriBuilder->buildUriFromRoute($arguments['module'], GeneralUtility::_GET());
-        }
+        $returnUri = $uriBuilder->buildUriFromRoute($arguments['module'], GeneralUtility::_GET());
 
+        $module = '';
+        $urlParameters = [];
         switch ($arguments['command']) {
             case 'edit':
                 $urlParameters = [
@@ -60,20 +66,6 @@ class RecordLinksViewHelper extends AbstractViewHelper
                 break;
         }
 
-        return $uriBuilder->buildUriFromRoute($module, $urlParameters);
-    }
-
-    /**
-     * Render the view helper
-     *
-     * @return string
-     */
-    public function render()
-    {
-        return self::renderStatic(
-            $this->arguments,
-            $this->buildRenderChildrenClosure(),
-            $this->renderingContext
-        );
+        return (string)$uriBuilder->buildUriFromRoute($module, $urlParameters);
     }
 }

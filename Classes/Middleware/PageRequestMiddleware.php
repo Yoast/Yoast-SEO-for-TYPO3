@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Middleware;
 
 use Psr\Http\Message\ResponseInterface;
