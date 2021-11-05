@@ -18,6 +18,9 @@ jobs:
           - typo3: '11'
             php: 'php7.4'
             experimental: false
+          - typo3: '11'
+            php: 'php8.0'
+            experimental: false
     steps:
       - uses: actions/checkout@v1
       - name: Set up PHP Version

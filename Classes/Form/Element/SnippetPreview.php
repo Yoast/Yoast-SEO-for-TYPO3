@@ -130,7 +130,7 @@ class SnippetPreview extends AbstractNode
             $this->titleField = $this->data['parameterArray']['fieldConf']['config']['settings']['titleField'];
         }
 
-        if (array_key_exists('titleField', (array)$this->data['parameterArray']['fieldConf']['config']['settings']) &&
+        if (array_key_exists('pageTitleField', (array)$this->data['parameterArray']['fieldConf']['config']['settings']) &&
             $this->data['parameterArray']['fieldConf']['config']['settings']['pageTitleField']
         ) {
             $this->pageTitleField = $this->data['parameterArray']['fieldConf']['config']['settings']['pageTitleField'];
@@ -143,10 +143,12 @@ class SnippetPreview extends AbstractNode
                 $this->data['parameterArray']['fieldConf']['config']['settings']['descriptionField'];
         }
 
-        if (array_key_exists('0', (array)$this->data['databaseRow']['sys_language_uid']) &&
-            $this->data['databaseRow']['sys_language_uid'][0]
-        ) {
-            $this->languageId = (int)$this->data['databaseRow']['sys_language_uid'][0];
+        if (isset($this->data['databaseRow']['sys_language_uid'])) {
+            if (is_array($this->data['databaseRow']['sys_language_uid']) && count($this->data['databaseRow']['sys_language_uid']) > 0) {
+                $this->languageId = current($this->data['databaseRow']['sys_language_uid']);
+            } else {
+                $this->languageId = (int)$this->data['databaseRow']['sys_language_uid'];
+            }
         }
 
         $this->table = $this->data['tableName'];

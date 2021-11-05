@@ -82,7 +82,7 @@ class YoastUtility
             return false;
         }
 
-        if ((bool)$GLOBALS['BE_USER']->uc['hideYoastInPageModule']) {
+        if ((bool)($GLOBALS['BE_USER']->uc['hideYoastInPageModule'] ?? false)) {
             return false;
         }
 
@@ -123,12 +123,10 @@ class YoastUtility
             'uid' => $uid
         ];
 
-        if ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['get_focus_keyword']) {
-            foreach ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['get_focus_keyword'] as $_funcRef) {
-                if ($_funcRef) {
-                    $tmp = new \stdClass();
-                    GeneralUtility::callUserFunction($_funcRef, $params, $tmp);
-                }
+        foreach ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['get_focus_keyword'] ?? [] as $_funcRef) {
+            if ($_funcRef) {
+                $tmp = new \stdClass();
+                GeneralUtility::callUserFunction($_funcRef, $params, $tmp);
             }
         }
 
@@ -186,7 +184,7 @@ class YoastUtility
             $configuration = self::getTypoScriptConfiguration();
         }
 
-        return !((int)$_ENV['YOAST_DEVELOPMENT_MODE'] === 1 || (int)$configuration['developmentMode'] === 1);
+        return !((int)($_ENV['YOAST_DEVELOPMENT_MODE'] ?? 0) === 1 || (int)($configuration['developmentMode'] ?? 0) === 1);
     }
 
     protected static function getTypoScriptConfiguration(): array

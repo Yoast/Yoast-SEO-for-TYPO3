@@ -3,6 +3,7 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
 use TYPO3\CMS\Core\Exception;
+use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
@@ -68,23 +69,25 @@ class PreviewService
     {
         $backupSettings = $GLOBALS['TYPO3_CONF_VARS']['HTTP'];
         $this->setHttpOptions();
-        $report = [];
-        $content = GeneralUtility::getUrl(
-            $uriToCheck,
-            1,
-            [
-                'X-Yoast-Page-Request' => GeneralUtility::hmac(
-                    $uriToCheck
-                )
-            ],
-            $report
-        );
+
+        $response = GeneralUtility::makeInstance(RequestFactory::class)
+            ->request(
+                $uriToCheck,
+                'GET',
+                [
+                    'headers' => [
+                        'X-Yoast-Page-Request' => GeneralUtility::hmac(
+                            $uriToCheck
+                        )
+                    ]
+                ]
+            );
 
         $GLOBALS['TYPO3_CONF_VARS']['HTTP'] = $backupSettings;
-        if ((int)$report['error'] === 0 && $content !== false) {
-            return $content;
+        if ($response->getStatusCode() === 200) {
+            return $response->getBody()->getContents();
         }
-        throw new Exception((string)$report['error']);
+        throw new Exception($response->getStatusCode());
     }
 
     /**
@@ -131,11 +134,11 @@ class PreviewService
         }
 
         if ($localeFound) {
-            list($locale) = explode('-', trim($matchesLocale[1]));
+            [$locale] = explode('-', trim($matchesLocale[1]));
         }
         $urlParts = parse_url(preg_replace('/\/$/', '', $uriToCheck));
         $baseUrl = $urlParts['scheme'] . '://' . $urlParts['host'];
-        $url = $baseUrl . $urlParts['path'];
+        $url = $baseUrl . ($urlParts['path'] ?? '');
 
         $faviconSrc = $baseUrl . '/favicon.ico';
         $favIconFound = preg_match('/<link rel=\"shortcut icon\" href=\"([^"]*)\"/i', $content, $matchesFavIcon);

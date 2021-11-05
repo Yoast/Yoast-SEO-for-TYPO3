@@ -68,17 +68,15 @@ class UrlService implements SingletonInterface
                 (string)$this->generateUri($site, $pageId, $languageId, $additionalGetVars)
             );
 
-            if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][self::class]['urlToCheck'])) {
-                foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][self::class]['urlToCheck'] as $_funcRef) {
-                    $_params = [
-                        'urlToCheck' => $uriToCheck,
-                        'site' => $site,
-                        'finalPageIdToShow' => $pageId,
-                        'languageId' => $languageId
-                    ];
+            foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][self::class]['urlToCheck'] ?? [] as $_funcRef) {
+                $_params = [
+                    'urlToCheck' => $uriToCheck,
+                    'site' => $site,
+                    'finalPageIdToShow' => $pageId,
+                    'languageId' => $languageId
+                ];
 
-                    $uriToCheck = GeneralUtility::callUserFunction($_funcRef, $_params, $this);
-                }
+                $uriToCheck = GeneralUtility::callUserFunction($_funcRef, $_params, $this);
             }
             return $uriToCheck;
         }
