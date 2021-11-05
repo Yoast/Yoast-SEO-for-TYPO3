@@ -358,7 +358,7 @@ class SnippetPreview extends AbstractNode
     protected function getPreviewPageId(int $currentPageId, array $previewConfiguration): int
     {
         // find the right preview page id
-        $previewPageId = (int)$previewConfiguration['previewPageId'] ?? 0;
+        $previewPageId = (int)($previewConfiguration['previewPageId'] ?? 0);
 
         // if no preview page was configured
         if (!$previewPageId) {
