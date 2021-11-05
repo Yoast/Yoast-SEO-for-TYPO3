@@ -13,14 +13,8 @@ if (TYPO3_MODE === 'FE') {
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
     'YoastSeo',
-    'constants',
-    '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/constants.typoscript">'
-);
-
-\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
-    'YoastSeo',
     'setup',
-    '<INCLUDE_TYPOSCRIPT: source="FILE: EXT:yoast_seo/Configuration/TypoScript/setup.typoscript">'
+    "@import 'EXT:yoast_seo/Configuration/TypoScript/setup.typoscript'"
 );
 
 $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][1514550050] = [
