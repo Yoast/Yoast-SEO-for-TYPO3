@@ -20,7 +20,7 @@ class PageLayoutHeader extends AbstractPageLayoutHeader
         $pageId = $this->getPageId();
         $currentPage = $this->getCurrentPage($pageId, $moduleData, $parentObj);
 
-        if ($this->shouldShowPreview($pageId, $currentPage)) {
+        if (is_array($currentPage) && $this->shouldShowPreview($pageId, $currentPage)) {
             $this->pageHeaderService->setSnippetPreviewEnabled(true);
             $this->pageHeaderService->setModuleData($moduleData);
             $this->pageHeaderService->setPageId($pageId);
