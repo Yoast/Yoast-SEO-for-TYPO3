@@ -189,19 +189,10 @@ $defaultConfiguration = [
 
 \TYPO3\CMS\Core\Utility\ArrayUtility::mergeRecursiveWithOverrule(
     $defaultConfiguration,
-    (array)$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']
+    (array)($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] ?? [])
 );
 $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'] = $defaultConfiguration;
 unset($defaultConfiguration);
-
-// allow social meta fields to be overlaid
-$GLOBALS['TYPO3_CONF_VARS']['FE']['pageOverlayFields'] .=
-    ',canonical_url'
-    . ',og_title'
-    . ',og_description'
-    . ',seo_title'
-    . ',twitter_title'
-    . ',twitter_description';
 
 $iconRegistry = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Core\Imaging\IconRegistry::class);
 $iconRegistry->registerIcon(
