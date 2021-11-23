@@ -8,10 +8,10 @@
 
 .. _configuration:
 
-Configuration
-=============
+Configuration guide
+===================
 
-There is no need for configuration although it is recommended to remove all other SEO related plugins creating metatags in frontend.
+Yoast SEO works out of the box and does not require initial configuration.
 
 However, a few things can still be configured using an extension that overwrites the `EXTCONF` of `yoast_seo` or by TypoScript.
 
@@ -20,10 +20,7 @@ However, a few things can still be configured using an extension that overwrites
 	:titlesonly:
 
     	Permissions/Index
-    	Rendering/Index
     	SnippetPreview/Index
-    	Social/Index
-    	TCA/Index
-    	Sitemap/Index
+        StructuredData/Index
     	OtherPlugins/Index
     	Hooks/Index

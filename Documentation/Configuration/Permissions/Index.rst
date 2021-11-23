@@ -13,6 +13,8 @@ Permissions
 
 Access rights
 -------------
-Since version 2 of Yoast SEO for TYPO3, you can set permissions by setting the permissions to fields and backend modules
-in the backend group permissions. All fields are exclude fields and all modules can be turned on or off separately.
-You don't need specific configuration anymore.
+Through the "Access lists" of backend users and groups it's possible to configure access for:
+
+- All the Yoast SEO fields within pages
+- The backend modules
+- The Dashboard widgets

@@ -13,8 +13,8 @@ Other plugins
 
 How to integrate in other plugins
 ---------------------------------
-From version 2.0 of Yoast SEO for TYPO3, the snippet preview and content- and SEO-analysis are TCA fields. By default the
-SEO analysis is only done on pages. If you want more type of records to use the SEO functions from Yoast SEO you have to add some fields to the TCA.
+By default the SEO analysis is only done on pages.
+If you want more type of records to use the SEO functions from Yoast SEO you have to add some fields to the TCA.
 
 .. code-block:: php
 
@@ -76,7 +76,13 @@ readabilityAnalysis in your record. This field also doesn't need a column in the
 
 To have your content checked for SEO, you have to set a focus keyword, so we need to add that field as well. This can
 be a simple text field. This is the only field that needs a column in the database. Make sure you add this field to
-the database table for your records.
+the database table for your records. For the news table this would be the following within the :file:`ext_tables.sql` of your extension:
+
+.. code-block:: sql
+
+    CREATE TABLE tx_news_domain_model_news (
+        tx_yoastseo_focuskeyword varchar(100) DEFAULT '' NOT NULL,
+    );
 
 To show the focus keyword analysis, we need to add a field of renderType focusKeywordAnalysis. In the settings section
 you have to define the field you have created with the focus keyword. This field also doesn't need a column in the database.
@@ -93,15 +99,15 @@ An example configuration of the preview links for EXT:news records is:
 
     TCEMAIN.preview {
         tx_news_domain_model_news {
-                previewPageId = <YOUR_DETAIL_PAGE_ID_HERE>
-                useCacheHash = 1
-                useDefaultLanguageRecord = 0
-                fieldToParameterMap {
-                        uid = tx_news_pi1[news_preview]
-                }
-                additionalGetParameters {
-                        tx_news_pi1.controller = News
-                        tx_news_pi1.action = detail
-                }
+            previewPageId = <YOUR_DETAIL_PAGE_ID_HERE>
+            useCacheHash = 1
+            useDefaultLanguageRecord = 0
+            fieldToParameterMap {
+                    uid = tx_news_pi1[news_preview]
+            }
+            additionalGetParameters {
+                    tx_news_pi1.controller = News
+                    tx_news_pi1.action = detail
+            }
         }
     }
