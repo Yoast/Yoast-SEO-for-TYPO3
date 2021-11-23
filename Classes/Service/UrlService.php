@@ -133,6 +133,7 @@ class UrlService implements SingletonInterface
     public function generateUri(Site $site, int $pageId, int $languageId, $additionalGetVars = ''): UriInterface
     {
         $additionalQueryParams = [];
+        $additionalGetVars = rawurldecode($additionalGetVars);
         parse_str($additionalGetVars, $additionalQueryParams);
         $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
         return $site->getRouter()->generateUri($pageId, $additionalQueryParams);
