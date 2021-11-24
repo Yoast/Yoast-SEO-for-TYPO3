@@ -8,6 +8,20 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## 8.1.0 November 24, 2021
+### Added
+- PHP8 Support (for CMS11)
+- Fully updated the documentation
+
+### Fixed
+- `getPreviewPageId` now always returns an integer (used for custom records analysis)
+- Removed old include of `constants.typoscript`
+- Fatal error from `PageLayoutHeader` when you select "All Languages" in CMS11 is now gone
+- Composer `branch-alias` is updated
+- `.gitattributes` is updated to exclude more files/directories
+- Added `min-height` to the preview container to prevent (most of the) layout shifting while preview is loading
+- `additionalGetVars` are now url-decoded before generating the preview uri (used for custom records analysis)
+
 ## 8.0.0 October 4, 2021
 ### Breaking changes
 - Dropped CMS8 support
