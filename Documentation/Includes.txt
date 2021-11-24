@@ -11,11 +11,51 @@
 .. DEFINE SOME TEXT ROLES
 .. --------------------------------------------------
 
+.. role::   aspect (emphasis)
 .. role::   typoscript(code)
-
+.. role::   json(code)
+.. role::   php(code)
 .. role::   ts(typoscript)
    :class:  typoscript
 
-.. role::   php(code)
+.. default-role:: code
 
 .. highlight:: php
+
+.. |img-snippetpreview-page|        image:: /Images/snippetpreview-page.png
+.. :name: Snippetpreview within the Page module
+
+.. |img-snippetpreview-properties|  image:: /Images/snippetpreview-properties.png
+.. :name: Snippetpreview within the page properties
+
+.. |img-snippetpreview-hide-page|   image:: /Images/snippetpreview-hide-page.png
+.. :name: Hide the snippetpreview for a specific page
+
+.. |img-snippetpreview-hide-global| image:: /Images/snippetpreview-hide-global.png
+.. :name: Hide the snippetpreview globally
+
+
+.. |img-analysis-page|              image:: /Images/analysis-page.png
+.. :name: Analysis status on top of the page
+
+.. |img-analysis-readability|       image:: /Images/analysis-readability.png
+.. :name: Example of the readability analysis
+
+.. |img-analysis-seo|              image:: /Images/analysis-seo.png
+.. :name: Example of the SEO analysis
+
+
+.. |img-insights|                   image:: /Images/insights.png
+.. :name: Example of Insights
+
+
+.. |img-focus-related|              image:: /Images/focus-related.png
+.. :name: Related keyphrases
+
+
+.. |img-linking-suggestions|        image:: /Images/linking-suggestions.png
+.. :name: Internal linking suggestions
+
+
+.. |img-robots|                     image:: /Images/robots.png
+.. :name: Advanced robot instructions

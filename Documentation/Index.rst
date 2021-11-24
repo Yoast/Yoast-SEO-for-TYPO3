@@ -63,7 +63,6 @@ Table of Contents
     :titlesonly:
 
     Introduction/Index
-    User/Index
     Installation/Index
     Configuration/Index
-    OtherPlugins/Index
+    Editor/Index

@@ -8,8 +8,8 @@
 
 .. _installation:
 
-Installation
-============
+Installation guide
+==================
 
 Install the extension using your preferred method, TypoScript include is handled automatically.
 
@@ -19,4 +19,6 @@ Head over to your CLI and run the following command
 
 	composer require yoast-seo-for-typo3/yoast_seo
 
-After installing it's necessary to flush the system caches and possibly the "Compare Database" section of the install tool.
+Not using composer? Download the zip file from the TER and upload it through the Extension Manager.
+
+After installing it's necessary to flush the system caches and run the Database Analyzer within the Install Tool.

@@ -41,10 +41,7 @@ like the example below to your :file:`ext_localconf.php` of your own extension.
 
 .. code-block::  php
 
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['YoastSeoForTypo3\YoastSeo\Service\UrlService']['urlToCheck'][] = \Vendor\Package\Hooks\YoastUrlToCheckHook::class . '->alterUrl';
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][\YoastSeoForTypo3\YoastSeo\Service\UrlService::class]['urlToCheck'][]
+        = \Vendor\Package\Hooks\YoastUrlToCheckHook::class . '->alterUrl';
 
 To get this working, you need to clear the TYPO3 system cache. After that, you should be able to see it directly.
-
-.. warning::
-
-   This hook is only available in TYPO3 CMS v9 and newer and is not (and won't be) available in TYPO3 CMS v8.
