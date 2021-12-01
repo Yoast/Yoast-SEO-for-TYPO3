@@ -41,3 +41,5 @@ jobs:
         run: composer cgl
       - name: PHPStan
         run: php -d memory_limit=-1 vendor/bin/phpstan analyse -c phpstan.cms${{ matrix.typo3 }}.neon
+      - name: Unit tests
+        run: vendor/bin/phpunit -c vendor/nimut/testing-framework/res/Configuration/UnitTests.xml Tests/Unit

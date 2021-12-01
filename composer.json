@@ -41,7 +41,8 @@
     "phpstan/extension-installer": "^1.0",
     "slam/phpstan-extensions": "^5.0",
     "typo3/tailor": "^1.1",
-    "saschaegerer/phpstan-typo3": "^0.13"
+    "saschaegerer/phpstan-typo3": "^0.13",
+    "nimut/testing-framework": "^6.0"
   },
   "replace": {
     "typo3-ter/yoast-seo": "self.version"
@@ -49,6 +50,11 @@
   "autoload": {
     "psr-4": {
       "YoastSeoForTypo3\\YoastSeo\\": "Classes/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "YoastSeoForTypo3\\YoastSeo\\Tests\\": "Tests"
     }
   },
   "extra": {

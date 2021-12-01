@@ -23,7 +23,7 @@ class PageHeaderService implements SingletonInterface
 
     public function setSnippetPreviewEnabled(bool $snippetPreviewEnabled): void
     {
-        $this->snippetPreviewEnabled = true;
+        $this->snippetPreviewEnabled = $snippetPreviewEnabled;
     }
 
     public function isSnippetPreviewEnabled(): bool
