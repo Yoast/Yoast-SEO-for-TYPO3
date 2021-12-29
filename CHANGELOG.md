@@ -8,6 +8,13 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## UNRELEASED
+### Changed
+- Replaced javascript React classes to functional components
+
+### Fixed
+- Adjusted analysis calls when there is more than 1 related keyphrase due to bug in "yoastseo" package
+
 ## 8.1.0 November 24, 2021
 ### Added
 - PHP8 Support (for CMS11)
