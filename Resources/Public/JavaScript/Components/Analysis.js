@@ -3,18 +3,22 @@ import {connect} from 'react-redux';
 import LoadingIndicator from './LoadingIndicator';
 import YoastContentAnalysis from 'yoast-components/composites/Plugin/ContentAnalysis/components/ContentAnalysis';
 import {mapResults} from "../mapResults";
-import getResult from "../getResult";
+import getResult from '../getResult';
 
 const Analysis = ({content, analysis, keyword, resultType, resultSubtype}) => {
-    const [mappedResults, setMappedResults] = useState({});
-    const [currentAnalysis, setCurrentAnalysis] = useState(false);
+    const [analysisResult, setAnalysisResult] = useState({
+        currentAnalysis: false,
+        mappedResults: {}
+    });
 
     useEffect(() => {
         if (analysis.result[resultType] !== null) {
             let newMappedResults = mapResults(getResult(analysis, resultType, resultSubtype).results, keyword);
-            if (currentAnalysis === false || analysis.result[resultType] !== currentAnalysis.result[resultType]) {
-                setMappedResults(newMappedResults);
-                setCurrentAnalysis(analysis);
+            if (analysisResult.currentAnalysis === false || analysis.result[resultType] !== analysisResult.currentAnalysis.result[resultType]) {
+                setAnalysisResult({
+                    currentAnalysis: analysis,
+                    mappedResults: newMappedResults
+                });
             }
         }
     }, [analysis, resultType, resultSubtype]);
@@ -26,7 +30,7 @@ const Analysis = ({content, analysis, keyword, resultType, resultSubtype}) => {
             goodResults,
             considerationsResults,
             problemsResults,
-        } = mappedResults;
+        } = analysisResult.mappedResults;
         const marksButtonStatus = 'disabled';
 
         return <YoastContentAnalysis
