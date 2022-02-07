@@ -57,6 +57,9 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         $iterator = 1;
         $siteRootFound = false;
         foreach ($rootLine as $k => $page) {
+            if ($page['hidden'] === 1) {
+                continue;
+            }
             $siteRootFound = $siteRootFound || $page['is_siteroot'];
             if ($siteRootFound && !in_array((int)$page['doktype'], $excludedDoktypes, true)) {
                 $url = $this->getUrlForPage($page['uid']);
