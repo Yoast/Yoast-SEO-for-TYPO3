@@ -107,8 +107,8 @@ It is possible to register a custom provider. For this, it's necessary to create
                 [
                     '@context' => 'https://schema.org',
                     '@type' => 'Person',
-                    'name': 'John Doe',
-                    'email': 'john@doe.com'
+                    'name' => 'John Doe',
+                    'email' => 'john@doe.com'
                 ]
             ];
         }
