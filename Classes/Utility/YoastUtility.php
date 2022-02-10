@@ -49,7 +49,6 @@ class YoastUtility
             return (int)$doktype;
         }, array_values((array)($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes'] ?? [])));
 
-
         if (isset($configuration['allowedDoktypes'])
             && is_array($configuration['allowedDoktypes'])
         ) {
