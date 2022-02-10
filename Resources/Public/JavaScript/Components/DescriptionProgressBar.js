@@ -31,19 +31,25 @@ const getDescriptionProgress = (description, date) => {
 }
 
 const DescriptionProgressBar = ({description = '', date = ''}) => {
-    const [progress, setProgress] = useState(null);
-    const [currentDescription, setCurrentDescription] = useState('');
+    const [descriptionProgress, setDescriptionProgress] = useState({
+        progress: null,
+        description: ''
+    });
 
     useEffect(() => {
-        if (description !== currentDescription) {
-            setProgress(getDescriptionProgress(description, date));
-            setCurrentDescription(description);
-        }
+        setDescriptionProgress(prevState => {
+            return {
+                ...prevState, ...{
+                    progress: getDescriptionProgress(description, date),
+                    description: description
+                }
+            }
+        })
     }, [description]);
 
-    if (progress !== null) {
-        return <ProgressBar max={progress.max} value={progress.actual}
-                            progressColor={getProgressColor(progress.score)} />
+    if (descriptionProgress.progress !== null) {
+        return <ProgressBar max={descriptionProgress.progress.max} value={descriptionProgress.progress.actual}
+                            progressColor={getProgressColor(descriptionProgress.progress.score)} />
     }
     return <></>
 }
