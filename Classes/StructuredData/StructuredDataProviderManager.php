@@ -166,7 +166,7 @@ class StructuredDataProviderManager implements SingletonInterface
     protected function initCaches()
     {
         try {
-            $this->pageCache = GeneralUtility::makeInstance(CacheManager::class)->getCache('cache_pages');
+            $this->pageCache = GeneralUtility::makeInstance(CacheManager::class)->getCache('pages');
         } catch (NoSuchCacheException $e) {
             // @ignoreException
         }
