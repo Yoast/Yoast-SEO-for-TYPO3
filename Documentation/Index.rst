@@ -1,4 +1,4 @@
-﻿.. include:: /Includes.txt
+﻿.. include:: /Includes.rst.txt
 
 ===================
 Yoast SEO for TYPO3
