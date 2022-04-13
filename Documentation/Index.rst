@@ -1,68 +1,64 @@
-﻿.. ==================================================
-.. FOR YOUR INFORMATION
-.. --------------------------------------------------
-.. -*- coding: utf-8 -*- with BOM.
+﻿.. include:: /Includes.txt
 
-.. include:: Includes.txt
-
-
-.. _start:
-
-=============================================================
+===================
 Yoast SEO for TYPO3
-=============================================================
+===================
 
-.. only:: html
+:Extension key:
+   yoast_seo
 
-    :Classification:
-        yoast_seo
+:Package name:
+   yoast-seo-for-typo3/yoast_seo
 
-    :Version:
-        |release|
+:Version:
+   |release|
 
-    :Language:
-        en
+:Language:
+   en
 
-    :Description:
-        Integrates text analysis and assessment from `YoastSEO.js <https://github.com/Yoast/YoastSEO.js>`__.
+:Author:
+   MaxServ, Yoast & Contributors
 
-    :Keywords:
-        SEO, Yoast, Readability, Analysis
+:License:
+   This document is published under the
+   `Open Publication License <https://www.opencontent.org/openpub/>`__.
 
-    :Copyright:
-        since 2016 by MaxServ and Yoast
+:Rendered:
+   |today|
 
-    :Author:
-        MaxServ / Yoast
+----
 
-    :Support:
-        Community support is available on `Slack <https://typo3.slack.com>`__ in the channel #yoast-seo-for-typo3. If
-        you want support for your installation, you can buy our `premium plugin <https://yoast.com/typo3-extensions-seo/>`__ and get 24/7 support.
+Optimize your website for search engines with *Yoast SEO for TYPO3*. This
+extension integrates the text analysis and rating of `Yoast SEO <https://yoast.com/>`__
+into the TYPO3 CMS interface. The content analysis can generate interesting
+metrics about a text and give you a score that can be used to improve the text
+and help editors write high quality content.
 
-    :License:
-        This document is published under the Open Publication License
-        available from http://www.opencontent.org/openpub/
+----
 
-    :Rendered:
-        |today|
+**Table of Contents:**
 
-    The content of this document is related to TYPO3,
-    a GNU/GPL CMS/Framework available from `www.typo3.org <https://typo3.org/>`__.
+.. toctree::
+   :maxdepth: 2
+   :titlesonly:
 
+   Introduction/Index
+   Installation/Index
+   Configuration/Index
+   Editor/Index
+
+.. Meta Menu
+
+.. toctree::
+   :hidden:
+
+   Sitemap
+   genindex
 
 .. tip::
 
-    Community support is available on `Slack <https://typo3.slack.com>`__ in the channel #yoast-seo-for-typo3. If
-    you want support for your installation, you can buy our `premium plugin <https://yoast.com/typo3-extensions-seo/>`__ and get 24/7 support.
-
-Table of Contents
-=================
-
-.. toctree::
-    :maxdepth: 3
-    :titlesonly:
-
-    Introduction/Index
-    Installation/Index
-    Configuration/Index
-    Editor/Index
+   Community support is available in the TYPO3 Slack channel
+   `#yoast-seo-for-typo3 <https://typo3.slack.com/archives/C14EQDFL1>`__. If you
+   want support for your installation, you can buy our
+   `premium plugin <https://yoast.com/typo3-extensions-seo/>`__ and get 24/7
+   support.

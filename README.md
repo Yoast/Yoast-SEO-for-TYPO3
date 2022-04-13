@@ -1,21 +1,34 @@
-Yoast SEO for TYPO3
-======================
-
+[![Latest Stable Version](https://poser.pugx.org/yoast-seo-for-typo3/yoast_seo/v/stable)](https://extensions.typo3.org/extension/yoast_seo/)
+[![TYPO3 11](https://img.shields.io/badge/TYPO3-11-orange.svg?style=flat-square)](https://get.typo3.org/version/11)
+[![TYPO3 10](https://img.shields.io/badge/TYPO3-10-orange.svg?style=flat-square)](https://get.typo3.org/version/10)
+[![TYPO3 9](https://img.shields.io/badge/TYPO3-9-orange.svg?style=flat-square)](https://get.typo3.org/version/9)
+[![Total Downloads](https://poser.pugx.org/yoast-seo-for-typo3/yoast_seo/d/total)](https://packagist.org/packages/yoast-seo-for-typo3/yoast_seo)
+[![Monthly Downloads](https://poser.pugx.org/yoast-seo-for-typo3/yoast_seo/d/monthly)](https://packagist.org/packages/yoast-seo-for-typo3/yoast_seo)
 [![CI status](https://github.com/Yoast/Yoast-SEO-for-TYPO3/workflows/CI/badge.svg)](https://github.com/Yoast/Yoast-SEO-for-TYPO3/actions?query=branch%3Amaster)
-[![Stable Version](https://poser.pugx.org/yoast-seo-for-typo3/yoast_seo/v/stable.svg)](https://packagist.org/packages/yoast-seo-for-typo3/yoast_seo)
-[![License](https://poser.pugx.org/yoast-seo-for-typo3/yoast_seo/license.svg)](https://packagist.org/packages/yoast-seo-for-typo3/yoast_seo)
 
-This plugin integrates text analysis and assessment from [YoastSEO.js](https://github.com/Yoast/YoastSEO.js). Content analysis can generate interesting metrics about a text and give you an assessment which can be used to improve the text.
+# TYPO3 extension `yoast_seo`
+
+Optimize your website for search engines with *Yoast SEO for TYPO3*. This
+extension integrates the text analysis and rating of [Yoast SEO](https://yoast.com/)
+into the TYPO3 CMS interface. The content analysis can generate interesting
+metrics about a text and give you a score that can be used to improve the text
+and help editors write high quality content.
+
+|                  | URL                                                                |
+|------------------|--------------------------------------------------------------------|
+| **Repository:**  | https://github.com/Yoast/Yoast-SEO-for-TYPO3                       |
+| **Read online:** | https://docs.typo3.org/p/yoast-seo-for-typo3/yoast_seo/main/en-us/ |
+| **TER:**         | https://extensions.typo3.org/extension/yoast_seo                   |
 
 ## Installation
-You can easily install the plugin with [Composer](https://getcomposer.org/). Just use the following command in the root of your project:  
+You can easily install the plugin with [Composer](https://getcomposer.org/). Just use the following command in the root of your project:
 
 ```bash
 composer require yoast-seo-for-typo3/yoast_seo
 ```
 
 ## Configuration
-There is no need for configuration although it is recommended to remove all other SEO related plugins creating metatags in frontend. There are however some configuration options available. More information about configuring Yoast SEO for TYPO3 can be found in the manual on [https://docs.typo3.org](https://docs.typo3.org/typo3cms/extensions/yoast_seo/). 
+There is no need for configuration although it is recommended to remove all other SEO related plugins creating metatags in frontend. There are however some configuration options available. More information about configuring Yoast SEO for TYPO3 can be found in the manual on [https://docs.typo3.org](https://docs.typo3.org/typo3cms/extensions/yoast_seo/).
 
 This repository uses [the Yoast grunt tasks plugin](https://github.com/Yoast/plugin-grunt-tasks).
 
@@ -51,14 +64,14 @@ When the script is finished, you can go to https://yoast-seo.ddev.site and check
 The following instances will be up and running for you after you have installed the DDEV setup.
 
 - https://v9.yoast-seo.ddev.site
-- https://v10.yoast-seo.ddev.site 
-- https://v11.yoast-seo.ddev.site 
+- https://v10.yoast-seo.ddev.site
+- https://v11.yoast-seo.ddev.site
 
 #### Login
 You will be able to login to the backend of the instances above, by using the following credentials:
 
     Username: admin
-    Password: password 
+    Password: password
 
 #### Reset setup
 If you want to reset the instances? Use the following two commands. Be aware that this will also reset the databases!
