@@ -14,3 +14,4 @@ Read about "*yoast_seo*" and the support options in this chapter.
 
    About/Index
    Support/Index
+   Contribution/Index

@@ -46,6 +46,7 @@ and help editors write high quality content.
    Installation/Index
    Configuration/Index
    Editor/Index
+   Development/Index
 
 .. Meta Menu
 
