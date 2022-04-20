@@ -186,10 +186,10 @@ class SnippetPreview extends AbstractNode
                 'TCA' => 1,
                 'useKeywordDistribution' => YoastUtility::isPremiumInstalled(),
                 'useRelevantWords' => YoastUtility::isPremiumInstalled(),
-                'isCornerstoneContent' => (bool)$this->data['databaseRow']['tx_yoastseo_cornerstone'],
+                'isCornerstoneContent' => (bool)($this->data['databaseRow']['tx_yoastseo_cornerstone'] ?? false),
                 'focusKeyphrase' => [
                     'keyword' => (string)$this->data['databaseRow']['tx_yoastseo_focuskeyword'],
-                    'synonyms' => (string)$this->data['databaseRow']['tx_yoastseo_focuskeyword_synonyms'],
+                    'synonyms' => (string)($this->data['databaseRow']['tx_yoastseo_focuskeyword_synonyms'] ?? ''),
                 ],
                 'labels' => $this->localeService->getLabels(),
                 'data' => [
