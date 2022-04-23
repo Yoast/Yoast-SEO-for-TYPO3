@@ -3,7 +3,7 @@ namespace YoastSeoForTypo3\YoastSeo\Backend;
 
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\PathUtility;
+use YoastSeoForTypo3\YoastSeo\Utility\PathUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
@@ -25,8 +25,7 @@ class PageLayoutHeader extends AbstractPageLayoutHeader
             $this->pageHeaderService->setModuleData($moduleData);
             $this->pageHeaderService->setPageId($pageId);
 
-            $publicResourcesPath =
-                PathUtility::getAbsoluteWebPath(ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
+            $publicResourcesPath = PathUtility::getPublicPathToResources();
 
             $config = [
                 'urls' => [

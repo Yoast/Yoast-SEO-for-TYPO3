@@ -11,13 +11,13 @@ use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use TYPO3\CMS\Frontend\Page\CacheHashCalculator;
 use YoastSeoForTypo3\YoastSeo\Service\LocaleService;
 use YoastSeoForTypo3\YoastSeo\Service\UrlService;
 use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
+use YoastSeoForTypo3\YoastSeo\Utility\PathUtility;
 
 class SnippetPreview extends AbstractNode
 {
@@ -172,9 +172,8 @@ class SnippetPreview extends AbstractNode
                 $this->data['tableName']
             );
 
-            $publicResourcesPath =
-                PathUtility::getAbsoluteWebPath(ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
-            $workerUrl = $publicResourcesPath . 'JavaScript/dist/worker.js';
+            $publicResourcesPath = PathUtility::getPublicPathToResources();
+            $workerUrl = $publicResourcesPath . '/JavaScript/dist/worker.js';
 
             $config = [
                 'urls' => [
