@@ -41,7 +41,7 @@
     "cross-env": "^5.2.1",
     "css-loader": "^3.4.2",
     "fstream": "^1.0.12",
-    "grunt": "^1.3.0",
+    "grunt": "^1.5.2",
     "grunt-contrib-clean": "^2.0.0",
     "grunt-sass": "^2.1.0",
     "grunt-wp-i18n": "^1.0.3",
