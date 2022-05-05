@@ -22,6 +22,11 @@
     }
   ],
   "homepage": "https://yoast.com",
+  "support": {
+    "source": "https://github.com/Yoast/Yoast-SEO-for-TYPO3",
+    "issues": "https://github.com/Yoast/Yoast-SEO-for-TYPO3/issues",
+    "docs": "https://docs.typo3.org/p/yoast-seo-for-typo3/yoast_seo/main/en-us/"
+  },
   "require": {
     "typo3/cms-core": "^9.5|^10.4|^11.0",
     "typo3/cms-backend": "^9.5|^10.4|^11.0",

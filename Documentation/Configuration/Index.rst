@@ -1,9 +1,4 @@
-.. ==================================================
-.. FOR YOUR INFORMATION
-.. --------------------------------------------------
-.. -*- coding: utf-8 -*- with BOM.
-
-.. include:: ../Includes.txt
+.. include:: /Includes.rst.txt
 
 
 .. _configuration:
@@ -16,11 +11,11 @@ Yoast SEO works out of the box and does not require initial configuration.
 However, a few things can still be configured using an extension that overwrites the `EXTCONF` of `yoast_seo` or by TypoScript.
 
 .. toctree::
-	:maxdepth: 5
-	:titlesonly:
+   :maxdepth: 5
+   :titlesonly:
 
-    	Permissions/Index
-    	SnippetPreview/Index
-        StructuredData/Index
-    	OtherPlugins/Index
-    	Hooks/Index
+   Permissions/Index
+   SnippetPreview/Index
+   StructuredData/Index
+   OtherPlugins/Index
+   Hooks/Index
