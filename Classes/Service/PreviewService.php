@@ -146,7 +146,7 @@ class PreviewService
             $faviconSrc = $matchesFavIcon[1];
         }
         $favIconHeader = @get_headers($faviconSrc);
-        if ($favIconHeader[0] === 'HTTP/1.1 404 Not Found') {
+        if (($favIconHeader[0] ?? '') === 'HTTP/1.1 404 Not Found') {
             $faviconSrc = '';
         }
 
