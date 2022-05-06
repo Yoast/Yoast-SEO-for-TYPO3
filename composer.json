@@ -30,7 +30,6 @@
     "typo3/cms-frontend": "^9.5|^10.4|^11.0",
     "typo3/cms-install": "^9.5|^10.4|^11.0",
     "typo3/cms-seo": "^9.5|^10.4|^11.0",
-    "composer/semver": "^3.3.2",
     "ext-curl": "*",
     "ext-json": "*",
     "php": "^7.2 || ^8.0"
