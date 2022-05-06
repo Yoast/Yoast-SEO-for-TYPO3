@@ -9,6 +9,6 @@ class PathUtility
 {
     public static function getPublicPathToResources(): string
     {
-        return TYPO3PathUtility::getAbsoluteWebPath(ExtensionManagementUtility::extPath('yoast_seo') . 'Resources/Public/');
+        return TYPO3PathUtility::getAbsoluteWebPath(ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
     }
 }
