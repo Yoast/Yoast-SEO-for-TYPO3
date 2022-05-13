@@ -1,10 +1,9 @@
 <?php
 namespace YoastSeoForTypo3\YoastSeo\Backend;
 
-use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use YoastSeoForTypo3\YoastSeo\Utility\PathUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
+use YoastSeoForTypo3\YoastSeo\Utility\PathUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class PageLayoutHeader extends AbstractPageLayoutHeader
