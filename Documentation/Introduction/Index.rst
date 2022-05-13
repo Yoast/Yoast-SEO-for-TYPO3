@@ -1,9 +1,4 @@
-﻿.. ==================================================
-.. FOR YOUR INFORMATION
-.. --------------------------------------------------
-.. -*- coding: utf-8 -*- with BOM.
-
-.. include:: ../Includes.txt
+﻿.. include:: /Includes.rst.txt
 
 
 .. _introduction:
@@ -11,13 +6,12 @@
 Introduction
 ============
 
-.. only:: html
-
-	Read about "*yoast_seo*" and the support options in this chapter.
+Read about "*yoast_seo*" and the support options in this chapter.
 
 .. toctree::
-	:maxdepth: 5
-	:titlesonly:
+   :maxdepth: 5
+   :titlesonly:
 
-    	About/Index
-    	Support/Index
+   About/Index
+   Support/Index
+   Contribution/Index
