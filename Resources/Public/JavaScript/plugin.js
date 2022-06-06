@@ -168,7 +168,7 @@ if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
     progressBarItems.forEach((item) => {
         if (item.input) {
             let container = document.createElement('div');
-            item.input.after(container);
+            addProgressContainer(item.input, container);
             item.input.addEventListener('input', debounce(_ => {
                 let value = item.input.value;
 
@@ -314,4 +314,21 @@ function setSeoTitlePlaceholder()
 
     let titleValue = pageTitleElement.value;
     seoTitleElement.setAttribute('placeholder', titleValue);
+}
+
+// TODO: This dirty fix is necessary because of the differences between CMS9, CMS10 and CMS11.
+// When support for CMS9 and CMS10 is dropped, this should be handled differently
+function addProgressContainer(input, container) {
+    let formWrap = input.closest('.form-wizards-wrap');
+    let computedStyle = window.getComputedStyle(formWrap);
+    if (computedStyle.getPropertyValue('display') === 'grid') {
+        container.style.gridArea = 'bottom';
+        let formControls = input.closest('.form-control-wrap');
+        if (formControls.style.maxWidth) {
+            container.style.maxWidth = formControls.style.maxWidth;
+        }
+        input.closest('.form-control-wrap').after(container);
+    } else {
+        input.after(container);
+    }
 }
