@@ -165,9 +165,9 @@ if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
         storeKey: 'description'
     }];
 
-    progressBarItems.forEach(item => {
+    progressBarItems.forEach((item) => {
         if (item.input) {
-            const container = document.createElement('div');
+            let container = document.createElement('div');
             item.input.after(container);
             item.input.addEventListener('input', debounce(_ => {
                 let value = item.input.value;

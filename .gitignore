@@ -12,5 +12,5 @@ yarn.lock
 !.Build/get_version_of_extension.php
 !.Build/ExcludeFromPackaging.php
 Documentation-GENERATED-temp
-public
+/public
 .phplint.cache

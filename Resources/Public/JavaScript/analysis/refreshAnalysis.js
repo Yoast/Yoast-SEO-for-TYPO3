@@ -1,4 +1,3 @@
-import store from '../redux/store';
 import {Paper} from 'yoastseo';
 import measureTextWidth from '../helpers/measureTextWidth';
 import {analyzeData} from '../redux/actions/analysis';
@@ -20,7 +19,6 @@ export default function refreshAnalysis(worker, store) {
     let promises = [];
     if (typeof YoastConfig.useRelevantWords !== 'undefined' &&
         YoastConfig.useRelevantWords === true) {
-
         promises = [
             store.dispatch(analyzeData(worker, paper, YoastConfig.relatedKeyphrases)),
             store.dispatch(getRelevantWords(worker, paper)),
