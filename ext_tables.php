@@ -17,16 +17,18 @@ if (TYPO3_MODE === 'BE') {
         'name' => 'yoast'
     ];
 
+    $registerExtension = 'YoastSeo';
     $moduleController = \YoastSeoForTypo3\YoastSeo\Controller\ModuleController::class;
     $overviewController = \YoastSeoForTypo3\YoastSeo\Controller\OverviewController::class;
     if (\TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Core\Information\Typo3Version::class)
             ->getMajorVersion() < 10) {
+        $registerExtension = 'YoastSeoForTypo3.yoast_seo';
         $moduleController = 'Module';
         $overviewController = 'Overview';
     }
 
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
-        'YoastSeoForTypo3.yoast_seo',
+        $registerExtension,
         'yoast',
         'dashboard',
         '',
@@ -41,7 +43,7 @@ if (TYPO3_MODE === 'BE') {
     );
 
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
-        'YoastSeoForTypo3.yoast_seo',
+        $registerExtension,
         'yoast',
         'overview',
         '',
@@ -56,7 +58,7 @@ if (TYPO3_MODE === 'BE') {
     );
 
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
-        'YoastSeoForTypo3.yoast_seo',
+        $registerExtension,
         'yoast',
         'premium',
         '',
