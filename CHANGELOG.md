@@ -14,6 +14,7 @@ Besides the free version of our plugin, we also have a premium version. The free
 
 ### Fixed
 - Adjusted analysis calls when there is more than 1 related keyphrase due to bug in "yoastseo" package
+- PHP8 warning within `FocusKeywordAnalysis.php`
 - Deprecated extension name usage within ext_tables.php
 
 ## 8.1.0 November 24, 2021

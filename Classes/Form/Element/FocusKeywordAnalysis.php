@@ -40,9 +40,9 @@ class FocusKeywordAnalysis extends AbstractNode
 
         if (array_key_exists(
             'focusKeywordField',
-            (array)$this->data['parameterArray']['fieldConf']['config']['settings']
+            (array)($this->data['parameterArray']['fieldConf']['config']['settings'] ?? [])
         ) &&
-            $this->data['parameterArray']['fieldConf']['config']['settings']['focusKeywordField']
+            !empty($this->data['parameterArray']['fieldConf']['config']['settings']['focusKeywordField'])
         ) {
             $this->focusKeywordField =
                 $this->data['parameterArray']['fieldConf']['config']['settings']['focusKeywordField'];
