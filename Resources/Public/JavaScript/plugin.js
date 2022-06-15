@@ -263,10 +263,11 @@ if (typeof YoastConfig.fieldSelectors !== 'undefined' &&
     YoastConfig.fieldSelectors.pageTitle !== ''
 ) {
     let pageTitleElement = document.querySelector(`[data-formengine-input-name="${YoastConfig.fieldSelectors.pageTitle}"]`);
-
-    pageTitleElement.addEventListener('change', function(event) {
-        setSeoTitlePlaceholder();
-    });
+    if (pageTitleElement) {
+        pageTitleElement.addEventListener('change', function(event) {
+            setSeoTitlePlaceholder();
+        });
+    }
 
     window.addEventListener('load', function(event) {
         setSeoTitlePlaceholder();
@@ -311,9 +312,10 @@ function setSeoTitlePlaceholder()
 {
     let seoTitleElement = document.querySelector(`[data-formengine-input-name="${YoastConfig.fieldSelectors.title}"]`);
     let pageTitleElement = document.querySelector(`[data-formengine-input-name="${YoastConfig.fieldSelectors.pageTitle}"]`);
-
-    let titleValue = pageTitleElement.value;
-    seoTitleElement.setAttribute('placeholder', titleValue);
+    if (seoTitleElement && pageTitleElement) {
+        let titleValue = pageTitleElement.value;
+        seoTitleElement.setAttribute('placeholder', titleValue);
+    }
 }
 
 // TODO: This dirty fix is necessary because of the differences between CMS9, CMS10 and CMS11.
