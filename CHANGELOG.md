@@ -8,14 +8,28 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
-## UNRELEASED
+## 8.2.0 June 23, 2022
+### Added
+- Support for new TYPO3 composer mode
+
 ### Changed
-- Replaced javascript React classes to functional components
+- Replaced javascript React classes with functional components
+- Updated a lot of npm packages
+- Updated documentation structure
 
 ### Fixed
-- Adjusted analysis calls when there is more than 1 related keyphrase due to bug in "yoastseo" package
-- PHP8 warning within `FocusKeywordAnalysis.php`
+- Adjusted analysis calls when there is more than 1 related keyphrase due to bug in "yoastseo" npm package
+- PHP8 fixes:
+    - Prevent 'undefined array key' warnings with PHP8 when `EXTCONF` allowedDoktypes missing
+    - Warning within `FocusKeywordAnalysis.php`
+    - Notice exceptions within `SnippetPreview` and `PreviewService`
+- Ignore hidden pages within `BreadcrumbStructuredDataProvider`
+- CGL issue within `YoastUtility`
+- Wrong PHP array Syntax within StructuredDataProvider documentation
 - Deprecated extension name usage within ext_tables.php
+- Loading issues with the title and description progress bar
+- Display issue with the title progress bar within CMS11
+- Usage of deprecated cache name within `StructuredDataProviderManager`
 
 ## 8.1.0 November 24, 2021
 ### Added
