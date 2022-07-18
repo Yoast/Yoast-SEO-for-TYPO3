@@ -7,7 +7,6 @@ $EM_CONF[$_EXTKEY] = [
     'author_company' => 'MaxServ B.V., Yoast',
     'author_email' => '',
     'clearCacheOnLoad' => 0,
-    'dependencies' => '',
     'state' => 'stable',
     'uploadfolder' => 0,
     'version' => '8.2.0',

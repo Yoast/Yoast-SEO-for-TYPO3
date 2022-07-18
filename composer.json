@@ -37,7 +37,7 @@
     "typo3/cms-seo": "^9.5|^10.4|^11.0",
     "ext-curl": "*",
     "ext-json": "*",
-    "php": "^7.2 || ^8.0"
+    "php": "^7.4 || ^8.0"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^2.0",
@@ -61,14 +61,8 @@
       "dev-master": "8.x-dev"
     },
     "typo3/cms": {
-      "cms-package-dir": "{$vendor-dir}/typo3/cms",
-      "web-dir": "public",
       "extension-key": "yoast_seo"
     }
-  },
-  "config": {
-    "vendor-dir": "vendor",
-    "bin-dir": "vendor/bin"
   },
   "scripts": {
     "test:php:lint": [
