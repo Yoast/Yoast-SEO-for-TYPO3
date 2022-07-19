@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
+use GuzzleHttp\Exception\RequestException;
 use TYPO3\CMS\Core\Exception;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -70,18 +71,22 @@ class PreviewService
         $backupSettings = $GLOBALS['TYPO3_CONF_VARS']['HTTP'];
         $this->setHttpOptions();
 
-        $response = GeneralUtility::makeInstance(RequestFactory::class)
-            ->request(
-                $uriToCheck,
-                'GET',
-                [
-                    'headers' => [
-                        'X-Yoast-Page-Request' => GeneralUtility::hmac(
-                            $uriToCheck
-                        )
+        try {
+            $response = GeneralUtility::makeInstance(RequestFactory::class)
+                ->request(
+                    $uriToCheck,
+                    'GET',
+                    [
+                        'headers' => [
+                            'X-Yoast-Page-Request' => GeneralUtility::hmac(
+                                $uriToCheck
+                            )
+                        ]
                     ]
-                ]
-            );
+                );
+        } catch (RequestException $e) {
+            throw new Exception((string)$e->getCode());
+        }
 
         $GLOBALS['TYPO3_CONF_VARS']['HTTP'] = $backupSettings;
         if ($response->getStatusCode() === 200) {
@@ -150,8 +155,11 @@ class PreviewService
             $faviconSrc = '';
         }
 
+        $titlePrepend = $titleAppend = '';
         preg_match('/<meta name=\"x-yoast-title-config\" value=\"([^"]*)\"/i', $content, $matchesTitleConfig);
-        [$titlePrepend, $titleAppend] = explode('|||', (string)$matchesTitleConfig[1]);
+        if (count($matchesTitleConfig) > 1) {
+            [$titlePrepend, $titleAppend] = explode('|||', (string)$matchesTitleConfig[1]);
+        }
 
         $body = $this->prepareBody($body);
 

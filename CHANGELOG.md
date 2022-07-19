@@ -12,6 +12,8 @@ Besides the free version of our plugin, we also have a premium version. The free
 ### Fixed
 - Lists within the Overview module now take the "DB Mounts" of a user into account
 - Optimized pagination of Overview module
+- Fixed PHP8 error when the metatag `x-yoast-title-config` (for some reason) cannot be read from the frontend
+- Added extra try-catch block to catch guzzle exceptions within `PreviewService`
 
 ## 8.2.0 June 23, 2022
 ### Added
