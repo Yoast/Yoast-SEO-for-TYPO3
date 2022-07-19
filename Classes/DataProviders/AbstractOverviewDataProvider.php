@@ -83,11 +83,7 @@ abstract class AbstractOverviewDataProvider implements OverviewDataProviderInter
     {
         $pageIds = PageAccessUtility::getPageIds();
         if ($pageIds === null) {
-            $query = $this->getResults();
-            if ($returnOnlyCount) {
-                return $query->rowCount();
-            }
-            return $query->fetchAll();
+            return $this->allResults($returnOnlyCount);
         }
 
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(self::PAGES_TABLE);
@@ -97,6 +93,10 @@ abstract class AbstractOverviewDataProvider implements OverviewDataProviderInter
         $pageCount = 0;
         foreach (array_chunk($pageIds, $maxBindParameters - 10) as $chunk) {
             $query = $this->getResults($chunk);
+            if ($query === null) {
+                continue;
+            }
+
             if ($returnOnlyCount) {
                 $pageCount += $query->rowCount();
                 continue;
@@ -114,8 +114,21 @@ abstract class AbstractOverviewDataProvider implements OverviewDataProviderInter
         return $pageCount;
     }
 
-    protected function getResults(array $pageIds = []): ResultStatement
+    protected function getResults(array $pageIds = []): ?ResultStatement
     {
         // Needs to be overwritten by provider, not possible to set an abstract function due to API change
+        return null;
+    }
+
+    protected function allResults(bool $returnOnlyCount = false)
+    {
+        $query = $this->getResults();
+        if ($query === null) {
+            return $returnOnlyCount ? 0 : [];
+        }
+        if ($returnOnlyCount) {
+            return $query->rowCount();
+        }
+        return $query->fetchAll();
     }
 }

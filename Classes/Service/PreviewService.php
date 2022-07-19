@@ -85,7 +85,7 @@ class PreviewService
                     ]
                 );
         } catch (RequestException $e) {
-            throw new Exception((string)$e->getCode());
+            throw new Exception((string)$e->getCode(), 0, $e);
         }
 
         $GLOBALS['TYPO3_CONF_VARS']['HTTP'] = $backupSettings;

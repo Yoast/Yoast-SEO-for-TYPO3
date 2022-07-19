@@ -33,7 +33,7 @@ class CornerstoneOverviewDataProvider extends AbstractOverviewDataProvider
         return $this->getRestrictedPagesResults($returnOnlyCount);
     }
 
-    protected function getResults(array $pageIds = []): ResultStatement
+    protected function getResults(array $pageIds = []): ?ResultStatement
     {
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(self::PAGES_TABLE);
 
