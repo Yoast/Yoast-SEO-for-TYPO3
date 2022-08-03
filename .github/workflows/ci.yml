@@ -33,9 +33,6 @@ jobs:
           composer --version
       - name: Install
         run: |
-          composer config allow-plugins.typo3/cms-composer-installers true
-          composer config allow-plugins.typo3/class-alias-loader true
-          composer config allow-plugins.phpstan/extension-installer true
           composer require typo3/cms-core:^${{ matrix.typo3 }} typo3/cms-backend:^${{ matrix.typo3 }} typo3/cms-extbase:^${{ matrix.typo3 }} typo3/cms-fluid:^${{ matrix.typo3 }} typo3/cms-frontend:^${{ matrix.typo3 }} typo3/cms-install:^${{ matrix.typo3 }} --no-progress
       - name: Lint
         run: composer test:php:lint
