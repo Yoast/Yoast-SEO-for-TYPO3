@@ -14,6 +14,8 @@ class Record
 
     protected bool $yoastSeoFields = true;
 
+    protected bool $sitemapFields = true;
+
     protected string $types = '';
 
     protected string $titleField = 'title';
@@ -66,6 +68,17 @@ class Record
     public function setYoastSeoFields(bool $yoastSeoFields): self
     {
         $this->yoastSeoFields = $yoastSeoFields;
+        return $this;
+    }
+
+    public function hasSitemapFields(): bool
+    {
+        return $this->yoastSeoFields;
+    }
+
+    public function setSitemapFields(bool $sitemapFields): self
+    {
+        $this->sitemapFields = $sitemapFields;
         return $this;
     }
 
@@ -146,28 +159,6 @@ class Record
         return $this;
     }
 
-    public function getRecordUid(): ?int
-    {
-        return $this->recordUid;
-    }
-
-    public function setRecordUid(int $recordUid): self
-    {
-        $this->recordUid = $recordUid;
-        return $this;
-    }
-
-    public function getRecordData(): array
-    {
-        return $this->recordData;
-    }
-
-    public function setRecordData(array $recordData): self
-    {
-        $this->recordData = $recordData;
-        return $this;
-    }
-
     public function shouldGeneratePageTitle(): bool
     {
         return $this->generatePageTitle;
@@ -187,6 +178,28 @@ class Record
     public function setGenerateMetaTags(bool $generateMetaTags): self
     {
         $this->generateMetaTags = $generateMetaTags;
+        return $this;
+    }
+
+    public function getRecordUid(): ?int
+    {
+        return $this->recordUid;
+    }
+
+    public function setRecordUid(int $recordUid): self
+    {
+        $this->recordUid = $recordUid;
+        return $this;
+    }
+
+    public function getRecordData(): array
+    {
+        return $this->recordData;
+    }
+
+    public function setRecordData(array $recordData): self
+    {
+        $this->recordData = $recordData;
         return $this;
     }
 }

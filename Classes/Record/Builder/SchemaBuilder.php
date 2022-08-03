@@ -20,6 +20,10 @@ class SchemaBuilder extends AbstractBuilder
             $this->addYoastSeoFields();
         }
 
+        if ($this->record->hasSitemapFields()) {
+            $this->addSitemapFields();
+        }
+
         if ($this->record->shouldAddDescriptionField()) {
             $this->addDescriptionField();
         }
@@ -40,8 +44,6 @@ class SchemaBuilder extends AbstractBuilder
         $this->sqlData[] = "twitter_image int(11) unsigned DEFAULT '0' NOT NULL,";
         $this->sqlData[] = "twitter_card varchar(255) DEFAULT '' NOT NULL,";
         $this->sqlData[] = "canonical_link varchar(2048) DEFAULT '' NOT NULL,";
-        $this->sqlData[] = "sitemap_priority decimal(2,1) DEFAULT '0.5' NOT NULL,";
-        $this->sqlData[] = "sitemap_changefreq varchar(10) DEFAULT '' NOT NULL,";
     }
 
     protected function addYoastSeoFields(): void
@@ -53,6 +55,12 @@ class SchemaBuilder extends AbstractBuilder
         $this->sqlData[] = "tx_yoastseo_score_seo varchar(50) DEFAULT '' NOT NULL,";
         $this->sqlData[] = "tx_yoastseo_focuskeyword_premium int(11) DEFAULT '0' NOT NULL,";
         $this->sqlData[] = 'KEY tx_yoastseo_cornerstone (tx_yoastseo_cornerstone),';
+    }
+
+    protected function addSitemapFields(): void
+    {
+        $this->sqlData[] = "sitemap_priority decimal(2,1) DEFAULT '0.5' NOT NULL,";
+        $this->sqlData[] = "sitemap_changefreq varchar(10) DEFAULT '' NOT NULL,";
     }
 
     protected function addDescriptionField(): void

@@ -77,9 +77,13 @@ class RecordRegistry implements SingletonInterface
             $this->addRecord($table)
                 ->setDefaultSeoFields((bool)($yoastSeoConfiguration['defaultSeoFields'] ?? true))
                 ->setYoastSeoFields((bool)($yoastSeoConfiguration['yoastFields'] ?? true))
+                ->setSitemapFields((bool)($yoastSeoConfiguration['sitemapFields'] ?? true))
+                ->setTitleField((string)($yoastSeoConfiguration['titleField'] ?? 'title'))
                 ->setDescriptionField((string)($yoastSeoConfiguration['descriptionField'] ?? 'description'))
                 ->setAddDescriptionField((bool)($yoastSeoConfiguration['addDescriptionField'] ?? false))
-                ->setGetParameters((array)($yoastSeoConfiguration['getParameters'] ?? []));
+                ->setGetParameters((array)($yoastSeoConfiguration['getParameters'] ?? []))
+                ->setGeneratePageTitle((bool)($yoastSeoConfiguration['generatePageTitle'] ?? true))
+                ->setGenerateMetaTags((bool)($yoastSeoConfiguration['generateMetaTags'] ?? true));
         }
     }
 }

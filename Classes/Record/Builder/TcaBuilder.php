@@ -20,6 +20,10 @@ class TcaBuilder extends AbstractBuilder
             $this->addYoastFields();
         }
 
+        if ($this->record->hasSitemapFields()) {
+            $this->addSitemapFields();
+        }
+
         if ($this->record->shouldAddDescriptionField()) {
             $this->addDescriptionField();
         }
@@ -27,9 +31,13 @@ class TcaBuilder extends AbstractBuilder
         $GLOBALS['TCA'][$this->record->getTableName()]['yoast_seo'] = [
             'defaultSeoFields' => $this->record->hasDefaultSeoFields(),
             'yoastFields' => $this->record->hasYoastSeoFields(),
+            'sitemapFields' => $this->record->hasSitemapFields(),
+            'titleField' => $this->record->getTitleField(),
             'descriptionField' => $this->record->getDescriptionField(),
             'addDescriptionField' => $this->record->shouldAddDescriptionField(),
             'getParameters' => $this->record->getGetParameters(),
+            'generatePageTitle' => $this->record->shouldGeneratePageTitle(),
+            'generateMetaTags' => $this->record->shouldGenerateMetaTags(),
         ];
     }
 
@@ -40,7 +48,6 @@ class TcaBuilder extends AbstractBuilder
                 'seo' => $GLOBALS['TCA']['pages']['palettes']['seo'],
                 'robots' => $GLOBALS['TCA']['pages']['palettes']['robots'],
                 'canonical' => $GLOBALS['TCA']['pages']['palettes']['canonical'],
-                'sitemap' => $GLOBALS['TCA']['pages']['palettes']['sitemap'],
                 'opengraph' => $GLOBALS['TCA']['pages']['palettes']['opengraph'],
                 'twittercards' => $GLOBALS['TCA']['pages']['palettes']['twittercards'],
             ],
@@ -48,8 +55,6 @@ class TcaBuilder extends AbstractBuilder
                 'seo_title' => $GLOBALS['TCA']['pages']['columns']['seo_title'],
                 'no_index' => $GLOBALS['TCA']['pages']['columns']['no_index'],
                 'no_follow' => $GLOBALS['TCA']['pages']['columns']['no_follow'],
-                'sitemap_changefreq' => $GLOBALS['TCA']['pages']['columns']['sitemap_changefreq'],
-                'sitemap_priority' => $GLOBALS['TCA']['pages']['columns']['sitemap_priority'],
                 'canonical_link' => $GLOBALS['TCA']['pages']['columns']['canonical_link'],
                 'og_title' => $GLOBALS['TCA']['pages']['columns']['og_title'],
                 'og_description' => $GLOBALS['TCA']['pages']['columns']['og_description'],
@@ -71,7 +76,6 @@ class TcaBuilder extends AbstractBuilder
                 --palette--;;seo,
                 --palette--;;robots,
                 --palette--;;canonical,
-                --palette--;;sitemap,
             --div--;LLL:EXT:seo/Resources/Private/Language/locallang_tca.xlf:pages.tabs.socialmedia,
                 --palette--;;opengraph,
                 --palette--;;twittercards',
@@ -88,6 +92,29 @@ class TcaBuilder extends AbstractBuilder
                 $this->record->getTypes(),
                 $this->record->getDescriptionField()
             );
+    }
+
+    protected function addSitemapFields(): void
+    {
+        $tca = [
+            'palettes' => [
+                'sitemap' => $GLOBALS['TCA']['pages']['palettes']['sitemap'],
+            ],
+            'columns' => [
+                'sitemap_changefreq' => $GLOBALS['TCA']['pages']['columns']['sitemap_changefreq'],
+                'sitemap_priority' => $GLOBALS['TCA']['pages']['columns']['sitemap_priority'],
+            ]
+        ];
+        $GLOBALS['TCA'][$this->record->getTableName()] = array_replace_recursive(
+            $GLOBALS['TCA'][$this->record->getTableName()],
+            $tca
+        );
+        ExtensionManagementUtility::addToAllTCAtypes(
+            $this->record->getTableName(),
+            '--palette--;;sitemap',
+            $this->record->getTypes(),
+            'after:--palette--;;canonical'
+        );
     }
 
     protected function addDescriptionField(): void
