@@ -14,6 +14,7 @@ Besides the free version of our plugin, we also have a premium version. The free
 - Optimized pagination of Overview module
 - Fixed PHP8 error when the metatag `x-yoast-title-config` (for some reason) cannot be read from the frontend
 - Added extra try-catch block to catch guzzle exceptions within `PreviewService`
+- Path to the Yoast Backend CSS for the new composer mode
 
 ## 8.2.0 June 23, 2022
 ### Added
