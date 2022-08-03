@@ -52,7 +52,7 @@ class Record
         return $this->defaultSeoFields;
     }
 
-    public function setDefaultSeoFields(bool $defaultSeoFields): Record
+    public function setDefaultSeoFields(bool $defaultSeoFields): self
     {
         $this->defaultSeoFields = $defaultSeoFields;
         return $this;
@@ -63,7 +63,7 @@ class Record
         return $this->yoastSeoFields;
     }
 
-    public function setYoastSeoFields(bool $yoastSeoFields): Record
+    public function setYoastSeoFields(bool $yoastSeoFields): self
     {
         $this->yoastSeoFields = $yoastSeoFields;
         return $this;
@@ -74,7 +74,7 @@ class Record
         return $this->types;
     }
 
-    public function setTypes(string $types): Record
+    public function setTypes(string $types): self
     {
         $this->types = $types;
         return $this;
@@ -85,7 +85,7 @@ class Record
         return $this->titleField;
     }
 
-    public function setTitleField(string $titleField): Record
+    public function setTitleField(string $titleField): self
     {
         $this->titleField = $titleField;
         return $this;
@@ -96,7 +96,7 @@ class Record
         return $this->descriptionField;
     }
 
-    public function setDescriptionField(string $descriptionField): Record
+    public function setDescriptionField(string $descriptionField): self
     {
         $this->descriptionField = $descriptionField;
         return $this;
@@ -107,7 +107,7 @@ class Record
         return $this->addDescriptionField;
     }
 
-    public function setAddDescriptionField(bool $addDescriptionField): Record
+    public function setAddDescriptionField(bool $addDescriptionField): self
     {
         $this->addDescriptionField = $addDescriptionField;
         return $this;
@@ -118,7 +118,7 @@ class Record
         return $this->fieldsPosition;
     }
 
-    public function setFieldsPosition(string $fieldsPosition): Record
+    public function setFieldsPosition(string $fieldsPosition): self
     {
         $this->fieldsPosition = $fieldsPosition;
         return $this;
@@ -129,7 +129,7 @@ class Record
         return $this->overrideTca;
     }
 
-    public function setOverrideTca(array $overrideTca): Record
+    public function setOverrideTca(array $overrideTca): self
     {
         $this->overrideTca = $overrideTca;
         return $this;
@@ -140,7 +140,7 @@ class Record
         return $this->getParameters;
     }
 
-    public function setGetParameters(array $getParameters): Record
+    public function setGetParameters(array $getParameters): self
     {
         $this->getParameters = $getParameters;
         return $this;
@@ -151,7 +151,7 @@ class Record
         return $this->recordUid;
     }
 
-    public function setRecordUid(int $recordUid): Record
+    public function setRecordUid(int $recordUid): self
     {
         $this->recordUid = $recordUid;
         return $this;
@@ -162,7 +162,7 @@ class Record
         return $this->recordData;
     }
 
-    public function setRecordData(array $recordData): Record
+    public function setRecordData(array $recordData): self
     {
         $this->recordData = $recordData;
         return $this;
@@ -173,7 +173,7 @@ class Record
         return $this->generatePageTitle;
     }
 
-    public function setGeneratePageTitle(bool $generatePageTitle): Record
+    public function setGeneratePageTitle(bool $generatePageTitle): self
     {
         $this->generatePageTitle = $generatePageTitle;
         return $this;
@@ -184,7 +184,7 @@ class Record
         return $this->generateMetaTags;
     }
 
-    public function setGenerateMetaTags(bool $generateMetaTags): Record
+    public function setGenerateMetaTags(bool $generateMetaTags): self
     {
         $this->generateMetaTags = $generateMetaTags;
         return $this;

@@ -65,8 +65,9 @@ class TcaBuilder extends AbstractBuilder
             $tca
         );
 
-        ExtensionManagementUtility::addToAllTCAtypes($this->record->getTableName(), '
-            --div--;LLL:EXT:seo/Resources/Private/Language/locallang_tca.xlf:pages.tabs.seo,
+        ExtensionManagementUtility::addToAllTCAtypes(
+            $this->record->getTableName(),
+            '--div--;LLL:EXT:seo/Resources/Private/Language/locallang_tca.xlf:pages.tabs.seo,
                 --palette--;;seo,
                 --palette--;;robots,
                 --palette--;;canonical,

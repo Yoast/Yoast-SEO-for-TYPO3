@@ -17,7 +17,7 @@ class RecordRegistry implements SingletonInterface
      */
     protected ?array $records = null;
 
-    public static function getInstance(): RecordRegistry
+    public static function getInstance(): self
     {
         return GeneralUtility::makeInstance(__CLASS__);
     }
