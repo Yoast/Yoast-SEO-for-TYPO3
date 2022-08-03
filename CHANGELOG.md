@@ -8,6 +8,10 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## UNRELEASED
+### Fixed
+- Github CI pipelines by adding the correct "allow-plugins" to composer.json
+
 ## 8.3.0 August 3, 2022
 ### Fixed
 - Lists within the Overview module now take the "DB Mounts" of a user into account
