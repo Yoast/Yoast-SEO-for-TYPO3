@@ -8,6 +8,14 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## UNRELEASED
+### Fixed
+- Lists within the Overview module now take the "DB Mounts" of a user into account
+- Optimized pagination of Overview module
+- Fixed PHP8 error when the metatag `x-yoast-title-config` (for some reason) cannot be read from the frontend
+- Added extra try-catch block to catch guzzle exceptions within `PreviewService`
+- Path to the Yoast Backend CSS for the new composer mode
+
 ## 8.2.0 June 23, 2022
 ### Added
 - Support for new TYPO3 composer mode

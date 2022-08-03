@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\Controller;
 
 /*
@@ -24,13 +26,13 @@ use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Page\PageRenderer;
-use TYPO3\CMS\Core\Pagination\ArrayPaginator;
-use TYPO3\CMS\Core\Pagination\SimplePagination;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
+use YoastSeoForTypo3\YoastSeo\Pagination\ArrayPaginator;
+use YoastSeoForTypo3\YoastSeo\Pagination\Pagination;
 
 /**
  * Class OverviewController
@@ -119,7 +121,9 @@ class OverviewController extends ActionController
 
         $this->currentFilter = $this->filters[$this->activeFilter];
 
-        $publicResourcesPath = PathUtility::getAbsoluteWebPath(ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
+        $publicResourcesPath = PathUtility::getAbsoluteWebPath(
+            ExtensionManagementUtility::extPath('yoast_seo') . 'Resources/Public/'
+        );
 
         $this->pageRenderer->addCssFile(
             $publicResourcesPath . 'CSS/yoast-seo-backend.min.css'
@@ -134,8 +138,13 @@ class OverviewController extends ActionController
         $params = $this->getParams();
         $items = GeneralUtility::callUserFunction($this->currentFilter['dataProvider'], $params, $this) ?: [];
 
-        $arrayPaginator = $this->getArrayPaginator($items, $currentPage, (int)$this->settings['itemsPerPage']);
-        $pagination = $this->getPagination($arrayPaginator);
+        $arrayPaginator = GeneralUtility::makeInstance(
+            ArrayPaginator::class,
+            $items,
+            $currentPage,
+            (int)$this->settings['itemsPerPage']
+        );
+        $pagination = GeneralUtility::makeInstance(Pagination::class, $arrayPaginator);
 
         $this->view->assignMultiple([
             'items' => $items,
@@ -170,7 +179,11 @@ class OverviewController extends ActionController
         ) {
             $params = $this->getParams();
             foreach ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['overview_filters'] as $key => &$filter) {
-                $filter['numberOfItems'] = (int)GeneralUtility::callUserFunction($filter['countProvider'], $params, $this);
+                $filter['numberOfItems'] = (int)GeneralUtility::callUserFunction(
+                    $filter['countProvider'],
+                    $params,
+                    $this
+                );
             }
             return (array)$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['overview_filters'];
         }
@@ -233,7 +246,9 @@ class OverviewController extends ActionController
             $lang = $this->getLanguageService();
             $languageMenu = $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->makeMenu();
             $languageMenu->setIdentifier('languageMenu');
-            $languageMenu->setLabel($lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.language'));
+            $languageMenu->setLabel(
+                $lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.language')
+            );
             $returnUrl = ($this->request->hasArgument('returnUrl')) ? $this->request->getArgument('returnUrl') : '';
             foreach ($this->MOD_MENU['language'] as $key => $language) {
                 $parameters = [
@@ -261,32 +276,6 @@ class OverviewController extends ActionController
             }
             $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->addMenu($languageMenu);
         }
-    }
-
-    /**
-     * @param array $items
-     * @param int   $currentPage
-     * @param int   $itemsPerPage
-     * @return \TYPO3\CMS\Core\Pagination\ArrayPaginator|\YoastSeoForTypo3\YoastSeo\Pagination\ArrayPaginator
-     */
-    protected function getArrayPaginator(array $items, int $currentPage, int $itemsPerPage)
-    {
-        if (class_exists(ArrayPaginator::class)) {
-            return new ArrayPaginator($items, $currentPage, $itemsPerPage);
-        }
-        return new \YoastSeoForTypo3\YoastSeo\Pagination\ArrayPaginator($items, $currentPage, $itemsPerPage);
-    }
-
-    /**
-     * @param $arrayPaginator
-     * @return \TYPO3\CMS\Core\Pagination\SimplePagination|\YoastSeoForTypo3\YoastSeo\Pagination\SimplePagination
-     */
-    protected function getPagination($arrayPaginator)
-    {
-        if (class_exists(SimplePagination::class)) {
-            return new SimplePagination($arrayPaginator);
-        }
-        return new \YoastSeoForTypo3\YoastSeo\Pagination\SimplePagination($arrayPaginator);
     }
 
     /**
