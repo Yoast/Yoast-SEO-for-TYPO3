@@ -215,12 +215,11 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['canonicalFie
     = \YoastSeoForTypo3\YoastSeo\Install\CanonicalFieldUpdate::class;
 
 if (TYPO3_MODE === 'BE') {
-    $publicResourcesPath =
-        \TYPO3\CMS\Core\Utility\PathUtility::getAbsoluteWebPath(\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
+    $publicResourcesPath = \YoastSeoForTypo3\YoastSeo\Utility\PathUtility::getPublicPathToResources();
 
     /** @var \TYPO3\CMS\Core\Page\PageRenderer $pageRenderer */
     $pageRenderer = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Core\Page\PageRenderer::class);
-    $pageRenderer->addInlineSetting('Yoast', 'backendCssUrl', $publicResourcesPath . 'CSS/yoast-seo-backend.min.css');
+    $pageRenderer->addInlineSetting('Yoast', 'backendCssUrl', $publicResourcesPath . '/CSS/yoast-seo-backend.min.css');
 }
 
 $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['yoastseo_recordcache'] ??= [];

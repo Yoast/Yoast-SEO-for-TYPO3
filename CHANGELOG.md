@@ -15,6 +15,18 @@ Besides the free version of our plugin, we also have a premium version. The free
 ### Added
 - New feature to automatically activate Yoast SEO functionality on custom records
 
+## 8.3.1 August 3, 2022
+### Fixed
+- Github CI pipelines by adding the correct "allow-plugins" to composer.json
+
+## 8.3.0 August 3, 2022
+### Fixed
+- Lists within the Overview module now take the "DB Mounts" of a user into account
+- Optimized pagination of Overview module
+- Fixed PHP8 error when the metatag `x-yoast-title-config` (for some reason) cannot be read from the frontend
+- Added extra try-catch block to catch guzzle exceptions within `PreviewService`
+- Path to the Yoast Backend CSS for the new composer mode
+
 ## 8.2.0 June 23, 2022
 ### Added
 - Support for new TYPO3 composer mode

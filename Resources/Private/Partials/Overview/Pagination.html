@@ -32,6 +32,11 @@
 							</li>
 						</f:else>
 					</f:if>
+					<f:if condition="{pagination.hasLessPages}">
+						<li class="page-item">
+							<span class="page-link">..</span>
+						</li>
+					</f:if>
 					<f:for each="{pagination.allPageNumbers}" as="page">
 						<f:if condition="{page} == {paginator.currentPageNumber}">
 							<f:then>
@@ -53,6 +58,11 @@
 							</f:else>
 						</f:if>
 					</f:for>
+					<f:if condition="{pagination.hasMorePages}">
+						<li class="page-item">
+							<span class="page-link">..</span>
+						</li>
+					</f:if>
 					<f:if condition="{pagination.nextPageNumber}">
 						<f:then>
 							<li class="page-item">
