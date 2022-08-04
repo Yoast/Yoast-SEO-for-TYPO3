@@ -1,8 +1,8 @@
 parameters:
   level: 0
   paths:
-    - Classes
-    - Configuration
+    - ../Classes
+    - ../Configuration
   ignoreErrors:
     - '#Parameter \$event of method#'
     - '#Class TYPO3\\CMS\\Core\\Domain\\Repository\\PageRepository not found.#'

@@ -6,7 +6,7 @@ module.exports = function(grunt) {
     var project = {
         pkg: grunt.file.readJSON('package.json'),
         paths: {
-            languages: 'Resources/Private/Language/'
+            languages: './../Resources/Private/Language/'
         }
     };
 

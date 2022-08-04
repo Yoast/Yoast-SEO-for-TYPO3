@@ -12,6 +12,10 @@ Besides the free version of our plugin, we also have a premium version. The free
 ### Breaking
 - Dropped support for PHP <7.4
 
+### Changed
+- All javascript related build configuration (grunt, webpack) has been moved to the `grunt` directory
+- All build related files (phpstan, phplint, php-cs-fixer) has been moved to the `.Build` directory
+
 ### Added
 - New feature to automatically activate Yoast SEO functionality on custom records
 

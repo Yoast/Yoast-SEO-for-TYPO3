@@ -5,13 +5,16 @@ const PORT = 3333;
 
 module.exports = {
     entry: {
-        plugin: ['@babel/polyfill', './Resources/Public/JavaScript/plugin.js'],
-        worker: ['@babel/polyfill', './Resources/Public/JavaScript/worker.js']
+        plugin: ['@babel/polyfill', './../Resources/Public/JavaScript/plugin.js'],
+        worker: ['@babel/polyfill', './../Resources/Public/JavaScript/worker.js']
     },
     output: {
         filename: '[name].js',
-        path: path.resolve(__dirname, 'Resources/Public/JavaScript/dist'),
+        path: path.resolve(__dirname, '../Resources/Public/JavaScript/dist'),
         publicPath: `https://localhost:${PORT}/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/`
+    },
+    resolve: {
+        modules: [path.join(__dirname, 'node_modules')]
     },
     module: {
         rules: [
