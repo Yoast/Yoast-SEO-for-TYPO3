@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\StructuredData;
 
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
@@ -13,7 +15,7 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
     /**
      * @var TypoScriptFrontendController
      */
-    protected $tsfe;
+    protected TypoScriptFrontendController $tsfe;
 
     /**
      * @var PageRepository
@@ -23,15 +25,16 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
     /**
      * @var SiteFinder
      */
-    protected $siteFinder;
+    protected SiteFinder $siteFinder;
 
     /**
      * @var array
      */
-    protected $configuration;
+    protected array $configuration = [];
 
     /**
      * SiteStructuredDataProvider constructor.
+     *
      * @param TypoScriptFrontendController|null $tsfe
      * @param PageRepository|null $pageRepository
      * @param SiteFinder|null $siteFinder
@@ -47,8 +50,8 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
     }
 
     /**
-     * @return array
      * @throws \TYPO3\CMS\Core\Exception\SiteNotFoundException
+     * @return array
      */
     public function getData(): array
     {
@@ -67,8 +70,8 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
 
     /**
      * @param int $pageId
-     * @return string
      * @throws \TYPO3\CMS\Core\Exception\SiteNotFoundException
+     * @return string
      */
     protected function getUrl(int $pageId): string
     {
@@ -84,8 +87,8 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
 
     /**
      * @param int $pageId
-     * @return string
      * @throws \TYPO3\CMS\Core\Exception\SiteNotFoundException
+     * @return string
      */
     protected function getName(int $pageId): string
     {

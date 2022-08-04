@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\Utility;
 
 use TYPO3\CMS\Core\SingletonInterface;
@@ -7,7 +9,7 @@ use TYPO3\CMS\Core\Utility\ArrayUtility;
 
 class JsonConfigUtility implements SingletonInterface
 {
-    protected $config = [];
+    protected array $config = [];
 
     /**
      * @param array $config

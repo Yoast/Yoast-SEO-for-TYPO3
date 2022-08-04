@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\Frontend;
 
 use TYPO3\CMS\Core\SingletonInterface;
@@ -9,10 +11,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastRequestHash;
 
-/**
- * This class will take care of the different providers and returns the title with
- * the highest priority
- */
 class AdditionalPreviewData implements SingletonInterface
 {
     /**
@@ -55,7 +53,8 @@ class AdditionalPreviewData implements SingletonInterface
         $request = $GLOBALS['TYPO3_REQUEST'];
         if (class_exists(SiteLanguage::class)) {
             $language = $request->getAttribute('language');
-            if ($language instanceof SiteLanguage && method_exists($language, 'getWebsiteTitle') && trim($language->getWebsiteTitle())) {
+            if ($language instanceof SiteLanguage && method_exists($language, 'getWebsiteTitle')
+                && trim($language->getWebsiteTitle())) {
                 return trim($language->getWebsiteTitle());
             }
         }

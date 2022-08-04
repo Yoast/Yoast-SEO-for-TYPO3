@@ -4,19 +4,6 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Controller;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
-
 use TYPO3\CMS\Backend\Routing\Exception\RouteNotFoundException;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Backend\View\BackendTemplateView;
@@ -24,15 +11,13 @@ use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 use TYPO3\CMS\Core\Localization\LanguageService;
-use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Page\PageRenderer;
-use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
 use YoastSeoForTypo3\YoastSeo\Pagination\ArrayPaginator;
 use YoastSeoForTypo3\YoastSeo\Pagination\Pagination;
+use YoastSeoForTypo3\YoastSeo\Utility\PathUtility;
 
 /**
  * Class OverviewController
@@ -50,7 +35,7 @@ class OverviewController extends ActionController
     /**
      * @var string
      */
-    protected $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:';
+    protected string $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:';
 
     /**
      * BackendTemplateContainer
@@ -62,27 +47,23 @@ class OverviewController extends ActionController
     /**
      * @var string
      */
-    protected $activeFilter;
+    protected string $activeFilter = '';
 
     /**
      * @var array
      */
-    protected $currentFilter;
+    protected array $currentFilter = [];
 
     /**
      * @var array
      */
-    protected $filters;
+    protected array $filters = [];
 
     /**
-     * @var PageRenderer
+     * @var PageRenderer|null
      */
-    protected $pageRenderer;
+    protected ?PageRenderer $pageRenderer = null;
 
-    /**
-     * @var Locales
-     */
-    protected $localeService;
     /**
      * @var array[]
      */
@@ -109,9 +90,6 @@ class OverviewController extends ActionController
     {
         parent::initializeAction();
 
-        if (!($this->localeService instanceof Locales)) {
-            $this->localeService = GeneralUtility::makeInstance(Locales::class);
-        }
         if (!($this->pageRenderer instanceof PageRenderer)) {
             $this->pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
         }
@@ -121,12 +99,8 @@ class OverviewController extends ActionController
 
         $this->currentFilter = $this->filters[$this->activeFilter];
 
-        $publicResourcesPath = PathUtility::getAbsoluteWebPath(
-            ExtensionManagementUtility::extPath('yoast_seo') . 'Resources/Public/'
-        );
-
         $this->pageRenderer->addCssFile(
-            $publicResourcesPath . 'CSS/yoast-seo-backend.min.css'
+            PathUtility::getPublicPathToResources() . '/CSS/yoast-seo-backend.min.css'
         );
     }
 

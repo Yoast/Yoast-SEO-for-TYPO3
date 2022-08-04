@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\Controller;
 
 use Psr\Http\Message\ResponseInterface;
@@ -18,8 +20,8 @@ class AjaxController
 {
     /**
      * @param \Psr\Http\Message\ServerRequestInterface $request
-     * @return \Psr\Http\Message\ResponseInterface
      * @throws \Exception
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function previewAction(
         ServerRequestInterface $request

@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
@@ -28,6 +30,7 @@ class LocaleService
 
     /**
      * LocaleService constructor.
+     *
      * @param array $configuration
      */
     public function __construct(array $configuration)

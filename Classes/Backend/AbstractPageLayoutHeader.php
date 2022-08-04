@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\Backend;
 
 use TYPO3\CMS\Backend\Controller\PageLayoutController;
@@ -17,7 +19,7 @@ abstract class AbstractPageLayoutHeader
     /**
      * @var array
      */
-    protected $configuration = [
+    protected array $configuration = [
         'translations' => [
             'availableLocales' => [],
             'languageKeyToLocaleMapping' => []
@@ -27,17 +29,17 @@ abstract class AbstractPageLayoutHeader
     /**
      * @var \YoastSeoForTypo3\YoastSeo\Service\LocaleService
      */
-    protected $localeService;
+    protected LocaleService $localeService;
 
     /**
      * @var \YoastSeoForTypo3\YoastSeo\Service\UrlService
      */
-    protected $urlService;
+    protected UrlService $urlService;
 
     /**
      * @var \TYPO3\CMS\Core\Page\PageRenderer
      */
-    protected $pageRenderer;
+    protected PageRenderer $pageRenderer;
 
     /**
      * @var \YoastSeoForTypo3\YoastSeo\Service\PageHeaderService

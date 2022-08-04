@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
 use GuzzleHttp\Exception\RequestException;
@@ -18,19 +20,19 @@ class PreviewService
      *
      * @var int
      */
-    protected $pageId;
+    protected int $pageId = 0;
 
     /**
      * Typoscript config
      *
      * @var array
      */
-    protected $config;
+    protected array $config = [];
 
     /**
      * @var \TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer
      */
-    protected $cObj;
+    protected ContentObjectRenderer $cObj;
 
     /**
      * Get preview data
@@ -63,8 +65,8 @@ class PreviewService
      * Get content from url
      *
      * @param string $uriToCheck
-     * @return null|string
      * @throws \TYPO3\CMS\Core\Exception
+     * @return null|string
      */
     protected function getContentFromUrl(string $uriToCheck): ?string
     {

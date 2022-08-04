@@ -11,7 +11,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class PageAccessUtility
 {
-    protected static $cache = [];
+    protected static array $cache = [];
 
     public static function getPageIds(): ?array
     {
