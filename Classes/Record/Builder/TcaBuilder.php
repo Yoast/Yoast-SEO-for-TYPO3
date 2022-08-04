@@ -39,6 +39,13 @@ class TcaBuilder extends AbstractBuilder
             'generatePageTitle' => $this->record->shouldGeneratePageTitle(),
             'generateMetaTags' => $this->record->shouldGenerateMetaTags(),
         ];
+
+        if (!empty($this->record->getOverrideTca())) {
+            $GLOBALS['TCA'][$this->record->getTableName()] = array_replace_recursive(
+                $GLOBALS['TCA'][$this->record->getTableName()],
+                $this->record->getOverrideTca()
+            );
+        }
     }
 
     protected function addDefaultSeoFields(): void
