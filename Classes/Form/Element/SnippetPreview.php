@@ -193,6 +193,7 @@ class SnippetPreview extends AbstractNode
                 'data' => [
                     'table' => $this->data['tableName'],
                     'uid' => (int)$this->data['databaseRow']['uid'],
+                    'pid' => (int)$this->data['databaseRow']['pid'],
                     'languageId' => (int)$this->languageId
                 ],
                 'fieldSelectors' => [

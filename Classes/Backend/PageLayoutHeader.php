@@ -49,6 +49,7 @@ class PageLayoutHeader extends AbstractPageLayoutHeader
                 'data' => [
                     'table' => 'pages',
                     'uid' => $pageId,
+                    'pid' => $currentPage['pid'],
                     'languageId' => (int)$moduleData['language']
                 ],
             ];
