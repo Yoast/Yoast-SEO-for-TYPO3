@@ -9,6 +9,8 @@ if (TYPO3_MODE === 'FE') {
         = \YoastSeoForTypo3\YoastSeo\Frontend\AdditionalPreviewData::class . '->render';
     $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['usePageCache'][]
         = \YoastSeoForTypo3\YoastSeo\Frontend\UsePageCache::class;
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['TYPO3\CMS\Frontend\Page\PageGenerator']['generateMetaTags']['yoastRecord']
+        = \YoastSeoForTypo3\YoastSeo\MetaTag\RecordMetaTagGenerator::class . '->generate';
 }
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
@@ -184,6 +186,12 @@ $defaultConfiguration = [
             'dataProvider' => YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutDescriptionOverviewDataProvider::class . '->process',
             'countProvider' => YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutDescriptionOverviewDataProvider::class . '->numberOfItems'
         ],
+    ],
+    'recordMetaTags' => [
+        'description' => \YoastSeoForTypo3\YoastSeo\MetaTag\Generator\DescriptionGenerator::class,
+        'opengraph' => \YoastSeoForTypo3\YoastSeo\MetaTag\Generator\OpenGraphGenerator::class,
+        'twitter' => \YoastSeoForTypo3\YoastSeo\MetaTag\Generator\TwitterGenerator::class,
+        'robots' => \YoastSeoForTypo3\YoastSeo\MetaTag\Generator\RobotsGenerator::class,
     ]
 ];
 
@@ -206,19 +214,6 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['seoTitleUpda
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['canonicalFieldUpdate']
     = \YoastSeoForTypo3\YoastSeo\Install\CanonicalFieldUpdate::class;
 
-\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScriptSetup(trim('
-    config.structuredData.providers {
-        breadcrumb {
-            provider = YoastSeoForTypo3\YoastSeo\StructuredData\BreadcrumbStructuredDataProvider
-            after = site
-            excludedDoktypes =
-        }
-        site {
-            provider = YoastSeoForTypo3\YoastSeo\StructuredData\SiteStructuredDataProvider
-        }
-    }
-'));
-
 if (TYPO3_MODE === 'BE') {
     $publicResourcesPath = \YoastSeoForTypo3\YoastSeo\Utility\PathUtility::getPublicPathToResources();
 
@@ -226,3 +221,6 @@ if (TYPO3_MODE === 'BE') {
     $pageRenderer = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Core\Page\PageRenderer::class);
     $pageRenderer->addInlineSetting('Yoast', 'backendCssUrl', $publicResourcesPath . '/CSS/yoast-seo-backend.min.css');
 }
+
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['yoastseo_recordcache'] ??= [];
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['yoastseo_recordcache']['groups'] ??= ['system'];
