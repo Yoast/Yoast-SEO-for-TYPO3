@@ -93,7 +93,7 @@ class UrlService implements SingletonInterface
      */
     public function checkMountPoint(int &$pageId, &$additionalGetVars): void
     {
-        $pageRepository = $this->getPageRepository();
+        $pageRepository = GeneralUtility::makeInstance(PageRepository::class);
         $mountPointInformation = $pageRepository->getMountPointInfo($pageId);
         if ($mountPointInformation && $mountPointInformation['overlay']) {
             // New page id
@@ -141,17 +141,6 @@ class UrlService implements SingletonInterface
         parse_str($additionalGetVars, $additionalQueryParams);
         $additionalQueryParams['_language'] = $site->getLanguageById($languageId);
         return $site->getRouter()->generateUri($pageId, $additionalQueryParams);
-    }
-
-    /**
-     * @return \TYPO3\CMS\Core\Domain\Repository\PageRepository|\TYPO3\CMS\Frontend\Page\PageRepository
-     */
-    protected function getPageRepository()
-    {
-        if (class_exists(PageRepository::class)) {
-            return GeneralUtility::makeInstance(PageRepository::class);
-        }
-        return GeneralUtility::makeInstance(\TYPO3\CMS\Frontend\Page\PageRepository::class);
     }
 
     /**

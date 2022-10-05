@@ -43,10 +43,7 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
     {
         $this->setTsfe($tsfe);
         $this->setPageRepository($pageRepository);
-
-        if (class_exists(SiteFinder::class)) {
-            $this->setSiteFinder($siteFinder);
-        }
+        $this->setSiteFinder($siteFinder);
     }
 
     /**
@@ -110,20 +107,14 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
     }
 
     /**
-     * @param PageRepository|\TYPO3\CMS\Frontend\Page\PageRepository|null $pageRepository
+     * @param PageRepository|null $pageRepository
      */
     protected function setPageRepository($pageRepository): void
     {
-        if (class_exists(PageRepository::class)) {
-            if ($pageRepository instanceof PageRepository) {
-                $this->pageRepository = $pageRepository;
-            } else {
-                $this->pageRepository = GeneralUtility::makeInstance(PageRepository::class);
-            }
-        } elseif ($pageRepository instanceof \TYPO3\CMS\Frontend\Page\PageRepository) {
+        if ($pageRepository instanceof PageRepository) {
             $this->pageRepository = $pageRepository;
         } else {
-            $this->pageRepository = GeneralUtility::makeInstance(\TYPO3\CMS\Frontend\Page\PageRepository::class);
+            $this->pageRepository = GeneralUtility::makeInstance(PageRepository::class);
         }
     }
 

@@ -7,7 +7,6 @@ namespace YoastSeoForTypo3\YoastSeo\StructuredData;
 use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException;
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
-use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Service\DependencyOrderingService;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\TypoScript\TypoScriptService;
@@ -158,7 +157,7 @@ class StructuredDataProviderManager implements SingletonInterface
     {
         try {
             $this->pageCache = GeneralUtility::makeInstance(CacheManager::class)->getCache(
-                GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 10 ? 'cache_pages' : 'pages'
+                'pages'
             );
         } catch (NoSuchCacheException $e) {
             // @ignoreException

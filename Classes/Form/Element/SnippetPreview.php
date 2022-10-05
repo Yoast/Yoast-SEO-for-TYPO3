@@ -368,7 +368,7 @@ class SnippetPreview extends AbstractNode
             $currentPage = reset($rootLine);
             // Allow all doktypes below 200
             // This makes custom doktype work as well with opening a frontend page.
-            if ((int)$currentPage['doktype'] <= $this->getSpacerDoktype()) {
+            if ((int)$currentPage['doktype'] <= PageRepository::DOKTYPE_SPACER) {
                 // try the current page
                 $previewPageId = $currentPageId;
             } else {
@@ -411,17 +411,6 @@ class SnippetPreview extends AbstractNode
                 $parameters[$key] = $value;
             }
         }
-    }
-
-    /**
-     * @return int
-     */
-    protected function getSpacerDoktype(): int
-    {
-        if (class_exists(PageRepository::class)) {
-            return PageRepository::DOKTYPE_SPACER;
-        }
-        return \TYPO3\CMS\Frontend\Page\PageRepository::DOKTYPE_SPACER;
     }
 
     /**

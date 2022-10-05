@@ -8,6 +8,16 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## Yoast SEO Premium for TYPO3
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
+## UNRELEASED
+### Breaking
+- Dropped support for CMS9
+
+### Changed
+- Simplified `ext_localconf` and `ext_tables.php`
+  - Removed `TYPO3_MODE` checks
+  - Introduced `ConfigurationUtility` which provides the default configuration and nodes for the formEngine and
+  - Merged adding the `YoastConfig` javascript and backend CSS into one `BackendYoastConfig` hook
+
 ## 9.0.0-alpha-1 August 16, 2022
 ### Breaking
 - Dropped support for PHP <7.4
