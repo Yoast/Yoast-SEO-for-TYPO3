@@ -1,16 +1,15 @@
 <?php
+
 declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\Controller;
 
 use TYPO3\CMS\Backend\View\BackendTemplateView;
-use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
-use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Page\PageRenderer;
-use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
+use YoastSeoForTypo3\YoastSeo\Utility\PathUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class ModuleController extends ActionController
@@ -24,16 +23,9 @@ class ModuleController extends ActionController
     protected $defaultViewObjectName = BackendTemplateView::class;
 
     /**
-     * BackendTemplateContainer
-     *
-     * @var BackendTemplateView
+     * @var PageRenderer|null
      */
-    protected $view;
-
-    /**
-     * @var PageRenderer
-     */
-    protected $pageRenderer;
+    protected ?PageRenderer $pageRenderer = null;
 
     /**
      * @param ViewInterface $view
@@ -59,10 +51,8 @@ class ModuleController extends ActionController
             $this->pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
         }
 
-        $publicResourcesPath = PathUtility::getAbsoluteWebPath(ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
-
         $this->pageRenderer->addCssFile(
-            $publicResourcesPath . 'CSS/yoast-seo-backend.min.css'
+            PathUtility::getPublicPathToResources() . '/CSS/yoast-seo-backend.min.css'
         );
     }
 
@@ -99,8 +89,8 @@ class ModuleController extends ActionController
     /**
      * Registers the Icons into the docheader
      *
-     * @return void
      * @throws \InvalidArgumentException
+     * @return void
      */
     protected function registerDocheaderButtons(): void
     {
@@ -111,25 +101,5 @@ class ModuleController extends ActionController
             ->setModuleName($moduleName)
             ->setGetVariables(['id' => (int)GeneralUtility::_GP('id')]);
         $buttonBar->addButton($shortcutButton);
-    }
-
-    /**
-     * Returns LanguageService
-     *
-     * @return \TYPO3\CMS\Core\Localization\LanguageService
-     */
-    public function getLanguageService(): LanguageService
-    {
-        return $GLOBALS['LANG'];
-    }
-
-    /**
-     * Returns the current BE user.
-     *
-     * @return \TYPO3\CMS\Core\Authentication\BackendUserAuthentication
-     */
-    public function getBackendUser(): BackendUserAuthentication
-    {
-        return $GLOBALS['BE_USER'];
     }
 }

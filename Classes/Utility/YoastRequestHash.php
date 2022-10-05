@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\Utility;
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;

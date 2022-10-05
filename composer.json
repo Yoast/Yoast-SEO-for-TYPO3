@@ -75,13 +75,13 @@
   },
   "scripts": {
     "test:php:lint": [
-      "phplint"
+      "phplint --configuration=.Build/.phplint.yml"
     ],
     "cgl": [
-      "php-cs-fixer fix -v --dry-run --using-cache no --diff"
+      "php-cs-fixer fix --config=.Build/.php-cs-fixer.php -v --dry-run --using-cache no --diff"
     ],
     "cgl-fix": [
-      "php-cs-fixer fix -v --using-cache no"
+      "php-cs-fixer fix --config=.Build/.php-cs-fixer.php -v --using-cache no"
     ],
     "test:php:phpstan": [
       "phpstan analyse"

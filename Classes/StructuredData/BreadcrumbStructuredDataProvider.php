@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\StructuredData;
@@ -29,6 +30,7 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
 
     /**
      * BreadcrumbStructuredDataProvider constructor.
+     *
      * @param null $tsfe
      * @param null $siteFinder
      */
@@ -42,8 +44,8 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
     }
 
     /**
-     * @return array
      * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
+     * @return array
      */
     public function getData(): array
     {
@@ -52,7 +54,9 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         $rootLine = $this->tsfe->rootLine ?: [];
         ksort($rootLine);
 
-        $excludedDoktypes = $this->configuration['excludedDoktypes'] ? GeneralUtility::intExplode(',', $this->configuration['excludedDoktypes']) : [];
+        $excludedDoktypes = $this->configuration['excludedDoktypes']
+            ? GeneralUtility::intExplode(',', $this->configuration['excludedDoktypes'])
+            : [];
         $breadcrumbs = [];
         $iterator = 1;
         $siteRootFound = false;
@@ -102,8 +106,8 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
 
     /**
      * @param int $pageId
-     * @return string
      * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
+     * @return string
      */
     protected function getUrlForPage(int $pageId): string
     {
@@ -134,8 +138,8 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
     }
 
     /**
-     * @return int
      * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
+     * @return int
      */
     protected function getLanguage(): int
     {

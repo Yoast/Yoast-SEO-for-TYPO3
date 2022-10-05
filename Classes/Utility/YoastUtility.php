@@ -1,19 +1,8 @@
 <?php
-declare(strict_types=1);
-namespace YoastSeoForTypo3\YoastSeo\Utility;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
+declare(strict_types=1);
+
+namespace YoastSeoForTypo3\YoastSeo\Utility;
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
@@ -34,15 +23,15 @@ class YoastUtility
     /**
      * @var string
      */
-    const COLUMN_NAME_FOCUSKEYWORD = 'tx_yoastseo_focuskeyword';
+    protected const COLUMN_NAME_FOCUSKEYWORD = 'tx_yoastseo_focuskeyword';
 
     /**
-     * @param array $configuration
+     * @param array|null $configuration
      * @param bool $returnInString
      *
      * @return array|string
      */
-    public static function getAllowedDoktypes($configuration = null, $returnInString = false)
+    public static function getAllowedDoktypes(?array $configuration = null, bool $returnInString = false)
     {
         // @phpstan-ignore-next-line
         $allowedDoktypes = array_map(function ($doktype) {
@@ -96,7 +85,7 @@ class YoastUtility
             return false;
         }
 
-        return ($pageRecord['tx_yoastseo_hide_snippet_preview']) ? false : true;
+        return !$pageRecord['tx_yoastseo_hide_snippet_preview'];
     }
 
     /**
@@ -105,7 +94,7 @@ class YoastUtility
      *
      * @return string|null
      */
-    public static function getFocusKeywordOfPage(int $uid, $table = 'pages'): ?string
+    public static function getFocusKeywordOfPage(int $uid, string $table = 'pages'): ?string
     {
         $focusKeyword = '';
         if (empty((int)$uid)) {
@@ -141,7 +130,9 @@ class YoastUtility
     public static function getRelatedKeyphrases(string $parentTable, int $parentId): array
     {
         $config = [];
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tx_yoast_seo_premium_focus_keywords');
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(
+            'tx_yoast_seo_premium_focus_keywords'
+        );
         $relatedKeyphrases = $queryBuilder->select('*')
             ->from('tx_yoast_seo_premium_focus_keywords')
             ->where(
@@ -198,15 +189,19 @@ class YoastUtility
             'yoastseo'
         );
     }
+
     /**
      * @param string $utm_term
      * @param string $utm_content
      * @param string $utm_source
-     * @return string
      * @throws Exception
+     * @return string
      */
-    public static function getYoastLink($utm_term = 'Go premium', $utm_content = '', $utm_source = 'yoast-seo-for-typo3'): string
-    {
+    public static function getYoastLink(
+        string $utm_term = 'Go premium',
+        string $utm_content = '',
+        string $utm_source = 'yoast-seo-for-typo3'
+    ): string {
         preg_match('/^(\d+\.\d+\.\d+).*/', phpversion(), $php_version);
         $parameters = [
             'utm_source' => $utm_source,

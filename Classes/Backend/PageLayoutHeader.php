@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\Backend;
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -10,7 +13,7 @@ class PageLayoutHeader extends AbstractPageLayoutHeader
 {
     /**
      * @param array|null $params
-     * @param null  $parentObj
+     * @param null $parentObj
      * @return string
      */
     public function render(array $params = null, $parentObj = null): string
@@ -46,6 +49,7 @@ class PageLayoutHeader extends AbstractPageLayoutHeader
                 'data' => [
                     'table' => 'pages',
                     'uid' => $pageId,
+                    'pid' => $currentPage['pid'],
                     'languageId' => (int)$moduleData['language']
                 ],
             ];
@@ -55,7 +59,9 @@ class PageLayoutHeader extends AbstractPageLayoutHeader
             if (YoastUtility::inProductionMode() === true) {
                 $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/dist/plugin');
             } else {
-                $this->pageRenderer->addHeaderData('<script type="text/javascript" src="https://localhost:3333/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/plugin.js" async></script>');
+                $this->pageRenderer->addHeaderData(
+                    '<script type="text/javascript" src="https://localhost:3333/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/plugin.js" async></script>'
+                );
             }
 
             $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/yoastModal');
@@ -111,8 +117,13 @@ class PageLayoutHeader extends AbstractPageLayoutHeader
         if (!YoastUtility::isPremiumInstalled()) {
             return '
                 <div class="yoast-seo-snippet-header-premium">
-                    <a target="_blank" rel="noopener noreferrer" href="' . YoastUtility::getYoastLink('Go premium', 'pagemodule-snippetpreview') . '">
-                        <i class="fa fa-star"></i>' . $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:goPremium') . '
+                    <a target="_blank" rel="noopener noreferrer" href="' . YoastUtility::getYoastLink(
+                    'Go premium',
+                    'pagemodule-snippetpreview'
+                ) . '">
+                        <i class="fa fa-star"></i>' . $GLOBALS['LANG']->sL(
+                    'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:goPremium'
+                ) . '
                     </a>
                 </div>';
         }

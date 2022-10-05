@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
 use Psr\Http\Message\UriInterface;
@@ -23,7 +25,7 @@ class UrlService implements SingletonInterface
     /**
      * @var \TYPO3\CMS\Backend\Routing\UriBuilder
      */
-    protected $uriBuilder;
+    protected UriBuilder $uriBuilder;
 
     /**
      * UrlService constructor.
@@ -44,16 +46,18 @@ class UrlService implements SingletonInterface
     public function getPreviewUrl(
         int $pageId,
         int $languageId,
-        $additionalGetVars = ''
+        string $additionalGetVars = ''
     ): string {
         return (string)$this->uriBuilder->buildUriFromRoute('ajax_yoast_preview', [
-            'pageId' => $pageId, 'languageId' => $languageId, 'additionalGetVars' => urlencode($additionalGetVars)
+            'pageId' => $pageId,
+            'languageId' => $languageId,
+            'additionalGetVars' => urlencode($additionalGetVars)
         ]);
     }
 
     /**
-     * @param int    $pageId
-     * @param int    $languageId
+     * @param int $pageId
+     * @param int $languageId
      * @param string $additionalGetVars
      * @return string
      */
@@ -108,7 +112,7 @@ class UrlService implements SingletonInterface
     }
 
     /**
-     * @param int   $pageId
+     * @param int $pageId
      * @param array $rootLine
      * @return \TYPO3\CMS\Core\Site\Entity\Site|null
      */
@@ -124,13 +128,13 @@ class UrlService implements SingletonInterface
 
     /**
      * @param \TYPO3\CMS\Core\Site\Entity\Site $site
-     * @param int                              $pageId
-     * @param int                              $languageId
-     * @param string                           $additionalGetVars
-     * @return \Psr\Http\Message\UriInterface
+     * @param int $pageId
+     * @param int $languageId
+     * @param string $additionalGetVars
      * @throws \TYPO3\CMS\Core\Routing\InvalidRouteArgumentsException
+     * @return \Psr\Http\Message\UriInterface
      */
-    public function generateUri(Site $site, int $pageId, int $languageId, $additionalGetVars = ''): UriInterface
+    public function generateUri(Site $site, int $pageId, int $languageId, string $additionalGetVars = ''): UriInterface
     {
         $additionalQueryParams = [];
         $additionalGetVars = rawurldecode($additionalGetVars);
@@ -174,13 +178,5 @@ class UrlService implements SingletonInterface
         } catch (RouteNotFoundException $e) {
             return '';
         }
-    }
-
-    /**
-     * @return \TYPO3\CMS\Core\Authentication\BackendUserAuthentication
-     */
-    protected function getBackendUser(): BackendUserAuthentication
-    {
-        return $GLOBALS['BE_USER'];
     }
 }

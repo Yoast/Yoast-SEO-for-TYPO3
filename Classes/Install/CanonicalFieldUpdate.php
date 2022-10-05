@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\Install;
 
 use Doctrine\DBAL\Exception\InvalidFieldNameException;

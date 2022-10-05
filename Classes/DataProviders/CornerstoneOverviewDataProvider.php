@@ -1,19 +1,8 @@
 <?php
 
-namespace YoastSeoForTypo3\YoastSeo\DataProviders;
+declare(strict_types=1);
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
+namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 
 use Doctrine\DBAL\Driver\ResultStatement;
 use TYPO3\CMS\Core\Database\ConnectionPool;
@@ -28,7 +17,7 @@ class CornerstoneOverviewDataProvider extends AbstractOverviewDataProvider
      * @param bool $returnOnlyCount
      * @return int|array
      */
-    public function getData($returnOnlyCount = false)
+    public function getData(bool $returnOnlyCount = false)
     {
         return $this->getRestrictedPagesResults($returnOnlyCount);
     }

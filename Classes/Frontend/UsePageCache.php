@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\Frontend;
 
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;

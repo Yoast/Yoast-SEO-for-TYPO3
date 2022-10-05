@@ -1,6 +1,6 @@
 services:
   _defaults:
-    autowire: false
+    autowire: true
     autoconfigure: true
     public: false
 

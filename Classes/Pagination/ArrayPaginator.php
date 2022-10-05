@@ -13,27 +13,27 @@ class ArrayPaginator
     /**
      * @var int
      */
-    protected $numberOfPages = 1;
+    protected int $numberOfPages = 1;
 
     /**
      * @var int
      */
-    private $currentPageNumber = 1;
+    private int $currentPageNumber = 1;
 
     /**
      * @var int
      */
-    private $itemsPerPage = 10;
+    private int $itemsPerPage = 10;
 
     /**
      * @var array
      */
-    private $items;
+    private array $items = [];
 
     /**
      * @var array
      */
-    private $paginatedItems = [];
+    private array $paginatedItems = [];
 
     public function __construct(
         array $items,

@@ -23,72 +23,72 @@ class SnippetPreview extends AbstractNode
     /**
      * @var StandaloneView
      */
-    protected $templateView;
+    protected StandaloneView $templateView;
 
     /**
      * @var string
      */
-    protected $titleField = 'title';
+    protected string $titleField = 'title';
 
     /**
      * @var string
      */
-    protected $pageTitleField = 'title';
+    protected string $pageTitleField = 'title';
 
     /**
      * @var string
      */
-    protected $descriptionField = 'description';
+    protected string $descriptionField = 'description';
 
     /**
      * @var string
      */
-    protected $focusKeywordField = 'tx_yoastseo_focuskeyword';
+    protected string $focusKeywordField = 'tx_yoastseo_focuskeyword';
 
     /**
      * @var string
      */
-    protected $focusKeywordSynonymsField = 'tx_yoastseo_focuskeyword_synonyms';
+    protected string $focusKeywordSynonymsField = 'tx_yoastseo_focuskeyword_synonyms';
 
     /**
      * @var string
      */
-    protected $cornerstoneField = 'tx_yoastseo_cornerstone';
+    protected string $cornerstoneField = 'tx_yoastseo_cornerstone';
 
     /**
      * @var string
      */
-    protected $relatedKeyphrases = 'tx_yoastseo_focuskeyword_premium';
+    protected string $relatedKeyphrases = 'tx_yoastseo_focuskeyword_premium';
 
     /**
      * @var string
      */
-    protected $table = 'pages';
+    protected string $table = 'pages';
 
     /**
      * @var string
      */
-    protected $previewUrl = '';
+    protected string $previewUrl = '';
 
     /**
      * @var int
      */
-    protected $languageId = 0;
+    protected int $languageId = 0;
 
     /**
      * @var \YoastSeoForTypo3\YoastSeo\Service\LocaleService
      */
-    protected $localeService;
+    protected LocaleService $localeService;
 
     /**
      * @var \YoastSeoForTypo3\YoastSeo\Service\UrlService
      */
-    protected $urlService;
+    protected UrlService $urlService;
 
     /**
      * @var array
      */
-    protected $configuration = [
+    protected array $configuration = [
         'translations' => [
             'availableLocales' => [],
             'languageKeyToLocaleMapping' => []
@@ -144,7 +144,7 @@ class SnippetPreview extends AbstractNode
 
         if (isset($this->data['databaseRow']['sys_language_uid'])) {
             if (is_array($this->data['databaseRow']['sys_language_uid']) && count($this->data['databaseRow']['sys_language_uid']) > 0) {
-                $this->languageId = current($this->data['databaseRow']['sys_language_uid']);
+                $this->languageId = (int)current($this->data['databaseRow']['sys_language_uid']);
             } else {
                 $this->languageId = (int)$this->data['databaseRow']['sys_language_uid'];
             }
@@ -193,6 +193,7 @@ class SnippetPreview extends AbstractNode
                 'data' => [
                     'table' => $this->data['tableName'],
                     'uid' => (int)$this->data['databaseRow']['uid'],
+                    'pid' => (int)$this->data['databaseRow']['pid'],
                     'languageId' => (int)$this->languageId
                 ],
                 'fieldSelectors' => [

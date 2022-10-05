@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
 use TYPO3\CMS\Core\SingletonInterface;
@@ -9,21 +11,21 @@ class PageHeaderService implements SingletonInterface
     /**
      * @var bool
      */
-    protected $snippetPreviewEnabled = false;
+    protected bool $snippetPreviewEnabled = false;
 
     /**
      * @var array
      */
-    protected $moduleData = [];
+    protected array $moduleData = [];
 
     /**
      * @var int
      */
-    protected $pageId = 0;
+    protected int $pageId = 0;
 
     public function setSnippetPreviewEnabled(bool $snippetPreviewEnabled): void
     {
-        $this->snippetPreviewEnabled = true;
+        $this->snippetPreviewEnabled = $snippetPreviewEnabled;
     }
 
     public function isSnippetPreviewEnabled(): bool
