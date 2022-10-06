@@ -8,39 +8,30 @@ use TYPO3\CMS\Core\SingletonInterface;
 
 class PageHeaderService implements SingletonInterface
 {
-    /**
-     * @var bool
-     */
     protected bool $snippetPreviewEnabled = false;
-
-    /**
-     * @var array
-     */
-    protected array $moduleData = [];
-
-    /**
-     * @var int
-     */
+    protected int $languageId = 0;
     protected int $pageId = 0;
-
-    public function setSnippetPreviewEnabled(bool $snippetPreviewEnabled): void
-    {
-        $this->snippetPreviewEnabled = $snippetPreviewEnabled;
-    }
 
     public function isSnippetPreviewEnabled(): bool
     {
         return $this->snippetPreviewEnabled;
     }
 
-    public function getModuleData(): array
+    public function setSnippetPreviewEnabled(bool $snippetPreviewEnabled): self
     {
-        return $this->moduleData;
+        $this->snippetPreviewEnabled = $snippetPreviewEnabled;
+        return $this;
     }
 
-    public function setModuleData(array $moduleData): void
+    public function getLanguageId(): int
     {
-        $this->moduleData = $moduleData;
+        return $this->languageId;
+    }
+
+    public function setLanguageId(int $languageId): self
+    {
+        $this->languageId = $languageId;
+        return $this;
     }
 
     public function getPageId(): int
@@ -48,8 +39,9 @@ class PageHeaderService implements SingletonInterface
         return $this->pageId;
     }
 
-    public function setPageId(int $pageId): void
+    public function setPageId(int $pageId): self
     {
         $this->pageId = $pageId;
+        return $this;
     }
 }

@@ -8,40 +8,16 @@ use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-/**
- * Class LocaleService
- */
 class LocaleService
 {
-    /**
-     * @var string
-     */
     protected const APP_TRANSLATION_FILE_PATTERN = 'EXT:yoast_seo/Resources/Private/Language/wordpress-seo-%s.json';
+    protected Locales $locales;
 
-    /**
-     * @var array
-     */
-    protected $configuration;
-
-    /**
-     * @var \TYPO3\CMS\Core\Localization\Locales
-     */
-    protected $locales;
-
-    /**
-     * LocaleService constructor.
-     *
-     * @param array $configuration
-     */
-    public function __construct(array $configuration)
+    public function __construct(Locales $locales)
     {
-        $this->configuration = $configuration;
-        $this->locales = GeneralUtility::makeInstance(Locales::class);
+        $this->locales = $locales;
     }
 
-    /**
-     * @return array
-     */
     public function getTranslations(): array
     {
         $interfaceLocale = $this->getInterfaceLocale();
@@ -61,11 +37,6 @@ class LocaleService
         return [];
     }
 
-    /**
-     * Get labels
-     *
-     * @return array
-     */
     public function getLabels(): array
     {
         $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:label';
@@ -91,6 +62,11 @@ class LocaleService
         $locale = null;
         $languageChain = null;
 
+        $translationConfiguration = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['translations'] ?? [
+            'availableLocales' => [],
+            'languageKeyToLocaleMapping' => []
+        ];
+
         if ($GLOBALS['BE_USER'] instanceof BackendUserAuthentication
             && is_array($GLOBALS['BE_USER']->uc)
             && array_key_exists('lang', $GLOBALS['BE_USER']->uc)
@@ -108,7 +84,7 @@ class LocaleService
         if ($languageChain !== null
             && ($suitableLocales = array_intersect(
                 $languageChain,
-                $this->configuration['translations']['availableLocales']
+                $translationConfiguration['availableLocales']
             )) !== false
             && count($suitableLocales) > 0
         ) {
@@ -121,13 +97,13 @@ class LocaleService
             && ($suitableLanguageKeys = array_intersect(
                 $languageChain,
                 array_flip(
-                    $this->configuration['translations']['languageKeyToLocaleMapping']
+                    $translationConfiguration['languageKeyToLocaleMapping']
                 )
             )) !== false
             && count($suitableLanguageKeys) > 0
         ) {
             $locale =
-                $this->configuration['translations']['languageKeyToLocaleMapping'][array_shift($suitableLanguageKeys)];
+                $translationConfiguration['languageKeyToLocaleMapping'][array_shift($suitableLanguageKeys)];
         }
 
         return $locale;

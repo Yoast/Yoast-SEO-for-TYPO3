@@ -7,6 +7,15 @@ services:
   YoastSeoForTypo3\YoastSeo\:
     resource: '../Classes/*'
 
+  YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader:
+    public: true
+
+  YoastSeoForTypo3\YoastSeo\Service\LocaleService:
+    public: true
+
+  YoastSeoForTypo3\YoastSeo\Service\SnippetPreviewService:
+    public: true
+
   YoastSeoForTypo3\YoastSeo\EventListener\TcaBuiltListener:
     arguments:
       - '@YoastSeoForTypo3\YoastSeo\Record\Builder\TcaBuilder'

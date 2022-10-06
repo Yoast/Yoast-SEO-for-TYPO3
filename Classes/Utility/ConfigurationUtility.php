@@ -16,12 +16,12 @@ class ConfigurationUtility
             1514550050 => ['snippetPreview', Element\SnippetPreview::class],
             1514728465 => ['readabilityAnalysis', Element\ReadabilityAnalysis::class],
             1514830899 => ['focusKeywordAnalysis', Element\FocusKeywordAnalysis::class],
-            1537991862 => ['hiddenField', Element\HiddenField::class],
             1552342645 => ['cornerstone', Element\Cornerstone::class],
         ];
         if (!YoastUtility::isPremiumInstalled()) {
             $nodeArray[1553888878] = ['synonyms', Element\Synonyms::class];
-            $nodeArray[1553977739] = ['internalLinkingSuggestion', Element\InternalLinkingSuggestion::class];
+            $nodeArray[1553977739] = ['relatedKeyphrases', Element\RelatedKeyphrases::class];
+            $nodeArray[1554381790] = ['internalLinkingSuggestion', Element\InternalLinkingSuggestion::class];
             $nodeArray[1519937113] = ['insights', Element\Insights::class];
             $nodeArray[1633024835] = ['advancedRobots', Element\AdvancedRobots::class];
         }

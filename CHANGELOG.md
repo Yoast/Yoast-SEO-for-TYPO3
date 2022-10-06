@@ -17,6 +17,10 @@ Besides the free version of our plugin, we also have a premium version. The free
   - Removed `TYPO3_MODE` checks
   - Introduced `ConfigurationUtility` which provides the default configuration and nodes for the formEngine and
   - Merged adding the `YoastConfig` javascript and backend CSS into one `BackendYoastConfig` hook
+- Introduced `SnippetPreviewService` which both `PageLayoutHeader` and `SnippetPreview` use to render the snippet preview
+- Optimized `SnippetPreview` by removing unnecesary code and raw html
+- Simplified `AbstractPageLayoutHeader` and `PageLayoutHeader`, moved all html to separate fluid template
+- Simplified all the FormEngine node classes
 
 ## 9.0.0-alpha-1 August 16, 2022
 ### Breaking
