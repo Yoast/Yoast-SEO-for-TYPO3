@@ -13,16 +13,8 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Service\PreviewService;
 use YoastSeoForTypo3\YoastSeo\Service\UrlService;
 
-/**
- * Class AjaxController
- */
 class AjaxController
 {
-    /**
-     * @param \Psr\Http\Message\ServerRequestInterface $request
-     * @throws \Exception
-     * @return \Psr\Http\Message\ResponseInterface
-     */
     public function previewAction(
         ServerRequestInterface $request
     ): ResponseInterface {
@@ -51,11 +43,6 @@ class AjaxController
         return new HtmlResponse($content);
     }
 
-    /**
-     * @param \Psr\Http\Message\ServerRequestInterface $request
-     * @param \Psr\Http\Message\ResponseInterface|null $response
-     * @return \Psr\Http\Message\ResponseInterface
-     */
     public function saveScoresAction(
         ServerRequestInterface $request,
         ResponseInterface $response = null
@@ -74,15 +61,10 @@ class AjaxController
         return $response;
     }
 
-    /**
-     * Save scores
-     *
-     * @param array $data
-     */
     protected function saveScores(array $data): void
     {
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable($data['table']);
-        $row = $connection->select(['*'], $data['table'], ['uid' => (int)$data['uid']], [], [], 1)->fetch();
+        $row = $connection->select(['*'], $data['table'], ['uid' => (int)$data['uid']], [], [], 1)->fetchAssociative();
 
         if ($row !== false && isset($row['tx_yoastseo_score_readability'], $row['tx_yoastseo_score_seo'])) {
             $connection->update($data['table'], [
