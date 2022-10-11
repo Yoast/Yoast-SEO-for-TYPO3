@@ -30,6 +30,12 @@
 			<trans-unit id="no_pages.message" resname="no_pages.message">
 				<source>No pages found with the current filter.</source>
 			</trans-unit>
+			<trans-unit id="no_page_selected.title" resname="no_page_selected.title">
+				<source>No page selected</source>
+			</trans-unit>
+			<trans-unit id="no_page_selected.message" resname="no_page_selected.message">
+				<source>Select a page from the pagetree to retrieve results.</source>
+			</trans-unit>
 			<trans-unit id="edit" resname="edit">
 				<source>Edit page</source>
 			</trans-unit>

@@ -4,14 +4,9 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 
-/**
- * Interface OverviewDataProviderInterface
- */
+use Doctrine\DBAL\Driver\ResultStatement;
+
 interface OverviewDataProviderInterface
 {
-    /**
-     * @param bool $returnOnlyCount
-     * @return int|array
-     */
-    public function getData(bool $returnOnlyCount = false);
+    public function getResults(array $pageIds = []): ?ResultStatement;
 }

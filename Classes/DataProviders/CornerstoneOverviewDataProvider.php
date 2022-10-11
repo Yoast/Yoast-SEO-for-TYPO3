@@ -8,21 +8,9 @@ use Doctrine\DBAL\Driver\ResultStatement;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-/**
- * Class CornerstoneOverviewDataProvider
- */
 class CornerstoneOverviewDataProvider extends AbstractOverviewDataProvider
 {
-    /**
-     * @param bool $returnOnlyCount
-     * @return int|array
-     */
-    public function getData(bool $returnOnlyCount = false)
-    {
-        return $this->getRestrictedPagesResults($returnOnlyCount);
-    }
-
-    protected function getResults(array $pageIds = []): ?ResultStatement
+    public function getResults(array $pageIds = []): ?ResultStatement
     {
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(self::PAGES_TABLE);
 

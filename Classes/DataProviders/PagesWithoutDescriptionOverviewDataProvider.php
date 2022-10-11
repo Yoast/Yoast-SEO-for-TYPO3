@@ -9,23 +9,11 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
-/**
- * Class PagesWithoutDescriptionOverviewDataProvider
- */
 class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataProvider
 {
     protected const PAGES_TABLE = 'pages';
 
-    /**
-     * @param bool $returnOnlyCount
-     * @return int|array
-     */
-    public function getData(bool $returnOnlyCount = false)
-    {
-        return $this->getRestrictedPagesResults($returnOnlyCount);
-    }
-
-    protected function getResults(array $pageIds = []): ?ResultStatement
+    public function getResults(array $pageIds = []): ?ResultStatement
     {
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(self::PAGES_TABLE);
 

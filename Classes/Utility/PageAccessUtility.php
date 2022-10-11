@@ -13,31 +13,19 @@ class PageAccessUtility
 {
     protected static array $cache = [];
 
-    public static function getPageIds(): ?array
+    public static function getPageIds(int $pid): array
     {
-        $backendUser = self::getBackendUser();
-        if ($backendUser->isAdmin()) {
-            return null;
-        }
-
         if (self::$cache !== []) {
             return self::$cache;
         }
 
-        $webMounts = $backendUser->returnWebmounts();
+        $backendUser = self::getBackendUser();
         $perms_clause = $backendUser->getPagePermsClause(Permission::PAGE_SHOW);
 
-        $pageIds = '';
-        foreach ($webMounts as $mount) {
-            $pageIds .= (!empty($pageIds) ? ',' : '') . self::getTreeList((int)$mount, $perms_clause);
-        }
-
-        return self::$cache = GeneralUtility::intExplode(',', $pageIds);
-    }
-
-    protected static function getTreeList(int $pid, string $perms_clause): string
-    {
-        return (string)GeneralUtility::makeInstance(QueryGenerator::class)->getTreeList($pid, 999, 0, $perms_clause);
+        return self::$cache = GeneralUtility::intExplode(
+            ',',
+            GeneralUtility::makeInstance(QueryGenerator::class)->getTreeList($pid, 999, 0, $perms_clause)
+        );
     }
 
     protected static function getBackendUser(): BackendUserAuthentication

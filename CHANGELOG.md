@@ -11,6 +11,7 @@ Besides the free version of our plugin, we also have a premium version. The free
 ## UNRELEASED
 ### Breaking
 - Dropped support for CMS9
+- API for `overview_filters` has changed, instead of `getData` providers should have a `getResults(array $pageIds)` method (see `OverviewDataProviderInterface`)
 
 ### Changed
 - Simplified `ext_localconf` and `ext_tables.php`
@@ -21,6 +22,7 @@ Besides the free version of our plugin, we also have a premium version. The free
 - Optimized `SnippetPreview` by removing unnecesary code and raw html
 - Simplified `AbstractPageLayoutHeader` and `PageLayoutHeader`, moved all html to separate fluid template
 - Simplified all the FormEngine node classes
+- The backend module `Overview` now needs a valid page selected from the tree, this is to retrieve the languages from the currently selected site
 
 ## 9.0.0-alpha-1 August 16, 2022
 ### Breaking

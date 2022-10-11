@@ -1,16 +1,6 @@
 <html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
-		xmlns:core="http://typo3.org/ns/TYPO3/CMS/Core/ViewHelpers"
-		xmlns:y="http://typo3.org/ns/YoastSeoForTypo3/YoastSeo/ViewHelpers"
 		data-namespace-typo3-fluid="true">
-<div class="yoast">
-	<h1><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:mlang_tabs_tab" /> <span>- {subtitle}</span></h1>
 
-	<div class="yoast-overview-filters">
-		<f:for each="{filters}" as="filter" key="filterKey">
-			<f:link.action class="btn btn-sm {f:if(condition: '{activeFilter} == {filterKey}', then: 'btn-primary', else: 'btn-default')}" controller="Overview" action="list" arguments="{filter: filter.key}" addQueryString="true"><f:translate key="{filter.label}" /> ({filter.numberOfItems})</f:link.action>
-		</f:for>
-	</div>
+<f:render section="Content" />
 
-	<f:render section="content" />
-</div>
 </html>

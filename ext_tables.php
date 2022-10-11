@@ -14,6 +14,10 @@ defined('TYPO3') || die;
             'name' => 'yoast'
         ]
     );
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addCoreNavigationComponent(
+        'yoast',
+        'TYPO3/CMS/Backend/PageTree/PageTreeElement'
+    );
 
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
         'YoastSeo',
@@ -25,6 +29,7 @@ defined('TYPO3') || die;
             'access' => 'user,group',
             'icon' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-dashboard.svg',
             'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleDashboard.xlf',
+            'inheritNavigationComponentFromMainModule' => false
         ]
     );
 
@@ -51,6 +56,7 @@ defined('TYPO3') || die;
             'access' => 'user,group',
             'icon' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-premium.svg',
             'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf',
+            'inheritNavigationComponentFromMainModule' => false
         ]
     );
 
