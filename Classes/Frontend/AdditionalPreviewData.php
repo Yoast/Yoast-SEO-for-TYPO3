@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Frontend;
 
 use TYPO3\CMS\Core\SingletonInterface;
-use TYPO3\CMS\Core\Site\Entity\SiteInterface;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
@@ -13,26 +12,13 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastRequestHash;
 
 class AdditionalPreviewData implements SingletonInterface
 {
-    /**
-     * @var array
-     */
-    private $config;
-
-    /**
-     * @var \TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer
-     */
-    private $cObj;
+    protected array $config;
 
     public function __construct()
     {
         $this->config = $GLOBALS['TSFE']->tmpl->setup['config.'] ?? [];
-        $this->cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
     }
 
-    /**
-     * @param array $params
-     * @param object $pObj
-     */
     public function render(array &$params, object $pObj): void
     {
         $serverParams = $GLOBALS['TYPO3_REQUEST'] ? $GLOBALS['TYPO3_REQUEST']->getServerParams() : $_SERVER;
@@ -45,42 +31,21 @@ class AdditionalPreviewData implements SingletonInterface
         $params['headerData']['YoastPreview'] = '<meta name="x-yoast-title-config" value="' . $config['prepend'] . '|||' . $config['append'] . '" />';
     }
 
-    /**
-     * @return string
-     */
     protected function getWebsiteTitle(): string
     {
         $request = $GLOBALS['TYPO3_REQUEST'];
-        if (class_exists(SiteLanguage::class)) {
-            $language = $request->getAttribute('language');
-            if ($language instanceof SiteLanguage && method_exists($language, 'getWebsiteTitle')
-                && trim($language->getWebsiteTitle())) {
-                return trim($language->getWebsiteTitle());
-            }
+        $language = $request->getAttribute('language');
+        if ($language instanceof SiteLanguage && !empty($language->getWebsiteTitle())) {
+            return trim($language->getWebsiteTitle());
         }
 
-        if (class_exists(SiteInterface::class)) {
-            $site = $request->getAttribute('site');
-            if ($site instanceof SiteInterface) {
-                $siteConfig = $site->getConfiguration();
-
-                if (isset($siteConfig['websiteTitle']) && !empty($siteConfig['websiteTitle'])) {
-                    return trim($siteConfig['websiteTitle']);
-                }
-            }
-        }
-        if (!empty($GLOBALS['TSFE']->tmpl->setup['sitetitle'])) {
+        if (!empty($GLOBALS['TSFE']->tmpl->setup['sitetitle'] ?? '')) {
             return trim($GLOBALS['TSFE']->tmpl->setup['sitetitle']);
         }
 
         return '';
     }
 
-    /**
-     * Get page title prepend append
-     *
-     * @return array
-     */
     protected function getPageTitlePrependAppend(): array
     {
         $prependAppend = ['prepend' => '', 'append' => ''];
@@ -104,11 +69,6 @@ class AdditionalPreviewData implements SingletonInterface
         return $prependAppend;
     }
 
-    /**
-     * Get page title separator
-     *
-     * @return string
-     */
     protected function getPageTitleSeparator(): string
     {
         $pageTitleSeparator = '';
@@ -119,7 +79,8 @@ class AdditionalPreviewData implements SingletonInterface
 
             if (isset($this->config['pageTitleSeparator.'])
                 && is_array($this->config['pageTitleSeparator.'])) {
-                $pageTitleSeparator = $this->cObj->stdWrap(
+                $cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
+                $pageTitleSeparator = $cObj->stdWrap(
                     $pageTitleSeparator,
                     $this->config['pageTitleSeparator.']
                 );

@@ -23,6 +23,7 @@ Besides the free version of our plugin, we also have a premium version. The free
 - Simplified `AbstractPageLayoutHeader` and `PageLayoutHeader`, moved all html to separate fluid template
 - Simplified all the FormEngine node classes
 - The backend module `Overview` now needs a valid page selected from the tree, this is to retrieve the languages from the currently selected site
+- Updated `AdditionalPreviewData`, removed old methods to check for `getWebsiteTitle` (always available now)
 
 ## 9.0.0-alpha-1 August 16, 2022
 ### Breaking
