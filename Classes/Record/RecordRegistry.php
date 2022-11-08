@@ -36,16 +36,21 @@ class RecordRegistry implements SingletonInterface
     /**
      * @return \YoastSeoForTypo3\YoastSeo\Record\Record[]
      */
-    public function getRecords(): array
+    public function getRecords(bool $useCache = false): array
     {
         if ($this->records === null) {
-            $this->retrieveRecords();
+            $this->retrieveRecords($useCache);
         }
         return $this->records;
     }
 
-    protected function retrieveRecords(): void
+    protected function retrieveRecords(bool $useCache): void
     {
+        if ($useCache === false) {
+            $this->buildRecordsFromTca();
+            return;
+        }
+
         $cache = GeneralUtility::makeInstance(CacheManager::class)->getCache('yoastseo_recordcache');
         if (($recordsFromCache = $cache->get('records')) !== false) {
             $this->records = $recordsFromCache;

@@ -7,7 +7,6 @@ namespace YoastSeoForTypo3\YoastSeo\Service;
 use Psr\Http\Message\UriInterface;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
-use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\Exception\SiteNotFoundException;
 use TYPO3\CMS\Core\Routing\RouteNotFoundException;
@@ -17,32 +16,15 @@ use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
-/**
- * Class UrlService
- */
 class UrlService implements SingletonInterface
 {
-    /**
-     * @var \TYPO3\CMS\Backend\Routing\UriBuilder
-     */
     protected UriBuilder $uriBuilder;
 
-    /**
-     * UrlService constructor.
-     */
-    public function __construct()
+    public function __construct(UriBuilder $uriBuilder)
     {
-        $this->uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
+        $this->uriBuilder = $uriBuilder;
     }
 
-    /**
-     * Get target url
-     *
-     * @param int $pageId
-     * @param int $languageId
-     * @param string $additionalGetVars
-     * @return string
-     */
     public function getPreviewUrl(
         int $pageId,
         int $languageId,
@@ -55,12 +37,6 @@ class UrlService implements SingletonInterface
         ]);
     }
 
-    /**
-     * @param int $pageId
-     * @param int $languageId
-     * @param string $additionalGetVars
-     * @return string
-     */
     public function getUriToCheck(int $pageId, int $languageId, string $additionalGetVars): string
     {
         $this->checkMountpoint($pageId, $additionalGetVars);
@@ -87,10 +63,6 @@ class UrlService implements SingletonInterface
         return '';
     }
 
-    /**
-     * @param int $pageId
-     * @param     $additionalGetVars
-     */
     public function checkMountPoint(int &$pageId, &$additionalGetVars): void
     {
         $pageRepository = GeneralUtility::makeInstance(PageRepository::class);
@@ -102,20 +74,11 @@ class UrlService implements SingletonInterface
         }
     }
 
-    /**
-     * @param int $pageId
-     * @return array
-     */
     public function getRootLine(int $pageId): array
     {
         return BackendUtility::BEgetRootLine($pageId);
     }
 
-    /**
-     * @param int $pageId
-     * @param array $rootLine
-     * @return \TYPO3\CMS\Core\Site\Entity\Site|null
-     */
     public function getSite(int $pageId, array $rootLine): ?Site
     {
         $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
@@ -126,14 +89,6 @@ class UrlService implements SingletonInterface
         }
     }
 
-    /**
-     * @param \TYPO3\CMS\Core\Site\Entity\Site $site
-     * @param int $pageId
-     * @param int $languageId
-     * @param string $additionalGetVars
-     * @throws \TYPO3\CMS\Core\Routing\InvalidRouteArgumentsException
-     * @return \Psr\Http\Message\UriInterface
-     */
     public function generateUri(Site $site, int $pageId, int $languageId, string $additionalGetVars = ''): UriInterface
     {
         $additionalQueryParams = [];
@@ -143,11 +98,6 @@ class UrlService implements SingletonInterface
         return $site->getRouter()->generateUri($pageId, $additionalQueryParams);
     }
 
-    /**
-     * Get save scores url
-     *
-     * @return string
-     */
     public function getSaveScoresUrl(): string
     {
         try {
@@ -157,9 +107,6 @@ class UrlService implements SingletonInterface
         }
     }
 
-    /**
-     * @return string
-     */
     public function getProminentWordsUrl(): string
     {
         try {

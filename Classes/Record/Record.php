@@ -7,35 +7,20 @@ namespace YoastSeoForTypo3\YoastSeo\Record;
 class Record
 {
     protected const DEFAULT_TITLE_FIELD = 'title';
-
     protected string $tableName = '';
-
     protected bool $defaultSeoFields = true;
-
     protected bool $yoastSeoFields = true;
-
     protected bool $sitemapFields = true;
-
     protected string $types = '';
-
     protected string $titleField = 'title';
-
     protected string $descriptionField = 'description';
-
     protected bool $addDescriptionField = false;
-
     protected string $fieldsPosition = 'after:' . self::DEFAULT_TITLE_FIELD;
-
     protected array $overrideTca = [];
-
     protected array $getParameters = [];
-
     protected ?int $recordUid = null;
-
     protected array $recordData = [];
-
     protected bool $generatePageTitle = true;
-
     protected bool $generateMetaTags = true;
 
     public function getTableName(): string

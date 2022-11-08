@@ -28,13 +28,13 @@
     "docs": "https://docs.typo3.org/p/yoast-seo-for-typo3/yoast_seo/main/en-us/"
   },
   "require": {
-    "typo3/cms-core": "^10.4|^11.0",
-    "typo3/cms-backend": "^10.4|^11.0",
-    "typo3/cms-extbase": "^10.4|^11.0",
-    "typo3/cms-fluid": "^10.4|^11.0",
-    "typo3/cms-frontend": "^10.4|^11.0",
-    "typo3/cms-install": "^10.4|^11.0",
-    "typo3/cms-seo": "^10.4|^11.0",
+    "typo3/cms-core": "^10.4 || ^11.0 || ^12.0 || dev-main",
+    "typo3/cms-backend": "^10.4 || ^11.0 || ^12.0 || dev-main",
+    "typo3/cms-extbase": "^10.4 || ^11.0 || ^12.0 || dev-main",
+    "typo3/cms-fluid": "^10.4 || ^11.0 || ^12.0 || dev-main",
+    "typo3/cms-frontend": "^10.4 || ^11.0 || ^12.0 || dev-main",
+    "typo3/cms-install": "^10.4 || ^11.0 || ^12.0 || dev-main",
+    "typo3/cms-seo": "^10.4 || ^11.0 || ^12.0 || dev-main",
     "ext-curl": "*",
     "ext-json": "*",
     "php": "^7.4 || ^8.0"
@@ -58,15 +58,13 @@
   },
   "extra": {
     "branch-alias": {
-      "dev-master": "8.x-dev"
+      "dev-main": "9.x-dev"
     },
     "typo3/cms": {
       "extension-key": "yoast_seo"
     }
   },
   "config": {
-    "vendor-dir": "vendor",
-    "bin-dir": "vendor/bin",
     "allow-plugins": {
       "typo3/class-alias-loader": true,
       "typo3/cms-composer-installers": true,

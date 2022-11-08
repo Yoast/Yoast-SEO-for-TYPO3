@@ -23,7 +23,7 @@ class RecordService implements SingletonInterface
             return $this->activeRecord;
         }
 
-        $records = RecordRegistry::getInstance()->getRecords();
+        $records = RecordRegistry::getInstance()->getRecords(true);
         if (empty($records)) {
             $this->recordsChecked = true;
             return null;

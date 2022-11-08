@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\StructuredData;
 
+use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException;
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
+use TYPO3\CMS\Core\Http\ApplicationType;
 use TYPO3\CMS\Core\Service\DependencyOrderingService;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\TypoScript\TypoScriptService;
@@ -20,15 +22,8 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
  */
 class StructuredDataProviderManager implements SingletonInterface
 {
-    /**
-     * @var FrontendInterface
-     */
-    protected $pageCache;
-
-    /**
-     * @var string
-     */
-    protected $sourceComment = '';
+    protected FrontendInterface $pageCache;
+    protected string $sourceComment = '';
 
     public function __construct()
     {
@@ -41,25 +36,20 @@ class StructuredDataProviderManager implements SingletonInterface
         }
     }
 
-    /**
-     * @param array $params
-     * @param object $pObj
-     */
-    public function render(&$params, $pObj)
+    public function render(array &$params, $pObj): void
     {
-        if (TYPO3_MODE === 'FE') {
-            $data = $this->getStructuredData();
-
-            $params['headerData']['StructuredDataManager'] = $this->sourceComment .
-                PHP_EOL . $this->buildJsonLdBlob($data);
+        if (!($GLOBALS['TYPO3_REQUEST'] ?? null) instanceof ServerRequestInterface
+            || !ApplicationType::fromRequest($GLOBALS['TYPO3_REQUEST'])->isFrontend()
+        ) {
+            return;
         }
+
+        $data = $this->getStructuredData();
+
+        $params['headerData']['StructuredDataManager'] = $this->sourceComment .
+            PHP_EOL . $this->buildJsonLdBlob($data);
     }
 
-    /**
-     * @param array $src
-     *
-     * @return string
-     */
     protected function buildJsonLdBlob(array $src): string
     {
         $data = [];
@@ -76,11 +66,6 @@ class StructuredDataProviderManager implements SingletonInterface
         return '<script type="application/ld+json">' . json_encode($data) . '</script>';
     }
 
-    /**
-     * Get structured data
-     *
-     * @return array
-     */
     public function getStructuredData(): array
     {
         $structuredData = [];
@@ -127,19 +112,11 @@ class StructuredDataProviderManager implements SingletonInterface
         return $structuredData;
     }
 
-    /**
-     * @return \TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController
-     */
     private function getTypoScriptFrontendController(): TypoScriptFrontendController
     {
         return $GLOBALS['TSFE'];
     }
 
-    /**
-     * Get the TypoScript configuration for pageTitleProviders
-     *
-     * @return array
-     */
     private function getStructuredDataProviderConfiguration(): array
     {
         $typoscriptService = GeneralUtility::makeInstance(TypoScriptService::class);
@@ -150,9 +127,6 @@ class StructuredDataProviderManager implements SingletonInterface
         return $config['structuredData']['providers'] ?? [];
     }
 
-    /**
-     * Initializes the caching system.
-     */
     protected function initCaches()
     {
         try {
@@ -164,11 +138,6 @@ class StructuredDataProviderManager implements SingletonInterface
         }
     }
 
-    /**
-     * @param array $orderInformation
-     * @throws \UnexpectedValueException
-     * @return string[]
-     */
     protected function setProviderOrder(array $orderInformation): array
     {
         foreach ($orderInformation as $provider => &$configuration) {

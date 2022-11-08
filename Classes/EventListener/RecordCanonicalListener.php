@@ -12,20 +12,13 @@ use YoastSeoForTypo3\YoastSeo\Record\RecordService;
 
 class RecordCanonicalListener
 {
-    protected TypoScriptFrontendController $typoScriptFrontendController;
-
     protected RecordService $recordService;
 
-    public function __construct(TypoScriptFrontendController $typoScriptFrontendController = null, RecordService $recordService = null)
+    public function __construct(RecordService $recordService = null)
     {
-        if ($typoScriptFrontendController === null) {
-            $typoScriptFrontendController = GeneralUtility::makeInstance(TypoScriptFrontendController::class);
-        }
         if ($recordService === null) {
             $recordService = GeneralUtility::makeInstance(RecordService::class);
         }
-
-        $this->typoScriptFrontendController = $typoScriptFrontendController;
         $this->recordService = $recordService;
     }
 
@@ -42,7 +35,7 @@ class RecordCanonicalListener
         }
 
         $event->setUrl(
-            $this->typoScriptFrontendController->cObj->typoLink_URL([
+            $GLOBALS['TSFE']->cObj->typoLink_URL([
                 'parameter' => $canonicalLink,
                 'forceAbsoluteUrl' => true,
             ])

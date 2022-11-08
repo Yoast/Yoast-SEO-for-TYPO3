@@ -6,8 +6,5 @@ namespace YoastSeoForTypo3\YoastSeo\StructuredData;
 
 interface StructuredDataProviderInterface
 {
-    /**
-     * @return array
-     */
     public function getData(): array;
 }

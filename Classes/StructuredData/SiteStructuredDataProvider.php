@@ -12,44 +12,21 @@ use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 class SiteStructuredDataProvider implements StructuredDataProviderInterface
 {
-    /**
-     * @var TypoScriptFrontendController
-     */
     protected TypoScriptFrontendController $tsfe;
-
-    /**
-     * @var PageRepository
-     */
-    protected $pageRepository;
-
-    /**
-     * @var SiteFinder
-     */
+    protected PageRepository $pageRepository;
     protected SiteFinder $siteFinder;
-
-    /**
-     * @var array
-     */
     protected array $configuration = [];
 
-    /**
-     * SiteStructuredDataProvider constructor.
-     *
-     * @param TypoScriptFrontendController|null $tsfe
-     * @param PageRepository|null $pageRepository
-     * @param SiteFinder|null $siteFinder
-     */
-    public function __construct($tsfe = null, $pageRepository = null, $siteFinder = null)
-    {
-        $this->setTsfe($tsfe);
-        $this->setPageRepository($pageRepository);
-        $this->setSiteFinder($siteFinder);
+    public function __construct(
+        TypoScriptFrontendController $tsfe = null,
+        PageRepository $pageRepository = null,
+        SiteFinder $siteFinder = null
+    ) {
+        $this->tsfe = $tsfe ?? $GLOBALS['TSFE'];
+        $this->pageRepository = $pageRepository ?? GeneralUtility::makeInstance(PageRepository::class);
+        $this->siteFinder = $siteFinder ?? GeneralUtility::makeInstance(SiteFinder::class);
     }
 
-    /**
-     * @throws \TYPO3\CMS\Core\Exception\SiteNotFoundException
-     * @return array
-     */
     public function getData(): array
     {
         $data = [];
@@ -65,11 +42,6 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
         return $data;
     }
 
-    /**
-     * @param int $pageId
-     * @throws \TYPO3\CMS\Core\Exception\SiteNotFoundException
-     * @return string
-     */
     protected function getUrl(int $pageId): string
     {
         if (class_exists(SiteFinder::class)) {
@@ -82,11 +54,6 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
         return (string)$cObj->typoLink('', ['parameter' => $pageId, 'returnLast' => 'url', 'forceAbsoluteUrl' => true]);
     }
 
-    /**
-     * @param int $pageId
-     * @throws \TYPO3\CMS\Core\Exception\SiteNotFoundException
-     * @return string
-     */
     protected function getName(int $pageId): string
     {
         $rootPageRecord = $this->pageRepository->getPage($pageId);
@@ -94,45 +61,6 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
         return $rootPageRecord['seo_title'] ?: $rootPageRecord['title'] ?: $this->getUrl($pageId);
     }
 
-    /**
-     * @param TypoScriptFrontendController|null $tsfe
-     */
-    protected function setTsfe(?TypoScriptFrontendController $tsfe): void
-    {
-        if ($tsfe instanceof TypoScriptFrontendController) {
-            $this->tsfe = $tsfe;
-        } else {
-            $this->tsfe = $GLOBALS['TSFE'];
-        }
-    }
-
-    /**
-     * @param PageRepository|null $pageRepository
-     */
-    protected function setPageRepository($pageRepository): void
-    {
-        if ($pageRepository instanceof PageRepository) {
-            $this->pageRepository = $pageRepository;
-        } else {
-            $this->pageRepository = GeneralUtility::makeInstance(PageRepository::class);
-        }
-    }
-
-    /**
-     * @param SiteFinder|null $siteFinder
-     */
-    protected function setSiteFinder(?SiteFinder $siteFinder): void
-    {
-        if ($siteFinder instanceof SiteFinder) {
-            $this->siteFinder = $siteFinder;
-        } else {
-            $this->siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
-        }
-    }
-
-    /**
-     * @param array $configuration
-     */
     public function setConfiguration(array $configuration): void
     {
         $this->configuration = $configuration;

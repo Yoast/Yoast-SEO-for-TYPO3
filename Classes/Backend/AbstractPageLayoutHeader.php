@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Backend;
 
 use TYPO3\CMS\Backend\Controller\PageLayoutController;
+use TYPO3\CMS\Backend\Template\ModuleTemplate;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Service\PageHeaderService;
@@ -28,7 +29,7 @@ abstract class AbstractPageLayoutHeader
     {
         $currentPage = null;
 
-        if ($parentObj instanceof PageLayoutController && $pageId > 0) {
+        if (($parentObj instanceof PageLayoutController || $parentObj instanceof ModuleTemplate) && $pageId > 0) {
             if ($languageId === 0) {
                 $currentPage = BackendUtility::getRecord(
                     'pages',

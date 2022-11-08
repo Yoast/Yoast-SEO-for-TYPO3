@@ -36,7 +36,6 @@ services:
 
   YoastSeoForTypo3\YoastSeo\EventListener\RecordCanonicalListener:
     arguments:
-      - '@TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController'
       - '@YoastSeoForTypo3\YoastSeo\Record\RecordService'
     tags:
       - name: event.listener
@@ -51,3 +50,16 @@ services:
   YoastSeoForTypo3\YoastSeo\MetaTag\RecordMetaTagGenerator:
     arguments:
       - '@YoastSeoForTypo3\YoastSeo\Record\RecordService'
+
+  YoastSeoForTypo3\YoastSeo\Backend\ModifyPageLayoutContentListener:
+    tags:
+      - name: event.listener
+        identifier: 'yoast-seo/backend/modify-page-module-content'
+        event: TYPO3\CMS\Backend\Controller\Event\ModifyPageLayoutContentEvent
+
+  YoastSeoForTypo3\YoastSeo\Frontend\AfterCacheableContentIsGeneratedListener:
+    tags:
+      - name: event.listener
+        identifier: 'yoast-seo/frontend/cacheable-content-listener'
+        event: TYPO3\CMS\Frontend\Event\AfterCacheableContentIsGeneratedEvent
+

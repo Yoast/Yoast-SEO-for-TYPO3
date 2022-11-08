@@ -10,37 +10,12 @@ use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
-/**
- * Class PreviewService
- */
 class PreviewService
 {
-    /**
-     * Page id
-     *
-     * @var int
-     */
     protected int $pageId = 0;
-
-    /**
-     * Typoscript config
-     *
-     * @var array
-     */
     protected array $config = [];
-
-    /**
-     * @var \TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer
-     */
     protected ContentObjectRenderer $cObj;
 
-    /**
-     * Get preview data
-     *
-     * @param string $uriToCheck
-     * @param int $pageId
-     * @return false|string
-     */
     public function getPreviewData(string $uriToCheck, int $pageId)
     {
         $this->pageId = $pageId;
@@ -61,13 +36,6 @@ class PreviewService
         return json_encode($data);
     }
 
-    /**
-     * Get content from url
-     *
-     * @param string $uriToCheck
-     * @throws \TYPO3\CMS\Core\Exception
-     * @return null|string
-     */
     protected function getContentFromUrl(string $uriToCheck): ?string
     {
         $backupSettings = $GLOBALS['TYPO3_CONF_VARS']['HTTP'];
@@ -97,13 +65,6 @@ class PreviewService
         throw new Exception($response->getStatusCode());
     }
 
-    /**
-     * Get data from content
-     *
-     * @param string|null $content
-     * @param string $uriToCheck
-     * @return array
-     */
     protected function getDataFromContent(?string $content, string $uriToCheck): array
     {
         $title = $body = $metaDescription = '';
@@ -192,11 +153,6 @@ class PreviewService
         return trim($body);
     }
 
-    /**
-     * @param string $text
-     * @param string $tags
-     * @return string
-     */
     protected function stripTagsContent(string $text, string $tags = ''): string
     {
         preg_match_all('/<(.+?)[\s]*\/?[\s]*>/si', trim($tags), $foundTags);
@@ -209,9 +165,6 @@ class PreviewService
         return $text;
     }
 
-    /**
-     * Set http options for the preview request
-     */
     protected function setHttpOptions(): void
     {
         $GLOBALS['TYPO3_CONF_VARS']['HTTP']['verify'] = false;

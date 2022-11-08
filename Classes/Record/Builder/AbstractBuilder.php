@@ -8,10 +8,7 @@ use YoastSeoForTypo3\YoastSeo\Record\Record;
 
 abstract class AbstractBuilder
 {
-    /**
-     * @var \YoastSeoForTypo3\YoastSeo\Record\Record
-     */
-    protected $record;
+    protected Record $record;
 
     public function setRecord(Record $record): self
     {
