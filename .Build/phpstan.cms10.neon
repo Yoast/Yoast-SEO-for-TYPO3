@@ -3,3 +3,5 @@ parameters:
   paths:
     - ../Classes
     - ../Configuration
+  ignoreErrors:
+    - '#Parameter \$event of method#'

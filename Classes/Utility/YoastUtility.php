@@ -19,7 +19,6 @@ class YoastUtility
 
     public static function getAllowedDoktypes(?array $configuration = null, bool $returnInString = false)
     {
-        // @phpstan-ignore-next-line
         $allowedDoktypes = array_map(function ($doktype) {
             return (int)$doktype;
         }, array_values((array)($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes'] ?? [])));
