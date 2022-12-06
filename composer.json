@@ -57,7 +57,8 @@
   },
   "extra": {
     "branch-alias": {
-      "dev-main": "9.x-dev"
+      "dev-main": "9.x-dev",
+      "dev-master": "9.x-dev"
     },
     "typo3/cms": {
       "extension-key": "yoast_seo"

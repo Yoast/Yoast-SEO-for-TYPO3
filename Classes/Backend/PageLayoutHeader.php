@@ -4,26 +4,33 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Backend;
 
+use TYPO3\CMS\Backend\Controller\PageLayoutController;
+use TYPO3\CMS\Backend\Template\ModuleTemplate;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use YoastSeoForTypo3\YoastSeo\Service\SnippetPreviewService;
+use YoastSeoForTypo3\YoastSeo\Service\UrlService;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
-class PageLayoutHeader extends AbstractPageLayoutHeader
+class PageLayoutHeader
 {
+    protected UrlService $urlService;
+
+    public function __construct(UrlService $urlService = null)
+    {
+        $this->urlService = $urlService ?? GeneralUtility::makeInstance(UrlService::class);
+    }
+
     public function render(array $params = null, $parentObj = null): string
     {
         $languageId = $this->getLanguageId();
-        $pageId = $this->getPageId();
+        $pageId = (int)GeneralUtility::_GET('id');
         $currentPage = $this->getCurrentPage($pageId, $languageId, $parentObj);
 
         if (!is_array($currentPage) || !$this->shouldShowPreview($pageId, $currentPage)) {
             return '';
         }
-
-        $this->pageHeaderService->setSnippetPreviewEnabled(true)
-            ->setLanguageId($languageId)
-            ->setPageId($pageId);
 
         $snippetPreviewService = GeneralUtility::makeInstance(SnippetPreviewService::class);
         $snippetPreviewService->buildSnippetPreview(
@@ -58,5 +65,46 @@ class PageLayoutHeader extends AbstractPageLayoutHeader
             )
         ]);
         return $templateView->render();
+    }
+
+    protected function getCurrentPage(int $pageId, int $languageId, object $parentObj): ?array
+    {
+        $currentPage = null;
+
+        if (($parentObj instanceof PageLayoutController || $parentObj instanceof ModuleTemplate) && $pageId > 0) {
+            if ($languageId === 0) {
+                $currentPage = BackendUtility::getRecord(
+                    'pages',
+                    $pageId
+                );
+            } elseif ($languageId > 0) {
+                $overlayRecords = BackendUtility::getRecordLocalization(
+                    'pages',
+                    $pageId,
+                    $languageId
+                );
+
+                if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
+                    $currentPage = $overlayRecords[0];
+                }
+            }
+        }
+        return $currentPage;
+    }
+
+    protected function shouldShowPreview(int $pageId, array $pageRecord): bool
+    {
+        if (!YoastUtility::snippetPreviewEnabled($pageId, $pageRecord)) {
+            return false;
+        }
+
+        $allowedDoktypes = YoastUtility::getAllowedDoktypes();
+        return isset($pageRecord['doktype']) && in_array((int)$pageRecord['doktype'], $allowedDoktypes, true);
+    }
+
+    protected function getLanguageId(): int
+    {
+        $moduleData = (array)BackendUtility::getModuleData(['language'], [], 'web_layout');
+        return (int)$moduleData['language'];
     }
 }
