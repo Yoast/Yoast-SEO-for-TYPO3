@@ -11,6 +11,7 @@ Besides the free version of our plugin, we also have a premium version. The free
 ## UNRELEASED
 ### Added
 - (Experimental) support for CMS12
+- Upgrade wizard for migrating premium redirects to `sys_redirect`
 
 ### Breaking
 - Dropped support for CMS9
@@ -29,6 +30,8 @@ Besides the free version of our plugin, we also have a premium version. The free
 - Updated `AdditionalPreviewData`, removed old methods to check for `getWebsiteTitle` (always available now)
 - Updated dev-dependencies to latest (usable) versions and fixed CI build
 - Removed old `linkingSuggestions.js` from `dist`
+- Removed upgrade wizards for old canonical and seo title fields
+- Simplified `.gitattributes`
 
 ## 9.0.0-alpha-1 August 16, 2022
 ### Breaking

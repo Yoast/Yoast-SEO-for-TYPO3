@@ -42,10 +42,8 @@ defined('TYPO3') || die;
         ['source' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-container.svg']
     );
 
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['seoTitleUpdate']
-        = \YoastSeoForTypo3\YoastSeo\Install\SeoTitleUpdate::class;
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['canonicalFieldUpdate']
-        = \YoastSeoForTypo3\YoastSeo\Install\CanonicalFieldUpdate::class;
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['yoastRedirectsMigrate']
+        = \YoastSeoForTypo3\YoastSeo\Updates\MigrateRedirects::class;
 
     $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['yoastseo_recordcache'] ??= [];
     $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['yoastseo_recordcache']['groups'] ??= ['system'];
