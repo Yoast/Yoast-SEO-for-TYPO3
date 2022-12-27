@@ -34,6 +34,7 @@ Besides the free version of our plugin, we also have a premium version. The free
 - Removed old `linkingSuggestions.js` from `dist`
 - Removed upgrade wizards for old canonical and seo title fields
 - Simplified `.gitattributes`
+- Updated and removed old grunt configuration, fixed sass build
 
 ## 9.0.0-alpha-1 August 16, 2022
 ### Breaking

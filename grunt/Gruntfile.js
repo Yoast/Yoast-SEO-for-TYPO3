@@ -12,7 +12,7 @@ module.exports = function(grunt) {
 
     // Load Grunt configurations and tasks
     require( 'load-grunt-config' )(grunt, {
-        configPath: require( 'path' ).join( process.cwd(), 'grunt/config/' ),
+        configPath: require( 'path' ).join( process.cwd(), 'config' ),
         data: project
     });
 };

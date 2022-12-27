@@ -3,7 +3,6 @@
 # Build everything
 build:
   - 'sass'
-  - 'browserify'
 build:language-files:
   - 'glotpress_download'
   - 'po2json'
