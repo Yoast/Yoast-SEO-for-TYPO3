@@ -1,4 +1,9 @@
 module.tx_yoastseo {
+    view {
+        templateRootPaths {
+            10 = EXT:yoast_seo/Resources/Private/Templates/
+        }
+    }
     settings {
         itemsPerPage = 20
     }

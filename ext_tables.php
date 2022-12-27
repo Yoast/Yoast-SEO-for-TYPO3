@@ -19,15 +19,18 @@ defined('TYPO3') || die;
         'TYPO3/CMS/Backend/PageTree/PageTreeElement'
     );
 
+    $legacyAction = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Core\Information\Typo3Version::class)
+            ->getMajorVersion() === 10;
+
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
         'YoastSeo',
         'yoast',
         'dashboard',
         '',
-        [\YoastSeoForTypo3\YoastSeo\Controller\ModuleController::class => 'dashboard'],
+        [\YoastSeoForTypo3\YoastSeo\Controller\DashboardController::class => $legacyAction ? 'legacy' : 'index'],
         [
             'access' => 'user,group',
-            'icon' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-dashboard.svg',
+            'iconIdentifier' => 'module-yoast-dashboard',
             'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleDashboard.xlf',
             'inheritNavigationComponentFromMainModule' => false
         ]
@@ -38,25 +41,11 @@ defined('TYPO3') || die;
         'yoast',
         'overview',
         '',
-        [\YoastSeoForTypo3\YoastSeo\Controller\OverviewController::class => 'list'],
+        [\YoastSeoForTypo3\YoastSeo\Controller\OverviewController::class => $legacyAction ? 'legacy' : 'list'],
         [
             'access' => 'user,group',
-            'icon' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-overview.svg',
+            'iconIdentifier' => 'module-yoast-overview',
             'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf',
-        ]
-    );
-
-    \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
-        'YoastSeo',
-        'yoast',
-        'premium',
-        '',
-        [\YoastSeoForTypo3\YoastSeo\Controller\ModuleController::class => 'premium'],
-        [
-            'access' => 'user,group',
-            'icon' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-premium.svg',
-            'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf',
-            'inheritNavigationComponentFromMainModule' => false
         ]
     );
 

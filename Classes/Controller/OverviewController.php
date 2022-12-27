@@ -4,36 +4,65 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Controller;
 
-use TYPO3\CMS\Backend\Routing\Exception\RouteNotFoundException;
-use TYPO3\CMS\Backend\Routing\UriBuilder;
+use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
-use TYPO3\CMS\Backend\View\BackendTemplateView;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Exception\SiteNotFoundException;
 use TYPO3\CMS\Core\Localization\LanguageService;
-use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use YoastSeoForTypo3\YoastSeo\Pagination\ArrayPaginator;
 use YoastSeoForTypo3\YoastSeo\Pagination\Pagination;
-use YoastSeoForTypo3\YoastSeo\Utility\PathUtility;
 
-class OverviewController extends ActionController
+class OverviewController extends AbstractBackendController
 {
-    protected $defaultViewObjectName = BackendTemplateView::class;
-
-    public function listAction(int $currentPage = 1): void
+    public function listAction(int $currentPage = 1): ResponseInterface
     {
-        $pageInformation = $this->getPageInformation();
-        if ($pageInformation === null) {
-            $this->view->assign('noPageSelected', true);
-            return;
+        $overviewData = $this->getOverviewData($currentPage) + ['action' => 'list'];
+        $moduleTemplate = $this->getModuleTemplate();
+        if (!isset($overviewData['pageInformation'])) {
+            return $this->returnResponse($overviewData, $moduleTemplate);
         }
 
-        $this->setDocumentHeader($pageInformation);
+        $moduleTemplate->getDocHeaderComponent()->setMetaInformation($overviewData['pageInformation']);
+        $languageMenuItems = $this->getLanguageMenuItems($overviewData['pageInformation']);
+        if (is_array($languageMenuItems)) {
+            $languageMenu = $moduleTemplate->getDocHeaderComponent()->getMenuRegistry()->makeMenu();
+            $languageMenu->setIdentifier('languageMenu');
+            $languageMenu->setLabel(
+                $this->getLanguageService()->sL('LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.language')
+            );
+            foreach ($languageMenuItems as $languageMenuItem) {
+                $menuItem = $languageMenu
+                    ->makeMenuItem()
+                    ->setTitle($languageMenuItem['title'])
+                    ->setHref($languageMenuItem['href'])
+                    ->setActive($languageMenuItem['active']);
+                $languageMenu->addMenuItem($menuItem);
+            }
+            $moduleTemplate->getDocHeaderComponent()->getMenuRegistry()->addMenu($languageMenu);
+        }
+        return $this->returnResponse($overviewData, $moduleTemplate);
+    }
+
+    public function legacyAction(int $currentPage = 1): void
+    {
+        $overviewData = $this->getOverviewData($currentPage) + ['action' => 'legacy'];
+        if (isset($overviewData['pageInformation'])) {
+            $overviewData['languageMenuItems'] = $this->getLanguageMenuItems($overviewData['pageInformation']);
+        }
+        $this->view->assignMultiple($overviewData);
+    }
+
+    protected function getOverviewData(int $currentPage): array
+    {
+        $pageInformation = $this->getPageInformation();
+        if (!isset($pageInformation['uid'])) {
+            return ['noPageSelected' => true];
+        }
+
         $filters = $this->getAvailableFilters();
         $activeFilter = $this->getActiveFilter($filters);
         $currentFilter = $filters[$activeFilter];
@@ -49,7 +78,8 @@ class OverviewController extends ActionController
         );
         $pagination = GeneralUtility::makeInstance(Pagination::class, $arrayPaginator);
 
-        $this->view->assignMultiple([
+        return [
+            'pageInformation' => $pageInformation,
             'items' => $items,
             'paginator' => $arrayPaginator,
             'pagination' => $pagination,
@@ -59,11 +89,7 @@ class OverviewController extends ActionController
             'subtitle' => $this->getLanguageService()->sL($currentFilter['label']),
             'description' => $currentFilter['description'],
             'link' => $currentFilter['link'],
-        ]);
-
-        GeneralUtility::makeInstance(PageRenderer::class)->addCssFile(
-            PathUtility::getPublicPathToResources() . '/CSS/yoast-seo-backend.min.css'
-        );
+        ];
     }
 
     public function getAvailableFilters(): ?array
@@ -105,52 +131,43 @@ class OverviewController extends ActionController
         return (string)$activeFilter;
     }
 
-    protected function setDocumentHeader(array $pageInformation): void
+    protected function getLanguageMenuItems(array $pageInformation): ?array
     {
         $site = $this->getSite($pageInformation['uid']);
         if ($site === null) {
-            return;
+            return null;
         }
-        $this->view->getModuleTemplate()->getDocHeaderComponent()->setMetaInformation($pageInformation);
 
         $languages = $site->getAvailableLanguages($this->getBackendUser());
         if (count($languages) === 0) {
-            return;
+            return null;
         }
 
-        $filter = $this->request->hasArgument('filter') ? $this->request->getArgument('filter') : '';
-        $languageMenu = $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->makeMenu();
-        $languageMenu->setIdentifier('languageMenu');
-        $languageMenu->setLabel(
-            $this->getLanguageService()->sL('LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.language')
-        );
-        $returnUrl = $this->request->hasArgument('returnUrl') ? $this->request->getArgument('returnUrl') : '';
+        $arguments = $this->getArguments();
+
+        $filter = $arguments['filter'] ?? '';
+        $returnUrl = $arguments['returnUrl'] ?? '';
+        $items = [];
         foreach ($languages as $language) {
-            $parameters = [
-                'id' => $pageInformation['uid'],
-                'tx_yoastseo_yoast_yoastseooverview[filter]' => $filter,
-                'tx_yoastseo_yoast_yoastseooverview[language]' => $language->getLanguageId(),
-                'tx_yoastseo_yoast_yoastseooverview[returnUrl]' => $returnUrl
+            $url = $this->uriBuilder
+                ->reset()
+                ->setTargetPageUid($pageInformation['uid'])
+                ->setArguments([
+                    'tx_yoastseo_yoast_yoastseooverview' => [
+                        'filter' => $filter,
+                        'language' => $language->getLanguageId(),
+                        'returnUrl' => $returnUrl,
+                        'controller' => 'Overview'
+                    ]
+                ])
+                ->build();
+            $items[] = [
+                'title' => $language->getTitle(),
+                'href' => $url,
+                'active' => (int)($arguments['language'] ?? 0) === $language->getLanguageId()
             ];
-
-            $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
-            try {
-                $url = $uriBuilder->buildUriFromRoute('yoast_YoastSeoOverview', $parameters);
-            } catch (RouteNotFoundException $e) {
-                $url = '';
-            }
-
-            $menuItem = $languageMenu
-                ->makeMenuItem()
-                ->setTitle($language->getTitle())
-                ->setHref((string)$url);
-            if ($this->request->hasArgument('language')
-                && (int)$this->request->getArgument('language') === $language->getLanguageId()) {
-                $menuItem->setActive(true);
-            }
-            $languageMenu->addMenuItem($menuItem);
         }
-        $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->addMenu($languageMenu);
+        return $items;
     }
 
     protected function getPageInformation(): ?array
@@ -175,13 +192,15 @@ class OverviewController extends ActionController
 
     protected function getParams(): array
     {
-        $language = $this->request->hasArgument('language') ? (int)$this->request->getArgument('language') : 0;
-        $table = 'pages';
-
         return [
-            'language' => $language,
-            'table' => $table
+            'language' => $this->getArguments()['language'] ?? 0,
+            'table' => 'pages'
         ];
+    }
+
+    protected function getArguments(): array
+    {
+        return $this->request->getArguments()['tx_yoastseo_yoast_yoastseooverview'] ?? $this->request->getArguments();
     }
 
     public function getLanguageService(): LanguageService

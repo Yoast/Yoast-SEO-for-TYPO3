@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 
-use Doctrine\DBAL\Driver\ResultStatement;
+use Doctrine\DBAL\Result;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
@@ -13,7 +13,7 @@ class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataPr
 {
     protected const PAGES_TABLE = 'pages';
 
-    public function getResults(array $pageIds = []): ?ResultStatement
+    public function getResults(array $pageIds = []): ?Result
     {
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(self::PAGES_TABLE);
 

@@ -11,7 +11,9 @@ Besides the free version of our plugin, we also have a premium version. The free
 ## UNRELEASED
 ### Added
 - (Experimental) support for CMS12
+  - Added `Modules.php` for registering backend modules
 - Upgrade wizard for migrating premium redirects to `sys_redirect`
+- Restructured backend modules to work with CMS10, CMS11 and CMS12. Introduced `legacy` actions for CMS10
 
 ### Breaking
 - Dropped support for CMS9

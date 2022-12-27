@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 
-use Doctrine\DBAL\Driver\ResultStatement;
+use Doctrine\DBAL\Result;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class CornerstoneOverviewDataProvider extends AbstractOverviewDataProvider
 {
-    public function getResults(array $pageIds = []): ?ResultStatement
+    public function getResults(array $pageIds = []): ?Result
     {
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(self::PAGES_TABLE);
 

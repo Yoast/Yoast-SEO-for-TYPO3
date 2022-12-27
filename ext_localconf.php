@@ -41,6 +41,16 @@ defined('TYPO3') || die;
         \TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
         ['source' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-container.svg']
     );
+    $iconRegistry->registerIcon(
+        'module-yoast-dashboard',
+        \TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
+        ['source' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-dashboard.svg']
+    );
+    $iconRegistry->registerIcon(
+        'module-yoast-overview',
+        \TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
+        ['source' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-overview.svg']
+    );
 
     $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['yoastRedirectsMigrate']
         = \YoastSeoForTypo3\YoastSeo\Updates\MigrateRedirects::class;
