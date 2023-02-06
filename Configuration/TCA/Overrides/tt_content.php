@@ -21,7 +21,7 @@ if (!\YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::isPremiumInstalled()) {
             str_replace(
                 'bodytext;LLL:EXT:frontend/Resources/Private/Language/locallang_ttc.xlf:bodytext_formlabel,',
                 'bodytext;LLL:EXT:frontend/Resources/Private/Language/locallang_ttc.xlf:bodytext_formlabel,tx_yoastseo_linking_suggestions,',
-                $GLOBALS['TCA']['tt_content']['types'][$type]['showitem']
+                $GLOBALS['TCA']['tt_content']['types'][$type]['showitem']??''
             );
     }
 }
