@@ -165,7 +165,7 @@ class SnippetPreview extends AbstractNode
         $premiumText = $this->getPremiumText();
 
         if ($this->data['tableName'] !== 'pages'
-            || in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
+            || in_array((int)$this->data['databaseRow']['doktype'][0] ?? 0, $allowedDoktypes)) {
             $firstFocusKeyword = YoastUtility::getFocusKeywordOfPage(
                 (int)$this->data['databaseRow']['uid'],
                 $this->data['tableName']
