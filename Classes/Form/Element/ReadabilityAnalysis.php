@@ -37,7 +37,7 @@ class ReadabilityAnalysis extends AbstractNode
         $resultArray = $this->initializeResultArray();
 
         $allowedDoktypes = YoastUtility::getAllowedDoktypes();
-        if ($this->data['tableName'] === 'pages' && !\in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
+        if ($this->data['tableName'] === 'pages' && !\in_array((int)$this->data['databaseRow']['doktype'][0] ?? 0, $allowedDoktypes)) {
             $this->templateView->assign('wrongDoktype', true);
         }
         $this->templateView->assign('subtype', '');
