@@ -49,6 +49,27 @@ defined('TYPO3') || die;
         ]
     );
 
+    \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
+        'YoastSeo',
+        'yoast',
+        'crawler',
+        '',
+        [\YoastSeoForTypo3\YoastSeo\Controller\CrawlerController::class => ($legacyAction ? 'legacy' : 'index') . ',resetProgress'],
+        [
+            'access' => 'user,group',
+            'iconIdentifier' => 'module-yoast-crawler',
+            'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleCrawler.xlf',
+            'inheritNavigationComponentFromMainModule' => false
+        ]
+    );
+
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::allowTableOnStandardPages(
+        'tx_yoastseo_related_focuskeyword'
+    );
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::allowTableOnStandardPages(
+        'tx_yoastseo_prominent_word'
+    );
+
     // Extend user settings
     $GLOBALS['TYPO3_USER_SETTINGS']['columns']['hideYoastInPageModule'] = [
         'label' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:usersettings.hideYoastInPageModule',

@@ -11,13 +11,23 @@ Besides the free version of our plugin, we also have a premium version. The free
 ## UNRELEASED
 ### Added
 - (Experimental) support for CMS12
-  - Added `Modules.php` for registering backend modules
 - Upgrade wizard for migrating premium redirects to `sys_redirect`
 - Restructured backend modules to work with CMS10, CMS11 and CMS12. Introduced `legacy` actions for CMS10
+- Features from the premium version:
+  - Related keyphrases with their own synonyms
+  - Insights to show prominent words on a page
+  - Internal linking suggestions within content elements based on the prominent words
+  - Crawler backend module to update Yoast data for complete sites
+  - Orphaned content view within the Overview module
+  - Advanced robots: nosnippet, noimageindex, noarchive
+  - Typoscript functionality for Structured Data
+  - Dashboard widgets for Orphaned content and pages without meta description
+- Upgrade wizards for migration premium focus keywords and redirects
 
 ### Breaking
 - Dropped support for CMS9
 - API for `overview_filters` has changed, instead of `getData` providers should have a `getResults(array $pageIds)` method (see `OverviewDataProviderInterface`)
+- Removed `get_focus_keyword` hook, was not used anymore
 
 ### Changed
 - Simplified `ext_localconf` and `ext_tables.php`
@@ -35,6 +45,10 @@ Besides the free version of our plugin, we also have a premium version. The free
 - Removed upgrade wizards for old canonical and seo title fields
 - Simplified `.gitattributes`
 - Updated and removed old grunt configuration, fixed sass build
+
+### Removed
+- Premium backend module
+- All references for premium including all related javascript modals
 
 ## 9.0.0-alpha-1 August 16, 2022
 ### Breaking

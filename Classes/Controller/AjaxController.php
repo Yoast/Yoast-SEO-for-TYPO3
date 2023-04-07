@@ -10,11 +10,34 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Http\HtmlResponse;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Service\CrawlerService;
+use YoastSeoForTypo3\YoastSeo\Service\LinkingSuggestionsService;
 use YoastSeoForTypo3\YoastSeo\Service\PreviewService;
+use YoastSeoForTypo3\YoastSeo\Service\ProminentWordsService;
 use YoastSeoForTypo3\YoastSeo\Service\UrlService;
 
 class AjaxController
 {
+    protected PreviewService $previewService;
+    protected UrlService $urlService;
+    protected ProminentWordsService $prominentWordsService;
+    protected LinkingSuggestionsService $linkingSuggestionsService;
+    protected CrawlerService $crawlerService;
+
+    public function __construct(
+        PreviewService $previewService,
+        UrlService $urlService,
+        ProminentWordsService $prominentWordsService,
+        LinkingSuggestionsService $linkingSuggestionsService,
+        CrawlerService $crawlerService
+    ) {
+        $this->previewService = $previewService;
+        $this->urlService = $urlService;
+        $this->prominentWordsService = $prominentWordsService;
+        $this->linkingSuggestionsService = $linkingSuggestionsService;
+        $this->crawlerService = $crawlerService;
+    }
+
     public function previewAction(
         ServerRequestInterface $request
     ): ResponseInterface {
@@ -29,10 +52,8 @@ class AjaxController
             }
         }
 
-        $previewService = GeneralUtility::makeInstance(PreviewService::class);
-        $urlService = GeneralUtility::makeInstance(UrlService::class);
-        $content = $previewService->getPreviewData(
-            $urlService->getUriToCheck(
+        $content = $this->previewService->getPreviewData(
+            $this->urlService->getUriToCheck(
                 (int)$queryParams['pageId'],
                 (int)$queryParams['languageId'],
                 (string)$queryParams['additionalGetVars']
@@ -44,21 +65,15 @@ class AjaxController
     }
 
     public function saveScoresAction(
-        ServerRequestInterface $request,
-        ResponseInterface $response = null
+        ServerRequestInterface $request
     ): ResponseInterface {
-        $json = file_get_contents('php://input');
+        $json = $request->getBody()->getContents();
         $data = json_decode($json, true);
 
         if (!empty($data['table']) && !empty($data['uid'])) {
             $this->saveScores($data);
         }
-        if ($response === null) {
-            return new JsonResponse(['OK']);
-        }
-
-        $response->getBody()->write(json_encode(['OK']));
-        return $response;
+        return new JsonResponse($data);
     }
 
     protected function saveScores(array $data): void
@@ -72,5 +87,93 @@ class AjaxController
                 'tx_yoastseo_score_seo' => (string)$data['seoScore']
             ], ['uid' => (int)$data['uid']]);
         }
+    }
+
+    public function promimentWordsAction(
+        ServerRequestInterface $request
+    ): ResponseInterface {
+        $body = $request->getBody()->getContents();
+        $data = json_decode($body);
+
+        if (isset($data->words, $data->uid)) {
+            $this->prominentWordsService->saveProminentWords(
+                (int)$data->uid,
+                (int)$data->pid,
+                $data->table ?? 'pages',
+                (int)($data->languageId ?? 0),
+                (array)$data->words
+            );
+        }
+
+        return new JsonResponse(['OK']);
+    }
+
+    public function internalLinkingSuggestionsAction(
+        ServerRequestInterface $request
+    ): ResponseInterface {
+        $body = $request->getBody()->getContents();
+        $data = json_decode($body);
+
+        $words = $data->words ?? [];
+        $excludedPageId = (int)($data->excludedPage ?? 0);
+        $languageId = (int)($data->languageId ?? 0);
+        $content = (string)($data->content ?? '');
+
+        $links = $this->linkingSuggestionsService->getLinkingSuggestions(
+            $words,
+            $excludedPageId,
+            $languageId,
+            $content
+        );
+
+        return new JsonResponse([
+            'OK',
+            'links' => $links,
+            'excludedPage' => $excludedPageId,
+            'languageId' => $languageId
+        ]);
+    }
+
+    public function crawlerDeterminePages(
+        ServerRequestInterface $request
+    ): ResponseInterface {
+        $crawlerData = $this->getCrawlerRequestData($request);
+        $amount = $this->crawlerService->getAmountOfPages($crawlerData['site'], $crawlerData['language']);
+        if ($amount > 0) {
+            return new JsonResponse([
+                'amount' => $amount
+            ]);
+        }
+        return new JsonResponse([
+            'error' => 'No pages found to analyse'
+        ]);
+    }
+
+    public function crawlerIndexPages(
+        ServerRequestInterface $request
+    ): ResponseInterface {
+        $crawlerData = $this->getCrawlerRequestData($request);
+        $indexInformation = $this->crawlerService->getIndexInformation(
+            $crawlerData['site'],
+            $crawlerData['language'],
+            $crawlerData['offset']
+        );
+        if (count($indexInformation['pages']) === 0) {
+            return new JsonResponse(['status' => 'finished', 'total' => $indexInformation['total']]);
+        }
+        return new JsonResponse($indexInformation);
+    }
+
+    protected function getCrawlerRequestData(ServerRequestInterface $request): array
+    {
+        $crawlerData = json_decode($request->getBody()->getContents(), true);
+        if (!isset($crawlerData['site'], $crawlerData['language'])) {
+            die(json_encode(['error' => 'No site and language provided by request']));
+        }
+        return [
+            'site' => (int)$crawlerData['site'],
+            'language' => (int)$crawlerData['language'],
+            'offset' => (int)($crawlerData['offset'] ?? 0)
+        ];
     }
 }

@@ -14,7 +14,6 @@ use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\TypoScript\TypoScriptService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
-use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 /**
  * This class will take care of the different providers and returns the title with
@@ -28,12 +27,7 @@ class StructuredDataProviderManager implements SingletonInterface
     public function __construct()
     {
         $this->initCaches();
-
-        if (YoastUtility::isPremiumInstalled()) {
-            $this->sourceComment = '<!-- This site is optimized with the Yoast SEO Premium for TYPO3 plugin - https://yoast.com/typo3-extensions-seo/ -->';
-        } else {
-            $this->sourceComment = '<!-- This site is optimized with the Yoast SEO for TYPO3 plugin - https://yoast.com/typo3-extensions-seo/ -->';
-        }
+        $this->sourceComment = '<!-- This site is optimized with the Yoast SEO for TYPO3 plugin - https://yoast.com/typo3-extensions-seo/ -->';
     }
 
     public function render(array &$params, $pObj): void

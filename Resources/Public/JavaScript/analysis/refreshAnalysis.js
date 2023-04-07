@@ -16,18 +16,8 @@ export default function refreshAnalysis(worker, store) {
         titleWidth: measureTextWidth(data.title)
     });
 
-    let promises = [];
-    if (typeof YoastConfig.useRelevantWords !== 'undefined' &&
-        YoastConfig.useRelevantWords === true) {
-        promises = [
-            store.dispatch(analyzeData(worker, paper, YoastConfig.relatedKeyphrases)),
-            store.dispatch(getRelevantWords(worker, paper)),
-        ];
-    } else {
-        promises = [
-            store.dispatch(analyzeData(worker, paper, YoastConfig.relatedKeyphrases)),
-        ];
-    }
-
-    return Promise.all(promises);
+    return Promise.all([
+        store.dispatch(analyzeData(worker, paper, YoastConfig.relatedKeyphrases)),
+        store.dispatch(getRelevantWords(worker, paper)),
+    ]);
 }

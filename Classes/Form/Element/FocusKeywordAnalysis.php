@@ -26,7 +26,7 @@ class FocusKeywordAnalysis extends AbstractNode
             $templateView->assign('wrongDoktype', true);
         }
         $subtype = '';
-        if ($this->data['tableName'] === 'tx_yoast_seo_premium_focus_keywords') {
+        if ($this->data['tableName'] === 'tx_yoastseo_related_focuskeyword') {
             $subtype = 'rk' . $this->data['vanillaUid'];
         }
 

@@ -95,3 +95,13 @@ div.yoast-analysis div:not(.bounce) {
 
 div.yoast-analysis a {
   text-decoration: underline; }
+
+.yoastSeo-insights ol {
+  padding: 0;
+  margin: 1em 2em; }
+
+.yoastSeo-insights a {
+  font-weight: bold; }
+
+.yoastSeo-insights a:hover {
+  text-decoration: underline; }

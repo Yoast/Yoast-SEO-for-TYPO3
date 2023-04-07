@@ -37,6 +37,11 @@ defined('TYPO3') || die;
 
     $iconRegistry = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Core\Imaging\IconRegistry::class);
     $iconRegistry->registerIcon(
+        'extension-yoast',
+        \TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
+        ['source' => 'EXT:yoast_seo/Resources/Public/Icons/Extension.svg']
+    );
+    $iconRegistry->registerIcon(
         'module-yoast',
         \TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
         ['source' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-container.svg']
@@ -51,9 +56,16 @@ defined('TYPO3') || die;
         \TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
         ['source' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-overview.svg']
     );
+    $iconRegistry->registerIcon(
+        'module-yoast-crawler',
+        \TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider::class,
+        ['source' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-crawler.svg']
+    );
 
     $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['yoastRedirectsMigrate']
         = \YoastSeoForTypo3\YoastSeo\Updates\MigrateRedirects::class;
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['yoastPremiumFocusKeywordsMigrate']
+        = \YoastSeoForTypo3\YoastSeo\Updates\MigratePremiumFocusKeywords::class;
 
     $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['yoastseo_recordcache'] ??= [];
     $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['yoastseo_recordcache']['groups'] ??= ['system'];

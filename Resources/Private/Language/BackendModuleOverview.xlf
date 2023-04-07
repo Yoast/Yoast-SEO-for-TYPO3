@@ -24,6 +24,12 @@
 			<trans-unit id="withoutDescription.description" resname="withoutDescription.description">
 				<source><![CDATA[Optimizing the meta description is a very important aspect of on-page SEO. Consider adding a meta description to these pages. <a href="%s" target="_blank">Learn more about writing the right meta description.</a>]]></source>
 			</trans-unit>
+			<trans-unit id="orphanedContent">
+				<source>Orphaned content</source>
+			</trans-unit>
+			<trans-unit id="orphanedContent.description">
+				<source><![CDATA['Orphaned content' refers to pages that have no inbound links, consider adding links towards these pages. <a href="%s" target="_blank">Learn more about orphaned content.</a>]]></source>
+			</trans-unit>
 			<trans-unit id="no_pages.title" resname="no_pages.title">
 				<source>No pages found</source>
 			</trans-unit>

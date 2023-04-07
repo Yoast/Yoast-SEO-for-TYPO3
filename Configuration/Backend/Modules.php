@@ -1,5 +1,6 @@
 <?php
 
+use YoastSeoForTypo3\YoastSeo\Controller\CrawlerController;
 use YoastSeoForTypo3\YoastSeo\Controller\DashboardController;
 use YoastSeoForTypo3\YoastSeo\Controller\OverviewController;
 
@@ -30,6 +31,17 @@ return [
         'extensionName' => 'YoastSeo',
         'controllerActions' => [
             OverviewController::class => ['list']
+        ],
+    ],
+    'yoast_YoastSeoCrawler' => [
+        'parent' => 'yoast',
+        'access' => 'user,group',
+        'path' => '/module/yoast/crawler',
+        'iconIdentifier' => 'module-yoast-crawler',
+        'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleCrawler.xlf',
+        'extensionName' => 'YoastSeo',
+        'controllerActions' => [
+            CrawlerController::class => ['index', 'resetProgress']
         ],
     ]
 ];

@@ -50,10 +50,13 @@ class SchemaBuilder extends AbstractBuilder
     {
         $this->sqlData[] = 'tx_yoastseo_focuskeyword tinytext,';
         $this->sqlData[] = 'tx_yoastseo_focuskeyword_synonyms tinytext,';
+        $this->sqlData[] = "tx_yoastseo_focuskeyword_related int(11) DEFAULT '0' NOT NULL,";
         $this->sqlData[] = "tx_yoastseo_cornerstone tinyint(3) DEFAULT '0' NOT NULL,";
         $this->sqlData[] = "tx_yoastseo_score_readability varchar(50) DEFAULT '' NOT NULL,";
         $this->sqlData[] = "tx_yoastseo_score_seo varchar(50) DEFAULT '' NOT NULL,";
-        $this->sqlData[] = "tx_yoastseo_focuskeyword_premium int(11) DEFAULT '0' NOT NULL,";
+        $this->sqlData[] = "tx_yoastseo_robots_noimageindex tinyint(4) DEFAULT '0' NOT NULL,";
+        $this->sqlData[] = "tx_yoastseo_robots_noarchive tinyint(4) DEFAULT '0' NOT NULL,";
+        $this->sqlData[] = "tx_yoastseo_robots_nosnippet tinyint(4) DEFAULT '0' NOT NULL,";
         $this->sqlData[] = 'KEY tx_yoastseo_cornerstone (tx_yoastseo_cornerstone),';
     }
 

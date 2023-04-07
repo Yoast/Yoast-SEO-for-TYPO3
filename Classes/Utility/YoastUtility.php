@@ -7,9 +7,7 @@ namespace YoastSeoForTypo3\YoastSeo\Utility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Database\ConnectionPool;
-use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManager;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
 
@@ -66,7 +64,7 @@ class YoastUtility
         return !$pageRecord['tx_yoastseo_hide_snippet_preview'];
     }
 
-    public static function getFocusKeywordOfPage(int $uid, string $table = 'pages'): ?string
+    public static function getFocusKeywordOfRecord(int $uid, string $table = 'pages'): ?string
     {
         $focusKeyword = '';
         if (empty((int)$uid)) {
@@ -77,34 +75,20 @@ class YoastUtility
         if (\is_array($record) && array_key_exists(self::COLUMN_NAME_FOCUSKEYWORD, $record)) {
             $focusKeyword = $record[self::COLUMN_NAME_FOCUSKEYWORD];
         }
-
-        $params = [
-            'keyword' => $focusKeyword,
-            'table' => $table,
-            'uid' => $uid
-        ];
-
-        foreach ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['get_focus_keyword'] ?? [] as $_funcRef) {
-            if ($_funcRef) {
-                $tmp = new \stdClass();
-                GeneralUtility::callUserFunction($_funcRef, $params, $tmp);
-            }
-        }
-
-        return $params['keyword'];
+        return $focusKeyword;
     }
 
     public static function getRelatedKeyphrases(string $parentTable, int $parentId): array
     {
         $config = [];
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(
-            'tx_yoast_seo_premium_focus_keywords'
+            'tx_yoastseo_related_focuskeyword'
         );
         $relatedKeyphrases = $queryBuilder->select('*')
-            ->from('tx_yoast_seo_premium_focus_keywords')
+            ->from('tx_yoastseo_related_focuskeyword')
             ->where(
-                $queryBuilder->expr()->eq('parenttable', $queryBuilder->createNamedParameter($parentTable)),
-                $queryBuilder->expr()->eq('parentid', $parentId)
+                $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($parentTable)),
+                $queryBuilder->expr()->eq('uid_foreign', $parentId)
             )
             ->execute()
             ->fetchAllAssociative();
@@ -117,11 +101,6 @@ class YoastUtility
         }
 
         return $config;
-    }
-
-    public static function isPremiumInstalled(): bool
-    {
-        return (bool)ExtensionManagementUtility::isLoaded('yoast_seo_premium');
     }
 
     /**
@@ -149,29 +128,6 @@ class YoastUtility
             ConfigurationManagerInterface::CONFIGURATION_TYPE_SETTINGS,
             'yoastseo'
         );
-    }
-
-    public static function getYoastLink(
-        string $utm_term = 'Go premium',
-        string $utm_content = '',
-        string $utm_source = 'yoast-seo-for-typo3'
-    ): string {
-        preg_match('/^(\d+\.\d+\.\d+).*/', phpversion(), $php_version);
-        $parameters = [
-            'utm_source' => $utm_source,
-            'utm_medium' => 'software',
-            'utm_term' => $utm_term,
-            'utm_content' => $utm_content,
-            'utm_campaign' => 'typo3-ad',
-            'php_version' => $php_version[1] ?: 'unknown',
-            'platform' => 'TYPO3',
-            'platform_version' => VersionNumberUtility::getNumericTypo3Version(),
-            'software' => self::isPremiumInstalled() ? 'premium' : 'free',
-            'software_version' => ExtensionManagementUtility::getExtensionVersion('yoast_seo'),
-            'role' => ''
-        ];
-
-        return 'https://yoast.com/typo3-extensions-seo/?' . http_build_query($parameters);
     }
 
     /**

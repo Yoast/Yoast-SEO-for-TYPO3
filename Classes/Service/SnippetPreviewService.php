@@ -6,9 +6,9 @@ namespace YoastSeoForTypo3\YoastSeo\Service;
 
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Utility\JavascriptUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\PathUtility;
-use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class SnippetPreviewService
 {
@@ -30,7 +30,7 @@ class SnippetPreviewService
         string $previewUrl,
         array $currentData,
         array $additionalConfiguration
-    ) {
+    ): void {
         $publicResourcesPath = PathUtility::getPublicPathToResources();
 
         $config = [
@@ -40,8 +40,6 @@ class SnippetPreviewService
                 'saveScores' => $this->urlService->getSaveScoresUrl(),
                 'prominentWords' => $this->urlService->getProminentWordsUrl(),
             ],
-            'useKeywordDistribution' => YoastUtility::isPremiumInstalled(),
-            'useRelevantWords' => YoastUtility::isPremiumInstalled(),
             'isCornerstoneContent' => (bool)($currentData['tx_yoastseo_cornerstone'] ?? false),
             'focusKeyphrase' => [
                 'keyword' => (string)($currentData['tx_yoastseo_focuskeyword'] ?? ''),
@@ -53,13 +51,7 @@ class SnippetPreviewService
         $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigUtility::class);
         $jsonConfigUtility->addConfig(array_merge($config, $additionalConfiguration));
 
-        if (YoastUtility::inProductionMode() === true) {
-            $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/dist/plugin');
-        } else {
-            $this->pageRenderer->addHeaderData(
-                '<script type="text/javascript" src="https://localhost:3333/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/plugin.js" async></script>'
-            );
-        }
+        JavascriptUtility::loadJavascript($this->pageRenderer);
 
         $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/yoastModal');
         $this->pageRenderer->addCssFile('EXT:yoast_seo/Resources/Public/CSS/yoast.min.css');

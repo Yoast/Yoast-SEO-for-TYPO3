@@ -9,7 +9,8 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class TcaService
 {
-    protected const LL_PREFIX = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
+    protected const LL_PREFIX_TCA = 'LLL:EXT:yoast_seo/Resources/Private/Language/TCA.xlf:';
+    protected const LL_PREFIX_BACKEND = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
 
     protected string $table = '';
     protected string $types = '';
@@ -23,10 +24,6 @@ class TcaService
 
         $this->addDefaultFields();
 
-        if (!YoastUtility::isPremiumInstalled()) {
-            $this->addPremiumFields();
-        }
-
         $this->addPalettes();
         $this->addToTypes();
     }
@@ -35,7 +32,7 @@ class TcaService
     {
         $columns = [
             'tx_yoastseo_snippetpreview' => [
-                'label' => self::LL_PREFIX . 'snippetPreview',
+                'label' => self::LL_PREFIX_BACKEND . 'snippetPreview',
                 'exclude' => true,
                 'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
                 'config' => [
@@ -48,7 +45,7 @@ class TcaService
                 ]
             ],
             'tx_yoastseo_readability_analysis' => [
-                'label' => self::LL_PREFIX . 'analysis',
+                'label' => self::LL_PREFIX_BACKEND . 'analysis',
                 'exclude' => true,
                 'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
                 'config' => [
@@ -57,7 +54,7 @@ class TcaService
                 ]
             ],
             'tx_yoastseo_focuskeyword' => [
-                'label' => self::LL_PREFIX . 'seoFocusKeyword',
+                'label' => self::LL_PREFIX_BACKEND . 'seoFocusKeyword',
                 'exclude' => true,
                 'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
                 'config' => [
@@ -65,7 +62,7 @@ class TcaService
                 ]
             ],
             'tx_yoastseo_focuskeyword_analysis' => [
-                'label' => self::LL_PREFIX . 'analysis',
+                'label' => self::LL_PREFIX_BACKEND . 'analysis',
                 'exclude' => true,
                 'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
                 'config' => [
@@ -99,10 +96,82 @@ class TcaService
                     'type' => 'passthrough'
                 ]
             ],
+            'tx_yoastseo_focuskeyword_related' => [
+                'label' => self::LL_PREFIX_TCA . 'pages.fields.tx_yoastseo_focuskeyword_related',
+                'exclude' => true,
+                'config' => [
+                    'type' => 'inline',
+                    'foreign_table' => 'tx_yoastseo_related_focuskeyword',
+                    'foreign_field' => 'uid_foreign',
+                    'foreign_table_field' => 'tablenames',
+                    'maxitems' => 5
+                ]
+            ],
+            'tx_yoastseo_insights' => [
+                'label' => self::LL_PREFIX_TCA . 'pages.fields.tx_yoastseo_insights',
+                'exclude' => true,
+                'config' => [
+                    'type' => 'none',
+                    'renderType' => 'insights'
+                ]
+            ],
+            'tx_yoastseo_focuskeyword_synonyms' => [
+                'label' => self::LL_PREFIX_TCA . 'synonyms',
+                'exclude' => true,
+                'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
+                'config' => [
+                    'type' => 'input',
+                ]
+            ],
+            'tx_yoastseo_robots_noimageindex' => [
+                'label' => self::LL_PREFIX_TCA . 'pages.fields.robots.noimageindex',
+                'exclude' => true,
+                'config' => [
+                    'type' => 'check',
+                    'renderType' => 'checkboxToggle',
+                    'items' => [
+                        [
+                            0 => '',
+                            1 => '',
+                            'invertStateDisplay' => true
+                        ]
+                    ],
+                ]
+            ],
+            'tx_yoastseo_robots_noarchive' => [
+                'label' => self::LL_PREFIX_TCA . 'pages.fields.robots.noarchive',
+                'exclude' => true,
+                'config' => [
+                    'type' => 'check',
+                    'renderType' => 'checkboxToggle',
+                    'items' => [
+                        [
+                            0 => '',
+                            1 => '',
+                            'invertStateDisplay' => true
+                        ]
+                    ],
+                ]
+            ],
+            'tx_yoastseo_robots_nosnippet' => [
+                'label' => self::LL_PREFIX_TCA . 'pages.fields.robots.nosnippet',
+                'exclude' => true,
+                'config' => [
+                    'type' => 'check',
+                    'renderType' => 'checkboxToggle',
+                    'items' => [
+                        [
+                            0 => '',
+                            1 => '',
+                            'invertStateDisplay' => true
+                        ]
+                    ],
+                ]
+            ]
         ];
         if ($this->table === 'pages') {
             $columns['tx_yoastseo_hide_snippet_preview'] = [
-                'label' => self::LL_PREFIX . 'hideSnippetPreview',
+                'label' => self::LL_PREFIX_BACKEND . 'hideSnippetPreview',
                 'exclude' => true,
                 'config' => [
                     'type' => 'check'
@@ -112,45 +181,6 @@ class TcaService
         ExtensionManagementUtility::addTCAcolumns(
             $this->table,
             $columns
-        );
-    }
-
-    protected function addPremiumFields(): void
-    {
-        ExtensionManagementUtility::addTCAcolumns(
-            $this->table,
-            [
-                'tx_yoastseo_focuskeyword_synonyms' => [
-                    'label' => self::LL_PREFIX . 'synonyms',
-                    'exclude' => false,
-                    'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
-                    'config' => [
-                        'type' => 'none',
-                        'renderType' => 'synonyms',
-                    ]
-                ],
-                'tx_yoastseo_focuskeyword_premium' => [
-                    'exclude' => true,
-                    'config' => [
-                        'type' => 'none',
-                        'renderType' => 'relatedKeyphrases'
-                    ]
-                ],
-                'tx_yoastseo_insights' => [
-                    'exclude' => true,
-                    'config' => [
-                        'type' => 'none',
-                        'renderType' => 'insights'
-                    ]
-                ],
-                'tx_yoastseo_robots_noimageindex' => [
-                    'exclude' => true,
-                    'config' => [
-                        'type' => 'none',
-                        'renderType' => 'advancedRobots'
-                    ]
-                ]
-            ]
         );
     }
 
@@ -187,7 +217,7 @@ class TcaService
         ExtensionManagementUtility::addFieldsToPalette(
             $this->table,
             'yoast-relatedkeywords',
-            '--linebreak--, tx_yoastseo_focuskeyword_premium '
+            '--linebreak--, tx_yoastseo_focuskeyword_related '
         );
 
         ExtensionManagementUtility::addFieldsToPalette(
@@ -199,7 +229,7 @@ class TcaService
         ExtensionManagementUtility::addFieldsToPalette(
             $this->table,
             'yoast-advanced-robots',
-            '--linebreak--, tx_yoastseo_robots_noimageindex'
+            '--linebreak--, tx_yoastseo_robots_noimageindex,tx_yoastseo_robots_noarchive,tx_yoastseo_robots_nosnippet'
         );
 
         ExtensionManagementUtility::addFieldsToPalette(
@@ -220,24 +250,24 @@ class TcaService
 
         ExtensionManagementUtility::addToAllTCAtypes(
             $this->table,
-            '--palette--;' . self::LL_PREFIX . 'pages.palettes.readability;yoast-readability,
-            --palette--;' . self::LL_PREFIX . 'pages.palettes.focusKeyphrase;yoast-focuskeyword,
-            --palette--;' . self::LL_PREFIX . 'pages.palettes.focusRelatedKeyphrases;yoast-relatedkeywords,
-            --palette--;' . self::LL_PREFIX . 'pages.palettes.insights;yoast-insights,',
+            '--palette--;' . self::LL_PREFIX_TCA . 'pages.palettes.readability;yoast-readability,
+            --palette--;' . self::LL_PREFIX_TCA . 'pages.palettes.focusKeyphrase;yoast-focuskeyword,
+            --palette--;' . self::LL_PREFIX_TCA . 'pages.palettes.focusRelatedKeyphrases;yoast-relatedkeywords,
+            --palette--;' . self::LL_PREFIX_TCA . 'pages.palettes.insights;yoast-insights,',
             $this->types,
             'after: tx_yoastseo_cornerstone'
         );
 
         ExtensionManagementUtility::addToAllTCAtypes(
             $this->table,
-            '--palette--;' . self::LL_PREFIX . 'pages.palettes.robots;yoast-advanced-robots,',
+            '--palette--;' . self::LL_PREFIX_TCA . 'pages.palettes.robots;yoast-advanced-robots,',
             $this->types,
             'after:no_follow'
         );
 
         ExtensionManagementUtility::addToAllTCAtypes(
             $this->table,
-            '--palette--;' . self::LL_PREFIX . 'pages.palettes.advances;yoast-advanced,',
+            '--palette--;' . self::LL_PREFIX_TCA . 'pages.palettes.advances;yoast-advanced,',
             $this->types,
             'after: twitter_image'
         );
