@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
+use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
-use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class TcaService
 {
@@ -129,13 +130,7 @@ class TcaService
                 'config' => [
                     'type' => 'check',
                     'renderType' => 'checkboxToggle',
-                    'items' => [
-                        [
-                            0 => '',
-                            1 => '',
-                            'invertStateDisplay' => true
-                        ]
-                    ],
+                    'items' => $this->getInvertedCheckbox()
                 ]
             ],
             'tx_yoastseo_robots_noarchive' => [
@@ -144,13 +139,7 @@ class TcaService
                 'config' => [
                     'type' => 'check',
                     'renderType' => 'checkboxToggle',
-                    'items' => [
-                        [
-                            0 => '',
-                            1 => '',
-                            'invertStateDisplay' => true
-                        ]
-                    ],
+                    'items' => $this->getInvertedCheckbox()
                 ]
             ],
             'tx_yoastseo_robots_nosnippet' => [
@@ -159,13 +148,7 @@ class TcaService
                 'config' => [
                     'type' => 'check',
                     'renderType' => 'checkboxToggle',
-                    'items' => [
-                        [
-                            0 => '',
-                            1 => '',
-                            'invertStateDisplay' => true
-                        ]
-                    ],
+                    'items' => $this->getInvertedCheckbox()
                 ]
             ]
         ];
@@ -271,5 +254,25 @@ class TcaService
             $this->types,
             'after: twitter_image'
         );
+    }
+
+    protected function getInvertedCheckbox(): array
+    {
+        if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() >= 12) {
+            return [
+                [
+                    1 => '',
+                    'invertStateDisplay' => true,
+                    'label' => ''
+                ]
+            ];
+        }
+        return [
+            [
+                0 => '',
+                1 => '',
+                'invertStateDisplay' => true
+            ]
+        ];
     }
 }
