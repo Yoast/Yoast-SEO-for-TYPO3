@@ -23,6 +23,7 @@ Besides the free version of our plugin, we also have a premium version. The free
   - Typoscript functionality for Structured Data
   - Dashboard widgets for Orphaned content and pages without meta description
 - Upgrade wizards for migration premium focus keywords and redirects
+- Introduced custom ModeSwitcher to create a different Mobile/Desktop switcher within the preview
 
 ### Breaking
 - Dropped support for CMS9
