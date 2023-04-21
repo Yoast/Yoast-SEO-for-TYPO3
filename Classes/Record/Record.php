@@ -22,6 +22,7 @@ class Record
     protected array $recordData = [];
     protected bool $generatePageTitle = true;
     protected bool $generateMetaTags = true;
+    protected bool $generateRobotsTag = true;
 
     public function getTableName(): string
     {
@@ -163,6 +164,17 @@ class Record
     public function setGenerateMetaTags(bool $generateMetaTags): self
     {
         $this->generateMetaTags = $generateMetaTags;
+        return $this;
+    }
+
+    public function shouldGenerateRobotsTag(): bool
+    {
+        return $this->generateRobotsTag;
+    }
+
+    public function setGenerateRobotsTag(bool $generateRobotsTag): self
+    {
+        $this->generateRobotsTag = $generateRobotsTag;
         return $this;
     }
 

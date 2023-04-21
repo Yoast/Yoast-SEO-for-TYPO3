@@ -80,7 +80,8 @@ class RecordRegistry implements SingletonInterface
                 ->setAddDescriptionField((bool)($yoastSeoConfiguration['addDescriptionField'] ?? false))
                 ->setGetParameters((array)($yoastSeoConfiguration['getParameters'] ?? []))
                 ->setGeneratePageTitle((bool)($yoastSeoConfiguration['generatePageTitle'] ?? true))
-                ->setGenerateMetaTags((bool)($yoastSeoConfiguration['generateMetaTags'] ?? true));
+                ->setGenerateMetaTags((bool)($yoastSeoConfiguration['generateMetaTags'] ?? true))
+                ->setGenerateRobotsTag((bool)($yoastSeoConfiguration['generateRobotsTag'] ?? true));
         }
     }
 }

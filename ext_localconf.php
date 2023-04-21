@@ -13,6 +13,8 @@ defined('TYPO3') || die;
         = \YoastSeoForTypo3\YoastSeo\Frontend\UsePageCache::class;
     $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['TYPO3\CMS\Frontend\Page\PageGenerator']['generateMetaTags']['yoastRecord']
         = \YoastSeoForTypo3\YoastSeo\MetaTag\RecordMetaTagGenerator::class . '->generate';
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['TYPO3\CMS\Frontend\Page\PageGenerator']['generateMetaTags']['advancedrobots'] =
+        \YoastSeoForTypo3\YoastSeo\MetaTag\AdvancedRobotsGenerator::class . '->generate';
 
     \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
         'yoast_seo',

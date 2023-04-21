@@ -38,6 +38,7 @@ class TcaBuilder extends AbstractBuilder
             'getParameters' => $this->record->getGetParameters(),
             'generatePageTitle' => $this->record->shouldGeneratePageTitle(),
             'generateMetaTags' => $this->record->shouldGenerateMetaTags(),
+            'generateRobotsTag' => $this->record->shouldGenerateRobotsTag(),
         ];
 
         if (!empty($this->record->getOverrideTca())) {

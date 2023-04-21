@@ -140,8 +140,7 @@ class ConfigurationUtility
             'recordMetaTags' => [
                 'description' => Generator\DescriptionGenerator::class,
                 'opengraph' => Generator\OpenGraphGenerator::class,
-                'twitter' => Generator\TwitterGenerator::class,
-                'robots' => Generator\RobotsGenerator::class,
+                'twitter' => Generator\TwitterGenerator::class
             ]
         ];
     }

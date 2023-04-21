@@ -31,6 +31,7 @@ records:
       * Readability Analysis
       * SEO Analysis
       * Focus keyword
+      * Advanced robots: Image index, Archive, Snippet
 * Frontend:
    * Metatag tags:
       * Description
@@ -230,6 +231,18 @@ setGenerateMetaTags
 :aspect:`Description`
    This will enable/disable the rendering of the metatags in the frontend (in
    case you want to this yourself). This will not deactivate the canonical tag.
+
+setGenerateRobotsTag
+~~~~~~~~~~~~~~~~~~~~
+:aspect:`Datatype`
+    boolean
+
+:aspect:`Default`
+    true
+
+:aspect:`Description`
+   This will enable/disable the rendering of the robots metatag in the frontend
+   (in case you always want the robot settings from the page it's displayed on).
 
 
 Example with EXT:news
