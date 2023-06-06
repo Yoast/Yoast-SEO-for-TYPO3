@@ -8,6 +8,7 @@ use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Exception\SiteNotFoundException;
+use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -21,8 +22,9 @@ class LinkingSuggestionsService
 
     protected ConnectionPool $connectionPool;
 
-    public function __construct(ConnectionPool $connectionPool)
-    {
+    public function __construct(
+        ConnectionPool $connectionPool
+    ) {
         $this->connectionPool = $connectionPool;
     }
 
@@ -227,7 +229,7 @@ class LinkingSuggestionsService
                 $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($record['tablenames']))
             );
         }
-        return $queryBuilder->select('stem', 'weight', 'pid', 'tablenames')
+        return $queryBuilder->select('stem', 'weight', 'pid', 'tablenames', 'uid_foreign')
             ->from(self::PROMINENT_WORDS_TABLE)
             ->where(
                 $queryBuilder->expr()->orX(...$orStatements)
@@ -240,7 +242,7 @@ class LinkingSuggestionsService
     {
         $candidateWordsByRecords = [];
         foreach ($candidateWords as $candidateWord) {
-            $recordKey = $candidateWord['pid'] . '-' . $candidateWord['tablenames'];
+            $recordKey = $candidateWord['uid_foreign'] . '-' . $candidateWord['tablenames'];
             $candidateWordsByRecords[$recordKey][$candidateWord['stem']] = [
                 'weight' => (int)$candidateWord['weight'],
                 'df' => (int)$candidateWord['df']
@@ -311,12 +313,12 @@ class LinkingSuggestionsService
     {
         $links = [];
         foreach ($scores as $record => $score) {
-            [$pid, $table] = explode('-', $record);
-            if ($table === 'pages' && (int)$pid === $this->excludePageId) {
+            [$uid, $table] = explode('-', $record);
+            if ($table === 'pages' && (int)$uid === $this->excludePageId) {
                 continue;
             }
 
-            $data = BackendUtility::getRecord($table, $pid);
+            $data = BackendUtility::getRecord($table, $uid);
             if ($data === null) {
                 continue;
             }
@@ -325,7 +327,8 @@ class LinkingSuggestionsService
 
             $links[$record] = [
                 'label' => $data[$labelField],
-                'id' => $pid,
+                'recordType' => $this->getRecordType($table),
+                'id' => $uid,
                 'table' => $table,
                 'cornerstone' => (int)$data['tx_yoastseo_cornerstone'],
                 'score' => $score,
@@ -383,5 +386,17 @@ class LinkingSuggestionsService
         } catch (SiteNotFoundException $e) {
             return 0;
         }
+    }
+
+    protected function getRecordType(string $table): string
+    {
+        return $this->getLanguageService()->sL(
+            $GLOBALS['TCA'][$table]['ctrl']['title']
+        );
+    }
+
+    protected function getLanguageService(): LanguageService
+    {
+        return $GLOBALS['LANG'];
     }
 }

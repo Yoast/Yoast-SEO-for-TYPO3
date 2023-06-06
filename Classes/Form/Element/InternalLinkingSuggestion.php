@@ -51,6 +51,7 @@ class InternalLinkingSuggestion extends AbstractNode
         $publicResourcesPath = PathUtility::getPublicPathToResources();
 
         $resultArray = $this->initializeResultArray();
+        $resultArray['stylesheetFiles'][] = 'EXT:yoast_seo/Resources/Public/CSS/yoast.min.css';
         $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigUtility::class);
 
         $workerUrl = $publicResourcesPath . '/JavaScript/dist/worker.js';

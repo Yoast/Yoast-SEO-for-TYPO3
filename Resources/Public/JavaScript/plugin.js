@@ -8,17 +8,19 @@ import Analysis from './Components/Analysis';
 import StatusIcon from './Components/StatusIcon';
 import TitleProgressBar from './Components/TitleProgressBar';
 import DescriptionProgressBar from './Components/DescriptionProgressBar';
+import LinkingSuggestions from "./Components/LinkingSuggestions";
+import Insights from "./Components/Insights";
 import store from './redux/store';
 import {getContent, updateContent} from './redux/actions/content';
 import {setFocusKeyword} from './redux/actions/focusKeyword';
-import Insights from "./Components/Insights";
-import {saveRelevantWords} from './redux/actions/relevantWords';
 
+import {saveRelevantWords} from './redux/actions/relevantWords';
 import createAnalysisWorker from './analysis/createAnalysisWorker';
 import refreshAnalysis from './analysis/refreshAnalysis';
 import {setFocusKeywordSynonyms} from "./redux/actions/focusKeywordSynonyms";
 import {setLocaleData} from "@wordpress/i18n";
 import {Paper} from "yoastseo";
+import {getLinkingSuggestions} from "./redux/actions/linkingSuggestions";
 
 let YoastTypo3 = {
     _yoastWorker: null,
@@ -430,6 +432,10 @@ let YoastLinkingSuggestions = {
         YoastLinkingSuggestions._url = url;
         YoastTypo3.setWorker(false, YoastConfig.linkingSuggestions.locale);
 
+        document.querySelectorAll('[data-yoast-linking-suggestions]').forEach(container => {
+            ReactDOM.render(<Provider store={store}><LinkingSuggestions /></Provider>, container);
+        });
+
         YoastLinkingSuggestions._updateInterval = setInterval(() => {
             YoastLinkingSuggestions.checkLinkingSuggestions();
         }, 1000);
@@ -441,71 +447,13 @@ let YoastLinkingSuggestions = {
             return;
         }
 
-        YoastLinkingSuggestions.getLinkingSuggestions(content);
+        store.dispatch(getLinkingSuggestions(YoastTypo3._yoastWorker, content, YoastLinkingSuggestions._url));
 
         // Analysis is done, Updating every second is not necessary anymore
         clearInterval(YoastLinkingSuggestions._updateInterval);
         YoastLinkingSuggestions._updateInterval = setInterval(() => {
             YoastLinkingSuggestions.checkLinkingSuggestions();
         }, 10000);
-    },
-
-    getLinkingSuggestions: (content) => {
-        const paper = new Paper(content, {});
-        YoastTypo3._yoastWorker.runResearch('prominentWordsForInternalLinking', paper)
-            .then((results) => {
-                let words = results.result.prominentWords.slice(0, 5);
-
-                YoastTypo3.postRequest(YoastLinkingSuggestions._url, {
-                    words: words,
-                    excludedPage: YoastConfig.linkingSuggestions.excludedPage,
-                    language: YoastConfig.data.languageId,
-                    content: content
-                })
-                    .then(response => {
-                        return response.json();
-                    })
-                    .then(results => {
-                        YoastLinkingSuggestions.updateLinkingSuggestions(results.links);
-                    });
-            });
-    },
-
-    updateLinkingSuggestions: (links) => {
-        let content = '';
-
-        if (links && links.length > 0) {
-            content += '<table class="table" style="width: auto;">';
-            content += '<thead><tr>' +
-                '<th>Label</th><th>Record</th><th>Linked</th>' +
-                '</tr></thead>' +
-                '<tbody>';
-            for (let link in links) {
-                if (links.hasOwnProperty(link)) {
-                    content += '<tr><td>';
-                    content += links[link].label;
-                    if (links[link].cornerstone === 1) {
-                        content += ' *';
-                    }
-                    content += '</td><td>Page [uid=' + links[link].id + ']</td>';
-                    if (links[link].active) {
-                        content += '<td class="text-center"><btn class="btn btn-success btn-sm">&nbsp;&check;&nbsp;</btn></td>';
-                    } else {
-                        content += '<td class="text-center"><btn class="btn btn-danger btn-sm">&nbsp;&cross;&nbsp;</btn></td>';
-                    }
-
-                    content += '</tr>';
-                }
-            }
-            content += '</tbody>' +
-                '</table>';
-        }
-
-        if (content === '') {
-            content = '&gt; No results found, make sure you have more than 100 words to analyze.';
-        }
-
-        document.querySelector(`[data-yoast-linking-suggestion]`).innerHTML = content;
     },
 
     getCKEditorContent: () => {
