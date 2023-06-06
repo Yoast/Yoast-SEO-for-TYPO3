@@ -6,9 +6,9 @@ namespace YoastSeoForTypo3\YoastSeo\Service;
 
 use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Database\ConnectionPool;
-use TYPO3\CMS\Core\Database\QueryGenerator;
 use TYPO3\CMS\Core\Registry;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Utility\PageAccessUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class CrawlerService
@@ -85,7 +85,7 @@ class CrawlerService
     {
         $cacheIdentifier = 'YoastSeoCrawler' . $site . '-' . $languageId;
         if (($pagesToIndex = $this->cache->get($cacheIdentifier)) === false) {
-            $treeList = $this->getTreeList($site);
+            $treeList = PageAccessUtility::getPageIds($site);
             $pagesToIndex = [];
             foreach (array_chunk($treeList, 1000) as $treeChunk) {
                 $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
@@ -123,12 +123,5 @@ class CrawlerService
             }
         }
         return $pagesToIndex;
-    }
-
-    protected function getTreeList(int $site)
-    {
-        $queryGenerator = GeneralUtility::makeInstance(QueryGenerator::class);
-        $treeList = $queryGenerator->getTreeList($site, 999);
-        return GeneralUtility::intExplode(',', $treeList);
     }
 }

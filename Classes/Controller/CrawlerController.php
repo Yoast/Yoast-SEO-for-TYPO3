@@ -6,6 +6,7 @@ namespace YoastSeoForTypo3\YoastSeo\Controller;
 
 use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
+use TYPO3\CMS\Core\Http\RedirectResponse;
 use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Site\SiteFinder;
@@ -29,20 +30,23 @@ class CrawlerController extends AbstractBackendController
         $this->view->assign('sites', $this->getAllSites());
     }
 
-    public function resetProgressAction(int $site, int $language): void
+    public function resetProgressAction(int $site, int $language):? ResponseInterface
     {
         $crawlerService = GeneralUtility::makeInstance(CrawlerService::class);
         $crawlerService->resetProgressInformation($site, $language);
-        $this->redirect(
-            GeneralUtility::makeInstance(Typo3Version::class)
-                ->getMajorVersion() === 10 ? 'legacy' : 'index'
-        );
+
+        if (GeneralUtility::makeInstance(Typo3Version::class)
+            ->getMajorVersion() === 10) {
+            $this->redirect('legacy');
+        } else {
+            return $this->redirect('index');
+        }
     }
 
     protected function getAllSites(): array
     {
-        $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
-        return $siteFinder->getAllSites();
+        return GeneralUtility::makeInstance(SiteFinder::class)
+            ->getAllSites();
     }
 
     protected function addYoastJavascriptConfig(): void

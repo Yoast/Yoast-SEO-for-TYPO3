@@ -98,7 +98,7 @@ class AjaxController
         if (isset($data->words, $data->uid)) {
             $this->prominentWordsService->saveProminentWords(
                 (int)$data->uid,
-                (int)$data->pid,
+                isset($data->pid) ? (int)$data->pid : null,
                 $data->table ?? 'pages',
                 (int)($data->languageId ?? 0),
                 (array)$data->words

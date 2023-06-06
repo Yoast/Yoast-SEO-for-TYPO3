@@ -29,13 +29,13 @@ class ProminentWordsService
 
     public function saveProminentWords(
         int $uid,
-        int $pid,
+        ?int $pid,
         string $table,
         int $languageId,
         array $prominentWords
     ): void {
         $this->uid = $uid;
-        $this->pid = $pid;
+        $this->pid = $pid ?? $this->getPidForRecord($uid, $table);
         $this->table = $table;
         $this->languageId = $languageId;
 
@@ -118,6 +118,13 @@ class ProminentWordsService
             )
             ->execute()
             ->fetchAllAssociative();
+    }
+
+    protected function getPidForRecord(int $uid, string $table): int
+    {
+        $connection = $this->connectionPool->getConnectionForTable($table);
+        $record = $connection->select(['pid'], $table, ['uid' => $uid])->fetchAssociative();
+        return (int)($record['pid'] ?? 0);
     }
 
     protected function getSiteRootPageId(): int
