@@ -22,8 +22,7 @@
     .yoast-seo-score-bar--analysis.yoast-seo-page {
       cursor: pointer; }
     .yoast-seo-score-bar--analysis svg {
-      position: relative;
-      top: 3px; }
+      vertical-align: middle; }
 
 .yoast-seo-snippet-error {
   color: #dc3232;
