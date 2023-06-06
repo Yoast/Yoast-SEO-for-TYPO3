@@ -49,7 +49,7 @@ class LinkingSuggestionsService
 
         $requestStems = array_keys($requestData);
         $scores = [];
-        $batchSize = 100;
+        $batchSize = 1000;
         $page = 1;
 
         do {
@@ -312,21 +312,25 @@ class LinkingSuggestionsService
         $links = [];
         foreach ($scores as $record => $score) {
             [$pid, $table] = explode('-', $record);
-            if ($table !== 'pages' || (int)$pid !== $this->excludePageId) {
-                $data = BackendUtility::getRecord($table, $pid);
-                if ($data !== null) {
-                    $labelField = $GLOBALS['TCA'][$table]['ctrl']['label'];
-
-                    $links[$record] = [
-                        'label' => $data[$labelField],
-                        'id' => $pid,
-                        'table' => $table,
-                        'cornerstone' => (int)$data['tx_yoastseo_cornerstone'],
-                        'score' => $score,
-                        'active' => isset($currentLinks[$record])
-                    ];
-                }
+            if ($table === 'pages' && (int)$pid === $this->excludePageId) {
+                continue;
             }
+
+            $data = BackendUtility::getRecord($table, $pid);
+            if ($data === null) {
+                continue;
+            }
+
+            $labelField = $GLOBALS['TCA'][$table]['ctrl']['label'];
+
+            $links[$record] = [
+                'label' => $data[$labelField],
+                'id' => $pid,
+                'table' => $table,
+                'cornerstone' => (int)$data['tx_yoastseo_cornerstone'],
+                'score' => $score,
+                'active' => isset($currentLinks[$record])
+            ];
         }
         $this->sortSuggestions($links);
 
