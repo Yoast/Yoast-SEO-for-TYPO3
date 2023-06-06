@@ -9,10 +9,15 @@ We will follow [Semantic Versioning](http://semver.org/).
 Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
 
 ## UNRELEASED
+### Breaking
+- Dropped support for CMS9
+- API for `overview_filters` has changed, instead of `getData` providers should have a `getResults(array $pageIds)` method (see `OverviewDataProviderInterface`)
+- Removed `get_focus_keyword` hook, was not used anymore
+
 ### Added
-- (Experimental) support for CMS12
+- Support for CMS12
+- New feature to automatically activate Yoast SEO functionality on custom records
 - Upgrade wizard for migrating premium redirects to `sys_redirect`
-- Restructured backend modules to work with CMS10, CMS11 and CMS12. Introduced `legacy` actions for CMS10
 - Features from the premium version:
   - Related keyphrases with their own synonyms
   - Insights to show prominent words on a page
@@ -25,12 +30,8 @@ Besides the free version of our plugin, we also have a premium version. The free
 - Upgrade wizards for migration premium focus keywords and redirects
 - Introduced custom ModeSwitcher to create a different Mobile/Desktop switcher within the preview
 
-### Breaking
-- Dropped support for CMS9
-- API for `overview_filters` has changed, instead of `getData` providers should have a `getResults(array $pageIds)` method (see `OverviewDataProviderInterface`)
-- Removed `get_focus_keyword` hook, was not used anymore
-
 ### Changed
+- Restructured backend modules to work with CMS10, CMS11 and CMS12. Introduced `legacy` actions for CMS10
 - Simplified `ext_localconf` and `ext_tables.php`
   - Removed `TYPO3_MODE` checks
   - Introduced `ConfigurationUtility` which provides the default configuration and nodes for the formEngine and
