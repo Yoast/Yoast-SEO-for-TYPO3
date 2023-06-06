@@ -11,7 +11,7 @@ import DescriptionProgressBar from './Components/DescriptionProgressBar';
 import store from './redux/store';
 import {getContent, updateContent} from './redux/actions/content';
 import {setFocusKeyword} from './redux/actions/focusKeyword';
-import RelevantWords from "./Components/RelevantWords";
+import Insights from "./Components/Insights";
 import {saveRelevantWords} from './redux/actions/relevantWords';
 
 import createAnalysisWorker from './analysis/createAnalysisWorker';
@@ -29,7 +29,7 @@ let YoastTypo3 = {
         if (typeof YoastConfig === 'undefined') {
             return;
         }
-        if (typeof YoastConfig.data !== 'undefined') {
+        if (typeof YoastConfig.data !== 'undefined' && typeof YoastConfig.data.uid !== 'undefined') {
             YoastPlugin.init();
         }
         if (typeof YoastConfig.urls.linkingSuggestions !== 'undefined') {
@@ -199,7 +199,7 @@ let YoastPlugin = {
         });
 
         document.querySelectorAll('[data-yoast-insights]').forEach(container => {
-            ReactDOM.render(<Provider store={store}><RelevantWords /></Provider>, container);
+            ReactDOM.render(<Provider store={store}><Insights /></Provider>, container);
         });
     },
 
@@ -436,10 +436,6 @@ let YoastLinkingSuggestions = {
     },
 
     checkLinkingSuggestions: () => {
-        if (typeof CKEDITOR === "undefined") {
-            return;
-        }
-
         let content = YoastLinkingSuggestions.getCKEditorContent();
         if (content === '') {
             return;
@@ -513,13 +509,28 @@ let YoastLinkingSuggestions = {
     },
 
     getCKEditorContent: () => {
-        let content = '';
-        for (let instance in CKEDITOR.instances) {
-            if (CKEDITOR.instances.hasOwnProperty(instance)) {
-                content += CKEDITOR.instances[instance].getData();
+        const ckeditor5elements = document.getElementsByTagName('typo3-rte-ckeditor-ckeditor5');
+        if (ckeditor5elements.length > 0) {
+            const editableElements = document.querySelectorAll('.ck-editor__editable');
+            let content = '';
+            for (let editorElement in editableElements) {
+                if (typeof editableElements[editorElement].ckeditorInstance !== 'undefined') {
+                    content += editableElements[editorElement].ckeditorInstance.getData();
+                }
             }
+            return content;
+        } else {
+            if (typeof CKEDITOR === 'undefined') {
+                return '';
+            }
+            let content = '';
+            for (let instance in CKEDITOR.instances) {
+                if (CKEDITOR.instances.hasOwnProperty(instance)) {
+                    content += CKEDITOR.instances[instance].getData();
+                }
+            }
+            return content;
         }
-        return content;
     },
 }
 
