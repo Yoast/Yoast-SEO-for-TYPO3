@@ -15,19 +15,19 @@ use TYPO3\CMS\Fluid\View\StandaloneView;
 use YoastSeoForTypo3\YoastSeo\Utility\JavascriptUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\PathUtility;
-use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class InternalLinkingSuggestion extends AbstractNode
 {
     protected StandaloneView $templateView;
     protected int $languageId;
-    protected array $parentPageRow;
+    protected int $currentPage;
 
     public function __construct(NodeFactory $nodeFactory, array $data)
     {
         parent::__construct($nodeFactory, $data);
 
-        $this->parentPageRow = $data['parentPageRow'] ?? [];
+        $this->currentPage = $data['parentPageRow']['uid'];
+
         if (isset($data['databaseRow']['sys_language_uid'])) {
             if (is_array($data['databaseRow']['sys_language_uid']) && count(
                     $data['databaseRow']['sys_language_uid']
@@ -56,7 +56,6 @@ class InternalLinkingSuggestion extends AbstractNode
 
         $workerUrl = $publicResourcesPath . '/JavaScript/dist/worker.js';
 
-        $excludePageId = $this->parentPageRow['uid'] ?: 0;
         $config = [
             'isCornerstoneContent' => false,
             'focusKeyphrase' => [
@@ -67,8 +66,8 @@ class InternalLinkingSuggestion extends AbstractNode
                 'languageId' => $this->languageId
             ],
             'linkingSuggestions' => [
-                'excludedPage' => $excludePageId,
-                'locale' => $this->getLocale($excludePageId)
+                'excludedPage' => $this->currentPage,
+                'locale' => $this->getLocale($this->currentPage)
             ],
             'urls' => [
                 'workerUrl' => $workerUrl,

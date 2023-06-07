@@ -54,7 +54,7 @@ class SnippetPreview extends AbstractNode
             'TCA' => 1,
             'data' => [
                 'table' => $this->data['tableName'],
-                'uid' => (int)$this->data['databaseRow']['uid'],
+                'uid' => (int)($this->data['defaultLanguagePageRow']['uid'] ?? $this->data['databaseRow']['uid']),
                 'pid' => (int)$this->data['databaseRow']['pid'],
                 'languageId' => $this->languageId
             ],

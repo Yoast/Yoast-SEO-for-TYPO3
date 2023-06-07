@@ -7,6 +7,7 @@ namespace YoastSeoForTypo3\YoastSeo\Service;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\Exception\SiteNotFoundException;
 use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Site\SiteFinder;
@@ -21,11 +22,14 @@ class LinkingSuggestionsService
     protected int $languageId;
 
     protected ConnectionPool $connectionPool;
+    protected PageRepository $pageRepository;
 
     public function __construct(
-        ConnectionPool $connectionPool
+        ConnectionPool $connectionPool,
+        PageRepository $pageRepository
     ) {
         $this->connectionPool = $connectionPool;
+        $this->pageRepository = $pageRepository;
     }
 
     public function getLinkingSuggestions(
@@ -180,7 +184,8 @@ class LinkingSuggestionsService
                     'stem',
                     $queryBuilder->createNamedParameter($prominentStems, Connection::PARAM_STR_ARRAY)
                 ),
-                $queryBuilder->expr()->eq('site', $this->site)
+                $queryBuilder->expr()->eq('site', $this->site),
+                $queryBuilder->expr()->eq('sys_language_uid', $this->languageId)
             )
             ->groupBy('stem')
             ->execute()
@@ -226,7 +231,11 @@ class LinkingSuggestionsService
         foreach ($records as $record) {
             $orStatements[] = $queryBuilder->expr()->andX(
                 $queryBuilder->expr()->eq('pid', $record['pid']),
-                $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($record['tablenames']))
+                $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($record['tablenames'])),
+                $queryBuilder->expr()->eq(
+                    'sys_language_uid',
+                    $queryBuilder->createNamedParameter($this->languageId, Connection::PARAM_INT)
+                )
             );
         }
         return $queryBuilder->select('stem', 'weight', 'pid', 'tablenames', 'uid_foreign')
@@ -321,6 +330,10 @@ class LinkingSuggestionsService
             $data = BackendUtility::getRecord($table, $uid);
             if ($data === null) {
                 continue;
+            }
+            if ($this->languageId > 0
+                && ($overlay = $this->pageRepository->getRecordOverlay($table, $data, $this->languageId, 'mixed'))) {
+                $data = $overlay;
             }
 
             $labelField = $GLOBALS['TCA'][$table]['ctrl']['label'];
