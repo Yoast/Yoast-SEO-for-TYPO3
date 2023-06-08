@@ -6,12 +6,6 @@
 Automatic functionality for records
 ===================================
 
-.. warning::
-
-    This functionality is only available for TYPO3 10 and higher. This is due
-    to the usage of some hooks and Event Listeners which are not available in
-    version 9.
-
 What does the automatic functionality do?
 -----------------------------------------
 By using the automatic functionality the following will be added to your

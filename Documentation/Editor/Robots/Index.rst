@@ -6,13 +6,7 @@
 Advanced robot instructions
 ===========================
 
-.. warning::
-
-    This functionality is only available within the Yoast SEO Premium extension.
-
-    `Find out more about the premium extension. <https://yoast.com/typo3-extensions-seo/>`_
-
-The premium extension provides 3 extra "Robots" settings, besides "Index this page" and "Follow this page".
+Yoast SEO For TYPO3 provides 3 extra "Robots" settings, besides "Index this page" and "Follow this page".
 
 You can find these settings at the bottom of the SEO tab:
 

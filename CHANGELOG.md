@@ -5,9 +5,6 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
-## Yoast SEO Premium for TYPO3
-Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
-
 ## UNRELEASED
 ### Breaking
 - Dropped support for CMS9
