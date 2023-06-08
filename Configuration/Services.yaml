@@ -16,6 +16,9 @@ services:
   YoastSeoForTypo3\YoastSeo\Service\SnippetPreviewService:
     public: true
 
+  YoastSeoForTypo3\YoastSeo\Controller\AjaxController:
+    public: true
+
   YoastSeoForTypo3\YoastSeo\EventListener\TcaBuiltListener:
     arguments:
       - '@YoastSeoForTypo3\YoastSeo\Record\Builder\TcaBuilder'
@@ -63,3 +66,12 @@ services:
         identifier: 'yoast-seo/frontend/cacheable-content-listener'
         event: TYPO3\CMS\Frontend\Event\AfterCacheableContentIsGeneratedEvent
 
+  YoastSeoForTypo3\YoastSeo\Widgets\Provider\PagesWithoutDescriptionDataProvider:
+    arguments:
+      $excludedDoktypes: [3, 4, 6, 7, 199, 254, 255]
+      $limit: 8
+
+  YoastSeoForTypo3\YoastSeo\Widgets\Provider\OrphanedContentDataProvider:
+    arguments:
+      $excludedDoktypes: [3, 4, 6, 7, 199, 254, 255]
+      $limit: 8

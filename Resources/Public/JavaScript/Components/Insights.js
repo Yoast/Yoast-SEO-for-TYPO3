@@ -2,9 +2,9 @@ import React from 'react';
 import {connect} from 'react-redux';
 import LoadingIndicator from './LoadingIndicator';
 
-const RelevantWords = ({relevantWords}) => {
-    if (relevantWords) {
-        let keywords = relevantWords.result.prominentWords.slice(0, 20);
+const Insights = ({insights}) => {
+    if (insights) {
+        let keywords = insights.result.slice(0, 20);
         return (
             <ol className="yoast-keyword-suggestions__list">
                 {keywords.map((word) => {
@@ -23,8 +23,8 @@ const RelevantWords = ({relevantWords}) => {
 
 const mapStateToProps = (state) => {
     return {
-        ...state.relevantWords
+        ...state.insights
     }
 }
 
-export default connect(mapStateToProps)(RelevantWords);
+export default connect(mapStateToProps)(Insights);

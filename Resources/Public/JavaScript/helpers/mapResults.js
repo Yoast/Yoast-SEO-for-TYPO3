@@ -1,5 +1,5 @@
 import { helpers } from "yoastseo";
-import { default as colors } from "./colors.json";
+import { default as colors } from "../colors.json";
 
 const { scoreToRating } = helpers;
 

@@ -73,7 +73,7 @@ class RecordService implements SingletonInterface
         $recordRow = GeneralUtility::makeInstance(ConnectionPool::class)
             ->getConnectionForTable($record->getTableName())
             ->select(['*'], $record->getTableName(), ['uid' => $record->getRecordUid()])
-            ->fetch();
+            ->fetchAssociative();
 
         return (array)GeneralUtility::makeInstance(PageRepository::class)
             ->getLanguageOverlay($record->getTableName(), (array)$recordRow);

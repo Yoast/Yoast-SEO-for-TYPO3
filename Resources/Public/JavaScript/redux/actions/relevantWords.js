@@ -27,11 +27,13 @@ export function saveRelevantWords(object, uid, pid, languageId, table, url)
             compressedWords[ word.getStem() ] = word.getOccurrences();
         } );
 
-        fetch(url, {
-            method: 'post',
-            headers : new Headers(),
-            body: JSON.stringify({words: compressedWords, uid: uid, pid: pid, languageId: languageId, table: table})
-        });
+        if (url) {
+            fetch(url, {
+                method: 'post',
+                headers : new Headers(),
+                body: JSON.stringify({words: compressedWords, uid: uid, pid: pid, languageId: languageId, table: table})
+            });
+        }
 
         dispatch({type: SAVE_RELEVANTWORDS_SUCCESS});
     };

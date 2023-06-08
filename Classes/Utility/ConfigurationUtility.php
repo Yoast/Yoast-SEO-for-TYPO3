@@ -12,20 +12,14 @@ class ConfigurationUtility
 {
     public static function getFormEngineNodes(): array
     {
-        $nodeArray = [
+        return [
             1514550050 => ['snippetPreview', Element\SnippetPreview::class],
             1514728465 => ['readabilityAnalysis', Element\ReadabilityAnalysis::class],
             1514830899 => ['focusKeywordAnalysis', Element\FocusKeywordAnalysis::class],
+            1519937113 => ['insights', Element\Insights::class],
             1552342645 => ['cornerstone', Element\Cornerstone::class],
+            1552511464 => ['internalLinkingSuggestion', Element\InternalLinkingSuggestion::class],
         ];
-        if (!YoastUtility::isPremiumInstalled()) {
-            $nodeArray[1553888878] = ['synonyms', Element\Synonyms::class];
-            $nodeArray[1553977739] = ['relatedKeyphrases', Element\RelatedKeyphrases::class];
-            $nodeArray[1554381790] = ['internalLinkingSuggestion', Element\InternalLinkingSuggestion::class];
-            $nodeArray[1519937113] = ['insights', Element\Insights::class];
-            $nodeArray[1633024835] = ['advancedRobots', Element\AdvancedRobots::class];
-        }
-        return $nodeArray;
     }
 
     public static function getDefaultConfiguration(): array
@@ -134,12 +128,19 @@ class ConfigurationUtility
                     'dataProvider' => DataProviders\PagesWithoutDescriptionOverviewDataProvider::class . '->process',
                     'countProvider' => DataProviders\PagesWithoutDescriptionOverviewDataProvider::class . '->numberOfItems'
                 ],
+                '30' => [
+                    'key' => 'orphaned',
+                    'label' => $llBackendOverview . ':orphanedContent',
+                    'description' => $llBackendOverview . ':orphanedContent.description',
+                    'link' => 'https://yoa.st/1ja',
+                    'dataProvider' => DataProviders\OrphanedContentDataProvider::class . '->process',
+                    'countProvider' => DataProviders\OrphanedContentDataProvider::class . '->numberOfItems'
+                ]
             ],
             'recordMetaTags' => [
                 'description' => Generator\DescriptionGenerator::class,
                 'opengraph' => Generator\OpenGraphGenerator::class,
-                'twitter' => Generator\TwitterGenerator::class,
-                'robots' => Generator\RobotsGenerator::class,
+                'twitter' => Generator\TwitterGenerator::class
             ]
         ];
     }

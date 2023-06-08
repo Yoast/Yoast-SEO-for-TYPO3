@@ -6,12 +6,6 @@
 Automatic functionality for records
 ===================================
 
-.. warning::
-
-    This functionality is only available for TYPO3 10 and higher. This is due
-    to the usage of some hooks and Event Listeners which are not available in
-    version 9.
-
 What does the automatic functionality do?
 -----------------------------------------
 By using the automatic functionality the following will be added to your
@@ -31,6 +25,7 @@ records:
       * Readability Analysis
       * SEO Analysis
       * Focus keyword
+      * Advanced robots: Image index, Archive, Snippet
 * Frontend:
    * Metatag tags:
       * Description
@@ -230,6 +225,18 @@ setGenerateMetaTags
 :aspect:`Description`
    This will enable/disable the rendering of the metatags in the frontend (in
    case you want to this yourself). This will not deactivate the canonical tag.
+
+setGenerateRobotsTag
+~~~~~~~~~~~~~~~~~~~~
+:aspect:`Datatype`
+    boolean
+
+:aspect:`Default`
+    true
+
+:aspect:`Description`
+   This will enable/disable the rendering of the robots metatag in the frontend
+   (in case you always want the robot settings from the page it's displayed on).
 
 
 Example with EXT:news

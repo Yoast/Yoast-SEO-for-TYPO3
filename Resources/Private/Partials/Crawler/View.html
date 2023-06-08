@@ -1,0 +1,68 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+      xmlns:core="http://typo3.org/ns/TPYO3/CMS/Core/ViewHelpers"
+      xmlns:yoast="http://typo3.org/ns/YoastSeoForTypo3/YoastSeo/ViewHelpers"
+	  data-namespace-typo3-fluid="true">
+
+<h1>Yoast SEO Crawler</h1>
+
+<p class="alert alert-info">
+    <f:format.raw><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleCrawler.xlf:info"/></f:format.raw>
+</p>
+
+<p class="alert alert-warning">
+    <f:format.raw><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleCrawler.xlf:warning"/></f:format.raw>
+</p>
+
+<f:for each="{sites}" as="site">
+    <div style="margin-bottom: 40px;">
+        <h3>
+            <core:icon identifier="apps-pagetree-page-domain" size="small" />
+            <f:if condition="{site.configuration.websiteTitle}">
+                <f:then>{site.configuration.websiteTitle}</f:then>
+                <f:else>{site.identifier}</f:else>
+            </f:if>
+            ({site.base})
+        </h3>
+        <f:for each="{site.languages}" as="language">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>{language.title} ({language.base})</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>
+                        <div id="saved-progress-{site.rootPageId}-{language.languageId}" style="margin-bottom: 10px;">
+                            <strong>Indexed:</strong>
+                            <f:variable name="savedProgress"><yoast:crawlerProgress site="{site.rootPageId}" language="{language.languageId}" /></f:variable>
+                            <f:if condition="{savedProgress}">
+                                <f:then>{savedProgress.percentage}% ({savedProgress.offset}/{savedProgress.total})</f:then>
+                                <f:else>0%</f:else>
+                            </f:if>
+                        </div>
+                        <div class="hide" id="progress-{site.rootPageId}-{language.languageId}">
+                            <div class="js-crawler-pages-progress alert alert-info">
+                                <core:icon identifier="spinner-circle-light" size="small" />
+                                Determing the amount of pages
+                            </div>
+                            <div class="js-crawler-pages-success hide alert alert-success">
+                                Found <strong>%d</strong> pages to analyse
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-info js-crawler-progress-bar" role="progressbar" aria-valuenow="" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                        <f:if condition="{savedProgress.percentage} != 100">
+                            <button class="btn btn-primary js-crawler-index js-crawler-button" data-site="{site.rootPageId}" data-language="{language.languageId}">Start index</button>
+                        </f:if>
+                        <f:link.action action="resetProgress" arguments="{site: site.rootPageId, language: language.languageId}" class="btn btn-warning js-crawler-button">Reset progress</f:link.action>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </f:for>
+    </div>
+</f:for>
+
+</html>

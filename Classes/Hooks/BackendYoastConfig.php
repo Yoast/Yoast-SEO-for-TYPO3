@@ -23,8 +23,5 @@ class BackendYoastConfig
 
         $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigUtility::class);
         $pObject->addJsInlineCode('yoast-json-config', $jsonConfigUtility->render());
-
-        $publicResourcesPath = PathUtility::getPublicPathToResources();
-        $pObject->addInlineSetting('Yoast', 'backendCssUrl', $publicResourcesPath . '/CSS/yoast-seo-backend.min.css');
     }
 }

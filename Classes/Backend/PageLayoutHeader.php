@@ -16,10 +16,14 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 class PageLayoutHeader
 {
     protected UrlService $urlService;
+    protected SnippetPreviewService $snippetPreviewService;
 
-    public function __construct(UrlService $urlService = null)
-    {
-        $this->urlService = $urlService ?? GeneralUtility::makeInstance(UrlService::class);
+    public function __construct(
+        UrlService $urlService,
+        SnippetPreviewService $snippetPreviewService
+    ) {
+        $this->urlService = $urlService;
+        $this->snippetPreviewService = $snippetPreviewService;
     }
 
     public function render(array $params = null, $parentObj = null): string
@@ -32,8 +36,7 @@ class PageLayoutHeader
             return '';
         }
 
-        $snippetPreviewService = GeneralUtility::makeInstance(SnippetPreviewService::class);
-        $snippetPreviewService->buildSnippetPreview(
+        $this->snippetPreviewService->buildSnippetPreview(
             $this->urlService->getPreviewUrl($pageId, $languageId),
             $currentPage,
             [
@@ -57,12 +60,7 @@ class PageLayoutHeader
             GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Templates/PageLayout/Header.html')
         );
         $templateView->assignMultiple([
-            'targetElementId' => uniqid('_YoastSEO_panel_'),
-            'premiumInstalled' => YoastUtility::isPremiumInstalled(),
-            'premiumLink' => YoastUtility::getYoastLink(
-                'Go premium',
-                'pagemodule-snippetpreview'
-            )
+            'targetElementId' => uniqid('_YoastSEO_panel_')
         ]);
         return $templateView->render();
     }

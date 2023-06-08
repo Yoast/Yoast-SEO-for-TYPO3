@@ -22,7 +22,7 @@ class SnippetPreview extends AbstractNode
     protected string $focusKeywordField = 'tx_yoastseo_focuskeyword';
     protected string $focusKeywordSynonymsField = 'tx_yoastseo_focuskeyword_synonyms';
     protected string $cornerstoneField = 'tx_yoastseo_cornerstone';
-    protected string $relatedKeyphrases = 'tx_yoastseo_focuskeyword_premium';
+    protected string $relatedKeyphrases = 'tx_yoastseo_focuskeyword_related';
     protected string $table = 'pages';
     protected string $previewUrl = '';
     protected int $languageId = 0;
@@ -45,7 +45,7 @@ class SnippetPreview extends AbstractNode
             return $resultArray;
         }
 
-        $firstFocusKeyword = YoastUtility::getFocusKeywordOfPage(
+        $firstFocusKeyword = YoastUtility::getFocusKeywordOfRecord(
             (int)$this->data['databaseRow']['uid'],
             $this->data['tableName']
         );
@@ -54,7 +54,7 @@ class SnippetPreview extends AbstractNode
             'TCA' => 1,
             'data' => [
                 'table' => $this->data['tableName'],
-                'uid' => (int)$this->data['databaseRow']['uid'],
+                'uid' => (int)($this->data['defaultLanguagePageRow']['uid'] ?? $this->data['databaseRow']['uid']),
                 'pid' => (int)$this->data['databaseRow']['pid'],
                 'languageId' => $this->languageId
             ],
@@ -63,22 +63,15 @@ class SnippetPreview extends AbstractNode
                 'pageTitle' => $this->getFieldSelector($this->pageTitleField),
                 'description' => $this->getFieldSelector($this->descriptionField),
                 'focusKeyword' => $this->getFieldSelector($this->focusKeywordField),
+                'focusKeywordSynonyms' => $this->getFieldSelector($this->focusKeywordSynonymsField),
                 'cornerstone' => $this->getFieldSelector($this->cornerstoneField),
-                'premiumKeyword' => YoastUtility::isPremiumInstalled() ? $this->getFieldSelector(
-                    $this->relatedKeyphrases,
-                    true
-                ) : '',
+                'relatedKeyword' => $this->getFieldSelector($this->relatedKeyphrases, true),
             ],
-            'relatedKeyphrases' => YoastUtility::isPremiumInstalled() ? YoastUtility::getRelatedKeyphrases(
+            'relatedKeyphrases' => YoastUtility::getRelatedKeyphrases(
                 $this->data['tableName'],
                 (int)$this->data['databaseRow']['uid']
-            ) : []
+            )
         ];
-        if (YoastUtility::isPremiumInstalled()) {
-            $snippetPreviewConfiguration['fieldSelectors']['focusKeywordSynonyms'] = $this->getFieldSelector(
-                $this->focusKeywordSynonymsField
-            );
-        }
 
         $snippetPreviewService = GeneralUtility::makeInstance(SnippetPreviewService::class);
         $snippetPreviewService->buildSnippetPreview(
