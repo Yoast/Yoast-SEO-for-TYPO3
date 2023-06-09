@@ -5,8 +5,3 @@ parameters:
     - ../Configuration
   ignoreErrors:
     - '#Parameter \$event of method#'
-    - '#implements unknown interface TYPO3\\CMS\\Dashboard\\Widgets\\AdditionalCssInterface#'
-    - '#implements unknown interface TYPO3\\CMS\\Dashboard\\Widgets\\WidgetInterface#'
-    - '#has unknown class TYPO3\\CMS\\Dashboard\\Widgets\\WidgetConfigurationInterface#'
-    - '#has invalid type TYPO3\\CMS\\Dashboard\\Widgets\\WidgetConfigurationInterface#'
-    - '#Class TYPO3\\CMS\\Dashboard\\Dashboard not found#'

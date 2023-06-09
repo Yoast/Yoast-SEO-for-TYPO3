@@ -5,4 +5,3 @@ parameters:
     - ../Configuration
   ignoreErrors:
     - '#TYPO3\\CMS\\Backend\\ViewHelpers\\ModuleLayoutViewHelper#'
-    - '#TYPO3\\CMS\\Dashboard\\Widgets\\WidgetInterface#'

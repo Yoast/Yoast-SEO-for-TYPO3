@@ -33,7 +33,7 @@ jobs:
           composer --version
       - name: Install
         run: |
-          composer require typo3/cms-core:^${{ matrix.typo3 }} typo3/cms-backend:^${{ matrix.typo3 }} typo3/cms-extbase:^${{ matrix.typo3 }} typo3/cms-fluid:^${{ matrix.typo3 }} typo3/cms-frontend:^${{ matrix.typo3 }} typo3/cms-install:^${{ matrix.typo3 }} --no-progress
+          composer require typo3/cms-core:^${{ matrix.typo3 }} typo3/cms-backend:^${{ matrix.typo3 }} typo3/cms-extbase:^${{ matrix.typo3 }} typo3/cms-fluid:^${{ matrix.typo3 }} typo3/cms-frontend:^${{ matrix.typo3 }} typo3/cms-install:^${{ matrix.typo3 }} typo3/cms-dashboard:^${{ matrix.typo3 }} --no-progress
       - name: Lint
         run: composer test:php:lint
       - name: CGL
