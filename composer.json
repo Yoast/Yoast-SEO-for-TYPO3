@@ -47,6 +47,9 @@
     "typo3/tailor": "^1.1",
     "saschaegerer/phpstan-typo3": "^1.8"
   },
+  "suggest": {
+    "typo3/cms-dashboard": "Display Yoast SEO widgets within the Dashboard of TYPO3"
+  },
   "replace": {
     "typo3-ter/yoast-seo": "self.version"
   },
