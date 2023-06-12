@@ -5,7 +5,7 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
-## UNRELEASED
+## 9.0.0 June 12, 2023
 ### Breaking
 - Dropped support for CMS9
 - API for `overview_filters` has changed, instead of `getData` providers should have a `getResults(array $pageIds)` method (see `OverviewDataProviderInterface`)
