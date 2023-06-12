@@ -7,14 +7,13 @@ $EM_CONF[$_EXTKEY] = [
     'author_company' => 'MaxServ B.V., Yoast',
     'author_email' => '',
     'clearCacheOnLoad' => 0,
-    'dependencies' => '',
     'state' => 'stable',
     'uploadfolder' => 0,
-    'version' => '8.3.1',
+    'version' => '9.0.0',
     'constraints' => [
         'depends' => [
-            'typo3' => '9.5.0-11.5.99',
-            'seo' => '9.5.0-11.5.99',
+            'typo3' => '10.4.0-12.4.99',
+            'seo' => '10.4.0-12.4.99',
         ]
     ],
     'autoload' => [

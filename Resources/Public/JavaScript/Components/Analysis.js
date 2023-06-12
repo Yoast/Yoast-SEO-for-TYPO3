@@ -2,8 +2,8 @@ import React, {useEffect, useState} from 'react';
 import {connect} from 'react-redux';
 import LoadingIndicator from './LoadingIndicator';
 import YoastContentAnalysis from 'yoast-components/composites/Plugin/ContentAnalysis/components/ContentAnalysis';
-import {mapResults} from "../mapResults";
-import getResult from '../getResult';
+import {mapResults} from "../helpers/mapResults";
+import getResult from '../helpers/getResult';
 
 const Analysis = ({content, analysis, keyword, resultType, resultSubtype}) => {
     const [analysisResult, setAnalysisResult] = useState({

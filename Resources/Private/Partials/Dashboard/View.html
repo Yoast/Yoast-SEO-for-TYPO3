@@ -1,0 +1,161 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+      xmlns:core="http://typo3.org/ns/TYPO3/CMS/Core/ViewHelpers"
+	  data-namespace-typo3-fluid="true">
+
+<f:asset.css identifier="yoast-backend" href="EXT:yoast_seo/Resources/Public/CSS/yoast-seo-backend.min.css" />
+
+<div class="yoast yoast-content">
+    <h1>Yoast SEO<span> - <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard"/></span></h1>
+
+    <div class="row">
+        <div class="col-xs-12 col-sm-6">
+            <h2>
+                <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.about"/>
+            </h2>
+            <p>
+                <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.intro"/>
+            </p>
+        </div>
+        <div class="col-xs-12 col-sm-6">
+            <h2>
+                <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.credits"/>
+            </h2>
+            <p>
+                <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.credits.description"/>
+            </p>
+
+            <p>
+                <a href="https://www.maxserv.com" target="_blank" class="yoast-seo-credits__link">
+                    <f:image src="EXT:yoast_seo/Resources/Public/Images/LogoMaxServ2019.png" height="50" class="img"/>
+                </a>
+                <a href="https://yoa.st/typo3-yoast-homepage" target="_blank" class="yoast-seo-credits__link">
+                    <f:image src="EXT:yoast_seo/Resources/Public/Images/LogoYoast.png" height="60" class="img"/>
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12 col-sm-6">
+            <h2>
+                <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.learnMore"/>
+            </h2>
+            <p>
+                <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.learnMore.description"/>
+            </p>
+        </div>
+        <div class="col-xs-12 col-sm-6">
+            <h2>
+                <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.help"/>
+            </h2>
+            <p>
+                <f:format.raw>
+                    <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.help.description" arguments="{0: '<a target=\'_blank\' class=\'resetLink\' href=\'https://typo3.slack.com\'>Slack</a>', 1: '<a target=\'_blank\' class=\'resetLink\' href=\'https://typo3.slack.com/messages/yoast-seo-for-typo3\'>#yoast-seo-for-typo3</a>'}"/>
+                </f:format.raw>
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12">
+            <h2>
+                <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.seoTips"/>
+            </h2>
+            <ul class="yoast-seo-premium-benefits yoast-list--usp">
+                <li class="yoast-seo-premium-benefits__item">
+                    <core:icon identifier="actions-check" size="small" />
+                    <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.seoTips.1"/>
+                </li>
+                <li class="yoast-seo-premium-benefits__item">
+                    <core:icon identifier="actions-check" size="small" />
+                    <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.seoTips.2"/>
+                </li>
+                <li class="yoast-seo-premium-benefits__item">
+                    <core:icon identifier="actions-check" size="small" />
+                    <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.seoTips.3"/>
+                </li>
+            </ul>
+            <form action="https://yoast.us1.list-manage.com/subscribe/post?u=ffa93edfe21752c921f860358&amp;id=972f1c9122" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate form-inline yoast-subscribe-form" target="_blank" novalidate>
+                <div class="yoast-subscribe-form-inputFields">
+                    <div class="form-group">
+                        <label class="sr-only" for="mce-NAME">{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.seoTips.name')}</label>
+                        <input type="text" value="" placeholder="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.seoTips.name')}" name="NAME" class="form-control yoast-seo-seoTips__field" id="mce-NAME">
+                    </div>
+                    <div class=form-group">
+                        <label class="sr-only" for="mce-EMAIL">{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.seoTips.email')}</label>
+                        <input type="email" value="" name="EMAIL" placeholder="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.seoTips.email')}" class="required email form-control yoast-seo-seoTips__field" id="mce-EMAIL">
+                    </div>
+                </div>
+                <div id="mce-responses" class="clear">
+                    <div class="response" id="mce-error-response" style="display:none"></div>
+                    <div class="response" id="mce-success-response" style="display:none"></div>
+                </div>    <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+                <div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_ffa93edfe21752c921f860358_972f1c9122" tabindex="-1" value=""></div>
+                <button type="submit" name="subscribe" id="mc-embedded-subscribe" class="yoast-button yoast-button--noarrow yoast-button--extension yoast-button--extension-cta yoast-link" style="margin-top: 10px;">{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.seoTips.submit')}</button>
+            </form>
+
+            <script type="text/javascript" src="{f:uri.resource(path:'EXT:yoast_seo/Resources/Public/JavaScript/dist/mc-validate.js')}"></script>
+            <script type="text/javascript">(function($) {window.fnames = new Array(); window.ftypes = new Array();fnames[0]=‘EMAIL’;ftypes[0]=‘email’;fnames[1]=‘LBTITLE’;ftypes[1]=‘text’;fnames[2]=‘LBADTEXT’;ftypes[2]=‘text’;fnames[3]=‘LBADLINK’;ftypes[3]=‘text’;fnames[4]=‘LBIMAGEURL’;ftypes[4]=‘text’;fnames[5]=‘LBPIXEL’;ftypes[5]=‘text’;fnames[6]=‘LAUNCHBIT’;ftypes[6]=‘text’;fnames[7]=‘NAME’;ftypes[7]=‘text’;fnames[8]=‘FIRST_TIME’;ftypes[8]=‘text’;}(jQuery));var $mcj = jQuery.noConflict(true);</script>
+
+        </div>
+    </div>
+
+    <div class="row yoast-seo-academy__courses">
+        <div class="col-xs-12">
+            <h2>
+                <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.seoCourses"/>
+            </h2>
+        </div>
+
+        <div class="col-xs-6 col-sm-4 col-lg-3 yoast-seo-academy__item">
+            <a href="https://yoa.st/typo3-basic-seo" target="_blank">
+                <f:image src="EXT:yoast_seo/Resources/Public/Images/Basic_course_banner.png" width="400" class="img img-responsive"/>
+                <p>
+                    <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:academy.basic_seo"/>
+                </p>
+            </a>
+        </div>
+        <div class="col-xs-6 col-sm-4 col-lg-3 yoast-seo-academy__item">
+            <a href="https://yoa.st/typo3-copywriting" class="yoast-seo-academy__link" target="_blank">
+                <f:image src="EXT:yoast_seo/Resources/Public/Images/Copywriting_course_banner.png" width="400" class="img img-responsive"/>
+                <p>
+                    <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:academy.seo-copywriting"/>
+                </p>
+            </a>
+        </div>
+        <div class="col-xs-6 col-sm-4 col-lg-3 yoast-seo-academy__item">
+            <a href="https://yoa.st/typo3-multilingual-seo" class="yoast-seo-academy__link" target="_blank">
+                <f:image src="EXT:yoast_seo/Resources/Public/Images/Multilingual_SEO_banner.png" width="400" class="img img-responsive"/>
+                <p>
+                    <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:academy.multilingual"/>
+                </p>
+            </a>
+        </div>
+        <div class="col-xs-6 col-sm-4 col-lg-3 yoast-seo-academy__item">
+            <a href="https://yoa.st/typo3-site-structure" class="yoast-seo-academy__link" target="_blank">
+                <f:image src="EXT:yoast_seo/Resources/Public/Images/Site_structure_banner.png" width="400" class="img img-responsive"/>
+                <p>
+                    <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:academy.site-structure"/>
+                </p>
+            </a>
+        </div>
+        <div class="col-xs-6 col-sm-4 col-lg-3 yoast-seo-academy__item">
+            <a href="https://yoa.st/typo3-structured-data" class="yoast-seo-academy__link" target="_blank">
+                <f:image src="EXT:yoast_seo/Resources/Public/Images/Structured_data_banner.png" width="400" class="img img-responsive"/>
+                <p>
+                    <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:academy.structured-data"/>
+                </p>
+            </a>
+        </div>
+        <div class="col-xs-6 col-sm-4 col-lg-3 yoast-seo-academy__item">
+            <a href="https://yoa.st/typo3-technical-seo" class="yoast-seo-academy__link" target="_blank">
+                <f:image src="EXT:yoast_seo/Resources/Public/Images/Technical_SEO_1_banner.png" width="400" class="img img-responsive"/>
+                <p>
+                    <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:academy.technical-seo-1"/>
+                </p>
+            </a>
+        </div>
+    </div>
+</div>
+
+</html>
