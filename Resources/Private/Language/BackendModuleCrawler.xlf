@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+    <file source-language="en" datatype="plaintext" original="messages" date="2021-09-14T21:36:15Z" product-name="yoastseo-premium">
+        <header/>
+        <body>
+            <trans-unit id="mlang_tabs_tab">
+                <source>Crawler</source>
+            </trans-unit>
+            <trans-unit id="mlang_labels_tabdescr">
+                <source>Yoast SEO Crawler</source>
+            </trans-unit>
+            <trans-unit id="mlang_labels_tablabel">
+                <source>Yoast SEO Crawler</source>
+            </trans-unit>
+
+            <trans-unit id="info">
+                <source>
+                    <![CDATA[
+                        Since version 9.0 of the Yoast SEO extension, the prominent words on a page are being analyzed which are used for Insights and linking suggestions.<br>
+                        When you visit a page in the backend, this data is being analyzed automatically.<br>
+                        This crawler has been introduced to make your life easier and scan every site, page and language and update the needed data.
+                    ]]>
+                </source>
+            </trans-unit>
+            <trans-unit id="warning">
+                <source>
+                    <![CDATA[
+                        <strong>WARNING:</strong> For every page there are 2 requests being made: one for getting the page data, and one for saving the analysis.<br>
+                        On top of that, there is a request for getting the pages to analyze, 50 at a time.<br>
+                        Make sure your server is able to handle this and that this does not cause problems with your hosting provider.
+                    ]]>
+                </source>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

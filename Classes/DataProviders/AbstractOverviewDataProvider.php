@@ -4,28 +4,11 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
-
-use Doctrine\DBAL\Driver\ResultStatement;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Platform\PlatformInformation;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\PageAccessUtility;
 
-/**
- * Class CornerstoneOverviewDataProvider
- */
 abstract class AbstractOverviewDataProvider implements OverviewDataProviderInterface
 {
     protected const PAGES_TABLE = 'pages';
@@ -50,41 +33,25 @@ abstract class AbstractOverviewDataProvider implements OverviewDataProviderInter
         'tx_yoastseo_score_seo'
     ];
 
-    /**
-     * @var array
-     */
-    protected $callerParams;
+    protected array $callerParams = [];
 
-    /**
-     * @param array $params
-     *
-     * @return array
-     */
     public function process(array $params): array
     {
         $this->callerParams = $params;
 
-        return $this->getData();
+        return $this->getRestrictedPagesResults();
     }
 
-    /**
-     * @param array $params
-     *
-     * @return int
-     */
     public function numberOfItems(array $params): int
     {
         $this->callerParams = $params;
 
-        return $this->getData(true);
+        return $this->getRestrictedPagesResults(true);
     }
 
     protected function getRestrictedPagesResults(bool $returnOnlyCount = false)
     {
-        $pageIds = PageAccessUtility::getPageIds();
-        if ($pageIds === null) {
-            return $this->allResults($returnOnlyCount);
-        }
+        $pageIds = PageAccessUtility::getPageIds((int)GeneralUtility::_GET('id'));
 
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(self::PAGES_TABLE);
         $maxBindParameters = PlatformInformation::getMaxBindParameters($connection->getDatabasePlatform());
@@ -112,23 +79,5 @@ abstract class AbstractOverviewDataProvider implements OverviewDataProviderInter
         }
 
         return $pageCount;
-    }
-
-    protected function getResults(array $pageIds = []): ?ResultStatement
-    {
-        // Needs to be overwritten by provider, not possible to set an abstract function due to API change
-        return null;
-    }
-
-    protected function allResults(bool $returnOnlyCount = false)
-    {
-        $query = $this->getResults();
-        if ($query === null) {
-            return $returnOnlyCount ? 0 : [];
-        }
-        if ($returnOnlyCount) {
-            return $query->rowCount();
-        }
-        return $query->fetchAll();
     }
 }

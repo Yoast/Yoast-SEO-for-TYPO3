@@ -1,8 +1,0 @@
-parameters:
-  level: 0
-  paths:
-    - Classes
-    - Configuration
-  ignoreErrors:
-    - '#Access to constant DOKTYPE_SPACER on an unknown class#'
-    - '#Class TYPO3\\CMS\\Frontend\\Page\\PageRepository not found.#'
