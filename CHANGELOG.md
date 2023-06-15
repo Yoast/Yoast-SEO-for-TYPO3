@@ -5,6 +5,10 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## UNRELEASED
+### Fixed
+- Content Security Policy issues in CMS12 by adding extra parameter within BackendYoastConfig and removing unnecessary inline code within FocusKeywordAnalysis.html
+
 ## 9.0.0 June 12, 2023
 ### Breaking
 - Dropped support for CMS9
