@@ -11,6 +11,7 @@ use TYPO3\CMS\Core\Http\HtmlResponse;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Service\CrawlerService;
+use YoastSeoForTypo3\YoastSeo\Service\DbalService;
 use YoastSeoForTypo3\YoastSeo\Service\LinkingSuggestionsService;
 use YoastSeoForTypo3\YoastSeo\Service\PreviewService;
 use YoastSeoForTypo3\YoastSeo\Service\ProminentWordsService;
@@ -79,7 +80,9 @@ class AjaxController
     protected function saveScores(array $data): void
     {
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable($data['table']);
-        $row = $connection->select(['*'], $data['table'], ['uid' => (int)$data['uid']], [], [], 1)->fetchAssociative();
+        $row = GeneralUtility::makeInstance(DbalService::class)->getSingleResult(
+            $connection->select(['*'], $data['table'], ['uid' => (int)$data['uid']], [], [], 1)
+        );
 
         if ($row !== false && isset($row['tx_yoastseo_score_readability'], $row['tx_yoastseo_score_seo'])) {
             $connection->update($data['table'], [

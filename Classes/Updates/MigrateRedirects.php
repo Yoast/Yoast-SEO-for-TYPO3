@@ -10,6 +10,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Install\Updates\DatabaseUpdatedPrerequisite;
 use TYPO3\CMS\Install\Updates\UpgradeWizardInterface;
+use YoastSeoForTypo3\YoastSeo\Service\DbalService;
 
 class MigrateRedirects implements UpgradeWizardInterface
 {
@@ -87,9 +88,10 @@ class MigrateRedirects implements UpgradeWizardInterface
         $queryBuilder->getRestrictions()->removeAll();
 
         try {
-            $domains = $queryBuilder->select('*')
+            $statement = $queryBuilder->select('*')
                 ->from('sys_domain')
-                ->execute()->fetchAllAssociative();
+                ->execute();
+            $domains = GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
         } catch (TableNotFoundException $e) {
             return [];
         }
@@ -108,13 +110,13 @@ class MigrateRedirects implements UpgradeWizardInterface
         $queryBuilder->getRestrictions()->removeAll();
 
         try {
-            return $queryBuilder->select('*')
+            $statement = $queryBuilder->select('*')
                 ->from('tx_yoast_seo_premium_redirect')
                 ->where(
                     $queryBuilder->expr()->eq('deleted', 0)
                 )
-                ->execute()
-                ->fetchAllAssociative();
+                ->execute();
+            return GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
         } catch (TableNotFoundException $e) {
             return [];
         }

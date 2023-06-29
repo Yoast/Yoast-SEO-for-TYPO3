@@ -10,6 +10,7 @@ use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\Exception\MissingArrayPathException;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Service\DbalService;
 
 class RecordService implements SingletonInterface
 {
@@ -70,10 +71,11 @@ class RecordService implements SingletonInterface
 
     protected function getRecordData(Record $record): array
     {
-        $recordRow = GeneralUtility::makeInstance(ConnectionPool::class)
+        $statement = GeneralUtility::makeInstance(ConnectionPool::class)
             ->getConnectionForTable($record->getTableName())
-            ->select(['*'], $record->getTableName(), ['uid' => $record->getRecordUid()])
-            ->fetchAssociative();
+            ->select(['*'], $record->getTableName(), ['uid' => $record->getRecordUid()]);
+
+        $recordRow = GeneralUtility::makeInstance(DbalService::class)->getSingleResult($statement);
 
         return (array)GeneralUtility::makeInstance(PageRepository::class)
             ->getLanguageOverlay($record->getTableName(), (array)$recordRow);
