@@ -110,7 +110,7 @@ class CrawlerService
                     ];
                 }
 
-                $pages = $queryBuilder->select($select)
+                $statement = $queryBuilder->select($select)
                     ->from('pages')
                     ->where(
                         $queryBuilder->expr()->in(
@@ -118,7 +118,8 @@ class CrawlerService
                             YoastUtility::getAllowedDoktypes()
                         ),
                         ...$constraints
-                    )->execute()->fetchAllAssociative();
+                    )->execute();
+                $pages = GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
                 $pagesToIndex = array_merge($pagesToIndex, array_column($pages, $select));
             }
         }
