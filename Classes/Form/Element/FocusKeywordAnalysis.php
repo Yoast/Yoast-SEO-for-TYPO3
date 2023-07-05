@@ -22,7 +22,7 @@ class FocusKeywordAnalysis extends AbstractNode
 
         $allowedDoktypes = YoastUtility::getAllowedDoktypes();
         if ($this->data['tableName'] === 'pages'
-            && !in_array((int)$this->data['databaseRow']['doktype'][0], $allowedDoktypes)) {
+            && !in_array((int)($this->data['databaseRow']['doktype'][0] ?? 0), $allowedDoktypes)) {
             $templateView->assign('wrongDoktype', true);
         }
         $subtype = '';
