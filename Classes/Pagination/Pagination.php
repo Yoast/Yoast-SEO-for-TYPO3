@@ -15,11 +15,11 @@ class Pagination
     /**
      * @var \YoastSeoForTypo3\YoastSeo\Pagination\ArrayPaginator
      */
-    protected $paginator;
+    protected ArrayPaginator $paginator;
 
-    protected $maximumNumberOfLinks = 15;
-    protected $displayRangeStart;
-    protected $displayRangeEnd;
+    protected int $maximumNumberOfLinks = 15;
+    protected float $displayRangeStart = 0;
+    protected float $displayRangeEnd = 0;
 
     public function __construct(ArrayPaginator $paginator)
     {

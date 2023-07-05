@@ -1,0 +1,37 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+      xmlns:core="http://typo3.org/ns/TYPO3/CMS/Core/ViewHelpers"
+      xmlns:be="http://typo3.org/ns/TYPO3/CMS/Backend/ViewHelpers"
+      data-namespace-typo3-fluid="true">
+
+<f:layout name="Widget/Widget" />
+
+<f:section name="main">
+    <div class="widget-table-wrapper">
+        <table class="widget-table">
+            <tr>
+                <th><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:page" /></th>
+                <th><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:lastChange" /></th>
+                <th></th>
+            </tr>
+            <f:for each="{pages}" as="page">
+                <tr>
+                    <td><strong>{page.title}</strong><br />{page.slug}</td>
+                    <td><f:format.date format="{dateFormat} {timeFormat}">{page.tstamp}</f:format.date></td>
+                    <td class="text-right">
+                        <be:link.editRecord uid="{page.uid}" table="pages" returnUrl="{be:moduleLink(route: 'dashboard')}">
+                            <core:icon identifier="actions-open" alternativeMarkupIdentifier="inline" />
+                        </be:link.editRecord>
+                    </td>
+                </tr>
+            </f:for>
+        </table>
+    </div>
+</f:section>
+
+<f:section name="footer">
+    <f:if condition="{button}">
+        <a href="{button.link}" target="{button.target}" class="widget-cta">{f:translate(id: button.title, default: button.title)}</a>
+    </f:if>
+</f:section>
+
+</html>

@@ -3,9 +3,9 @@ import { connect } from 'react-redux';
 
 import SvgIcon from '@yoast/components/SvgIcon'
 
-import { getIconForScore, getTextForScore } from "../mapResults";
+import { getIconForScore, getTextForScore } from "../helpers/mapResults";
 import { helpers } from "yoastseo";
-import getResult from "../getResult";
+import getResult from "../helpers/getResult";
 
 const StatusIcon = ({content, analysis, resultType, resultSubtype, text}) => {
     const { scoreToRating } = helpers;

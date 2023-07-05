@@ -1,6 +1,6 @@
 @import "./Variables";
-@import "../../../node_modules/yoastseo/css/colors";
-@import "../../../node_modules/yoastseo/css/analysis";
+@import "../../../grunt/node_modules/yoastseo/css/colors";
+@import "../../../grunt/node_modules/yoastseo/css/analysis";
 @import "./BackendModule/headings";
 @import "./BackendModule/lists";
 @import "./BackendModule/buttons";
@@ -304,4 +304,15 @@ $gutter: 32px;
 			-ms-flex: 0 0 0;
 		}
 	}
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0,0,0,0);
+	border: 0;
 }

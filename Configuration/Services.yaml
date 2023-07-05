@@ -1,0 +1,77 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  YoastSeoForTypo3\YoastSeo\:
+    resource: '../Classes/*'
+
+  YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader:
+    public: true
+
+  YoastSeoForTypo3\YoastSeo\Service\LocaleService:
+    public: true
+
+  YoastSeoForTypo3\YoastSeo\Service\SnippetPreviewService:
+    public: true
+
+  YoastSeoForTypo3\YoastSeo\Controller\AjaxController:
+    public: true
+
+  YoastSeoForTypo3\YoastSeo\EventListener\TcaBuiltListener:
+    arguments:
+      - '@YoastSeoForTypo3\YoastSeo\Record\Builder\TcaBuilder'
+    tags:
+      - name: event.listener
+        identifier: 'yoastTca'
+        event: TYPO3\CMS\Core\Configuration\Event\AfterTcaCompilationEvent
+        method: 'addRecordTca'
+
+  YoastSeoForTypo3\YoastSeo\EventListener\TableDefinitionsListener:
+    arguments:
+      - '@YoastSeoForTypo3\YoastSeo\Record\Builder\SchemaBuilder'
+    tags:
+      - name: event.listener
+        identifier: 'yoastSchema'
+        event: TYPO3\CMS\Core\Database\Event\AlterTableDefinitionStatementsEvent
+        method: 'addDatabaseSchema'
+
+  YoastSeoForTypo3\YoastSeo\EventListener\RecordCanonicalListener:
+    arguments:
+      - '@YoastSeoForTypo3\YoastSeo\Record\RecordService'
+    tags:
+      - name: event.listener
+        identifier: 'yoastRecordCanonical'
+        event: TYPO3\CMS\Seo\Event\ModifyUrlForCanonicalTagEvent
+        method: 'setCanonical'
+
+  YoastSeoForTypo3\YoastSeo\PageTitle\RecordPageTitleProvider:
+    arguments:
+      - '@YoastSeoForTypo3\YoastSeo\Record\RecordService'
+
+  YoastSeoForTypo3\YoastSeo\MetaTag\RecordMetaTagGenerator:
+    arguments:
+      - '@YoastSeoForTypo3\YoastSeo\Record\RecordService'
+
+  YoastSeoForTypo3\YoastSeo\Backend\ModifyPageLayoutContentListener:
+    tags:
+      - name: event.listener
+        identifier: 'yoast-seo/backend/modify-page-module-content'
+        event: TYPO3\CMS\Backend\Controller\Event\ModifyPageLayoutContentEvent
+
+  YoastSeoForTypo3\YoastSeo\Frontend\AfterCacheableContentIsGeneratedListener:
+    tags:
+      - name: event.listener
+        identifier: 'yoast-seo/frontend/cacheable-content-listener'
+        event: TYPO3\CMS\Frontend\Event\AfterCacheableContentIsGeneratedEvent
+
+  YoastSeoForTypo3\YoastSeo\Widgets\Provider\PagesWithoutDescriptionDataProvider:
+    arguments:
+      $excludedDoktypes: [3, 4, 6, 7, 199, 254, 255]
+      $limit: 8
+
+  YoastSeoForTypo3\YoastSeo\Widgets\Provider\OrphanedContentDataProvider:
+    arguments:
+      $excludedDoktypes: [3, 4, 6, 7, 199, 254, 255]
+      $limit: 8

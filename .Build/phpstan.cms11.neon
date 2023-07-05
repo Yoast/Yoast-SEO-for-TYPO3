@@ -1,0 +1,7 @@
+parameters:
+  level: 0
+  paths:
+    - ../Classes
+    - ../Configuration
+  ignoreErrors:
+    - '#Parameter \$event of method#'

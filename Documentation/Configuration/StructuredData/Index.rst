@@ -151,13 +151,7 @@ If, for example, you want your custom provider to be rendered **before** breadcr
 Typoscript provider
 -------------------
 
-.. warning::
-
-    This functionality is only available within the Yoast SEO Premium extension.
-
-    `Find out more about the premium extension. <https://yoast.com/typo3-extensions-seo/>`_
-
-With the premium extension it is possible to configure structured data through typoscript.
+It is possible to configure structured data through typoscript.
 
 This is done through the `config.structuredData.data` object. The `type` and `context` keys do not need a `@` and stdWrap is available on all keys.
 

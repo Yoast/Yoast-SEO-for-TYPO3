@@ -6,12 +6,6 @@
 		</div>
 	</f:then>
 	<f:else>
-		<script>
-            var tx_yoast_seo = tx_yoast_seo || {};
-            <f:if condition="{focusKeywordField}">
-            tx_yoast_seo.focusKeywordField = '{focusKeywordField}';
-            </f:if>
-		</script>
 		<f:render partial="Analysis" arguments="{type: 'seo', subtype: subtype}" />
 	</f:else>
 </f:if>
