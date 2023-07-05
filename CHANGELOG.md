@@ -5,7 +5,7 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
-## UNRELEASED
+## 9.0.1 July 6, 2023
 ### Fixed
 - Content Security Policy issues in CMS12 by adding extra parameter within BackendYoastConfig and removing unnecessary inline code within FocusKeywordAnalysis.html
 - Removed loading of `extended-list-widget.min.css` within `PageOverviewWidget`
