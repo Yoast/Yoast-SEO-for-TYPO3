@@ -10,6 +10,7 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManager;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
+use YoastSeoForTypo3\YoastSeo\Service\DbalService;
 
 class YoastUtility
 {
@@ -84,14 +85,14 @@ class YoastUtility
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(
             'tx_yoastseo_related_focuskeyword'
         );
-        $relatedKeyphrases = $queryBuilder->select('*')
+        $statement = $queryBuilder->select('*')
             ->from('tx_yoastseo_related_focuskeyword')
             ->where(
                 $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($parentTable)),
                 $queryBuilder->expr()->eq('uid_foreign', $parentId)
             )
-            ->execute()
-            ->fetchAllAssociative();
+            ->execute();
+        $relatedKeyphrases = GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
 
         foreach ($relatedKeyphrases as $relatedKeyphrase) {
             $config['rk' . (int)$relatedKeyphrase['uid']] = [

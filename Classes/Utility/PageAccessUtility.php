@@ -10,6 +10,7 @@ use TYPO3\CMS\Core\Database\Query\QueryHelper;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Service\DbalService;
 
 class PageAccessUtility
 {
@@ -66,7 +67,8 @@ class PageAccessUtility
                 $queryBuilder->andWhere(QueryHelper::stripLogicalOperatorPrefix($permClause));
             }
             $statement = $queryBuilder->execute();
-            while ($row = $statement->fetchAssociative()) {
+            $rows = GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
+            foreach ($rows as $row) {
                 if ($begin <= 0) {
                     $theList .= ',' . $row['uid'];
                 }

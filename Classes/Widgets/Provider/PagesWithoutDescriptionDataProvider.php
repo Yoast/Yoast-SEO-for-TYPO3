@@ -8,6 +8,7 @@ use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Service\DbalService;
 
 class PagesWithoutDescriptionDataProvider implements PageProviderInterface
 {
@@ -38,15 +39,15 @@ class PagesWithoutDescriptionDataProvider implements PageProviderInterface
         $iterator = 0;
 
         while ($counter < $this->limit) {
-            $row = $queryBuilder
+            $statement = $queryBuilder
                 ->select('*')
                 ->from('pages')
                 ->where(...$constraints)
                 ->orderBy('tstamp', 'DESC')
                 ->setFirstResult($iterator)
                 ->setMaxResults(1)
-                ->execute()
-                ->fetchAssociative();
+                ->execute();
+            $row = GeneralUtility::makeInstance(DbalService::class)->getSingleResult($statement);
 
             if ($row === false) {
                 // Likely less pages than the limit, prevent infinite loop

@@ -10,6 +10,7 @@ use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Install\Updates\DatabaseUpdatedPrerequisite;
 use TYPO3\CMS\Install\Updates\UpgradeWizardInterface;
+use YoastSeoForTypo3\YoastSeo\Service\DbalService;
 
 class MigratePremiumFocusKeywords implements UpgradeWizardInterface
 {
@@ -65,11 +66,11 @@ class MigratePremiumFocusKeywords implements UpgradeWizardInterface
     {
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::PREMIUM_TABLE);
         $queryBuilder->getRestrictions()->removeAll()->add(GeneralUtility::makeInstance(DeletedRestriction::class));
-        return $queryBuilder
+        $statement = $queryBuilder
             ->select('*')
             ->from(self::PREMIUM_TABLE)
-            ->execute()
-            ->fetchAllAssociative();
+            ->execute();
+        return GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
     }
 
     protected function premiumTableExists(): bool

@@ -109,21 +109,23 @@ class ProminentWordsService
     protected function getOldWords(): array
     {
         $queryBuilder = $this->getQueryBuilder();
-        return $queryBuilder->select('uid', 'stem', 'weight')
+        $statement = $queryBuilder->select('uid', 'stem', 'weight')
             ->from(self::PROMINENT_WORDS_TABLE)
             ->where(
                 $queryBuilder->expr()->eq('uid_foreign', $this->uid),
                 $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($this->table)),
                 $queryBuilder->expr()->eq('sys_language_uid', $this->languageId)
             )
-            ->execute()
-            ->fetchAllAssociative();
+            ->execute();
+        return GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
     }
 
     protected function getPidForRecord(int $uid, string $table): int
     {
         $connection = $this->connectionPool->getConnectionForTable($table);
-        $record = $connection->select(['pid'], $table, ['uid' => $uid])->fetchAssociative();
+        $record = GeneralUtility::makeInstance(DbalService::class)->getSingleResult(
+            $connection->select(['pid'], $table, ['uid' => $uid])
+        );
         return (int)($record['pid'] ?? 0);
     }
 

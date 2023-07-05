@@ -443,7 +443,7 @@ let YoastLinkingSuggestions = {
 
     checkLinkingSuggestions: () => {
         let content = YoastLinkingSuggestions.getCKEditorContent();
-        if (content === '') {
+        if (content === null) {
             return;
         }
 
@@ -461,15 +461,20 @@ let YoastLinkingSuggestions = {
         if (ckeditor5elements.length > 0) {
             const editableElements = document.querySelectorAll('.ck-editor__editable');
             let content = '';
+            let ckeditorLoaded = false;
             for (let editorElement in editableElements) {
                 if (typeof editableElements[editorElement].ckeditorInstance !== 'undefined') {
+                    ckeditorLoaded = true;
                     content += editableElements[editorElement].ckeditorInstance.getData();
                 }
+            }
+            if (ckeditorLoaded === false) {
+                return null;
             }
             return content;
         } else {
             if (typeof CKEDITOR === 'undefined') {
-                return '';
+                return null;
             }
             let content = '';
             for (let instance in CKEDITOR.instances) {
