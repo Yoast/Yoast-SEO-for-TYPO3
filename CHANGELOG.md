@@ -11,6 +11,7 @@ We will follow [Semantic Versioning](http://semver.org/).
 - Removed loading of `extended-list-widget.min.css` within `PageOverviewWidget`
 - `doctrine/dbal` 2.10 support by adding `DbalService` which checks for the TYPO3 major version, if 10 then use the old `fetch` methods
 - Loading state of internal linking suggestions when the bodytext is empty (e.g. new content element)
+- Avoid exceptions because of broken showitem tt_content types
 
 ## 9.0.0 June 12, 2023
 ### Breaking
