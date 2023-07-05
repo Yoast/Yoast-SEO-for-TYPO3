@@ -17,7 +17,8 @@ return [
         'Documentation-GENERATED-temp',
         'tests',
         'vendor',
-        '.Build'
+        '.Build',
+        'grunt'
     ],
     'files' => [
         '.gitignore',

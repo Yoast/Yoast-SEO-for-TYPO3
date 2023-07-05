@@ -1,31 +1,19 @@
 <?php
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\StructuredData;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
-
+use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException;
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
-use TYPO3\CMS\Core\Information\Typo3Version;
+use TYPO3\CMS\Core\Http\ApplicationType;
 use TYPO3\CMS\Core\Service\DependencyOrderingService;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\TypoScript\TypoScriptService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
-use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 /**
  * This class will take care of the different providers and returns the title with
@@ -33,45 +21,29 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
  */
 class StructuredDataProviderManager implements SingletonInterface
 {
-    /**
-     * @var FrontendInterface
-     */
-    protected $pageCache;
-
-    /**
-     * @var string
-     */
-    protected $sourceComment = '';
+    protected FrontendInterface $pageCache;
+    protected string $sourceComment = '';
 
     public function __construct()
     {
         $this->initCaches();
-
-        if (YoastUtility::isPremiumInstalled()) {
-            $this->sourceComment = '<!-- This site is optimized with the Yoast SEO Premium for TYPO3 plugin - https://yoast.com/typo3-extensions-seo/ -->';
-        } else {
-            $this->sourceComment = '<!-- This site is optimized with the Yoast SEO for TYPO3 plugin - https://yoast.com/typo3-extensions-seo/ -->';
-        }
+        $this->sourceComment = '<!-- This site is optimized with the Yoast SEO for TYPO3 plugin - https://yoast.com/typo3-extensions-seo/ -->';
     }
 
-    /**
-     * @param array $params
-     * @param object $pObj
-     */
-    public function render(&$params, $pObj)
+    public function render(array &$params, $pObj): void
     {
-        if (TYPO3_MODE === 'FE') {
-            $data = $this->getStructuredData();
-
-            $params['headerData']['StructuredDataManager'] = $this->sourceComment . PHP_EOL . $this->buildJsonLdBlob($data);
+        if (!($GLOBALS['TYPO3_REQUEST'] ?? null) instanceof ServerRequestInterface
+            || !ApplicationType::fromRequest($GLOBALS['TYPO3_REQUEST'])->isFrontend()
+        ) {
+            return;
         }
+
+        $data = $this->getStructuredData();
+
+        $params['headerData']['StructuredDataManager'] = $this->sourceComment .
+            PHP_EOL . $this->buildJsonLdBlob($data);
     }
 
-    /**
-     * @param array $src
-     *
-     * @return string
-     */
     protected function buildJsonLdBlob(array $src): string
     {
         $data = [];
@@ -88,11 +60,6 @@ class StructuredDataProviderManager implements SingletonInterface
         return '<script type="application/ld+json">' . json_encode($data) . '</script>';
     }
 
-    /**
-     * Get structured data
-     *
-     * @return array
-     */
     public function getStructuredData(): array
     {
         $structuredData = [];
@@ -139,18 +106,11 @@ class StructuredDataProviderManager implements SingletonInterface
         return $structuredData;
     }
 
-    /**
-     * @return \TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController
-     */
     private function getTypoScriptFrontendController(): TypoScriptFrontendController
     {
         return $GLOBALS['TSFE'];
     }
 
-    /**
-     * Get the TypoScript configuration for pageTitleProviders
-     * @return array
-     */
     private function getStructuredDataProviderConfiguration(): array
     {
         $typoscriptService = GeneralUtility::makeInstance(TypoScriptService::class);
@@ -161,25 +121,17 @@ class StructuredDataProviderManager implements SingletonInterface
         return $config['structuredData']['providers'] ?? [];
     }
 
-    /**
-     * Initializes the caching system.
-     */
     protected function initCaches()
     {
         try {
             $this->pageCache = GeneralUtility::makeInstance(CacheManager::class)->getCache(
-                GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 10 ? 'cache_pages' : 'pages'
+                'pages'
             );
         } catch (NoSuchCacheException $e) {
             // @ignoreException
         }
     }
 
-    /**
-     * @param array $orderInformation
-     * @return string[]
-     * @throws \UnexpectedValueException
-     */
     protected function setProviderOrder(array $orderInformation): array
     {
         foreach ($orderInformation as $provider => &$configuration) {

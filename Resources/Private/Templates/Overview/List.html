@@ -1,101 +1,10 @@
 <html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
-		xmlns:core="http://typo3.org/ns/TYPO3/CMS/Core/ViewHelpers"
-		xmlns:y="http://typo3.org/ns/YoastSeoForTypo3/YoastSeo/ViewHelpers"
-		data-namespace-typo3-fluid="true">
+	  data-namespace-typo3-fluid="true">
 
-<f:layout name="Overview" />
+<f:layout name="Default" />
 
-<f:section name="content">
-	<f:if condition="{description}">
-		<f:be.infobox state="-1" title="{subtitle}">
-			<p><f:format.raw><f:translate key="{description}" arguments="{0: link}" /></f:format.raw></p>
-		</f:be.infobox>
-	</f:if>
-
-	<f:if condition="{items -> f:count()}">
-		<f:then>
-			<f:render section="table" arguments="{_all}" />
-		</f:then>
-		<f:else>
-			<f:render section="no_items_found_infobox"/>
-		</f:else>
-	</f:if>
-</f:section>
-
-<f:section name="table">
-	<div class="table-fit">
-		<table class="table table-striped table-hover">
-			<thead>
-			<tr>
-				<th></th>
-				<th width="30%">
-					<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:page.title"/>
-				</th>
-				<th width="30%">
-					<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:page.seo_title"/>
-				</th>
-				<th width="15%">
-					<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:page.score_readability"/>
-				</th>
-				<th width="15%">
-					<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:page.score_seo"/>
-				</th>
-				<th></th>
-			</tr>
-			</thead>
-			<tbody>
-			<f:if condition="{items -> f:count()} > {settings.itemsPerPage}">
-				<f:then>
-					<f:render partial="Overview/Pagination" arguments="{pagination: pagination, paginator: paginator, action: 'list'}" />
-					<f:render section="itemsOverview" arguments="{items: paginator.paginatedItems, params: params}" />
-					<f:render partial="Overview/Pagination" arguments="{pagination: pagination, paginator: paginator, action: 'list'}" />
-				</f:then>
-				<f:else>
-					<f:render section="itemsOverview" arguments="{items: paginator.paginatedItems, params: params}" />
-				</f:else>
-			</f:if>
-			</tbody>
-		</table>
-	</div>
-</f:section>
-
-<f:section name="itemsOverview">
-	<f:for each="{items}" as="item">
-		<tr data-uid="{item.uid}">
-			<td class="col-icon">
-				<y:recordIcon table="{params.table}" row="{item}" size="small" />
-			</td>
-			<td>{item.title} [{item.uid}]</td>
-			<td><f:if condition="{item.seo_title}"><f:then>{item.seo_title}</f:then><f:else>{item.title}</f:else></f:if></td>
-			<td>
-				<span class="wpseo-score-icon {item.tx_yoastseo_score_readability}"></span>
-				<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:score.{item.tx_yoastseo_score_readability}" />
-			</td>
-			<td>
-				<span class="wpseo-score-icon {item.tx_yoastseo_score_seo}"></span>
-				<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:score.{item.tx_yoastseo_score_seo}" />
-			</td>
-			<td class="col-control">
-				<div class="btn-group">
-					<a
-							class="btn btn-default"
-							title="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:edit')}"
-							href="{y:recordLinks(table: params.table, module: 'yoast_YoastSeoOverview', command: 'edit', uid: item.uid)}"
-					>
-						<core:icon identifier="actions-open"/>
-					</a>
-				</div>
-			</td>
-		</tr>
-	</f:for>
-</f:section>
-
-<f:section name="no_items_found_infobox">
-	<f:be.infobox state="-1" title="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:no_pages.title')}">
-		<p>
-			<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:no_pages.message"/>
-		</p>
-	</f:be.infobox>
+<f:section name="Content">
+	<f:render partial="Overview/View" arguments="{_all}" />
 </f:section>
 
 </html>

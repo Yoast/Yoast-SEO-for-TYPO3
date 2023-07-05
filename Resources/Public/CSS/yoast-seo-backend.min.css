@@ -90,13 +90,8 @@ li.score:after {
   .yoast-list--usp li {
     list-style: none !important;
     position: relative;
-    padding-left: 1.5833333333rem; }
-    .yoast-list--usp li::before {
-      content: '\f00c\0020';
-      position: absolute;
-      left: 0;
-      top: 0;
-      font-family: "FontAwesome", "Open Sans", Arial, sans-serif;
+    padding-left: 0; }
+    .yoast-list--usp li span {
       color: #77B227; }
 
 .yoast-button {
@@ -427,3 +422,13 @@ li.score:after {
     font-size: 24px;
     -webkit-flex: 0 0 0;
     -ms-flex: 0 0 0; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0; }

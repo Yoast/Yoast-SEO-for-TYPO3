@@ -5,8 +5,70 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
-## Yoast SEO Premium for TYPO3
-Besides the free version of our plugin, we also have a premium version. The free version enables you to do all necessary optimizations. With the premium version, we make it even easier to do! More information can be found on https://www.maxserv.com/yoast.
+## UNRELEASED
+### Fixed
+- Content Security Policy issues in CMS12 by adding extra parameter within BackendYoastConfig and removing unnecessary inline code within FocusKeywordAnalysis.html
+- Removed loading of `extended-list-widget.min.css` within `PageOverviewWidget`
+- `doctrine/dbal` 2.10 support by adding `DbalService` which checks for the TYPO3 major version, if 10 then use the old `fetch` methods
+- Loading state of internal linking suggestions when the bodytext is empty (e.g. new content element)
+- Avoid exceptions because of broken showitem tt_content types
+
+## 9.0.0 June 12, 2023
+### Breaking
+- Dropped support for CMS9
+- API for `overview_filters` has changed, instead of `getData` providers should have a `getResults(array $pageIds)` method (see `OverviewDataProviderInterface`)
+- Removed `get_focus_keyword` hook, was not used anymore
+
+### Added
+- Support for CMS12
+- New feature to automatically activate Yoast SEO functionality on custom records
+- Upgrade wizard for migrating premium redirects to `sys_redirect`
+- Features from the premium version:
+  - Related keyphrases with their own synonyms
+  - Insights to show prominent words on a page
+  - Internal linking suggestions within content elements based on the prominent words
+  - Crawler backend module to update Yoast data for complete sites
+  - Orphaned content view within the Overview module
+  - Advanced robots: nosnippet, noimageindex, noarchive
+  - Typoscript functionality for Structured Data
+  - Dashboard widgets for Orphaned content and pages without meta description
+- Upgrade wizards for migration premium focus keywords and redirects
+- Introduced custom ModeSwitcher to create a different Mobile/Desktop switcher within the preview
+
+### Changed
+- Restructured backend modules to work with CMS10, CMS11 and CMS12. Introduced `legacy` actions for CMS10
+- Simplified `ext_localconf` and `ext_tables.php`
+  - Removed `TYPO3_MODE` checks
+  - Introduced `ConfigurationUtility` which provides the default configuration and nodes for the formEngine and
+  - Merged adding the `YoastConfig` javascript and backend CSS into one `BackendYoastConfig` hook
+- Introduced `SnippetPreviewService` which both `PageLayoutHeader` and `SnippetPreview` use to render the snippet preview
+- Optimized `SnippetPreview` by removing unnecesary code and raw html
+- Simplified `PageLayoutHeader`, moved all html to separate fluid template, removed `AbstractPageLayoutHeader` and `PageLayoutHeaderService`
+- Simplified all the FormEngine node classes
+- The backend module `Overview` now needs a valid page selected from the tree, this is to retrieve the languages from the currently selected site
+- Updated `AdditionalPreviewData`, removed old methods to check for `getWebsiteTitle` (always available now)
+- Updated dev-dependencies to latest (usable) versions and fixed CI build
+- Removed old `linkingSuggestions.js` from `dist`
+- Removed upgrade wizards for old canonical and seo title fields
+- Simplified `.gitattributes`
+- Updated and removed old grunt configuration, fixed sass build
+
+### Removed
+- Premium backend module
+- All references for premium including all related javascript modals
+
+## 9.0.0-alpha-1 August 16, 2022
+### Breaking
+- Dropped support for PHP <7.4
+
+### Added
+- New feature to automatically activate Yoast SEO functionality on custom records
+
+### Changed
+- All javascript related build configuration (grunt, webpack) has been moved to the `grunt` directory
+- All build related files (phpstan, phplint, php-cs-fixer) has been moved to the `.Build` directory
+- Removed ext_icon.png, Extension.svg already present in `Resources/Public/Icons`
+- Updated all code with typed properties and arguments, minor cleanups
 
 ## 8.3.1 August 3, 2022
 ### Fixed

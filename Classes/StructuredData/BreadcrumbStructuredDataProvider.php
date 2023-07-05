@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\StructuredData;
@@ -12,39 +13,18 @@ use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterface
 {
-    /**
-     * @var TypoScriptFrontendController
-     */
-    protected $tsfe;
+    protected TypoScriptFrontendController $tsfe;
+    protected SiteFinder $siteFinder;
+    protected array $configuration;
 
-    /**
-     * @var SiteFinder
-     */
-    protected $siteFinder;
-
-    /**
-     * @var array
-     */
-    protected $configuration;
-
-    /**
-     * BreadcrumbStructuredDataProvider constructor.
-     * @param null $tsfe
-     * @param null $siteFinder
-     */
-    public function __construct($tsfe = null, $siteFinder = null)
-    {
-        $this->setTsfe($tsfe);
-
-        if (class_exists(SiteFinder::class)) {
-            $this->setSiteFinder($siteFinder);
-        }
+    public function __construct(
+        TypoScriptFrontendController $tsfe = null,
+        SiteFinder $siteFinder = null
+    ) {
+        $this->tsfe = $tsfe ?? $GLOBALS['TSFE'];
+        $this->siteFinder = $siteFinder ?? GeneralUtility::makeInstance(SiteFinder::class);
     }
 
-    /**
-     * @return array
-     * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
-     */
     public function getData(): array
     {
         $data = [];
@@ -52,7 +32,9 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         $rootLine = $this->tsfe->rootLine ?: [];
         ksort($rootLine);
 
-        $excludedDoktypes = $this->configuration['excludedDoktypes'] ? GeneralUtility::intExplode(',', $this->configuration['excludedDoktypes']) : [];
+        $excludedDoktypes = $this->configuration['excludedDoktypes']
+            ? GeneralUtility::intExplode(',', $this->configuration['excludedDoktypes'])
+            : [];
         $breadcrumbs = [];
         $iterator = 1;
         $siteRootFound = false;
@@ -88,23 +70,6 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         return (array)$data;
     }
 
-    /**
-     * @param TypoScriptFrontendController|null $tsfe
-     */
-    protected function setTsfe(?TypoScriptFrontendController $tsfe): void
-    {
-        if ($tsfe instanceof TypoScriptFrontendController) {
-            $this->tsfe = $tsfe;
-        } else {
-            $this->tsfe = $GLOBALS['TSFE'];
-        }
-    }
-
-    /**
-     * @param int $pageId
-     * @return string
-     * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
-     */
     protected function getUrlForPage(int $pageId): string
     {
         if (class_exists(SiteFinder::class)) {
@@ -121,22 +86,6 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         return (string)$cObj->typoLink('', ['parameter' => $pageId, 'returnLast' => 'url', 'forceAbsoluteUrl' => true]);
     }
 
-    /**
-     * @param SiteFinder|null $siteFinder
-     */
-    protected function setSiteFinder(?SiteFinder $siteFinder): void
-    {
-        if ($siteFinder instanceof SiteFinder) {
-            $this->siteFinder = $siteFinder;
-        } else {
-            $this->siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
-        }
-    }
-
-    /**
-     * @return int
-     * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
-     */
     protected function getLanguage(): int
     {
         $context = GeneralUtility::makeInstance(Context::class);
@@ -144,9 +93,6 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         return (int)$context->getPropertyFromAspect('language', 'id');
     }
 
-    /**
-     * @param array $configuration
-     */
     public function setConfiguration(array $configuration): void
     {
         $this->configuration = $configuration;
