@@ -4,41 +4,16 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
-
-use Doctrine\DBAL\Driver\ResultStatement;
+use Doctrine\DBAL\Result;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
-/**
- * Class PagesWithoutDescriptionOverviewDataProvider
- */
 class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataProvider
 {
     protected const PAGES_TABLE = 'pages';
 
-    /**
-     * @param bool $returnOnlyCount
-     * @return int|array
-     */
-    public function getData($returnOnlyCount = false)
-    {
-        return $this->getRestrictedPagesResults($returnOnlyCount);
-    }
-
-    protected function getResults(array $pageIds = []): ?ResultStatement
+    public function getResults(array $pageIds = []): ?Result
     {
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(self::PAGES_TABLE);
 

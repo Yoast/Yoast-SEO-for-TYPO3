@@ -1,0 +1,24 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+      xmlns:y="http://typo3.org/ns/YoastSeoForTypo3/YoastSeo/ViewHelpers"
+      xmlns:be="http://typo3.org/ns/TYPO3/CMS/Backend/ViewHelpers"
+      data-namespace-typo3-fluid="true">
+
+<f:layout name="Legacy" />
+
+<f:section name="Content">
+    <f:if condition="{pageInformation}">
+        <y:moduleLayout.metaInformation pageInformation="{pageInformation}" />
+    </f:if>
+
+    <f:if condition="{languageMenuItems}">
+        <be:moduleLayout.menu identifier="languageMenu">
+            <f:for each="{languageMenuItems}" as="languageMenuItem">
+                <be:moduleLayout.menuItem label="{languageMenuItem.title}" uri="{languageMenuItem.href}" />
+            </f:for>
+        </be:moduleLayout.menu>
+    </f:if>
+
+    <f:render partial="Overview/View" arguments="{_all}" />
+</f:section>
+
+</html>

@@ -1,0 +1,7 @@
+parameters:
+  level: 0
+  paths:
+    - ../Classes
+    - ../Configuration
+  ignoreErrors:
+    - '#TYPO3\\CMS\\Backend\\ViewHelpers\\ModuleLayoutViewHelper#'

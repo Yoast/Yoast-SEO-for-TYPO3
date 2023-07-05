@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import LoadingIndicator from './LoadingIndicator';
 import SnippetPreviewError from './SnippetPreviewError';
 import YoastSnippetPreview from '@yoast/search-metadata-previews/snippet-preview/SnippetPreview';
-import ModeSwitcher from '@yoast/search-metadata-previews/snippet-editor/ModeSwitcher';
+import ModeSwitcher from './ModeSwitcher';
 import {DEFAULT_MODE} from '@yoast/search-metadata-previews/snippet-preview/constants';
 
 const SnippetPreview = ({isFetching, title, url, faviconSrc, wordsToHighlight, description, locale}) => {

@@ -17,7 +17,7 @@ export function getRelevantWords(worker, paper) {
     };
 }
 
-export function saveRelevantWords(object, uid, languageId, table, url)
+export function saveRelevantWords(object, uid, pid, languageId, table, url)
 {
     return dispatch => {
         let words = object.relevantWords.result.prominentWords.slice( 0, 25 );
@@ -27,11 +27,13 @@ export function saveRelevantWords(object, uid, languageId, table, url)
             compressedWords[ word.getStem() ] = word.getOccurrences();
         } );
 
-        fetch(url, {
-            method: 'post',
-            headers : new Headers(),
-            body: JSON.stringify({words: compressedWords, uid: uid, languageId: languageId, table: table})
-        });
+        if (url) {
+            fetch(url, {
+                method: 'post',
+                headers : new Headers(),
+                body: JSON.stringify({words: compressedWords, uid: uid, pid: pid, languageId: languageId, table: table})
+            });
+        }
 
         dispatch({type: SAVE_RELEVANTWORDS_SUCCESS});
     };

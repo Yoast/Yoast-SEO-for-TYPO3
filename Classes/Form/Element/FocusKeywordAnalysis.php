@@ -1,80 +1,64 @@
 <?php
+
 declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\Form\Element;
 
 use TYPO3\CMS\Backend\Form\AbstractNode;
-use TYPO3\CMS\Backend\Form\NodeFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class FocusKeywordAnalysis extends AbstractNode
 {
-    /**
-     * @var StandaloneView
-     */
-    protected $templateView;
-
-    /**
-     * @var string
-     */
-    protected $focusKeywordField = '';
-
-    /**
-     * @param NodeFactory $nodeFactory
-     * @param array $data
-     */
-    public function __construct(NodeFactory $nodeFactory, array $data)
+    public function render(): array
     {
-        parent::__construct($nodeFactory, $data);
+        $resultArray = $this->initializeResultArray();
+        $templateView = $this->getTemplateView();
 
-        $this->templateView = GeneralUtility::makeInstance(StandaloneView::class);
-        $this->templateView->setPartialRootPaths(
+        if ($focusKeywordField = $this->getFocusKeywordField()) {
+            $templateView->assign('focusKeywordField', $this->getFieldSelector($focusKeywordField));
+        }
+
+        $allowedDoktypes = YoastUtility::getAllowedDoktypes();
+        if ($this->data['tableName'] === 'pages'
+            && !in_array((int)($this->data['databaseRow']['doktype'][0] ?? 0), $allowedDoktypes)) {
+            $templateView->assign('wrongDoktype', true);
+        }
+        $subtype = '';
+        if ($this->data['tableName'] === 'tx_yoastseo_related_focuskeyword') {
+            $subtype = 'rk' . $this->data['vanillaUid'];
+        }
+
+        $templateView->assign('subtype', $subtype);
+        $resultArray['html'] = $templateView->render();
+        return $resultArray;
+    }
+
+    protected function getTemplateView(): StandaloneView
+    {
+        $templateView = GeneralUtility::makeInstance(StandaloneView::class);
+        $templateView->setPartialRootPaths(
             [GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Partials/TCA')]
         );
-        $this->templateView->setTemplatePathAndFilename(
+        $templateView->setTemplatePathAndFilename(
             GeneralUtility::getFileAbsFileName(
                 'EXT:yoast_seo/Resources/Private/Templates/TCA/FocusKeywordAnalysis.html'
             )
         );
-
-        if (array_key_exists(
-            'focusKeywordField',
-            (array)($this->data['parameterArray']['fieldConf']['config']['settings'] ?? [])
-        ) &&
-            !empty($this->data['parameterArray']['fieldConf']['config']['settings']['focusKeywordField'])
-        ) {
-            $this->focusKeywordField =
-                $this->data['parameterArray']['fieldConf']['config']['settings']['focusKeywordField'];
-        }
+        return $templateView;
     }
 
-    public function render(): array
+    protected function getFocusKeywordField(): ?string
     {
-        $resultArray = $this->initializeResultArray();
-
-        if ($this->focusKeywordField) {
-            $this->templateView->assign('focusKeywordField', $this->getFieldSelector($this->focusKeywordField));
+        if (isset($this->data['parameterArray']['fieldConf']['config']['settings']['focusKeywordField'])
+            && !empty($this->data['parameterArray']['fieldConf']['config']['settings']['focusKeywordField'])
+        ) {
+            return $this->data['parameterArray']['fieldConf']['config']['settings']['focusKeywordField'];
         }
-
-        $allowedDoktypes = YoastUtility::getAllowedDoktypes();
-        if ($this->data['tableName'] === 'pages' && !\in_array((int)$this->data['databaseRow']['doktype'][0] ?? 0, $allowedDoktypes)) {
-            $this->templateView->assign('wrongDoktype', true);
-        }
-        $subtype = '';
-        if ($this->data['tableName'] === 'tx_yoast_seo_premium_focus_keywords') {
-            $subtype = 'rk' . $this->data['vanillaUid'];
-        }
-
-        $this->templateView->assign('subtype', $subtype);
-        $resultArray['html'] = $this->templateView->render();
-        return $resultArray;
+        return null;
     }
 
-    /**
-     * @param string $field
-     * @return string
-     */
     protected function getFieldSelector(string $field): string
     {
         $uid = $this->data['vanillaUid'];

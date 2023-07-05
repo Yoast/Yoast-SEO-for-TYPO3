@@ -1,5 +1,17 @@
 module.tx_yoastseo {
+    view {
+        templateRootPaths {
+            10 = EXT:yoast_seo/Resources/Private/Templates/
+        }
+    }
     settings {
         itemsPerPage = 20
+    }
+}
+module.tx_dashboard {
+    view {
+        templateRootPaths.1589480298 = EXT:yoast_seo/Resources/Private/Templates/
+        partialRootPaths.1589480298 = EXT:yoast_seo/Resources/Private/Partials/
+        layoutRootPaths.1589480298 = EXT:yoast_seo/Resources/Private/Layouts/
     }
 }

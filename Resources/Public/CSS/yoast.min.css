@@ -22,8 +22,7 @@
     .yoast-seo-score-bar--analysis.yoast-seo-page {
       cursor: pointer; }
     .yoast-seo-score-bar--analysis svg {
-      position: relative;
-      top: 3px; }
+      vertical-align: middle; }
 
 .yoast-seo-snippet-error {
   color: #dc3232;
@@ -94,4 +93,14 @@ div.yoast-analysis div:not(.bounce) {
   background-color: inherit !important; }
 
 div.yoast-analysis a {
+  text-decoration: underline; }
+
+.yoastSeo-insights ol {
+  padding: 0;
+  margin: 1em 2em; }
+
+.yoastSeo-insights a {
+  font-weight: bold; }
+
+.yoastSeo-insights a:hover {
   text-decoration: underline; }

@@ -1,1 +1,21 @@
-config.yoast_seo.enabled = 1
+config {
+    yoast_seo.enabled = 1
+    structuredData.providers {
+        breadcrumb {
+            provider = YoastSeoForTypo3\YoastSeo\StructuredData\BreadcrumbStructuredDataProvider
+            after = site
+            excludedDoktypes =
+        }
+
+        site {
+            provider = YoastSeoForTypo3\YoastSeo\StructuredData\SiteStructuredDataProvider
+        }
+    }
+    pageTitleProviders {
+        yoastRecord {
+            provider = YoastSeoForTypo3\YoastSeo\PageTitle\RecordPageTitleProvider
+            before = record,seo
+        }
+    }
+}
+

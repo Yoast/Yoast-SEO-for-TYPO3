@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\StructuredData;
 
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
@@ -10,46 +12,21 @@ use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 class SiteStructuredDataProvider implements StructuredDataProviderInterface
 {
-    /**
-     * @var TypoScriptFrontendController
-     */
-    protected $tsfe;
+    protected TypoScriptFrontendController $tsfe;
+    protected PageRepository $pageRepository;
+    protected SiteFinder $siteFinder;
+    protected array $configuration = [];
 
-    /**
-     * @var PageRepository
-     */
-    protected $pageRepository;
-
-    /**
-     * @var SiteFinder
-     */
-    protected $siteFinder;
-
-    /**
-     * @var array
-     */
-    protected $configuration;
-
-    /**
-     * SiteStructuredDataProvider constructor.
-     * @param TypoScriptFrontendController|null $tsfe
-     * @param PageRepository|null $pageRepository
-     * @param SiteFinder|null $siteFinder
-     */
-    public function __construct($tsfe = null, $pageRepository = null, $siteFinder = null)
-    {
-        $this->setTsfe($tsfe);
-        $this->setPageRepository($pageRepository);
-
-        if (class_exists(SiteFinder::class)) {
-            $this->setSiteFinder($siteFinder);
-        }
+    public function __construct(
+        TypoScriptFrontendController $tsfe = null,
+        PageRepository $pageRepository = null,
+        SiteFinder $siteFinder = null
+    ) {
+        $this->tsfe = $tsfe ?? $GLOBALS['TSFE'];
+        $this->pageRepository = $pageRepository ?? GeneralUtility::makeInstance(PageRepository::class);
+        $this->siteFinder = $siteFinder ?? GeneralUtility::makeInstance(SiteFinder::class);
     }
 
-    /**
-     * @return array
-     * @throws \TYPO3\CMS\Core\Exception\SiteNotFoundException
-     */
     public function getData(): array
     {
         $data = [];
@@ -65,11 +42,6 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
         return $data;
     }
 
-    /**
-     * @param int $pageId
-     * @return string
-     * @throws \TYPO3\CMS\Core\Exception\SiteNotFoundException
-     */
     protected function getUrl(int $pageId): string
     {
         if (class_exists(SiteFinder::class)) {
@@ -82,11 +54,6 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
         return (string)$cObj->typoLink('', ['parameter' => $pageId, 'returnLast' => 'url', 'forceAbsoluteUrl' => true]);
     }
 
-    /**
-     * @param int $pageId
-     * @return string
-     * @throws \TYPO3\CMS\Core\Exception\SiteNotFoundException
-     */
     protected function getName(int $pageId): string
     {
         $rootPageRecord = $this->pageRepository->getPage($pageId);
@@ -94,51 +61,6 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
         return $rootPageRecord['seo_title'] ?: $rootPageRecord['title'] ?: $this->getUrl($pageId);
     }
 
-    /**
-     * @param TypoScriptFrontendController|null $tsfe
-     */
-    protected function setTsfe(?TypoScriptFrontendController $tsfe): void
-    {
-        if ($tsfe instanceof TypoScriptFrontendController) {
-            $this->tsfe = $tsfe;
-        } else {
-            $this->tsfe = $GLOBALS['TSFE'];
-        }
-    }
-
-    /**
-     * @param PageRepository|\TYPO3\CMS\Frontend\Page\PageRepository|null $pageRepository
-     */
-    protected function setPageRepository($pageRepository): void
-    {
-        if (class_exists(PageRepository::class)) {
-            if ($pageRepository instanceof PageRepository) {
-                $this->pageRepository = $pageRepository;
-            } else {
-                $this->pageRepository = GeneralUtility::makeInstance(PageRepository::class);
-            }
-        } elseif ($pageRepository instanceof \TYPO3\CMS\Frontend\Page\PageRepository) {
-            $this->pageRepository = $pageRepository;
-        } else {
-            $this->pageRepository = GeneralUtility::makeInstance(\TYPO3\CMS\Frontend\Page\PageRepository::class);
-        }
-    }
-
-    /**
-     * @param SiteFinder|null $siteFinder
-     */
-    protected function setSiteFinder(?SiteFinder $siteFinder): void
-    {
-        if ($siteFinder instanceof SiteFinder) {
-            $this->siteFinder = $siteFinder;
-        } else {
-            $this->siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
-        }
-    }
-
-    /**
-     * @param array $configuration
-     */
     public function setConfiguration(array $configuration): void
     {
         $this->configuration = $configuration;

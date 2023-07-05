@@ -6,14 +6,9 @@
 		li {
 			list-style: none !important;
 			position: relative;
-			padding-left: $spacing / 1.2;
+			padding-left: 0;
 
-			&::before {
-				content: '\f00c\0020';
-				position: absolute;
-				left: 0;
-				top: 0;
-				font-family: $font-stack-icon;
+			span {
 				color: $color-green;
 			}
 		}
