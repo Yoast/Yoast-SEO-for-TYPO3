@@ -1,55 +1,34 @@
 <?php
+
+declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
-
+use Doctrine\DBAL\Result;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-/**
- * Class CornerstoneOverviewDataProvider
- */
 class CornerstoneOverviewDataProvider extends AbstractOverviewDataProvider
 {
-
-    /**
-     * @param bool $returnOnlyCount
-     * @return int|array
-     */
-    public function getData($returnOnlyCount = false)
+    public function getResults(array $pageIds = []): ?Result
     {
-        $language = (int)$this->callerParams['language'];
-        $constraints = [];
-        $table = 'pages';
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(self::PAGES_TABLE);
 
-        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($table);
+        $constraints = [
+            $queryBuilder->expr()->eq('sys_language_uid', (int)$this->callerParams['language']),
+            $queryBuilder->expr()->eq('tx_yoastseo_cornerstone', 1)
+        ];
 
-        if ($language > 0) {
-            $constraints[] = $qb->expr()->eq('sys_language_uid', $language);
+        if (count($pageIds) > 0) {
+            $constraints[] = $queryBuilder->expr()->in(
+                (int)$this->callerParams['language'] > 0 ? $GLOBALS['TCA']['pages']['ctrl']['transOrigPointerField'] : 'uid',
+                $pageIds
+            );
         }
 
-        $constraints[] = $qb->expr()->eq('tx_yoastseo_cornerstone', 1);
-
-        $query = $qb->select('*')
-            ->from($table)
+        return $queryBuilder->select('*')
+            ->from(self::PAGES_TABLE)
             ->where(...$constraints)
             ->execute();
-
-        if ($returnOnlyCount === false) {
-            return $query->fetchAll();
-        }
-
-        return $query->rowCount();
     }
 }

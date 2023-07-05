@@ -3,66 +3,30 @@ import { connect } from 'react-redux';
 
 import SvgIcon from '@yoast/components/SvgIcon'
 
-import { getIconForScore, getTextForScore } from "../mapResults";
+import { getIconForScore, getTextForScore } from "../helpers/mapResults";
 import { helpers } from "yoastseo";
+import getResult from "../helpers/getResult";
 
-function getResult(props) {
-    const {analysis, resultType, resultSubtype} = props;
+const StatusIcon = ({content, analysis, resultType, resultSubtype, text}) => {
+    const { scoreToRating } = helpers;
 
-    if (resultSubtype !== undefined) {
-        return analysis.result[resultType][resultSubtype];
+    if (content.isFetching === false && analysis.isAnalyzing === false && getResult(analysis, resultType, resultSubtype)) {
+        let score = getResult(analysis, resultType, resultSubtype).score / 10;
+        let iconForScore = getIconForScore(scoreToRating(score));
+
+        return <>
+            <SvgIcon icon={iconForScore.icon} color={iconForScore.color} />{' '}
+            {text === 'true' ? getTextForScore(resultType, scoreToRating(score)) : ''}
+        </>
     } else {
-        return analysis.result[resultType];
+        return <>
+            <SvgIcon icon='circle' color='#bebebe' />{' '}
+            {text === 'true' ? getTextForScore(resultType, '') : ''}
+        </>
     }
 }
 
-class StatusIcon extends React.Component {
-
-    constructor(props) {
-        super(props);
-    }
-
-    render() {
-        const { scoreToRating } = helpers;
-        let element;
-
-        let altText = '';
-
-        if (this.props.content.isFetching === false && this.props.analysis.isAnalyzing === false && getResult(this.props)) {
-            let score = getResult(this.props).score / 10;
-            let iconForScore = getIconForScore(scoreToRating(score));
-
-            if (this.props.text == 'true') {
-                altText = getTextForScore(this.props.resultType, scoreToRating(score))
-            }
-
-            element = (
-                <React.Fragment>
-                    <SvgIcon icon={ iconForScore.icon } color={ iconForScore.color } /> {altText}
-                </React.Fragment>
-            );
-        } else {
-            if (this.props.text == 'true') {
-                altText = getTextForScore(this.props.resultType, '')
-            }
-
-            element = (
-                <React.Fragment>
-                    <SvgIcon icon='circle' color='#bebebe' /> {altText}
-                </React.Fragment>
-            );
-        }
-
-        return (
-            <React.Fragment>
-                {element}
-            </React.Fragment>
-        );
-    }
-}
-
-function mapStateToProps (state) {
-
+const mapStateToProps = (state) => {
     return {
         content: state.content,
         analysis: state.analysis

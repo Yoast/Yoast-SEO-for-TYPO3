@@ -1,0 +1,76 @@
+.. More information about this file:
+   https://docs.typo3.org/m/typo3/docs-how-to-document/main/en-us/GeneralConventions/FileStructure.html#includes-rst-txt
+
+.. ----------
+.. text roles
+.. ----------
+
+.. role:: aspect(emphasis)
+.. role:: bash(code)
+.. role:: html(code)
+.. role:: js(code)
+.. role:: php(code)
+.. role:: rst(code)
+.. role:: sep(strong)
+.. role:: sql(code)
+
+.. role:: tsconfig(code)
+   :class: typoscript
+
+.. role:: typoscript(code)
+.. role:: xml(code)
+   :class: html
+
+.. role:: yaml(code)
+
+.. default-role:: code
+
+.. ---------
+.. highlight
+.. ---------
+
+.. By default, code blocks use PHP syntax highlighting
+
+.. highlight:: php
+
+.. ------
+.. images
+.. ------
+
+.. |img-snippetpreview-page|        image:: /Images/snippetpreview-page.png
+.. :name: Snippetpreview within the Page module
+
+.. |img-snippetpreview-properties|  image:: /Images/snippetpreview-properties.png
+.. :name: Snippetpreview within the page properties
+
+.. |img-snippetpreview-hide-page|   image:: /Images/snippetpreview-hide-page.png
+.. :name: Hide the snippetpreview for a specific page
+
+.. |img-snippetpreview-hide-global| image:: /Images/snippetpreview-hide-global.png
+.. :name: Hide the snippetpreview globally
+
+
+.. |img-analysis-page|              image:: /Images/analysis-page.png
+.. :name: Analysis status on top of the page
+
+.. |img-analysis-readability|       image:: /Images/analysis-readability.png
+.. :name: Example of the readability analysis
+
+.. |img-analysis-seo|              image:: /Images/analysis-seo.png
+.. :name: Example of the SEO analysis
+
+
+.. |img-insights|                   image:: /Images/insights.png
+.. :name: Example of Insights
+
+
+.. |img-focus-related|              image:: /Images/focus-related.png
+.. :name: Related keyphrases
+
+
+.. |img-linking-suggestions|        image:: /Images/linking-suggestions.png
+.. :name: Internal linking suggestions
+
+
+.. |img-robots|                     image:: /Images/robots.png
+.. :name: Advanced robot instructions

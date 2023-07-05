@@ -1,9 +1,4 @@
-.. ==================================================
-.. FOR YOUR INFORMATION
-.. --------------------------------------------------
-.. -*- coding: utf-8 -*- with BOM.
-
-.. include:: ../../Includes.txt
+.. include:: /Includes.rst.txt
 
 
 .. _user-analysis:
@@ -35,12 +30,6 @@ The SEO analysis can be found beneath the **Focus keyphrase** field.
 
 Insights
 --------
-
-.. warning::
-
-    This functionality is only available within the Yoast SEO Premium extension.
-
-    `Find out more about the premium extension. <https://yoast.com/typo3-extensions-seo/>`_
 
 | Within the SEO tab you'll find the "Insights" information.
 | This is a list of the most prominent words on your page.

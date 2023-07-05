@@ -1,192 +1,122 @@
 <?php
+
 declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\Controller;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
-
-use TYPO3\CMS\Backend\Routing\Exception\RouteNotFoundException;
-use TYPO3\CMS\Backend\Routing\UriBuilder;
-use TYPO3\CMS\Backend\View\BackendTemplateView;
+use Psr\Http\Message\ResponseInterface;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
-use TYPO3\CMS\Core\Database\ConnectionPool;
-use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
+use TYPO3\CMS\Core\Exception\SiteNotFoundException;
 use TYPO3\CMS\Core\Localization\LanguageService;
-use TYPO3\CMS\Core\Localization\Locales;
-use TYPO3\CMS\Core\Page\PageRenderer;
-use TYPO3\CMS\Core\Pagination\ArrayPaginator;
-use TYPO3\CMS\Core\Pagination\SimplePagination;
-use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+use TYPO3\CMS\Core\Site\Entity\Site;
+use TYPO3\CMS\Core\Site\SiteFinder;
+use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\PathUtility;
-use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
-use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
+use YoastSeoForTypo3\YoastSeo\Pagination\ArrayPaginator;
+use YoastSeoForTypo3\YoastSeo\Pagination\Pagination;
 
-/**
- * Class OverviewController
- */
-class OverviewController extends ActionController
+class OverviewController extends AbstractBackendController
 {
-    /**
-     * Backend Template Container.
-     * Takes care of outer "docheader" and other stuff this module is embedded in.
-     *
-     * @var string
-     */
-    protected $defaultViewObjectName = BackendTemplateView::class;
-
-    /**
-     * @var string
-     */
-    protected $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:';
-
-    /**
-     * BackendTemplateContainer
-     *
-     * @var BackendTemplateView
-     */
-    protected $view;
-
-    /**
-     * @var string
-     */
-    protected $activeFilter;
-
-    /**
-     * @var array
-     */
-    protected $currentFilter;
-
-    /**
-     * @var array
-     */
-    protected $filters;
-
-    /**
-     * @var PageRenderer
-     */
-    protected $pageRenderer;
-
-    /**
-     * @var Locales
-     */
-    protected $localeService;
-    /**
-     * @var array[]
-     */
-    private $MOD_MENU;
-
-    /**
-     * @param ViewInterface $view
-     *
-     * @return void
-     */
-    protected function initializeView(ViewInterface $view): void
+    public function listAction(int $currentPage = 1): ResponseInterface
     {
-        parent::initializeView($view);
-
-        // Early return for actions without valid view like tcaCreateAction or tcaDeleteAction
-        if (!($this->view instanceof BackendTemplateView)) {
-            return;
+        $overviewData = $this->getOverviewData($currentPage) + ['action' => 'list'];
+        $moduleTemplate = $this->getModuleTemplate();
+        if (!isset($overviewData['pageInformation'])) {
+            return $this->returnResponse($overviewData, $moduleTemplate);
         }
 
-        $this->makeLanguageMenu();
+        $moduleTemplate->getDocHeaderComponent()->setMetaInformation($overviewData['pageInformation']);
+        $languageMenuItems = $this->getLanguageMenuItems($overviewData['pageInformation']);
+        if (is_array($languageMenuItems)) {
+            $languageMenu = $moduleTemplate->getDocHeaderComponent()->getMenuRegistry()->makeMenu();
+            $languageMenu->setIdentifier('languageMenu');
+            $languageMenu->setLabel(
+                $this->getLanguageService()->sL('LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.language')
+            );
+            foreach ($languageMenuItems as $languageMenuItem) {
+                $menuItem = $languageMenu
+                    ->makeMenuItem()
+                    ->setTitle($languageMenuItem['title'])
+                    ->setHref($languageMenuItem['href'])
+                    ->setActive($languageMenuItem['active']);
+                $languageMenu->addMenuItem($menuItem);
+            }
+            $moduleTemplate->getDocHeaderComponent()->getMenuRegistry()->addMenu($languageMenu);
+        }
+        return $this->returnResponse($overviewData, $moduleTemplate);
     }
 
-    protected function initializeAction(): void
+    public function legacyAction(int $currentPage = 1): void
     {
-        parent::initializeAction();
-
-        if (!($this->localeService instanceof Locales)) {
-            $this->localeService = GeneralUtility::makeInstance(Locales::class);
+        $overviewData = $this->getOverviewData($currentPage) + ['action' => 'legacy'];
+        if (isset($overviewData['pageInformation'])) {
+            $overviewData['languageMenuItems'] = $this->getLanguageMenuItems($overviewData['pageInformation']);
         }
-        if (!($this->pageRenderer instanceof PageRenderer)) {
-            $this->pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
-        }
-
-        $this->filters = $this->getAvailableFilters();
-        $this->activeFilter = $this->getActiveFilter();
-
-        $this->currentFilter = $this->filters[$this->activeFilter];
-
-        $publicResourcesPath = PathUtility::getAbsoluteWebPath(ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
-
-        $this->pageRenderer->addCssFile(
-            $publicResourcesPath . 'CSS/yoast-seo-backend.min.css'
-        );
+        $this->view->assignMultiple($overviewData);
     }
 
-    /**
-     * @param int $currentPage
-     */
-    public function listAction(int $currentPage = 1): void
+    protected function getOverviewData(int $currentPage): array
     {
+        $pageInformation = $this->getPageInformation();
+        if (!isset($pageInformation['uid'])) {
+            return ['noPageSelected' => true];
+        }
+
+        $filters = $this->getAvailableFilters();
+        $activeFilter = $this->getActiveFilter($filters);
+        $currentFilter = $filters[$activeFilter];
+
         $params = $this->getParams();
-        $items = GeneralUtility::callUserFunction($this->currentFilter['dataProvider'], $params, $this) ?: [];
+        $items = GeneralUtility::callUserFunction($currentFilter['dataProvider'], $params, $this) ?: [];
 
-        $arrayPaginator = $this->getArrayPaginator($items, $currentPage, (int)$this->settings['itemsPerPage']);
-        $pagination = $this->getPagination($arrayPaginator);
+        $arrayPaginator = GeneralUtility::makeInstance(
+            ArrayPaginator::class,
+            $items,
+            $currentPage,
+            (int)$this->settings['itemsPerPage']
+        );
+        $pagination = GeneralUtility::makeInstance(Pagination::class, $arrayPaginator);
 
-        $this->view->assignMultiple([
+        return [
+            'pageInformation' => $pageInformation,
             'items' => $items,
             'paginator' => $arrayPaginator,
             'pagination' => $pagination,
-            'filters' => $this->filters,
-            'activeFilter' => $this->activeFilter,
+            'filters' => $filters,
+            'activeFilter' => $activeFilter,
             'params' => $params,
-            'subtitle' => $this->getLanguageService()->sL($this->currentFilter['label']),
-            'description' => $this->currentFilter['description'],
-            'link' => $this->currentFilter['link'],
-        ]);
+            'subtitle' => $this->getLanguageService()->sL($currentFilter['label']),
+            'description' => $currentFilter['description'],
+            'link' => $currentFilter['link'],
+        ];
     }
 
-    /**
-     * Returns LanguageService
-     *
-     * @return \TYPO3\CMS\Core\Localization\LanguageService
-     */
-    public function getLanguageService(): LanguageService
-    {
-        return $GLOBALS['LANG'];
-    }
-
-    /**
-     * @return array|bool
-     */
-    public function getAvailableFilters()
+    public function getAvailableFilters(): ?array
     {
         if (array_key_exists('overview_filters', $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'])
             && is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['overview_filters'])
         ) {
             $params = $this->getParams();
-            foreach ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['overview_filters'] as $key => &$filter) {
-                $filter['numberOfItems'] = (int)GeneralUtility::callUserFunction($filter['countProvider'], $params, $this);
+            foreach ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['overview_filters'] as &$filter) {
+                $filter['numberOfItems'] = (int)GeneralUtility::callUserFunction(
+                    $filter['countProvider'],
+                    $params,
+                    $this
+                );
             }
             return (array)$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['overview_filters'];
         }
 
-        return false;
+        return null;
     }
 
-    /**
-     * @return string
-     */
-    protected function getActiveFilter(): string
+    protected function getActiveFilter(array $filters): string
     {
         $activeFilter = '';
 
         if ($this->request->hasArgument('filter')) {
-            foreach ($this->filters as $k => $f) {
+            foreach ($filters as $k => $f) {
                 if ($f['key'] === $this->request->getArgument('filter')) {
                     $activeFilter = $k;
                     break;
@@ -195,121 +125,91 @@ class OverviewController extends ActionController
         }
 
         if (empty($activeFilter)) {
-            reset($this->filters);
-            $activeFilter = key($this->filters);
+            $activeFilter = key($filters);
         }
 
         return (string)$activeFilter;
     }
 
-    /**
-     * @throws \TYPO3\CMS\Extbase\Mvc\Exception\NoSuchArgumentException
-     */
-    protected function makeLanguageMenu(): void
+    protected function getLanguageMenuItems(array $pageInformation): ?array
     {
-        $lang = $this->getLanguageService();
+        $site = $this->getSite($pageInformation['uid']);
+        if ($site === null) {
+            return null;
+        }
 
-        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_language');
-        $qb->getRestrictions()->removeAll()->add(GeneralUtility::makeInstance(HiddenRestriction::class));
+        $languages = $site->getAvailableLanguages($this->getBackendUser());
+        if (count($languages) === 0) {
+            return null;
+        }
 
-        $rows = $qb->select('uid', 'title')
-            ->from('sys_language')
-            ->execute()
-            ->fetchAll();
+        $arguments = $this->getArguments();
 
-        $this->MOD_MENU = [
-            'language' => [
-                0 => $lang->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:defaultLanguage')
-            ]
+        $filter = $arguments['filter'] ?? '';
+        $returnUrl = $arguments['returnUrl'] ?? '';
+        $items = [];
+        foreach ($languages as $language) {
+            $url = $this->uriBuilder
+                ->reset()
+                ->setTargetPageUid($pageInformation['uid'])
+                ->setArguments([
+                    'tx_yoastseo_yoast_yoastseooverview' => [
+                        'filter' => $filter,
+                        'language' => $language->getLanguageId(),
+                        'returnUrl' => $returnUrl,
+                        'controller' => 'Overview'
+                    ]
+                ])
+                ->build();
+            $items[] = [
+                'title' => $language->getTitle(),
+                'href' => $url,
+                'active' => (int)($arguments['language'] ?? 0) === $language->getLanguageId()
+            ];
+        }
+        return $items;
+    }
+
+    protected function getPageInformation(): ?array
+    {
+        $id = GeneralUtility::_GET('id');
+        $pageInformation = BackendUtility::readPageAccess(
+            $id,
+            $this->getBackendUser()->getPagePermsClause(Permission::PAGE_SHOW)
+        );
+        return is_array($pageInformation) ? $pageInformation : null;
+    }
+
+    protected function getSite(int $pageUid): ?Site
+    {
+        $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
+        try {
+            return $siteFinder->getSiteByPageId($pageUid);
+        } catch (SiteNotFoundException $e) {
+            return null;
+        }
+    }
+
+    protected function getParams(): array
+    {
+        return [
+            'language' => $this->getArguments()['language'] ?? 0,
+            'table' => 'pages'
         ];
-
-        foreach ($rows as $language) {
-            if ($this->getBackendUser()->checkLanguageAccess($language['uid'])) {
-                $this->MOD_MENU['language'][$language['uid']] = $language['title'];
-            }
-        }
-        if (count($this->MOD_MENU['language']) > 1) {
-            $filter = $this->request->hasArgument('filter') ? $this->request->getArgument('filter') : '';
-            $lang = $this->getLanguageService();
-            $languageMenu = $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->makeMenu();
-            $languageMenu->setIdentifier('languageMenu');
-            $languageMenu->setLabel($lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.language'));
-            $returnUrl = ($this->request->hasArgument('returnUrl')) ? $this->request->getArgument('returnUrl') : '';
-            foreach ($this->MOD_MENU['language'] as $key => $language) {
-                $parameters = [
-                    'tx_yoastseo_yoast_yoastseooverview[filter]' => $filter,
-                    'tx_yoastseo_yoast_yoastseooverview[language]' => $key,
-                    'tx_yoastseo_yoast_yoastseooverview[returnUrl]' => $returnUrl
-                ];
-
-                $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
-                try {
-                    $url = $uriBuilder->buildUriFromRoute('yoast_YoastSeoOverview', $parameters);
-                } catch (RouteNotFoundException $e) {
-                    $url = '';
-                }
-
-                $menuItem = $languageMenu
-                    ->makeMenuItem()
-                    ->setTitle($language)
-                    ->setHref((string)$url);
-                if ($this->request->hasArgument('language') &&
-                    (int)$this->request->getArgument('language') === $key) {
-                    $menuItem->setActive(true);
-                }
-                $languageMenu->addMenuItem($menuItem);
-            }
-            $this->view->getModuleTemplate()->getDocHeaderComponent()->getMenuRegistry()->addMenu($languageMenu);
-        }
     }
 
-    /**
-     * @param array $items
-     * @param int   $currentPage
-     * @param int   $itemsPerPage
-     * @return \TYPO3\CMS\Core\Pagination\ArrayPaginator|\YoastSeoForTypo3\YoastSeo\Pagination\ArrayPaginator
-     */
-    protected function getArrayPaginator(array $items, int $currentPage, int $itemsPerPage)
+    protected function getArguments(): array
     {
-        if (class_exists(ArrayPaginator::class)) {
-            return new ArrayPaginator($items, $currentPage, $itemsPerPage);
-        }
-        return new \YoastSeoForTypo3\YoastSeo\Pagination\ArrayPaginator($items, $currentPage, $itemsPerPage);
+        return $this->request->getArguments()['tx_yoastseo_yoast_yoastseooverview'] ?? $this->request->getArguments();
     }
 
-    /**
-     * @param $arrayPaginator
-     * @return \TYPO3\CMS\Core\Pagination\SimplePagination|\YoastSeoForTypo3\YoastSeo\Pagination\SimplePagination
-     */
-    protected function getPagination($arrayPaginator)
+    public function getLanguageService(): LanguageService
     {
-        if (class_exists(SimplePagination::class)) {
-            return new SimplePagination($arrayPaginator);
-        }
-        return new \YoastSeoForTypo3\YoastSeo\Pagination\SimplePagination($arrayPaginator);
+        return $GLOBALS['LANG'];
     }
 
-    /**
-     * Returns the current BE user.
-     *
-     * @return \TYPO3\CMS\Core\Authentication\BackendUserAuthentication
-     */
     protected function getBackendUser(): BackendUserAuthentication
     {
         return $GLOBALS['BE_USER'];
-    }
-
-    /**
-     * @return array
-     */
-    protected function getParams(): array
-    {
-        $language = $this->request->hasArgument('language') ? (int)$this->request->getArgument('language') : 0;
-        $table = 'pages';
-
-        return [
-            'language' => $language,
-            'table' => $table
-        ];
     }
 }

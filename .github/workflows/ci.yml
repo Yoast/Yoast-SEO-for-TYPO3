@@ -5,21 +5,21 @@ on: [push, pull_request]
 jobs:
   build-php:
     name: Build PHP
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       max-parallel: 6
       fail-fast: false
       matrix:
-        typo3: ['9', '10']
-        php: ['php7.2', 'php7.3', 'php7.4']
+        typo3: ['10', '11']
+        php: ['php7.4']
         experimental: [false]
         include:
           - typo3: '11'
-            php: 'php7.4'
+            php: 'php8.1'
             experimental: false
-          - typo3: '11'
-            php: 'php8.0'
+          - typo3: '12'
+            php: 'php8.1'
             experimental: false
     steps:
       - uses: actions/checkout@v1
@@ -33,11 +33,10 @@ jobs:
           composer --version
       - name: Install
         run: |
-          composer require typo3/cms-core:^${{ matrix.typo3 }} typo3/cms-backend:^${{ matrix.typo3 }} typo3/cms-extbase:^${{ matrix.typo3 }} typo3/cms-fluid:^${{ matrix.typo3 }} typo3/cms-frontend:^${{ matrix.typo3 }} typo3/cms-install:^${{ matrix.typo3 }} --no-progress
-          git checkout composer.json
+          composer require typo3/cms-core:^${{ matrix.typo3 }} typo3/cms-backend:^${{ matrix.typo3 }} typo3/cms-extbase:^${{ matrix.typo3 }} typo3/cms-fluid:^${{ matrix.typo3 }} typo3/cms-frontend:^${{ matrix.typo3 }} typo3/cms-install:^${{ matrix.typo3 }} typo3/cms-dashboard:^${{ matrix.typo3 }} --no-progress
       - name: Lint
         run: composer test:php:lint
       - name: CGL
         run: composer cgl
       - name: PHPStan
-        run: php -d memory_limit=-1 vendor/bin/phpstan analyse -c phpstan.cms${{ matrix.typo3 }}.neon
+        run: php -d memory_limit=-1 vendor/bin/phpstan analyse -c .Build/phpstan.cms${{ matrix.typo3 }}.neon

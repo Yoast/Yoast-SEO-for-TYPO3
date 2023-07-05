@@ -1,9 +1,4 @@
-.. ==================================================
-.. FOR YOUR INFORMATION
-.. --------------------------------------------------
-.. -*- coding: utf-8 -*- with BOM.
-
-.. include:: ../../Includes.txt
+.. include:: /Includes.rst.txt
 
 
 .. _user-overview:
@@ -25,11 +20,5 @@ Pages without meta description
 
 Orphaned content
 ----------------
-.. warning::
-
-    This functionality is only available within the Yoast SEO Premium extension.
-
-    `Find out more about the premium extension. <https://yoast.com/typo3-extensions-seo/>`_
-
-| The premium extension provides one more overview: "Orphaned content".
+| All Orphaned content will be listed here.
 | `Find out more about orphaned content. <https://yoast.com/orphaned-content/>`_

@@ -1,51 +1,27 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { connect } from 'react-redux';
-
 import LoadingIndicator from './LoadingIndicator';
 import SnippetPreviewError from './SnippetPreviewError';
-
 import YoastSnippetPreview from '@yoast/search-metadata-previews/snippet-preview/SnippetPreview';
-import ModeSwitcher from '@yoast/search-metadata-previews/snippet-editor/ModeSwitcher';
+import ModeSwitcher from './ModeSwitcher';
 import {DEFAULT_MODE} from '@yoast/search-metadata-previews/snippet-preview/constants';
 
-class SnippetPreview extends React.Component {
+const SnippetPreview = ({isFetching, title, url, faviconSrc, wordsToHighlight, description, locale}) => {
+    const [mode, setMode] = useState(DEFAULT_MODE);
 
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            mode: DEFAULT_MODE
+    if (isFetching === false) {
+        if (typeof title === 'undefined') {
+            return <SnippetPreviewError/>
         }
+        return <>
+            <ModeSwitcher onChange={(newMode) => setMode(newMode)} active={mode}/>
+            <YoastSnippetPreview title={title} url={url} description={description} faviconSrc={faviconSrc} wordsToHighlight={wordsToHighlight} locale={locale} mode={mode} onMouseUp={() => {}} />
+        </>
     }
-
-    render() {
-
-        let element;
-        if (this.props.isFetching === false) {
-            if (typeof this.props.title === 'undefined') {
-                element = <SnippetPreviewError/>
-            } else {
-                element = (
-                    <React.Fragment>
-                        <ModeSwitcher onChange={(newMode) => this.setState({mode: newMode})} active={this.state.mode}/>
-                        <YoastSnippetPreview {...this.props} mode={this.state.mode} onMouseUp={() => {}} />
-                    </React.Fragment>
-                );
-            }
-        } else {
-            element = <LoadingIndicator/>
-        }
-
-        return (
-            <React.Fragment>
-                {element}
-            </React.Fragment>
-        );
-    }
+    return <LoadingIndicator />
 }
 
-function mapStateToProps (state) {
-
+const mapStateToProps = (state) => {
     return {
         ...state.content,
         ...state.analysis,

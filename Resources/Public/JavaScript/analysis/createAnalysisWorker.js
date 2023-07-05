@@ -7,7 +7,7 @@ export default function createAnalysisWorker(useCornerstone, locale) {
         locale: locale,
         contentAnalysisActive: true,
         keywordAnalysisActive: true,
-        useKeywordDistribution: YoastConfig.useKeywordDistribution,
+        useKeywordDistribution: true,
         useCornerstone: useCornerstone,
         logLevel: "ERROR",
         translations: YoastConfig.translations

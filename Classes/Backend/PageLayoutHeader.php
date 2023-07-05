@@ -1,123 +1,108 @@
 <?php
+
+declare(strict_types=1);
+
 namespace YoastSeoForTypo3\YoastSeo\Backend;
 
-use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+use TYPO3\CMS\Backend\Controller\PageLayoutController;
+use TYPO3\CMS\Backend\Template\ModuleTemplate;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Utility\PathUtility;
-use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
+use TYPO3\CMS\Fluid\View\StandaloneView;
+use YoastSeoForTypo3\YoastSeo\Service\SnippetPreviewService;
+use YoastSeoForTypo3\YoastSeo\Service\UrlService;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
-class PageLayoutHeader extends AbstractPageLayoutHeader
+class PageLayoutHeader
 {
-    /**
-     * @param array|null $params
-     * @param null  $parentObj
-     * @return string
-     */
+    protected UrlService $urlService;
+    protected SnippetPreviewService $snippetPreviewService;
+
+    public function __construct(
+        UrlService $urlService,
+        SnippetPreviewService $snippetPreviewService
+    ) {
+        $this->urlService = $urlService;
+        $this->snippetPreviewService = $snippetPreviewService;
+    }
+
     public function render(array $params = null, $parentObj = null): string
     {
-        $moduleData = $this->getModuleData();
-        $pageId = $this->getPageId();
-        $currentPage = $this->getCurrentPage($pageId, $moduleData, $parentObj);
+        $languageId = $this->getLanguageId();
+        $pageId = (int)GeneralUtility::_GET('id');
+        $currentPage = $this->getCurrentPage($pageId, $languageId, $parentObj);
 
-        if (is_array($currentPage) && $this->shouldShowPreview($pageId, $currentPage)) {
-            $this->pageHeaderService->setSnippetPreviewEnabled(true);
-            $this->pageHeaderService->setModuleData($moduleData);
-            $this->pageHeaderService->setPageId($pageId);
+        if (!is_array($currentPage) || !$this->shouldShowPreview($pageId, $currentPage)) {
+            return '';
+        }
 
-            $publicResourcesPath =
-                PathUtility::getAbsoluteWebPath(ExtensionManagementUtility::extPath('yoast_seo')) . 'Resources/Public/';
-
-            $config = [
-                'urls' => [
-                    'workerUrl' => $publicResourcesPath . '/JavaScript/dist/worker.js',
-                    'previewUrl' => $this->urlService->getPreviewUrl($pageId, (int)$moduleData['language']),
-                    'saveScores' => $this->urlService->getSaveScoresUrl(),
-                    'prominentWords' => $this->urlService->getProminentWordsUrl(),
-                ],
-                'useKeywordDistribution' => YoastUtility::isPremiumInstalled(),
-                'useRelevantWords' => YoastUtility::isPremiumInstalled(),
-                'isCornerstoneContent' => (bool)$currentPage['tx_yoastseo_cornerstone'],
-                'focusKeyphrase' => [
-                    'keyword' => (string)$currentPage['tx_yoastseo_focuskeyword'],
-                    'synonyms' => (string)$currentPage['tx_yoastseo_focuskeyword_synonyms'],
-                ],
-                'labels' => $this->localeService->getLabels(),
-                'fieldSelectors' => [],
-                'translations' => $this->localeService->getTranslations(),
+        $this->snippetPreviewService->buildSnippetPreview(
+            $this->urlService->getPreviewUrl($pageId, $languageId),
+            $currentPage,
+            [
                 'data' => [
                     'table' => 'pages',
                     'uid' => $pageId,
-                    'languageId' => (int)$moduleData['language']
+                    'pid' => $currentPage['pid'],
+                    'languageId' => $languageId
                 ],
-            ];
-            $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigUtility::class);
-            $jsonConfigUtility->addConfig($config);
+                'fieldSelectors' => [],
+            ]
+        );
 
-            if (YoastUtility::inProductionMode() === true) {
-                $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/dist/plugin');
-            } else {
-                $this->pageRenderer->addHeaderData('<script type="text/javascript" src="https://localhost:3333/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/plugin.js" async></script>');
+        return $this->renderHtml();
+    }
+
+    protected function renderHtml(): string
+    {
+        $templateView = GeneralUtility::makeInstance(StandaloneView::class);
+        $templateView->setTemplatePathAndFilename(
+            GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Templates/PageLayout/Header.html')
+        );
+        $templateView->assignMultiple([
+            'targetElementId' => uniqid('_YoastSEO_panel_')
+        ]);
+        return $templateView->render();
+    }
+
+    protected function getCurrentPage(int $pageId, int $languageId, object $parentObj): ?array
+    {
+        $currentPage = null;
+
+        if (($parentObj instanceof PageLayoutController || $parentObj instanceof ModuleTemplate) && $pageId > 0) {
+            if ($languageId === 0) {
+                $currentPage = BackendUtility::getRecord(
+                    'pages',
+                    $pageId
+                );
+            } elseif ($languageId > 0) {
+                $overlayRecords = BackendUtility::getRecordLocalization(
+                    'pages',
+                    $pageId,
+                    $languageId
+                );
+
+                if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
+                    $currentPage = $overlayRecords[0];
+                }
             }
-
-            $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/yoastModal');
-            $this->pageRenderer->addCssFile('EXT:yoast_seo/Resources/Public/CSS/yoast.min.css');
-
-            return $this->getReturnHtml();
         }
-        return '';
+        return $currentPage;
     }
 
-    /**
-     * @return string
-     */
-    protected function getReturnHtml(): string
+    protected function shouldShowPreview(int $pageId, array $pageRecord): bool
     {
-        $premiumText = $this->getPremiumText();
-        $targetElementId = uniqid('_YoastSEO_panel_');
+        if (!YoastUtility::snippetPreviewEnabled($pageId, $pageRecord)) {
+            return false;
+        }
 
-        $returnHtml = '
-                <div class="yoast-seo-score-bar">
-                    <span class="yoast-seo-score-bar--analysis yoast-seo-page" data-yoast-analysis-type="readability"></span>
-                    <span class="yoast-seo-score-bar--analysis yoast-seo-page" data-yoast-analysis-type="seo"></span>
-                </div>
-                <div class="yoast-seo-snippet-header">
-                    ' . $premiumText . '
-                    <div class="yoast-snippet-header-label">Yoast SEO</div>
-                </div>';
-
-        $returnHtml .= '
-            <input id="focusKeyword" style="display: none" />
-            <div id="' . $targetElementId . '" class="t3-grid-cell yoast-seo yoast-seo-snippet-preview-styling" style="padding: 10px;" data-yoast-snippetpreview>
-                <!-- ' . $targetElementId . ' -->
-                <div class="spinner">
-                  <div class="bounce bounce1"></div>
-                  <div class="bounce bounce2"></div>
-                  <div class="bounce bounce3"></div>
-                </div>
-            </div>
-            <div data-yoast-analysis="readability" id="YoastPageHeaderAnalysisReadability" data-yoast-subtype="" class="hidden yoast-analysis"></div>
-            <div data-yoast-analysis="seo" id="YoastPageHeaderAnalysisSeo" data-yoast-subtype="" class="hidden yoast-analysis"></div>
-            ';
-
-        return $returnHtml;
+        $allowedDoktypes = YoastUtility::getAllowedDoktypes();
+        return isset($pageRecord['doktype']) && in_array((int)$pageRecord['doktype'], $allowedDoktypes, true);
     }
 
-    /**
-     * Get premium text
-     *
-     * @return string
-     */
-    protected function getPremiumText(): string
+    protected function getLanguageId(): int
     {
-        if (!YoastUtility::isPremiumInstalled()) {
-            return '
-                <div class="yoast-seo-snippet-header-premium">
-                    <a target="_blank" rel="noopener noreferrer" href="' . YoastUtility::getYoastLink('Go premium', 'pagemodule-snippetpreview') . '">
-                        <i class="fa fa-star"></i>' . $GLOBALS['LANG']->sL('LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:goPremium') . '
-                    </a>
-                </div>';
-        }
-        return '';
+        $moduleData = (array)BackendUtility::getModuleData(['language'], [], 'web_layout');
+        return (int)$moduleData['language'];
     }
 }

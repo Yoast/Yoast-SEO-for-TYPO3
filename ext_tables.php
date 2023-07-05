@@ -1,73 +1,73 @@
 <?php
 
-if (TYPO3_MODE === 'BE') {
-    $offset = 0;
-    foreach ($GLOBALS['TBE_MODULES'] as $key => $_) {
-        if ($key === 'web') {
-            $GLOBALS['TBE_MODULES'] = array_slice($GLOBALS['TBE_MODULES'], 0, ($offset + 1), true) +
-                ['yoast' => ''] +
-                array_slice($GLOBALS['TBE_MODULES'], $offset + 1, count($GLOBALS['TBE_MODULES']) - 1, true);
-        }
-        $offset++;
-    }
+defined('TYPO3') || die;
 
-    $GLOBALS['TBE_MODULES']['_configuration']['yoast'] = [
-        'iconIdentifier' => 'module-yoast',
-        'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf',
-        'name' => 'yoast'
-    ];
+(static function () {
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addModule(
+        'yoast',
+        '',
+        'after:web',
+        null,
+        [
+            'iconIdentifier' => 'module-yoast',
+            'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf',
+            'name' => 'yoast'
+        ]
+    );
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addCoreNavigationComponent(
+        'yoast',
+        'TYPO3/CMS/Backend/PageTree/PageTreeElement'
+    );
 
-    $moduleController = \YoastSeoForTypo3\YoastSeo\Controller\ModuleController::class;
-    $overviewController = \YoastSeoForTypo3\YoastSeo\Controller\OverviewController::class;
-    if (\TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Core\Information\Typo3Version::class)
-            ->getMajorVersion() < 10) {
-        $moduleController = 'Module';
-        $overviewController = 'Overview';
-    }
+    $legacyAction = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Core\Information\Typo3Version::class)
+            ->getMajorVersion() === 10;
 
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
-        'YoastSeoForTypo3.yoast_seo',
+        'YoastSeo',
         'yoast',
         'dashboard',
         '',
-        [
-            $moduleController => 'dashboard',
-        ],
+        [\YoastSeoForTypo3\YoastSeo\Controller\DashboardController::class => $legacyAction ? 'legacy' : 'index'],
         [
             'access' => 'user,group',
-            'icon' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-dashboard.svg',
+            'iconIdentifier' => 'module-yoast-dashboard',
             'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleDashboard.xlf',
+            'inheritNavigationComponentFromMainModule' => false
         ]
     );
 
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
-        'YoastSeoForTypo3.yoast_seo',
+        'YoastSeo',
         'yoast',
         'overview',
         '',
-        [
-            $overviewController => 'list',
-        ],
+        [\YoastSeoForTypo3\YoastSeo\Controller\OverviewController::class => $legacyAction ? 'legacy' : 'list'],
         [
             'access' => 'user,group',
-            'icon' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-overview.svg',
+            'iconIdentifier' => 'module-yoast-overview',
             'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf',
         ]
     );
 
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerModule(
-        'YoastSeoForTypo3.yoast_seo',
+        'YoastSeo',
         'yoast',
-        'premium',
+        'crawler',
         '',
-        [
-            $moduleController => 'premium',
-        ],
+        [\YoastSeoForTypo3\YoastSeo\Controller\CrawlerController::class => ($legacyAction ? 'legacy' : 'index') . ',resetProgress'],
         [
             'access' => 'user,group',
-            'icon' => 'EXT:yoast_seo/Resources/Public/Images/Yoast-module-premium.svg',
-            'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModulePremium.xlf',
+            'iconIdentifier' => 'module-yoast-crawler',
+            'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleCrawler.xlf',
+            'inheritNavigationComponentFromMainModule' => false
         ]
+    );
+
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::allowTableOnStandardPages(
+        'tx_yoastseo_related_focuskeyword'
+    );
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::allowTableOnStandardPages(
+        'tx_yoastseo_prominent_word'
     );
 
     // Extend user settings
@@ -75,9 +75,10 @@ if (TYPO3_MODE === 'BE') {
         'label' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:usersettings.hideYoastInPageModule',
         'type' => 'check'
     ];
-    $GLOBALS['TYPO3_USER_SETTINGS']['showitem'] .= ',
-            --div--;LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:usersettings.title,hideYoastInPageModule';
+    \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToUserSettings(
+        '--div--;LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:usersettings.title,hideYoastInPageModule'
+    );
 
     $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-preProcess'][]
-        = \YoastSeoForTypo3\YoastSeo\Hooks\YoastConfigInlineJs::class . '->renderJsonConfig';
-}
+        = \YoastSeoForTypo3\YoastSeo\Hooks\BackendYoastConfig::class . '->renderConfig';
+})();

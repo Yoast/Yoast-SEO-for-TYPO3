@@ -1,0 +1,72 @@
+{
+  "name": "t3ext-yoast-seo",
+  "version": "1.0.0",
+  "description": "Yoast SEO for TYPO3",
+  "main": "plugin.js",
+  "devDependencies": {
+    "@babel/core": "^7.16.5",
+    "@babel/preset-env": "^7.16.5",
+    "@babel/preset-react": "^7.16.5",
+    "@yoast/grunt-plugin-tasks": "^2.2.1",
+    "babel-loader": "^8.2.3",
+    "cross-env": "^5.2.1",
+    "css-loader": "^3.6.0",
+    "grunt": "^1.4.1",
+    "grunt-contrib-clean": "^2.0.0",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-glotpress": "git+https://github.com/markoheijnen/grunt-glotpress.git#05a38906b357d5a4785bc57e6287fb6479e674b7",
+    "grunt-po2json": "git+https://github.com/atimmer/grunt-po2json.git#f26c05653af89ef0f7a72456dbe141eb56bf5471",
+    "grunt-sass": "^2.1.0",
+    "grunt-wp-i18n": "^1.0.3",
+    "load-grunt-config": "^1.0.2",
+    "react-intl": "^2.9.0",
+    "redux-thunk": "^2.4.1",
+    "time-grunt": "^2.0.0",
+    "webpack": "^4.46.0",
+    "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.11.3"
+  },
+  "scripts": {
+    "dev": "webpack-dev-server",
+    "watch": "webpack --watch --config webpack.config.js",
+    "build": "webpack --config webpack.config.js",
+    "i18n-wordpress-seo": "cross-env NODE_ENV=production babel Resources/Public/Javascript --plugins=@wordpress/babel-plugin-makepot | shusher"
+  },
+  "plugin": {
+    "glotpress": "http://translate.wordpress.org",
+    "textdomain": "wordpress-seo"
+  },
+  "pot": {
+    "reportmsgidbugsto": "https://github.com/YoastSeoForTypo3/t3ext-yoast-seo/issues",
+    "languageteam": "Yoast Translate <translations@yoast.com>",
+    "lasttranslator": "Yoast Translate Team <translations@yoast.com>"
+  },
+  "dependencies": {
+    "@babel/polyfill": "^7.12.1",
+    "@wordpress/babel-plugin-makepot": "^3.10.0",
+    "@yoast/components": "^2.19.0",
+    "@yoast/search-metadata-previews": "^2.24.0",
+    "fstream": "^1.0.12",
+    "lodash": "^4.17.21",
+    "material-ui": "^0.20.2",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0",
+    "react-redux": "^7.2.6",
+    "yoast-components": "^5.24.0",
+    "yoastseo": "^1.91.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YoastSeoForTypo3/t3ext-yoast-seo.git"
+  },
+  "keywords": [
+    "Yoast",
+    "TYPO3"
+  ],
+  "author": "Frank Baak <frank@maxserv.com>",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/YoastSeoForTypo3/t3ext-yoast-seo/issues"
+  },
+  "homepage": "https://github.com/YoastSeoForTypo3/t3ext-yoast-seo"
+}

@@ -1,9 +1,4 @@
-.. ==================================================
-.. FOR YOUR INFORMATION
-.. --------------------------------------------------
-.. -*- coding: utf-8 -*- with BOM.
-
-.. include:: ../../Includes.txt
+.. include:: /Includes.rst.txt
 
 
 .. _about:
@@ -28,13 +23,7 @@ a list of pages without a meta description so you can easily see the pages you h
 Furthermore it brings a basic implementation of structured data (schema.org). By default it renders the needed JSON for
 the schema.org types "BreadcrumbList" and "WebSite".
 
-.. warning::
-
-    The information shown below is only available within the Yoast SEO Premium extension.
-
-    `Find out more about the premium extension. <https://yoast.com/typo3-extensions-seo/>`_
-
-The premium extension offers the following extras on top of the free version:
+The latest release for Yoast SEO For TYPO3 brings these features:
 
 - Add synonyms for your focus keyword
 - Add related keyphrases with their own synonyms and analysis results
