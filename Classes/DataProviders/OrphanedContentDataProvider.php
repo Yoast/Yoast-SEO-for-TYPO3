@@ -8,6 +8,7 @@ use Doctrine\DBAL\Result;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Service\DbalService;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class OrphanedContentDataProvider extends AbstractOverviewDataProvider
@@ -57,12 +58,13 @@ class OrphanedContentDataProvider extends AbstractOverviewDataProvider
             )
         ];
 
-        $refs = $qb->select('ref_uid')
+        $statement = $qb->select('ref_uid')
             ->from('sys_refindex')
             ->where(...$constraints)
             ->groupBy('ref_uid')
-            ->execute()
-            ->fetchAllAssociative();
+            ->execute();
+
+        $refs = GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
 
         foreach ($refs as $ref) {
             $this->referencedPages[] = $ref['ref_uid'];

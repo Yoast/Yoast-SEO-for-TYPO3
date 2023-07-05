@@ -22,6 +22,6 @@ class BackendYoastConfig
         }
 
         $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigUtility::class);
-        $pObject->addJsInlineCode('yoast-json-config', $jsonConfigUtility->render());
+        $pObject->addJsInlineCode('yoast-json-config', $jsonConfigUtility->render(), true, false, true);
     }
 }
