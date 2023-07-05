@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Widgets;
 
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
-use TYPO3\CMS\Dashboard\Widgets\AdditionalCssInterface;
 use TYPO3\CMS\Dashboard\Widgets\WidgetConfigurationInterface;
 use TYPO3\CMS\Dashboard\Widgets\WidgetInterface;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use YoastSeoForTypo3\YoastSeo\Widgets\Provider\PageProviderInterface;
 
-class PageOverviewWidget implements WidgetInterface, AdditionalCssInterface
+class PageOverviewWidget implements WidgetInterface
 {
     protected WidgetConfigurationInterface $configuration;
     protected PageProviderInterface $dataProvider;
@@ -39,13 +38,6 @@ class PageOverviewWidget implements WidgetInterface, AdditionalCssInterface
             ],
             $options
         );
-    }
-
-    public function getCssFiles(): array
-    {
-        return [
-            'EXT:yoast_seo/Resources/Public/CSS/extended-list-widget.min.css',
-        ];
     }
 
     public function getOptions(): array
