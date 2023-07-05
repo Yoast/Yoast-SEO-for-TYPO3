@@ -74,12 +74,11 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
     {
         if (class_exists(SiteFinder::class)) {
             try {
-                $site = $this->siteFinder->getSiteByPageId((int)$pageId);
-            } catch (SiteNotFoundException $e) {
+                $site = $this->siteFinder->getSiteByPageId($pageId);
+                return (string)$site->getRouter()->generateUri($pageId, ['_language' => $this->getLanguage()]);
+            } catch (SiteNotFoundException | \InvalidArgumentException $e) {
                 return '';
             }
-
-            return (string)$site->getRouter()->generateUri($pageId, ['_language' => $this->getLanguage()]);
         }
 
         $cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
