@@ -39,7 +39,7 @@ class SnippetPreview extends AbstractNode
         $templateView = $this->getTemplateView();
 
         if ($this->data['tableName'] === 'pages'
-            && !in_array((int)$this->data['databaseRow']['doktype'][0], YoastUtility::getAllowedDoktypes(), true)) {
+            && !in_array((int)($this->data['databaseRow']['doktype'][0] ?? 0), YoastUtility::getAllowedDoktypes(), true)) {
             $templateView->assign('wrongDoktype', true);
             $resultArray['html'] = $templateView->render();
             return $resultArray;
