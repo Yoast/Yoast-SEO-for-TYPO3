@@ -105,13 +105,17 @@ class PreviewService
             [$locale] = explode('-', trim($matchesLocale[1]));
         }
         $urlParts = parse_url(preg_replace('/\/$/', '', $uriToCheck));
-        $baseUrl = $urlParts['scheme'] . '://' . $urlParts['host'];
+        if ($urlParts['port'] ?? false) {
+            $baseUrl = $urlParts['scheme'] . '://' . $urlParts['host'] . ':' . $urlParts['port'];
+        } else {
+            $baseUrl = $urlParts['scheme'] . '://' . $urlParts['host'];
+        }
         $url = $baseUrl . ($urlParts['path'] ?? '');
 
         $faviconSrc = $baseUrl . '/favicon.ico';
         $favIconFound = preg_match('/<link rel=\"shortcut icon\" href=\"([^"]*)\"/i', $content, $matchesFavIcon);
         if ($favIconFound) {
-            $faviconSrc = $matchesFavIcon[1];
+            $faviconSrc = strpos($matchesFavIcon[1], '://') !== false ? $matchesFavIcon[1] : $baseUrl . $matchesFavIcon[1];
         }
         $favIconHeader = @get_headers($faviconSrc);
         if (($favIconHeader[0] ?? '') === 'HTTP/1.1 404 Not Found') {

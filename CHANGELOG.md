@@ -13,6 +13,7 @@ We will follow [Semantic Versioning](http://semver.org/).
 - Loading state of internal linking suggestions when the bodytext is empty (e.g. new content element)
 - Avoid exceptions because of broken showitem tt_content types
 - PHP warnings within several Form classes due to non-existing doktype index within databaseRow array
+- Favicons with relative urls or urls with a port
 
 ## 9.0.0 June 12, 2023
 ### Breaking
