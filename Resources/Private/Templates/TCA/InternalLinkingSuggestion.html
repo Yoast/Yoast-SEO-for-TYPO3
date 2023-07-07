@@ -1,2 +1,28 @@
-<div><p><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:tx_yoastseo_linking_suggestions.intro" /></p></div>
-<div data-yoast-linking-suggestions />
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+      data-namespace-typo3-fluid="true">
+
+<f:if condition="{languageError}">
+    <f:then>
+        <div class="alert alert-warning">
+            <h5 class="alert-heading alert-title">
+                <f:translate
+                        key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:tx_yoastseo_linking_suggestions.languageError.title" />
+            </h5>
+            <div class="alert-body">
+                <f:translate
+                        key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:tx_yoastseo_linking_suggestions.languageError" />
+            </div>
+        </div>
+    </f:then>
+    <f:else>
+        <div>
+            <p>
+                <f:translate
+                        key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:tx_yoastseo_linking_suggestions.intro" />
+            </p>
+        </div>
+        <div data-yoast-linking-suggestions />
+    </f:else>
+</f:if>
+
+</html>
