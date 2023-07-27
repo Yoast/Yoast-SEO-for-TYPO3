@@ -12,7 +12,7 @@ return [
     ],
     'yoast_YoastSeoDashboard' => [
         'parent' => 'yoast',
-        'access' => 'user,group',
+        'access' => 'user',
         'path' => '/module/yoast/dashboard',
         'iconIdentifier' => 'module-yoast-dashboard',
         'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleDashboard.xlf',
@@ -23,7 +23,7 @@ return [
     ],
     'yoast_YoastSeoOverview' => [
         'parent' => 'yoast',
-        'access' => 'user,group',
+        'access' => 'user',
         'path' => '/module/yoast/overview',
         'iconIdentifier' => 'module-yoast-overview',
         'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf',
@@ -35,7 +35,7 @@ return [
     ],
     'yoast_YoastSeoCrawler' => [
         'parent' => 'yoast',
-        'access' => 'user,group',
+        'access' => 'user',
         'path' => '/module/yoast/crawler',
         'iconIdentifier' => 'module-yoast-crawler',
         'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleCrawler.xlf',
