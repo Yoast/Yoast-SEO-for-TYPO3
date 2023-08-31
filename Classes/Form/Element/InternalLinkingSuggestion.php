@@ -48,6 +48,13 @@ class InternalLinkingSuggestion extends AbstractNode
 
     public function render(): array
     {
+        $locale = $this->getLocale($this->currentPage);
+        if ($locale === null) {
+            $this->templateView->assign('languageError', true);
+            $resultArray['html'] = $this->templateView->render();
+            return $resultArray;
+        }
+
         $publicResourcesPath = PathUtility::getPublicPathToResources();
 
         $resultArray = $this->initializeResultArray();
@@ -67,7 +74,7 @@ class InternalLinkingSuggestion extends AbstractNode
             ],
             'linkingSuggestions' => [
                 'excludedPage' => $this->currentPage,
-                'locale' => $this->getLocale($this->currentPage)
+                'locale' => $locale
             ],
             'urls' => [
                 'workerUrl' => $workerUrl,
@@ -95,10 +102,9 @@ class InternalLinkingSuggestion extends AbstractNode
         $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
         try {
             $site = $siteFinder->getSiteByPageId($pageId);
-        } catch (SiteNotFoundException $e) {
+            return $site->getLanguageById($this->languageId)->getTwoLetterIsoCode();
+        } catch (SiteNotFoundException|\InvalidArgumentException $e) {
             return null;
         }
-        $siteLanguage = $site->getLanguageById($this->languageId);
-        return $siteLanguage->getTwoLetterIsoCode();
     }
 }
