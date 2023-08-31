@@ -7,6 +7,7 @@ namespace YoastSeoForTypo3\YoastSeo\Updates;
 use Doctrine\DBAL\Exception;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
+use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Install\Updates\DatabaseUpdatedPrerequisite;
 use TYPO3\CMS\Install\Updates\UpgradeWizardInterface;
@@ -50,6 +51,9 @@ class MigratePremiumFocusKeywords implements UpgradeWizardInterface
                 $premiumFocusKeyword['parentid'],
                 $premiumFocusKeyword['parenttable']
             );
+            if ((GeneralUtility::makeInstance(Typo3Version::class))->getMajorVersion() > 11) {
+                unset($premiumFocusKeyword['cruser_id']);
+            }
             $this->connectionPool->getConnectionForTable(self::NEW_TABLE)
                 ->insert(self::NEW_TABLE, $premiumFocusKeyword);
         }
