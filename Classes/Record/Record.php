@@ -59,7 +59,7 @@ class Record
 
     public function hasSitemapFields(): bool
     {
-        return $this->yoastSeoFields;
+        return $this->sitemapFields;
     }
 
     public function setSitemapFields(bool $sitemapFields): self

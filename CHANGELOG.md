@@ -8,6 +8,8 @@ We will follow [Semantic Versioning](http://semver.org/).
 ## UNRELEASED
 ### Fixed
 - Show warning on linking suggestions when content element is set to "All Languages" instead of fatal exception
+- Added extra checks within the metatag generators in case fields do not exist (opengraph, twitter, robots)
+- `hasSitemapFields` now correctly returns the `sitemapFields` instead of `yoastSeoFields`
 
 ## 9.0.1 July 6, 2023
 ### Fixed

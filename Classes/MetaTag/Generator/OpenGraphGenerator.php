@@ -26,7 +26,7 @@ class OpenGraphGenerator extends AbstractGenerator
             $manager->addProperty('og:description', $ogDescription);
         }
 
-        if ($record->getRecordData()['og_image']) {
+        if ($record->getRecordData()['og_image'] ?? false) {
             $fileCollector = GeneralUtility::makeInstance(FileCollector::class);
             $fileCollector->addFilesFromRelation($record->getTableName(), 'og_image', $record->getRecordData());
             $manager = $this->managerRegistry->getManagerForProperty('og:image');
