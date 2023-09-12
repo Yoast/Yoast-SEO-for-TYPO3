@@ -197,7 +197,7 @@
 				<source>Unable to determine linking suggestions.</source>
 			</trans-unit>
 			<trans-unit id="tx_yoastseo_linking_suggestions.languageError" resname="tx_yoastseo_linking_suggestions.languageError">
-				<source>This content element does not have a language to analyze.</source>
+				<source>There was a problem retrieving the language information for this content element, check your site configuration.</source>
 			</trans-unit>
 
 			<trans-unit id="page" xml:space="preserve">

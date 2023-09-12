@@ -102,6 +102,10 @@ class InternalLinkingSuggestion extends AbstractNode
         $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
         try {
             $site = $siteFinder->getSiteByPageId($pageId);
+            if ($this->languageId === -1) {
+                $this->languageId = $site->getDefaultLanguage()->getLanguageId();
+                return $site->getDefaultLanguage()->getTwoLetterIsoCode();
+            }
             return $site->getLanguageById($this->languageId)->getTwoLetterIsoCode();
         } catch (SiteNotFoundException|\InvalidArgumentException $e) {
             return null;

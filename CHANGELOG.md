@@ -7,7 +7,7 @@ We will follow [Semantic Versioning](http://semver.org/).
 
 ## UNRELEASED
 ### Fixed
-- Show warning on linking suggestions when content element is set to "All Languages" instead of fatal exception
+- Show warning on linking suggestions when the language cannot be retrieved from the content element, use the default language in case "All Languages" is selected
 - Added extra checks within the metatag generators in case fields do not exist (opengraph, twitter, robots)
 - `hasSitemapFields` now correctly returns the `sitemapFields` instead of `yoastSeoFields`
 
