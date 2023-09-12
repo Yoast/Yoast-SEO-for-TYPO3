@@ -30,11 +30,11 @@ class AdvancedRobotsGenerator
             $record = $params['page'];
         }
 
-        $noImageIndex = (bool)$record['tx_yoastseo_robots_noimageindex'];
-        $noArchive = (bool)$record['tx_yoastseo_robots_noarchive'];
-        $noSnippet = (bool)$record['tx_yoastseo_robots_nosnippet'];
-        $noIndex = (bool)$record['no_index'];
-        $noFollow = (bool)$record['no_follow'];
+        $noImageIndex = (bool)($record['tx_yoastseo_robots_noimageindex'] ?? false);
+        $noArchive = (bool)($record['tx_yoastseo_robots_noarchive'] ?? false);
+        $noSnippet = (bool)($record['tx_yoastseo_robots_nosnippet'] ?? false);
+        $noIndex = (bool)($record['no_index'] ?? false);
+        $noFollow = (bool)($record['no_follow'] ?? false);
 
         if ($noImageIndex || $noArchive || $noSnippet || $noIndex || $noFollow) {
             $metaTagManagerRegistry = GeneralUtility::makeInstance(MetaTagManagerRegistry::class);

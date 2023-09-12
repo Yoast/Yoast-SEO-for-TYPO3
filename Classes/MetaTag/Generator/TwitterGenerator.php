@@ -26,14 +26,14 @@ class TwitterGenerator extends AbstractGenerator
             $manager->addProperty('twitter:title', $twitterTitle);
         }
 
-        $twitterDescription = $record->getRecordData()['twitter_description'];
+        $twitterDescription = $record->getRecordData()['twitter_description'] ?? '';
         if (!empty($twitterDescription)) {
             $manager = $this->managerRegistry->getManagerForProperty('twitter:description');
             $manager->removeProperty('twitter:description');
             $manager->addProperty('twitter:description', $twitterDescription);
         }
 
-        if ($record->getRecordData()['twitter_image']) {
+        if ($record->getRecordData()['twitter_image'] ?? false) {
             $fileCollector = GeneralUtility::makeInstance(FileCollector::class);
             $fileCollector->addFilesFromRelation($record->getTableName(), 'twitter_image', $record->getRecordData());
             $manager = $this->managerRegistry->getManagerForProperty('twitter:image');
