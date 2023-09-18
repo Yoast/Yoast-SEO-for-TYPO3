@@ -5,12 +5,13 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
-## UNRELEASED
+## 9.0.2 September 18, 2023
 ### Fixed
 - Show warning on linking suggestions when the language cannot be retrieved from the content element, use the default language in case "All Languages" is selected
 - Added extra checks within the metatag generators in case fields do not exist (opengraph, twitter, robots)
 - `hasSitemapFields` now correctly returns the `sitemapFields` instead of `yoastSeoFields`
 - Filter the columns to import from the old premium database table before inserting in the new table within `MigratePremiumFocusKeywords`
+- `access` from `user,group` to `user` within the configuration for backend modules (`Configuration/Backend/Modules.php`)
 
 ## 9.0.1 July 6, 2023
 ### Fixed
