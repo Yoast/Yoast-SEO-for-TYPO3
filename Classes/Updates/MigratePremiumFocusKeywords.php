@@ -7,7 +7,6 @@ namespace YoastSeoForTypo3\YoastSeo\Updates;
 use Doctrine\DBAL\Exception;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
-use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Install\Updates\DatabaseUpdatedPrerequisite;
 use TYPO3\CMS\Install\Updates\UpgradeWizardInterface;
@@ -43,6 +42,7 @@ class MigratePremiumFocusKeywords implements UpgradeWizardInterface
     public function executeUpdate(): bool
     {
         $premiumFocusKeywords = $this->getPremiumFocusKeywords();
+        $relatedTableColumns = $this->getRelatedTableColumns();
         foreach ($premiumFocusKeywords as $premiumFocusKeyword) {
             $premiumFocusKeyword['uid_foreign'] = $premiumFocusKeyword['parentid'];
             $premiumFocusKeyword['tablenames'] = $premiumFocusKeyword['parenttable'];
@@ -51,11 +51,11 @@ class MigratePremiumFocusKeywords implements UpgradeWizardInterface
                 $premiumFocusKeyword['parentid'],
                 $premiumFocusKeyword['parenttable']
             );
-            if ((GeneralUtility::makeInstance(Typo3Version::class))->getMajorVersion() > 11) {
-                unset($premiumFocusKeyword['cruser_id']);
-            }
             $this->connectionPool->getConnectionForTable(self::NEW_TABLE)
-                ->insert(self::NEW_TABLE, $premiumFocusKeyword);
+                ->insert(
+                    self::NEW_TABLE,
+                    array_intersect_key($premiumFocusKeyword, $relatedTableColumns)
+                );
         }
 
         $this->connectionPool->getConnectionForTable('pages')
@@ -75,6 +75,14 @@ class MigratePremiumFocusKeywords implements UpgradeWizardInterface
             ->from(self::PREMIUM_TABLE)
             ->execute();
         return GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
+    }
+
+    protected function getRelatedTableColumns(): array
+    {
+        $columns = $this->connectionPool->getConnectionForTable(self::NEW_TABLE)
+            ->getSchemaManager()
+            ->listTableColumns(self::NEW_TABLE);
+        return array_flip(array_keys($columns));
     }
 
     protected function premiumTableExists(): bool
