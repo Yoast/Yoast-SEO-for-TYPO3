@@ -5,6 +5,11 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## UNRELEASED
+### Fixed
+- Missing label of the tx_yoastseo_prominent_word table
+- Removed exclude=true from tx_yoastseo_prominent_word fields, table already has hideTable
+
 ## 9.0.2 September 18, 2023
 ### Fixed
 - Show warning on linking suggestions when the language cannot be retrieved from the content element, use the default language in case "All Languages" is selected

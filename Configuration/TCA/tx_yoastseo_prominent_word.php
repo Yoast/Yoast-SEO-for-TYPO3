@@ -12,7 +12,6 @@ return [
     ],
     'columns' => [
         'stem' => [
-            'exclude' => 1,
             'label' => $llPrefix . 'tx_yoastseo_prominent_word.fields.stem',
             'config' => [
                 'type' => 'input',
@@ -21,7 +20,6 @@ return [
             ]
         ],
         'table' => [
-            'exclude' => 1,
             'label' => $llPrefix . 'tx_yoastseo_prominent_word.fields.table',
             'config' => [
                 'type' => 'input',
@@ -29,7 +27,6 @@ return [
             ]
         ],
         'weight' => [
-            'exclude' => 1,
             'label' => $llPrefix . 'tx_yoastseo_prominent_word.fields.weight',
             'config' => [
                 'type' => 'input',
