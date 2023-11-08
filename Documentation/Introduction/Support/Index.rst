@@ -21,10 +21,3 @@ Github
 
 Found a bug in the extension? Please report this in our
 `Github repository <https://github.com/Yoast/Yoast-SEO-for-TYPO3/issues>`__.
-
-Yoast Support
--------------
-
-If you purchased the premium extension, you'll have 24/7 access to the awesome support team at Yoast!
-
-`Find out more on the dedicated page on Yoast.com <https://yoast.com/help/support/#premium>`_

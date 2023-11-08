@@ -63,3 +63,8 @@ and help editors write high quality content.
    want support for your installation, you can buy our
    `premium plugin <https://yoast.com/typo3-extensions-seo/>`__ and get 24/7
    support.
+
+.. note::
+
+   The Yoast SEO Premium extension has been discontinued, all the features from
+   the extension have been migrated to the free version.

@@ -10,6 +10,9 @@ We will follow [Semantic Versioning](http://semver.org/).
 - Missing label of the tx_yoastseo_prominent_word table
 - Removed exclude=true from tx_yoastseo_prominent_word fields, table already has hideTable
 
+### Changed
+- Updated mentions of the premium extension within the documentation
+
 ## 9.0.2 September 18, 2023
 ### Fixed
 - Show warning on linking suggestions when the language cannot be retrieved from the content element, use the default language in case "All Languages" is selected
