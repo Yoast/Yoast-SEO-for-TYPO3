@@ -61,7 +61,7 @@
             <trans-unit id="tx_yoastseo_related_focuskeyword.fields.synonyms" resname="tx_yoastseo_related_focuskeyword.fields.synonyms">
                 <source>Synonyms</source>
             </trans-unit>
-            <trans-unit id="tx_yoastseo_prominent_word.fields.title" resname="tx_yoastseo_prominent_word.fields.title">
+            <trans-unit id="tx_yoastseo_prominent_word.title" resname="tx_yoastseo_prominent_word.title">
                 <source>Yoast SEO Prominent words</source>
             </trans-unit>
             <trans-unit id="tx_yoastseo_prominent_word.fields.stem" resname="tx_yoastseo_prominent_word.fields.stem">
