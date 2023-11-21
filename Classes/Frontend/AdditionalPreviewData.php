@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Frontend;
 
 use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
@@ -37,6 +38,10 @@ class AdditionalPreviewData implements SingletonInterface
         $language = $request->getAttribute('language');
         if ($language instanceof SiteLanguage && !empty($language->getWebsiteTitle())) {
             return trim($language->getWebsiteTitle());
+        }
+        $site = $request->getAttribute('site');
+        if ($site instanceof Site && !empty($site->getConfiguration()['websiteTitle'] ?? '')) {
+            return trim($site->getConfiguration()['websiteTitle']);
         }
 
         if (!empty($GLOBALS['TSFE']->tmpl->setup['sitetitle'] ?? '')) {
