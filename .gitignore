@@ -6,7 +6,7 @@ grunt/node_modules
 vendor
 composer.lock
 .php_cs.cache
-yarn.lock
+*.LICENSE.txt
 .Build/*
 !.Build/ExcludeFromPackaging.php
 !.Build/.php-cs-fixer.php

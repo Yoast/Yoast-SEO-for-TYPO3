@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {connect} from 'react-redux';
 import ProgressBar from '@yoast/components/ProgressBar';
 import getProgressColor from '../helpers/progressColor';
-import MetaDescriptionLengthAssessment from 'yoastseo/src/assessments/seo/MetaDescriptionLengthAssessment';
+import MetaDescriptionLengthAssessment from 'yoastseo/scoring/assessments/seo/MetaDescriptionLengthAssessment';
 
 /**
  * Gets the description progress.

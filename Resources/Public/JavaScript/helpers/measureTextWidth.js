@@ -34,6 +34,6 @@ export default function measureTextWidth( text ) {
     if ( ! element ) {
         element = createMeasurementElement();
     }
-    element.innerHTML = text;
+    element.innerText = text;
     return element.offsetWidth;
 }

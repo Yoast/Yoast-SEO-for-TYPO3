@@ -1,4 +1,4 @@
-import {stripFullTags} from 'yoastseo/src/stringProcessing/stripHTMLTags';
+import {stripHTMLTags} from '@yoast/helpers/strings';
 
 export const GET_CONTENT_REQUEST = 'GET_CONTENT_REQUEST';
 export const GET_CONTENT_SUCCESS = 'GET_CONTENT_SUCCESS';
@@ -24,10 +24,10 @@ export function getContent() {
 
 export function updateContent(content) {
     if (typeof content.title !== "undefined") {
-        content.title = stripFullTags(content.title);
+        content.title = stripHTMLTags(content.title);
     }
     if (typeof content.description !== "undefined") {
-        content.description = stripFullTags(content.description);
+        content.description = stripHTMLTags(content.description);
     }
     return {
         type: UPDATE_CONTENT,

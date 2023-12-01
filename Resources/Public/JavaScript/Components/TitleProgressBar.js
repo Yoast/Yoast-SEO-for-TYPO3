@@ -3,7 +3,7 @@ import {connect} from 'react-redux';
 import ProgressBar from '@yoast/components/ProgressBar';
 import getProgressColor from '../helpers/progressColor';
 import measureTextWidth from '../helpers/measureTextWidth';
-import PageTitleWidthAssessment from 'yoastseo/src/assessments/seo/PageTitleWidthAssessment';
+import PageTitleWidthAssessment from 'yoastseo/scoring/assessments/seo/PageTitleWidthAssessment';
 
 const getTitleProgress = (title) => {
     const titleWidth = measureTextWidth(title);

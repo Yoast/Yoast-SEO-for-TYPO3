@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {connect} from 'react-redux';
 import LoadingIndicator from './LoadingIndicator';
-import YoastContentAnalysis from 'yoast-components/composites/Plugin/ContentAnalysis/components/ContentAnalysis';
+import YoastContentAnalysis from '@yoast/analysis-report/ContentAnalysis';
 import {mapResults} from "../helpers/mapResults";
 import getResult from '../helpers/getResult';
 

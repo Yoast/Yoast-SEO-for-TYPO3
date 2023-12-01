@@ -14,8 +14,25 @@ module.exports = {
         publicPath: `https://localhost:${PORT}/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/`
     },
     resolve: {
-        modules: [path.join(__dirname, 'node_modules')]
+        modules: [path.join(__dirname, 'node_modules')],
+        fallback: {
+            "url": require.resolve("url/"),
+            "util": require.resolve("util/")
+        },
+        alias: {
+            'yoastseo': path.resolve(__dirname, 'submodules/wordpress-seo/packages/yoastseo/src'),
+            '@yoast/analysis-report': path.resolve(__dirname, 'submodules/wordpress-seo/packages/analysis-report/src'),
+            '@yoast/components': path.resolve(__dirname, 'submodules/wordpress-seo/packages/components/src'),
+            '@yoast/helpers': path.resolve(__dirname, 'submodules/wordpress-seo/packages/helpers/src'),
+            '@yoast/search-metadata-previews': path.resolve(__dirname, 'submodules/wordpress-seo/packages/search-metadata-previews/src'),
+        }
     },
+    plugins: [
+        // fix "process is not defined" error:
+        new webpack.ProvidePlugin({
+            process: 'process/browser.js',
+        }),
+    ],
     module: {
         rules: [
             {
@@ -33,15 +50,18 @@ module.exports = {
         ],
     },
     devServer: {
-        inline: true,
         host: '0.0.0.0',
-        public: `localhost:${PORT}`,
-        disableHostCheck: true,
+        client: {
+            webSocketURL: `auto://localhost:${PORT}/ws`
+        },
+        allowedHosts: "all",
         port: PORT,
         historyApiFallback: true,
         hot: true,
-        publicPath: '/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/',
-        https: true,
+        static: {
+            publicPath: '/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/',
+        },
+        server: 'https',
         headers: {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Credentials": "true",

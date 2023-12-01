@@ -1,10 +1,10 @@
-import {helpers} from 'yoastseo';
+import {interpreters} from 'yoastseo';
 
 export const ANALYZE_DATA_REQUEST = 'ANALYZE_DATA_REQUEST';
 export const ANALYZE_DATA_SUCCESS = 'ANALYZE_DATA_SUCCESS';
 
 const saveScores = (results) => {
-    const {scoreToRating} = helpers;
+    const {scoreToRating} = interpreters;
 
     if (typeof YoastConfig.data !== "undefined" && typeof YoastConfig.urls.saveScores !== "undefined") {
         fetch(YoastConfig.urls.saveScores, {

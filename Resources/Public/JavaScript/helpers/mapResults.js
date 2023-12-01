@@ -1,7 +1,7 @@
-import { helpers } from "yoastseo";
+import { interpreters } from "yoastseo";
 import { default as colors } from "../colors.json";
 
-const { scoreToRating } = helpers;
+const { scoreToRating } = interpreters;
 
 /**
  * Mapped result definition.

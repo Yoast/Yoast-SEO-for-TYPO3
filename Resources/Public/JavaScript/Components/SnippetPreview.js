@@ -15,7 +15,8 @@ const SnippetPreview = ({isFetching, title, url, faviconSrc, wordsToHighlight, d
         }
         return <>
             <ModeSwitcher onChange={(newMode) => setMode(newMode)} active={mode}/>
-            <YoastSnippetPreview title={title} url={url} description={description} faviconSrc={faviconSrc} wordsToHighlight={wordsToHighlight} locale={locale} mode={mode} onMouseUp={() => {}} />
+            {/* TODO: set correct siteName and check functionality of the property */}
+            <YoastSnippetPreview siteName="" title={title} url={url} description={description} faviconSrc={faviconSrc} wordsToHighlight={wordsToHighlight} locale={locale} mode={mode} onMouseUp={() => {}} />
         </>
     }
     return <LoadingIndicator />

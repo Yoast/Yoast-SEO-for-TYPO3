@@ -4,11 +4,11 @@ import { connect } from 'react-redux';
 import SvgIcon from '@yoast/components/SvgIcon'
 
 import { getIconForScore, getTextForScore } from "../helpers/mapResults";
-import { helpers } from "yoastseo";
+import { interpreters } from "yoastseo";
 import getResult from "../helpers/getResult";
 
 const StatusIcon = ({content, analysis, resultType, resultSubtype, text}) => {
-    const { scoreToRating } = helpers;
+    const { scoreToRating } = interpreters;
 
     if (content.isFetching === false && analysis.isAnalyzing === false && getResult(analysis, resultType, resultSubtype)) {
         let score = getResult(analysis, resultType, resultSubtype).score / 10;
