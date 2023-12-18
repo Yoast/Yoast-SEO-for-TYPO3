@@ -7,6 +7,7 @@ We will follow [Semantic Versioning](http://semver.org/).
 
 ## UNRELEASED
 ### Fixed
+- Prevent undefined array key warning within `LinkingSuggestionsService`
 - Missing label of the tx_yoastseo_prominent_word table
 - Removed exclude=true from tx_yoastseo_prominent_word fields, table already has hideTable
 - Use `websiteTitle` of site configuration within snippet preview, previously this was only taken from site languages instead of the site itself

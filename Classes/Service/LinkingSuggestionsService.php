@@ -253,6 +253,9 @@ class LinkingSuggestionsService
     {
         $candidateWordsByRecords = [];
         foreach ($candidateWords as $candidateWord) {
+            if (!isset($candidateWord['weight'], $candidateWord['df'])) {
+                continue;
+            }
             $recordKey = $candidateWord['uid_foreign'] . '-' . $candidateWord['tablenames'];
             $candidateWordsByRecords[$recordKey][$candidateWord['stem']] = [
                 'weight' => (int)$candidateWord['weight'],
@@ -345,7 +348,7 @@ class LinkingSuggestionsService
                 'recordType' => $this->getRecordType($table),
                 'id' => $uid,
                 'table' => $table,
-                'cornerstone' => (int)$data['tx_yoastseo_cornerstone'],
+                'cornerstone' => (int)($data['tx_yoastseo_cornerstone'] ?? 0),
                 'score' => $score,
                 'active' => isset($currentLinks[$record])
             ];
