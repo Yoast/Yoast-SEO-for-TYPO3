@@ -5,7 +5,7 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
-## UNRELEASED
+## 9.0.3 December 18, 2023
 ### Fixed
 - Prevent undefined array key warning within `LinkingSuggestionsService`
 - Missing label of the tx_yoastseo_prominent_word table
