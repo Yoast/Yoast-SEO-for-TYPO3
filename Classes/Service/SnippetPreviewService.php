@@ -46,7 +46,7 @@ class SnippetPreviewService
                 'synonyms' => (string)($currentData['tx_yoastseo_focuskeyword_synonyms'] ?? ''),
             ],
             'labels' => $this->localeService->getLabels(),
-            'translations' => $this->localeService->getTranslations(),
+            'translations' => [$this->localeService->getTranslations()],
         ];
         $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigUtility::class);
         $jsonConfigUtility->addConfig(array_merge($config, $additionalConfiguration));
