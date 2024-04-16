@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
+use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\JavascriptUtility;
@@ -53,7 +54,16 @@ class SnippetPreviewService
 
         JavascriptUtility::loadJavascript($this->pageRenderer);
 
-        $this->pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/yoastModal');
+        $typo3Version = new Typo3Version();
+        if ($typo3Version->getMajorVersion() >= 13) {
+            $this->pageRenderer->loadJavaScriptModule(
+                '@yoast/yoast-seo-for-typo3/yoastModalEs6.js',
+            );
+        } else {
+            $this->pageRenderer->loadRequireJsModule(
+                'TYPO3/CMS/YoastSeo/yoastModal',
+            );
+        }
         $this->pageRenderer->addCssFile('EXT:yoast_seo/Resources/Public/CSS/yoast.min.css');
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
 use Doctrine\DBAL\Driver\Statement;
+use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -19,7 +20,13 @@ class DbalService
     public function getSingleResult($statement)
     {
         if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() === 10) {
+            if ($statement instanceof QueryBuilder) {
+                return $statement->execute()->fetch();
+            }
             return $statement->fetch();
+        }
+        if ($statement instanceof QueryBuilder) {
+            return $statement->executeQuery()->fetchAssociative();
         }
         return $statement->fetchAssociative();
     }

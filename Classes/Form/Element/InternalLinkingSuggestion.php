@@ -22,32 +22,10 @@ class InternalLinkingSuggestion extends AbstractNode
     protected int $languageId;
     protected int $currentPage;
 
-    public function __construct(NodeFactory $nodeFactory, array $data)
-    {
-        parent::__construct($nodeFactory, $data);
-
-        $this->currentPage = $data['parentPageRow']['uid'];
-
-        if (isset($data['databaseRow']['sys_language_uid'])) {
-            if (is_array($data['databaseRow']['sys_language_uid']) && count(
-                    $data['databaseRow']['sys_language_uid']
-                ) > 0) {
-                $this->languageId = (int)current($data['databaseRow']['sys_language_uid']);
-            } else {
-                $this->languageId = (int)$data['databaseRow']['sys_language_uid'];
-            }
-        }
-
-        $this->templateView = GeneralUtility::makeInstance(StandaloneView::class);
-        $this->templateView->setTemplatePathAndFilename(
-            GeneralUtility::getFileAbsFileName(
-                'EXT:yoast_seo/Resources/Private/Templates/TCA/InternalLinkingSuggestion.html'
-            )
-        );
-    }
-
     public function render(): array
     {
+        $this->init();
+
         $locale = $this->getLocale($this->currentPage);
         if ($locale === null) {
             $this->templateView->assign('languageError', true);
@@ -67,20 +45,20 @@ class InternalLinkingSuggestion extends AbstractNode
             'isCornerstoneContent' => false,
             'focusKeyphrase' => [
                 'keyword' => '',
-                'synonyms' => ''
+                'synonyms' => '',
             ],
             'data' => [
-                'languageId' => $this->languageId
+                'languageId' => $this->languageId,
             ],
             'linkingSuggestions' => [
                 'excludedPage' => $this->currentPage,
-                'locale' => $locale
+                'locale' => $locale,
             ],
             'urls' => [
                 'workerUrl' => $workerUrl,
                 'linkingSuggestions' => (string)GeneralUtility::makeInstance(UriBuilder::class)
-                    ->buildUriFromRoute('ajax_yoast_internal_linking_suggestions')
-            ]
+                    ->buildUriFromRoute('ajax_yoast_internal_linking_suggestions'),
+            ],
         ];
         $jsonConfigUtility->addConfig($config);
 
@@ -88,13 +66,35 @@ class InternalLinkingSuggestion extends AbstractNode
         $pageRenderer->addRequireJsConfiguration([
             'paths' => [
                 'YoastSEO' => $publicResourcesPath . '/JavaScript/',
-            ]
+            ],
         ]);
         JavascriptUtility::loadJavascript($pageRenderer);
 
         $resultArray['html'] = $this->templateView->render();
 
         return $resultArray;
+    }
+
+    protected function init(): void
+    {
+        $this->currentPage = $this->data['parentPageRow']['uid'];
+
+        if (isset($this->data['databaseRow']['sys_language_uid'])) {
+            if (is_array($this->data['databaseRow']['sys_language_uid']) && count(
+                    $this->data['databaseRow']['sys_language_uid']
+                ) > 0) {
+                $this->languageId = (int)current($this->data['databaseRow']['sys_language_uid']);
+            } else {
+                $this->languageId = (int)$this->data['databaseRow']['sys_language_uid'];
+            }
+        }
+
+        $this->templateView = GeneralUtility::makeInstance(StandaloneView::class);
+        $this->templateView->setTemplatePathAndFilename(
+            GeneralUtility::getFileAbsFileName(
+                'EXT:yoast_seo/Resources/Private/Templates/TCA/InternalLinkingSuggestion.html'
+            )
+        );
     }
 
     protected function getLocale(int $pageId): ?string

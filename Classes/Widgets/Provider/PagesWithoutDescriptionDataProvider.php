@@ -45,8 +45,7 @@ class PagesWithoutDescriptionDataProvider implements PageProviderInterface
                 ->where(...$constraints)
                 ->orderBy('tstamp', 'DESC')
                 ->setFirstResult($iterator)
-                ->setMaxResults(1)
-                ->execute();
+                ->setMaxResults(1);
             $row = GeneralUtility::makeInstance(DbalService::class)->getSingleResult($statement);
 
             if ($row === false) {

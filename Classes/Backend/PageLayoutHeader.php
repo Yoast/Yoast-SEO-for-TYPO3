@@ -29,7 +29,7 @@ class PageLayoutHeader
     public function render(array $params = null, $parentObj = null): string
     {
         $languageId = $this->getLanguageId();
-        $pageId = (int)GeneralUtility::_GET('id');
+        $pageId = (int)$_GET['id'];
         $currentPage = $this->getCurrentPage($pageId, $languageId, $parentObj);
 
         if (!is_array($currentPage) || !$this->shouldShowPreview($pageId, $currentPage)) {

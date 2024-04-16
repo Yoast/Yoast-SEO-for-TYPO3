@@ -13,7 +13,7 @@ use YoastSeoForTypo3\YoastSeo\Widgets\Provider\PagesWithoutDescriptionDataProvid
 return function (ContainerConfigurator $configurator, ContainerBuilder $containerBuilder) {
     $services = $configurator->services();
 
-    if ($containerBuilder->hasDefinition(Dashboard::class)) {
+    /*if ($containerBuilder->hasDefinition(Dashboard::class)) {
         $services->set('yoast_seo.dashboard.widget.pagesWithoutMetaDescription')
             ->class(PageOverviewWidget::class)
             ->arg('$dataProvider', new Reference(PagesWithoutDescriptionDataProvider::class))
@@ -51,5 +51,5 @@ return function (ContainerConfigurator $configurator, ContainerBuilder $containe
                     'width' => 'medium'
                 ]
             );
-    }
+    }*/
 };

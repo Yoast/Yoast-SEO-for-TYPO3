@@ -90,8 +90,7 @@ class YoastUtility
             ->where(
                 $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($parentTable)),
                 $queryBuilder->expr()->eq('uid_foreign', $parentId)
-            )
-            ->execute();
+            );
         $relatedKeyphrases = GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
 
         foreach ($relatedKeyphrases as $relatedKeyphrase) {

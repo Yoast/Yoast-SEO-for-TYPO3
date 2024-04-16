@@ -106,6 +106,11 @@ class LocaleService
                 $translationConfiguration['languageKeyToLocaleMapping'][array_shift($suitableLanguageKeys)];
         }
 
+        // TODO: check uc->lang functionality, seems to be not working with site configuration
+        if ($locale === null) {
+            $locale = 'en_GB';
+        }
+
         return $locale;
     }
 }

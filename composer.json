@@ -28,13 +28,13 @@
     "docs": "https://docs.typo3.org/p/yoast-seo-for-typo3/yoast_seo/main/en-us/"
   },
   "require": {
-    "typo3/cms-core": "^10.4 || ^11.5 || ^12.4",
-    "typo3/cms-backend": "^10.4 || ^11.5 || ^12.4",
-    "typo3/cms-extbase": "^10.4 || ^11.5 || ^12.4",
-    "typo3/cms-fluid": "^10.4 || ^11.5 || ^12.4",
-    "typo3/cms-frontend": "^10.4 || ^11.5 || ^12.4",
-    "typo3/cms-install": "^10.4 || ^11.5 || ^12.4",
-    "typo3/cms-seo": "^10.4 || ^11.5 || ^12.4",
+    "typo3/cms-core": "^10.4 || ^11.5 || ^12.4 || ^13.0",
+    "typo3/cms-backend": "^10.4 || ^11.5 || ^12.4 || ^13.0",
+    "typo3/cms-extbase": "^10.4 || ^11.5 || ^12.4 || ^13.0",
+    "typo3/cms-fluid": "^10.4 || ^11.5 || ^12.4 || ^13.0",
+    "typo3/cms-frontend": "^10.4 || ^11.5 || ^12.4 || ^13.0",
+    "typo3/cms-install": "^10.4 || ^11.5 || ^12.4 || ^13.0",
+    "typo3/cms-seo": "^10.4 || ^11.5 || ^12.4 || ^13.0",
     "ext-curl": "*",
     "ext-json": "*",
     "php": "^7.4 || ^8.0"

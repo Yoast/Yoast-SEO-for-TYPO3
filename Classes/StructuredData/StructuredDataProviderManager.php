@@ -93,7 +93,8 @@ class StructuredDataProviderManager implements SingletonInterface
                         $cacheIdentifier,
                         $data,
                         ['pageId_' . $this->getTypoScriptFrontendController()->page['uid']],
-                        $this->getTypoScriptFrontendController()->get_cache_timeout()
+                        // TODO: Fix this call, protected method since v13
+                        //$this->getTypoScriptFrontendController()->get_cache_timeout()
                     );
                 }
 

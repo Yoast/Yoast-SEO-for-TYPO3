@@ -46,8 +46,6 @@ class RecordService implements SingletonInterface
      */
     protected function findRecord(array $records): ?Record
     {
-        $currentGetParameters = GeneralUtility::_GET();
-
         foreach ($records as $record) {
             if (empty($record->getGetParameters())) {
                 continue;
@@ -55,7 +53,7 @@ class RecordService implements SingletonInterface
 
             foreach ($record->getGetParameters() as $getParameters) {
                 try {
-                    $getValue = ArrayUtility::getValueByPath($currentGetParameters, implode('/', $getParameters));
+                    $getValue = ArrayUtility::getValueByPath($_GET, implode('/', $getParameters));
                 } catch (MissingArrayPathException $e) {
                     $getValue = null;
                 }
