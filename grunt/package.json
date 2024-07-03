@@ -44,10 +44,11 @@
   "dependencies": {
     "@babel/polyfill": "^7.12.1",
     "@wordpress/babel-plugin-makepot": "^3.10.0",
-    "@yoast/analysis-report": "file:submodules/wordpress-seo/packages/analysis-report",
-    "@yoast/components": "file:submodules/wordpress-seo/packages/components",
-    "@yoast/helpers": "file:submodules/wordpress-seo/packages/helpers",
-    "@yoast/search-metadata-previews": "file:submodules/wordpress-seo/packages/search-metadata-previews",
+    "@yoast/analysis-report": "1.21.0",
+    "@yoast/components": "3.0.0-alpha.0",
+    "@yoast/helpers": "0.17.0-alpha.0",
+    "@yoast/search-metadata-previews": "3.0.0-alpha.0",
+    "@yoast/ui-library": "^4.0.0",
     "entities": "^1.1",
     "fstream": "^1.0.12",
     "lodash": "^4.17.21",
@@ -58,7 +59,7 @@
     "react-redux": "^7.2.6",
     "url": "^0.11.3",
     "util": "^0.12.5",
-    "yoastseo": "file:submodules/wordpress-seo/packages/yoastseo"
+    "yoastseo": "2.0.0-alpha.0"
   },
   "repository": {
     "type": "git",

@@ -2,12 +2,12 @@ import React, {useState} from 'react';
 import { connect } from 'react-redux';
 import LoadingIndicator from './LoadingIndicator';
 import SnippetPreviewError from './SnippetPreviewError';
-import YoastSnippetPreview from '@yoast/search-metadata-previews/snippet-preview/SnippetPreview';
+import { SnippetPreview as YoastSnippetPreview } from '@yoast/search-metadata-previews';
 import ModeSwitcher from './ModeSwitcher';
-import {DEFAULT_MODE} from '@yoast/search-metadata-previews/snippet-preview/constants';
+//import {DEFAULT_MODE} from '@yoast/search-metadata-previews/snippet-preview/constants';
 
 const SnippetPreview = ({isFetching, title, url, faviconSrc, wordsToHighlight, description, locale}) => {
-    const [mode, setMode] = useState(DEFAULT_MODE);
+    const [mode, setMode] = useState('');
 
     if (isFetching === false) {
         if (typeof title === 'undefined') {

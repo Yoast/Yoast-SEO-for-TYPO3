@@ -1,4 +1,0 @@
-[submodule "grunt/submodules/wordpress-seo"]
-	path = grunt/submodules/wordpress-seo
-	url = https://github.com/Yoast/wordpress-seo.git
-	branch = trunk

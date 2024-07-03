@@ -1,13 +1,13 @@
 import React, {useEffect, useState} from 'react';
 import {connect} from 'react-redux';
-import ProgressBar from '@yoast/components/ProgressBar';
+import { ProgressBar } from '@yoast/ui-library';
 import getProgressColor from '../helpers/progressColor';
 import measureTextWidth from '../helpers/measureTextWidth';
-import PageTitleWidthAssessment from 'yoastseo/scoring/assessments/seo/PageTitleWidthAssessment';
+import { assessments } from 'yoastseo';
 
 const getTitleProgress = (title) => {
     const titleWidth = measureTextWidth(title);
-    const pageTitleWidthAssessment = new PageTitleWidthAssessment();
+    const pageTitleWidthAssessment = new assessments.seo.PageTitleWidthAssessment();
     const score = pageTitleWidthAssessment.calculateScore(titleWidth);
     const maximumLength = pageTitleWidthAssessment.getMaximumLength();
 

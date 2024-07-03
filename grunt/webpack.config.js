@@ -19,13 +19,6 @@ module.exports = {
             "url": require.resolve("url/"),
             "util": require.resolve("util/")
         },
-        alias: {
-            'yoastseo': path.resolve(__dirname, 'submodules/wordpress-seo/packages/yoastseo/src'),
-            '@yoast/analysis-report': path.resolve(__dirname, 'submodules/wordpress-seo/packages/analysis-report/src'),
-            '@yoast/components': path.resolve(__dirname, 'submodules/wordpress-seo/packages/components/src'),
-            '@yoast/helpers': path.resolve(__dirname, 'submodules/wordpress-seo/packages/helpers/src'),
-            '@yoast/search-metadata-previews': path.resolve(__dirname, 'submodules/wordpress-seo/packages/search-metadata-previews/src'),
-        }
     },
     plugins: [
         // fix "process is not defined" error:

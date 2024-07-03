@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import {connect} from 'react-redux';
-import ProgressBar from '@yoast/components/ProgressBar';
 import getProgressColor from '../helpers/progressColor';
-import MetaDescriptionLengthAssessment from 'yoastseo/scoring/assessments/seo/MetaDescriptionLengthAssessment';
+import { ProgressBar } from '@yoast/ui-library';
+import { assessments } from 'yoastseo';
 
 /**
  * Gets the description progress.
@@ -19,7 +19,7 @@ const getDescriptionProgress = (description, date) => {
     if (date !== "" && descriptionLength > 0) {
         descriptionLength += date.length + 3;
     }
-    const metaDescriptionLengthAssessment = new MetaDescriptionLengthAssessment();
+    const metaDescriptionLengthAssessment = new assessments.seo.MetaDescriptionLengthAssessment();
     const score = metaDescriptionLengthAssessment.calculateScore(descriptionLength);
     const maximumLength = metaDescriptionLengthAssessment.getMaximumLength();
 

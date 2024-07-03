@@ -1,4 +1,4 @@
-import {stripHTMLTags} from '@yoast/helpers/strings';
+import {stripHTMLTags} from '@yoast/helpers';
 
 export const GET_CONTENT_REQUEST = 'GET_CONTENT_REQUEST';
 export const GET_CONTENT_SUCCESS = 'GET_CONTENT_SUCCESS';
