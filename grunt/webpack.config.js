@@ -5,8 +5,8 @@ const PORT = 3333;
 
 module.exports = {
     entry: {
-        plugin: ['@babel/polyfill', './../Resources/Public/JavaScript/plugin.js'],
-        worker: ['@babel/polyfill', './../Resources/Public/JavaScript/worker.js']
+        plugin: ['@babel/polyfill', './src/plugin.js'],
+        worker: ['@babel/polyfill', './src/worker.js']
     },
     output: {
         filename: '[name].js',
@@ -15,10 +15,6 @@ module.exports = {
     },
     resolve: {
         modules: [path.join(__dirname, 'node_modules')],
-        fallback: {
-            "url": require.resolve("url/"),
-            "util": require.resolve("util/")
-        },
     },
     plugins: [
         // fix "process is not defined" error:
