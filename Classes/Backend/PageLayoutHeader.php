@@ -15,21 +15,16 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class PageLayoutHeader
 {
-    protected UrlService $urlService;
-    protected SnippetPreviewService $snippetPreviewService;
-
     public function __construct(
-        UrlService $urlService,
-        SnippetPreviewService $snippetPreviewService
+        protected UrlService $urlService,
+        protected SnippetPreviewService $snippetPreviewService
     ) {
-        $this->urlService = $urlService;
-        $this->snippetPreviewService = $snippetPreviewService;
     }
 
     public function render(array $params = null, $parentObj = null): string
     {
         $languageId = $this->getLanguageId();
-        $pageId = (int)GeneralUtility::_GET('id');
+        $pageId = (int)$_GET['id'];
         $currentPage = $this->getCurrentPage($pageId, $languageId, $parentObj);
 
         if (!is_array($currentPage) || !$this->shouldShowPreview($pageId, $currentPage)) {
@@ -67,27 +62,30 @@ class PageLayoutHeader
 
     protected function getCurrentPage(int $pageId, int $languageId, object $parentObj): ?array
     {
-        $currentPage = null;
+        if ((!$parentObj instanceof PageLayoutController && !$parentObj instanceof ModuleTemplate) || $pageId <= 0) {
+            return null;
+        }
 
-        if (($parentObj instanceof PageLayoutController || $parentObj instanceof ModuleTemplate) && $pageId > 0) {
-            if ($languageId === 0) {
-                $currentPage = BackendUtility::getRecord(
-                    'pages',
-                    $pageId
-                );
-            } elseif ($languageId > 0) {
-                $overlayRecords = BackendUtility::getRecordLocalization(
-                    'pages',
-                    $pageId,
-                    $languageId
-                );
+        if ($languageId === 0) {
+            return BackendUtility::getRecord(
+                'pages',
+                $pageId
+            );
+        }
 
-                if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
-                    $currentPage = $overlayRecords[0];
-                }
+        if ($languageId > 0) {
+            $overlayRecords = BackendUtility::getRecordLocalization(
+                'pages',
+                $pageId,
+                $languageId
+            );
+
+            if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
+                return $overlayRecords[0];
             }
         }
-        return $currentPage;
+
+        return null;
     }
 
     protected function shouldShowPreview(int $pageId, array $pageRecord): bool

@@ -38,9 +38,9 @@ Instances
 The following instances will be up and running for you after you have installed
 the DDEV setup.
 
-- https://v9.yoast-seo.ddev.site
-- https://v10.yoast-seo.ddev.site
 - https://v11.yoast-seo.ddev.site
+- https://v12.yoast-seo.ddev.site
+- https://v13.yoast-seo.ddev.site
 
 Login
 -----
@@ -65,7 +65,7 @@ and after that:
 
 .. code-block:: bash
 
-   docker volume rm yoast-seo-v9-data yoast-seo-v10-data yoast-seo-v11-data
+   rm -rf .Build/v11 .Build/v12 .Build/v13
 
 If you change the code, you can directly see the changes in all the
 installations of your DDEV setup.

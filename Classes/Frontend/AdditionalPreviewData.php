@@ -76,24 +76,15 @@ class AdditionalPreviewData implements SingletonInterface
 
     protected function getPageTitleSeparator(): string
     {
-        $pageTitleSeparator = '';
-        // Check for a custom pageTitleSeparator, and perform stdWrap on it
-        if (isset($this->config['pageTitleSeparator'])
-            && $this->config['pageTitleSeparator'] !== '') {
-            $pageTitleSeparator = $this->config['pageTitleSeparator'];
-
-            if (isset($this->config['pageTitleSeparator.'])
-                && is_array($this->config['pageTitleSeparator.'])) {
-                $cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
-                $pageTitleSeparator = $cObj->stdWrap(
-                    $pageTitleSeparator,
-                    $this->config['pageTitleSeparator.']
-                );
-            } else {
-                $pageTitleSeparator .= ' ';
-            }
+        if (!isset($this->config['pageTitleSeparator']) || $this->config['pageTitleSeparator'] === '') {
+            return '';
         }
 
-        return $pageTitleSeparator;
+        if (is_array($this->config['pageTitleSeparator.'] ?? null)) {
+            return GeneralUtility::makeInstance(ContentObjectRenderer::class)
+                ->stdWrap($this->config['pageTitleSeparator'], $this->config['pageTitleSeparator.']);
+        }
+
+        return $this->config['pageTitleSeparator'] . ' ';
     }
 }

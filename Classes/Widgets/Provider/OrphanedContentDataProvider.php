@@ -9,7 +9,6 @@ use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use YoastSeoForTypo3\YoastSeo\Service\DbalService;
 
 class OrphanedContentDataProvider implements PageProviderInterface
 {
@@ -37,12 +36,12 @@ class OrphanedContentDataProvider implements PageProviderInterface
             )
         ];
 
-        $statement = $qb->select('ref_uid')
+        $refs = $qb->select('ref_uid')
             ->from('sys_refindex')
             ->where(...$constraints)
             ->groupBy('ref_uid')
-            ->execute();
-        $refs = GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
+            ->executeQuery()
+            ->fetchAllAssociative();
 
         $pageIds = [];
         foreach ($refs as $ref) {
@@ -63,14 +62,14 @@ class OrphanedContentDataProvider implements PageProviderInterface
 
         $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('pages');
         while ($counter < $this->limit) {
-            $statement = $qb->select('p.*')
+            $row = $qb->select('p.*')
                 ->from('pages', 'p')
                 ->where(...$constraints)
                 ->orderBy('tstamp', 'DESC')
                 ->setFirstResult($iterator)
                 ->setMaxResults(1)
-                ->execute();
-            $row = GeneralUtility::makeInstance(DbalService::class)->getSingleResult($statement);
+                ->executeQuery()
+                ->fetchAssociative();
 
             if ($row === false) {
                 // Likely fewer pages than the limit, prevent infinite loop

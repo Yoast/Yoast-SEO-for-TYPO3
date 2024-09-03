@@ -1,0 +1,10 @@
+#!/bin/bash
+
+valid_versions=("11" "12" "13")
+
+if [[ ! " ${valid_versions[@]} " =~ " $1 " ]]; then
+  echo "Invalid version. Please use one of the following: ${valid_versions[@]}"
+  exit 1
+fi
+
+composer req typo3/cms-dashboard:"^$1" -n -d /var/www/html/v$1

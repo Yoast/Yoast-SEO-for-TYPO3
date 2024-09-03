@@ -18,11 +18,9 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class UrlService implements SingletonInterface
 {
-    protected UriBuilder $uriBuilder;
-
-    public function __construct(UriBuilder $uriBuilder)
-    {
-        $this->uriBuilder = $uriBuilder;
+    public function __construct(
+        protected UriBuilder $uriBuilder
+    ) {
     }
 
     public function getPreviewUrl(

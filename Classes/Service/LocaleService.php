@@ -11,11 +11,10 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 class LocaleService
 {
     protected const APP_TRANSLATION_FILE_PATTERN = 'EXT:yoast_seo/Resources/Private/Language/wordpress-seo-%s.json';
-    protected Locales $locales;
 
-    public function __construct(Locales $locales)
-    {
-        $this->locales = $locales;
+    public function __construct(
+        protected Locales $locales
+    ) {
     }
 
     public function getTranslations(): array

@@ -8,7 +8,6 @@ return [
         'label' => 'keyword',
         'tstamp' => 'tstamp',
         'crdate' => 'crdate',
-        'cruser_id' => 'cruser_id',
         'languageField' => 'sys_language_uid',
         'transOrigPointerField' => 'l10n_parent',
         'transOrigDiffSourceField' => 'l10n_diffsource',
@@ -21,6 +20,9 @@ return [
         ],
         'versioningWS' => true,
         'origUid' => 't3_origuid',
+        'security' => [
+            'ignorePageTypeRestriction' => true,
+        ],
     ],
     'columns' => [
         'sys_language_uid' => $GLOBALS['TCA']['tt_content']['columns']['sys_language_uid'],
@@ -41,6 +43,7 @@ return [
                 'type' => 'input',
                 'size' => 30,
                 'eval' => 'required',
+                'required' => true,
             ]
         ],
         'synonyms' => [

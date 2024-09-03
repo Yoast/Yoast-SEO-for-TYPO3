@@ -10,7 +10,6 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManager;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
-use YoastSeoForTypo3\YoastSeo\Service\DbalService;
 
 class YoastUtility
 {
@@ -85,14 +84,14 @@ class YoastUtility
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(
             'tx_yoastseo_related_focuskeyword'
         );
-        $statement = $queryBuilder->select('*')
+        $relatedKeyphrases = $queryBuilder->select('*')
             ->from('tx_yoastseo_related_focuskeyword')
             ->where(
                 $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($parentTable)),
                 $queryBuilder->expr()->eq('uid_foreign', $parentId)
             )
-            ->execute();
-        $relatedKeyphrases = GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
+            ->executeQuery()
+            ->fetchAllAssociative();
 
         foreach ($relatedKeyphrases as $relatedKeyphrase) {
             $config['rk' . (int)$relatedKeyphrase['uid']] = [
@@ -139,7 +138,7 @@ class YoastUtility
      */
     public static function fixAbsoluteUrl(string $url): string
     {
-        if (strpos($url, '/') === 0) {
+        if (str_starts_with($url, '/')) {
             $url = GeneralUtility::getIndpEnv('TYPO3_REQUEST_HOST') . $url;
         }
         return $url;

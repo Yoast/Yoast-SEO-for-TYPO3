@@ -51,7 +51,7 @@ abstract class AbstractOverviewDataProvider implements OverviewDataProviderInter
 
     protected function getRestrictedPagesResults(bool $returnOnlyCount = false)
     {
-        $pageIds = PageAccessUtility::getPageIds((int)GeneralUtility::_GET('id'));
+        $pageIds = PageAccessUtility::getPageIds((int)$_GET['id']);
 
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(self::PAGES_TABLE);
         $maxBindParameters = PlatformInformation::getMaxBindParameters($connection->getDatabasePlatform());
@@ -69,7 +69,7 @@ abstract class AbstractOverviewDataProvider implements OverviewDataProviderInter
                 continue;
             }
 
-            foreach ($query->fetchAll() as $page) {
+            foreach ($query->fetchAllAssociative() as $page) {
                 $pages[] = $page;
             }
         }

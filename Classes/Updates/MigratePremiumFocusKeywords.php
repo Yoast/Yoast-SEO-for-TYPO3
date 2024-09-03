@@ -8,10 +8,11 @@ use Doctrine\DBAL\Exception;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Install\Attribute\UpgradeWizard;
 use TYPO3\CMS\Install\Updates\DatabaseUpdatedPrerequisite;
 use TYPO3\CMS\Install\Updates\UpgradeWizardInterface;
-use YoastSeoForTypo3\YoastSeo\Service\DbalService;
 
+#[UpgradeWizard('yoastPremiumFocusKeywordsMigrate')]
 class MigratePremiumFocusKeywords implements UpgradeWizardInterface
 {
     protected const PREMIUM_TABLE = 'tx_yoast_seo_premium_focus_keywords';
@@ -70,28 +71,35 @@ class MigratePremiumFocusKeywords implements UpgradeWizardInterface
     {
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::PREMIUM_TABLE);
         $queryBuilder->getRestrictions()->removeAll()->add(GeneralUtility::makeInstance(DeletedRestriction::class));
-        $statement = $queryBuilder
+        return $queryBuilder
             ->select('*')
             ->from(self::PREMIUM_TABLE)
-            ->execute();
-        return GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
+            ->executeQuery()
+            ->fetchAllAssociative();
     }
 
     protected function getRelatedTableColumns(): array
     {
-        $columns = $this->connectionPool->getConnectionForTable(self::NEW_TABLE)
-            ->getSchemaManager()
-            ->listTableColumns(self::NEW_TABLE);
+        $connection = $this->connectionPool->getConnectionForTable(self::NEW_TABLE);
+        if (method_exists($connection, 'getSchemaManager')) {
+            $schemaManager = $connection->getSchemaManager();
+        } else {
+            $schemaManager = $connection->createSchemaManager();
+        }
+        $columns = $schemaManager->listTableColumns(self::NEW_TABLE);
         return array_flip(array_keys($columns));
     }
 
     protected function premiumTableExists(): bool
     {
         try {
-            return GeneralUtility::makeInstance(ConnectionPool::class)
-                ->getConnectionForTable(self::PREMIUM_TABLE)
-                ->getSchemaManager()
-                ->tablesExist([self::PREMIUM_TABLE]);
+            $connection = $this->connectionPool->getConnectionForTable(self::PREMIUM_TABLE);
+            if (method_exists($connection, 'getSchemaManager')) {
+                $schemaManager = $connection->getSchemaManager();
+            } else {
+                $schemaManager = $connection->createSchemaManager();
+            }
+            return $schemaManager->tablesExist([self::PREMIUM_TABLE]);
         } catch (Exception $e) {
             return false;
         }

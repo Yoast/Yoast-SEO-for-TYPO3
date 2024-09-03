@@ -29,6 +29,6 @@ class CornerstoneOverviewDataProvider extends AbstractOverviewDataProvider
         return $queryBuilder->select('*')
             ->from(self::PAGES_TABLE)
             ->where(...$constraints)
-            ->execute();
+            ->executeQuery();
     }
 }

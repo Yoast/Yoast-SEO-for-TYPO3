@@ -12,8 +12,4 @@ class DashboardController extends AbstractBackendController
     {
         return $this->returnResponse();
     }
-
-    public function legacyAction(): void
-    {
-    }
 }

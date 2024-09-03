@@ -20,12 +20,9 @@ class ProminentWordsService
     protected string $table;
     protected int $languageId;
 
-    protected ConnectionPool $connectionPool;
-
-    public function __construct(ConnectionPool $connectionPool)
-    {
-        $this->connectionPool = $connectionPool;
-    }
+    public function __construct(
+        protected ConnectionPool $connectionPool
+    ) {}
 
     public function saveProminentWords(
         int $uid,
@@ -68,7 +65,7 @@ class ProminentWordsService
                 $queryBuilder->expr()->eq('uid', $oldWord['uid'])
             )
             ->setMaxResults(1)
-            ->execute();
+            ->executeQuery();
     }
 
     protected function deleteProminentWords(array $wordsToDelete): void
@@ -85,13 +82,13 @@ class ProminentWordsService
                     $queryBuilder->createNamedParameter($wordsToDelete, Connection::PARAM_INT_ARRAY)
                 )
             )
-            ->execute();
+            ->executeQuery();
     }
 
     protected function createNewWords(array $prominentWords): void
     {
         $site = $this->getSiteRootPageId();
-        foreach ($prominentWords ?? [] as $word => $weight) {
+        foreach ($prominentWords as $word => $weight) {
             $data = [
                 'pid' => $this->table === 'pages' ? $this->uid : $this->pid,
                 'sys_language_uid' => $this->languageId,
@@ -109,23 +106,21 @@ class ProminentWordsService
     protected function getOldWords(): array
     {
         $queryBuilder = $this->getQueryBuilder();
-        $statement = $queryBuilder->select('uid', 'stem', 'weight')
+        return $queryBuilder->select('uid', 'stem', 'weight')
             ->from(self::PROMINENT_WORDS_TABLE)
             ->where(
                 $queryBuilder->expr()->eq('uid_foreign', $this->uid),
                 $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($this->table)),
                 $queryBuilder->expr()->eq('sys_language_uid', $this->languageId)
             )
-            ->execute();
-        return GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
+            ->executeQuery()
+            ->fetchAllAssociative();
     }
 
     protected function getPidForRecord(int $uid, string $table): int
     {
         $connection = $this->connectionPool->getConnectionForTable($table);
-        $record = GeneralUtility::makeInstance(DbalService::class)->getSingleResult(
-            $connection->select(['pid'], $table, ['uid' => $uid])
-        );
+        $record = $connection->select(['pid'], $table, ['uid' => $uid])->fetchAssociative();
         return (int)($record['pid'] ?? 0);
     }
 

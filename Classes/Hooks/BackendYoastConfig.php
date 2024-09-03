@@ -9,7 +9,6 @@ use TYPO3\CMS\Core\Http\ApplicationType;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
-use YoastSeoForTypo3\YoastSeo\Utility\PathUtility;
 
 class BackendYoastConfig
 {

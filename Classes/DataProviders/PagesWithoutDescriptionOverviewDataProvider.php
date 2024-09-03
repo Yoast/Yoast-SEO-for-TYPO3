@@ -18,7 +18,7 @@ class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataPr
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(self::PAGES_TABLE);
 
         $constraints = [
-            $queryBuilder->expr()->orX(
+            $queryBuilder->expr()->or(
                 $queryBuilder->expr()->eq('description', $queryBuilder->createNamedParameter('')),
                 $queryBuilder->expr()->isNull('description')
             ),
@@ -37,6 +37,6 @@ class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataPr
         return $queryBuilder->select(...self::PAGES_FIELDS)
             ->from(self::PAGES_TABLE)
             ->where(...$constraints)
-            ->execute();
+            ->executeQuery();
     }
 }

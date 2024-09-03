@@ -5,3 +5,7 @@ parameters:
     - ../Configuration
   ignoreErrors:
     - '#Parameter \$event of method#'
+    - '#TYPO3\\CMS\\Frontend\\Page\\PageInformation#'
+    - '#TYPO3\\CMS\\Backend\\View\\BackendViewFactory#'
+    - '#TYPO3\\CMS\\Install\\Attribute\\UpgradeWizard#'
+    - '#frontend.page.information#'

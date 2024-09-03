@@ -11,10 +11,9 @@ yarn.lock
 !.Build/ExcludeFromPackaging.php
 !.Build/.php-cs-fixer.php
 !.Build/.phplint.yml
-!.Build/phpstan.cms9.neon
-!.Build/phpstan.cms10.neon
 !.Build/phpstan.cms11.neon
 !.Build/phpstan.cms12.neon
+!.Build/phpstan.cms13.neon
 Documentation-GENERATED-temp
 /public
 .phplint.cache

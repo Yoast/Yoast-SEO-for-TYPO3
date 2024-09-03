@@ -5,15 +5,12 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Controller;
 
 use Psr\Http\Message\ResponseInterface;
-use TYPO3\CMS\Backend\Utility\BackendUtility;
-use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Exception\SiteNotFoundException;
 use TYPO3\CMS\Core\Localization\LanguageService;
+use TYPO3\CMS\Core\Pagination\ArrayPaginator;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\SiteFinder;
-use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use YoastSeoForTypo3\YoastSeo\Pagination\ArrayPaginator;
 use YoastSeoForTypo3\YoastSeo\Pagination\Pagination;
 
 class OverviewController extends AbstractBackendController
@@ -45,15 +42,6 @@ class OverviewController extends AbstractBackendController
             $moduleTemplate->getDocHeaderComponent()->getMenuRegistry()->addMenu($languageMenu);
         }
         return $this->returnResponse($overviewData, $moduleTemplate);
-    }
-
-    public function legacyAction(int $currentPage = 1): void
-    {
-        $overviewData = $this->getOverviewData($currentPage) + ['action' => 'legacy'];
-        if (isset($overviewData['pageInformation'])) {
-            $overviewData['languageMenuItems'] = $this->getLanguageMenuItems($overviewData['pageInformation']);
-        }
-        $this->view->assignMultiple($overviewData);
     }
 
     protected function getOverviewData(int $currentPage): array
@@ -94,21 +82,19 @@ class OverviewController extends AbstractBackendController
 
     public function getAvailableFilters(): ?array
     {
-        if (array_key_exists('overview_filters', $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo'])
-            && is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['overview_filters'])
-        ) {
-            $params = $this->getParams();
-            foreach ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['overview_filters'] as &$filter) {
-                $filter['numberOfItems'] = (int)GeneralUtility::callUserFunction(
-                    $filter['countProvider'],
-                    $params,
-                    $this
-                );
-            }
-            return (array)$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['overview_filters'];
+        if (!is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['overview_filters'] ?? false)) {
+            return null;
         }
 
-        return null;
+        $params = $this->getParams();
+        foreach ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['overview_filters'] as &$filter) {
+            $filter['numberOfItems'] = (int)GeneralUtility::callUserFunction(
+                $filter['countProvider'],
+                $params,
+                $this
+            );
+        }
+        return (array)$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['overview_filters'];
     }
 
     protected function getActiveFilter(array $filters): string
@@ -170,16 +156,6 @@ class OverviewController extends AbstractBackendController
         return $items;
     }
 
-    protected function getPageInformation(): ?array
-    {
-        $id = GeneralUtility::_GET('id');
-        $pageInformation = BackendUtility::readPageAccess(
-            $id,
-            $this->getBackendUser()->getPagePermsClause(Permission::PAGE_SHOW)
-        );
-        return is_array($pageInformation) ? $pageInformation : null;
-    }
-
     protected function getSite(int $pageUid): ?Site
     {
         $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
@@ -206,10 +182,5 @@ class OverviewController extends AbstractBackendController
     public function getLanguageService(): LanguageService
     {
         return $GLOBALS['LANG'];
-    }
-
-    protected function getBackendUser(): BackendUserAuthentication
-    {
-        return $GLOBALS['BE_USER'];
     }
 }

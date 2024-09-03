@@ -19,6 +19,16 @@ services:
   YoastSeoForTypo3\YoastSeo\Controller\AjaxController:
     public: true
 
+  YoastSeoForTypo3\YoastSeo\Service\CrawlerService:
+    public: true
+    arguments:
+      $cache: '@cache.pages'
+
+  YoastSeoForTypo3\YoastSeo\StructuredData\StructuredDataProviderManager:
+    public: true
+    arguments:
+      $pageCache: '@cache.pages'
+
   YoastSeoForTypo3\YoastSeo\EventListener\TcaBuiltListener:
     arguments:
       - '@YoastSeoForTypo3\YoastSeo\Record\Builder\TcaBuilder'

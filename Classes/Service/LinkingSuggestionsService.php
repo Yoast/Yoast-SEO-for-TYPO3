@@ -21,15 +21,10 @@ class LinkingSuggestionsService
     protected int $site;
     protected int $languageId;
 
-    protected ConnectionPool $connectionPool;
-    protected PageRepository $pageRepository;
-
     public function __construct(
-        ConnectionPool $connectionPool,
-        PageRepository $pageRepository
+        protected ConnectionPool $connectionPool,
+        protected PageRepository $pageRepository
     ) {
-        $this->connectionPool = $connectionPool;
-        $this->pageRepository = $pageRepository;
     }
 
     public function getLinkingSuggestions(
@@ -109,7 +104,7 @@ class LinkingSuggestionsService
         }
 
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::PROMINENT_WORDS_TABLE);
-        $statement = $queryBuilder->select('stem')
+        $rawDocFrequencies = $queryBuilder->select('stem')
             ->addSelectLiteral('COUNT(stem) AS document_frequency')
             ->from(self::PROMINENT_WORDS_TABLE)
             ->where(
@@ -121,9 +116,8 @@ class LinkingSuggestionsService
                 $queryBuilder->expr()->eq('site', $this->site)
             )
             ->groupBy('stem')
-            ->execute();
-
-        $rawDocFrequencies = GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
+            ->executeQuery()
+            ->fetchAllAssociative();
 
         $stems = array_map(
             static function ($item) {
@@ -177,7 +171,7 @@ class LinkingSuggestionsService
         $prominentStems = array_column($prominentWords, 'stem');
 
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::PROMINENT_WORDS_TABLE);
-        $statement = $queryBuilder->select('stem')
+        $documentFreqs = $queryBuilder->select('stem')
             ->addSelectLiteral('COUNT(uid) AS count')
             ->from(self::PROMINENT_WORDS_TABLE)
             ->where(
@@ -189,9 +183,8 @@ class LinkingSuggestionsService
                 $queryBuilder->expr()->eq('sys_language_uid', $this->languageId)
             )
             ->groupBy('stem')
-            ->execute();
-
-        $documentFreqs = GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
+            ->executeQuery()
+            ->fetchAllAssociative();
 
         $stemCounts = [];
         foreach ($documentFreqs as $documentFreq) {
@@ -210,7 +203,7 @@ class LinkingSuggestionsService
     protected function findRecordsByStems(array $stems, int $batchSize, int $page): array
     {
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::PROMINENT_WORDS_TABLE);
-        $statement = $queryBuilder->select('pid', 'tablenames')
+        return $queryBuilder->select('pid', 'tablenames')
             ->from(self::PROMINENT_WORDS_TABLE)
             ->where(
                 $queryBuilder->expr()->in(
@@ -222,8 +215,8 @@ class LinkingSuggestionsService
             )
             ->setMaxResults($batchSize)
             ->setFirstResult(($page - 1) * $batchSize)
-            ->execute();
-        return GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
+            ->executeQuery()
+            ->fetchAllAssociative();
     }
 
     protected function getProminentWords(array $records): array
@@ -231,7 +224,7 @@ class LinkingSuggestionsService
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::PROMINENT_WORDS_TABLE);
         $orStatements = [];
         foreach ($records as $record) {
-            $orStatements[] = $queryBuilder->expr()->andX(
+            $orStatements[] = $queryBuilder->expr()->and(
                 $queryBuilder->expr()->eq('pid', $record['pid']),
                 $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($record['tablenames'])),
                 $queryBuilder->expr()->eq(
@@ -240,13 +233,13 @@ class LinkingSuggestionsService
                 )
             );
         }
-        $statement = $queryBuilder->select('stem', 'weight', 'pid', 'tablenames', 'uid_foreign')
+        return $queryBuilder->select('stem', 'weight', 'pid', 'tablenames', 'uid_foreign')
             ->from(self::PROMINENT_WORDS_TABLE)
             ->where(
-                $queryBuilder->expr()->orX(...$orStatements)
+                $queryBuilder->expr()->or(...$orStatements)
             )
-            ->execute();
-        return GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
+            ->executeQuery()
+            ->fetchAllAssociative();
     }
 
     protected function groupWordsByRecord(array $candidateWords): array

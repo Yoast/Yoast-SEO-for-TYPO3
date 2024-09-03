@@ -5,5 +5,6 @@ parameters:
     - ../Configuration
   ignoreErrors:
     - '#TYPO3\\CMS\\Backend\\ViewHelpers\\ModuleLayoutViewHelper#'
-    - '#TYPO3\\CMS\\Frontend\\Page\\PageInformation#'
-    - '#frontend.page.information#'
+  typo3:
+    requestGetAttributeMapping:
+        frontend.page.information: TYPO3\CMS\Frontend\Page\PageInformation

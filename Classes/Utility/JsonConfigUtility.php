@@ -11,17 +11,11 @@ class JsonConfigUtility implements SingletonInterface
 {
     protected array $config = [];
 
-    /**
-     * @param array $config
-     */
-    public function addConfig(array $config)
+    public function addConfig(array $config): void
     {
         ArrayUtility::mergeRecursiveWithOverrule($this->config, $config, true, false);
     }
 
-    /**
-     * @return string
-     */
     public function render(): string
     {
         return 'const YoastConfig = ' . json_encode($this->config) . ';';

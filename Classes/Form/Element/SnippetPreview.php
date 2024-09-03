@@ -100,27 +100,15 @@ class SnippetPreview extends AbstractNode
     {
         $this->urlService = GeneralUtility::makeInstance(UrlService::class);
 
-        if (array_key_exists('titleField', (array)$this->data['parameterArray']['fieldConf']['config']['settings']) &&
-            $this->data['parameterArray']['fieldConf']['config']['settings']['titleField']
-        ) {
+        if (!empty($this->data['parameterArray']['fieldConf']['config']['settings']['titleField'] ?? '')) {
             $this->titleField = $this->data['parameterArray']['fieldConf']['config']['settings']['titleField'];
         }
 
-        if (array_key_exists(
-                'pageTitleField',
-                (array)$this->data['parameterArray']['fieldConf']['config']['settings']
-            ) &&
-            $this->data['parameterArray']['fieldConf']['config']['settings']['pageTitleField']
-        ) {
+        if (!empty($this->data['parameterArray']['fieldConf']['config']['settings']['pageTitleField'] ?? '')) {
             $this->pageTitleField = $this->data['parameterArray']['fieldConf']['config']['settings']['pageTitleField'];
         }
 
-        if (array_key_exists(
-                'descriptionField',
-                (array)$this->data['parameterArray']['fieldConf']['config']['settings']
-            )
-            && $this->data['parameterArray']['fieldConf']['config']['settings']['descriptionField']
-        ) {
+        if (!empty($this->data['parameterArray']['fieldConf']['config']['settings']['descriptionField'] ?? '')) {
             $this->descriptionField =
                 $this->data['parameterArray']['fieldConf']['config']['settings']['descriptionField'];
         }

@@ -3,11 +3,13 @@
 VERSION=v11
 
 rm -rf /var/www/html/$VERSION/*
-composer init -n -d /var/www/html/$VERSION
+mkdir -p /var/www/html/$VERSION/
+echo "{}" > /var/www/html/$VERSION/composer.json
 composer config extra.typo3/cms.web-dir public -d /var/www/html/$VERSION
 composer config repositories.$EXTENSION_KEY path ../../$EXTENSION_KEY -d /var/www/html/$VERSION
-composer req t3/cms:'^11.0' $PACKAGE_NAME:'*@dev' --no-progress --no-suggest -n -d /var/www/html/$VERSION
-
+composer config --no-plugins allow-plugins.typo3/cms-composer-installers true -d /var/www/html/$VERSION
+composer config --no-plugins allow-plugins.typo3/class-alias-loader true -d /var/www/html/$VERSION
+composer req t3/cms:'^11' $PACKAGE_NAME:'*@dev' --no-progress -n -d /var/www/html/$VERSION
 
 cd /var/www/html/$VERSION
 
@@ -23,11 +25,8 @@ vendor/bin/typo3cms configuration:set 'MAIL/transport_smtp_server' 'localhost:10
 vendor/bin/typo3cms configuration:set 'GFX/processor' 'ImageMagick'
 vendor/bin/typo3cms configuration:set 'GFX/processor_path' '/usr/bin/'
 vendor/bin/typo3cms configuration:set 'GFX/processor_path_lzw' '/usr/bin/'
-vendor/bin/typo3cms install:generatepackagestates
 
 sed -i -e "s/base: ht\//base: \//g" /var/www/html/$VERSION/config/sites/main/config.yaml
 sed -i -e 's/base: \/en\//base: \//g' /var/www/html/$VERSION/config/sites/main/config.yaml
-
-cp ~/favicon.ico ./public
 
 vendor/bin/typo3cms cache:flush

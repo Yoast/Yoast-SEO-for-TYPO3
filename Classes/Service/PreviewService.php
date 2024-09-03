@@ -62,7 +62,7 @@ class PreviewService
         if ($response->getStatusCode() === 200) {
             return $response->getBody()->getContents();
         }
-        throw new Exception($response->getStatusCode());
+        throw new Exception((string)$response->getStatusCode());
     }
 
     protected function getDataFromContent(?string $content, string $uriToCheck): array

@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\StructuredData;
 
 use Psr\Http\Message\ServerRequestInterface;
-use TYPO3\CMS\Core\Cache\CacheManager;
-use TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException;
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
 use TYPO3\CMS\Core\Http\ApplicationType;
 use TYPO3\CMS\Core\Service\DependencyOrderingService;
@@ -21,33 +19,26 @@ use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
  */
 class StructuredDataProviderManager implements SingletonInterface
 {
-    protected FrontendInterface $pageCache;
-    protected string $sourceComment = '';
-
-    public function __construct()
-    {
-        $this->initCaches();
-        $this->sourceComment = '<!-- This site is optimized with the Yoast SEO for TYPO3 plugin - https://yoast.com/typo3-extensions-seo/ -->';
-    }
+    public function __construct(
+        protected FrontendInterface $pageCache
+    ) {}
 
     public function render(array &$params, $pObj): void
     {
-        if (!($GLOBALS['TYPO3_REQUEST'] ?? null) instanceof ServerRequestInterface
-            || !ApplicationType::fromRequest($GLOBALS['TYPO3_REQUEST'])->isFrontend()
-        ) {
+        if (!$this->isFrontendRequest()) {
             return;
         }
 
         $data = $this->getStructuredData();
 
-        $params['headerData']['StructuredDataManager'] = $this->sourceComment .
-            PHP_EOL . $this->buildJsonLdBlob($data);
+        $params['headerData']['StructuredDataManager']
+            = $this->getSourceComment() . PHP_EOL . $this->buildJsonLdBlob($data);
     }
 
     protected function buildJsonLdBlob(array $src): string
     {
         $data = [];
-        foreach ($src as $provider => $dataItems) {
+        foreach ($src as $dataItems) {
             foreach ($dataItems as $item) {
                 $data[] = $item;
             }
@@ -63,52 +54,62 @@ class StructuredDataProviderManager implements SingletonInterface
     public function getStructuredData(): array
     {
         $structuredData = [];
-
-        $structuredDataProviders = $this->getStructuredDataProviderConfiguration();
-        $structuredDataProviders = $this->setProviderOrder($structuredDataProviders);
-
-        $orderedStructuredDataProviders = GeneralUtility::makeInstance(DependencyOrderingService::class)
-            ->orderByDependencies($structuredDataProviders);
-
-        foreach ($orderedStructuredDataProviders as $provider => $configuration) {
+        foreach ($this->getOrderedStructuredDataProviders() as $provider => $configuration) {
             $cacheIdentifier = $this->getTypoScriptFrontendController()->newHash . '-structured-data-' . $provider;
-            if ($this->pageCache instanceof FrontendInterface &&
-                $data = $this->pageCache->get($cacheIdentifier)
-            ) {
+            if ($this->pageCache instanceof FrontendInterface && $data = $this->pageCache->get($cacheIdentifier)) {
                 if (!empty($data)) {
                     $structuredData[$provider] = $data;
                 }
                 continue;
             }
-            if (class_exists($configuration['provider'])
-                && is_subclass_of($configuration['provider'], StructuredDataProviderInterface::class)) {
-                /** @var StructuredDataProviderInterface $structuredDataProviderObject */
-                $structuredDataProviderObject = GeneralUtility::makeInstance($configuration['provider']);
-                if (method_exists($structuredDataProviderObject, 'setConfiguration')) {
-                    $structuredDataProviderObject->setConfiguration($configuration);
-                }
+            $structuredDataProviderObject = $this->getStructuredDataProviderObject($configuration);
+            if ($structuredDataProviderObject === null) {
+                continue;
+            }
 
-                if ($data = $structuredDataProviderObject->getData()) {
-                    $this->pageCache->set(
-                        $cacheIdentifier,
-                        $data,
-                        ['pageId_' . $this->getTypoScriptFrontendController()->page['uid']],
-                        $this->getTypoScriptFrontendController()->get_cache_timeout()
-                    );
-                }
+            if ($data = $structuredDataProviderObject->getData()) {
+                $this->pageCache->set(
+                    $cacheIdentifier,
+                    $data,
+                    ['pageId_' . $this->getTypoScriptFrontendController()->page['uid']],
+                    // TODO: Fix this call, protected method since v13
+                    //$this->getTypoScriptFrontendController()->get_cache_timeout()
+                );
+            }
 
-                if (!empty($data)) {
-                    $structuredData[$provider] = $data;
-                }
+            if (!empty($data)) {
+                $structuredData[$provider] = $data;
             }
         }
 
         return $structuredData;
     }
 
+    protected function getStructuredDataProviderObject(array $configuration): StructuredDataProviderInterface|null
+    {
+        if (!class_exists($configuration['provider']) || !is_subclass_of($configuration['provider'], StructuredDataProviderInterface::class)) {
+            return null;
+        }
+
+        $providerObject = GeneralUtility::makeInstance($configuration['provider']);
+        if (method_exists($providerObject, 'setConfiguration')) {
+            $providerObject->setConfiguration($configuration);
+        }
+        return $providerObject;
+    }
+
     private function getTypoScriptFrontendController(): TypoScriptFrontendController
     {
         return $GLOBALS['TSFE'];
+    }
+
+    private function getOrderedStructuredDataProviders(): array
+    {
+        $structuredDataProviders = $this->getStructuredDataProviderConfiguration();
+        $structuredDataProviders = $this->setProviderOrder($structuredDataProviders);
+
+        return GeneralUtility::makeInstance(DependencyOrderingService::class)
+            ->orderByDependencies($structuredDataProviders);
     }
 
     private function getStructuredDataProviderConfiguration(): array
@@ -121,41 +122,41 @@ class StructuredDataProviderManager implements SingletonInterface
         return $config['structuredData']['providers'] ?? [];
     }
 
-    protected function initCaches()
-    {
-        try {
-            $this->pageCache = GeneralUtility::makeInstance(CacheManager::class)->getCache(
-                'pages'
-            );
-        } catch (NoSuchCacheException $e) {
-            // @ignoreException
-        }
-    }
-
     protected function setProviderOrder(array $orderInformation): array
     {
         foreach ($orderInformation as $provider => &$configuration) {
             if (isset($configuration['before'])) {
-                if (is_string($configuration['before'])) {
-                    $configuration['before'] = GeneralUtility::trimExplode(',', $configuration['before'], true);
-                } elseif (!is_array($configuration['before'])) {
-                    throw new \UnexpectedValueException(
-                        'The specified "before" order configuration for provider "' . $provider . '" is invalid.',
-                        1551014599
-                    );
-                }
+                $configuration['before'] = $this->getOrderConfiguration($provider, $configuration, 'before');
             }
             if (isset($configuration['after'])) {
-                if (is_string($configuration['after'])) {
-                    $configuration['after'] = GeneralUtility::trimExplode(',', $configuration['after'], true);
-                } elseif (!is_array($configuration['after'])) {
-                    throw new \UnexpectedValueException(
-                        'The specified "after" order configuration for provider "' . $provider . '" is invalid.',
-                        1551014604
-                    );
-                }
+                $configuration['after'] = $this->getOrderConfiguration($provider, $configuration, 'after');
             }
         }
         return $orderInformation;
+    }
+
+    private function getOrderConfiguration(string $provider, array $configuration, string $key): array
+    {
+        if (is_string($configuration[$key])) {
+            return GeneralUtility::trimExplode(',', $configuration[$key], true);
+        }
+        if (!is_array($configuration[$key])) {
+            throw new \UnexpectedValueException(
+                'The specified "' . $key . '" order configuration for provider "' . $provider . '" is invalid.',
+                1551014599
+            );
+        }
+        return $configuration[$key];
+    }
+
+    protected function isFrontendRequest(): bool
+    {
+        return ($GLOBALS['TYPO3_REQUEST'] ?? null) instanceof ServerRequestInterface
+            && ApplicationType::fromRequest($GLOBALS['TYPO3_REQUEST'])->isFrontend();
+    }
+
+    protected function getSourceComment(): string
+    {
+        return '<!-- This site is optimized with the Yoast SEO for TYPO3 plugin - https://yoast.com/typo3-extensions-seo/ -->';
     }
 }
