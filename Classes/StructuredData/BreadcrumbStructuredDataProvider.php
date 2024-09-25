@@ -12,6 +12,7 @@ use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterface
 {
+    /** @var array<string, mixed> */
     protected array $configuration;
 
     public function __construct(
@@ -19,6 +20,9 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         protected Context $context,
     ) {}
 
+    /**
+     * @return array<array<string, mixed>>
+     */
     public function getData(): array
     {
         $breadcrumbs = [];
@@ -51,6 +55,10 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         return $this->getBreadcrumbList($breadcrumbs);
     }
 
+    /**
+     * @param array<array<string, mixed>> $breadcrumbs
+     * @return array<array<string, mixed>>
+     */
     protected function getBreadcrumbList(array $breadcrumbs): array
     {
         if (empty($breadcrumbs)) {
@@ -66,6 +74,9 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         ];
     }
 
+    /**
+     * @return int[]
+     */
     protected function getExcludedDoktypes(): array
     {
         if (!empty($this->configuration['excludedDoktypes'] ?? '')) {
@@ -74,6 +85,9 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         return [];
     }
 
+    /**
+     * @return array<array<string, mixed>>
+     */
     protected function getRootLine(): array
     {
         $rootLine = $this->getTyposcriptFrontendController()->rootLine ?: [];
@@ -98,6 +112,9 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         return $GLOBALS['TSFE'];
     }
 
+    /**
+     * @param array<string, mixed> $configuration
+     */
     public function setConfiguration(array $configuration): void
     {
         $this->configuration = $configuration;

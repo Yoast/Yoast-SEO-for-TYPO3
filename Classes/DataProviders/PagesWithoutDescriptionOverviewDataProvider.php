@@ -11,6 +11,26 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataProvider
 {
+    public function getKey(): string
+    {
+        return 'withoutDescription';
+    }
+
+    public function getLabel(): string
+    {
+        return 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:withoutDescription';
+    }
+
+    public function getDescription(): string
+    {
+        return 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:withoutDescription.description';
+    }
+
+    public function getLink(): ?string
+    {
+        return 'https://yoa.st/typo3-meta-description';
+    }
+
     protected const PAGES_TABLE = 'pages';
 
     public function getResults(array $pageIds = []): ?Result
@@ -24,12 +44,12 @@ class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataPr
             ),
             $queryBuilder->expr()->in('doktype', YoastUtility::getAllowedDoktypes()),
             $queryBuilder->expr()->eq('tx_yoastseo_hide_snippet_preview', 0),
-            $queryBuilder->expr()->eq('sys_language_uid', (int)$this->callerParams['language'])
+            $queryBuilder->expr()->eq('sys_language_uid', $this->dataProviderRequest->getLanguage())
         ];
 
         if (count($pageIds) > 0) {
             $constraints[] = $queryBuilder->expr()->in(
-                (int)$this->callerParams['language'] > 0 ? $GLOBALS['TCA']['pages']['ctrl']['transOrigPointerField'] : 'uid',
+                $this->dataProviderRequest->getLanguage() > 0 ? $GLOBALS['TCA']['pages']['ctrl']['transOrigPointerField'] : 'uid',
                 $pageIds
             );
         }

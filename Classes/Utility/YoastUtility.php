@@ -15,7 +15,11 @@ class YoastUtility
 {
     protected const COLUMN_NAME_FOCUSKEYWORD = 'tx_yoastseo_focuskeyword';
 
-    public static function getAllowedDoktypes(?array $configuration = null, bool $returnInString = false)
+    /**
+     * @param array<string, mixed>|null $configuration
+     * @return int[]
+     */
+    public static function getAllowedDoktypes(?array $configuration = null): array
     {
         $allowedDoktypes = array_map(function ($doktype) {
             return (int)$doktype;
@@ -31,16 +35,22 @@ class YoastUtility
             }
         }
 
-        $allowedDoktypes = $allowedDoktypes ?: [1];
-
-        if ($returnInString) {
-            return implode(',', $allowedDoktypes);
-        }
-
-        return $allowedDoktypes;
+        return $allowedDoktypes ?: [1];
     }
 
-    public static function snippetPreviewEnabled(int $pageId, array $pageRecord, $pageTs = null): bool
+    /**
+     * @param array<string, mixed>|null $configuration
+     */
+    public static function getAllowedDoktypesList(?array $configuration = null): string
+    {
+        return implode(',', self::getAllowedDoktypes($configuration));
+    }
+
+    /**
+     * @param array<string, mixed> $pageRecord
+     * @param array<string, mixed> $pageTs
+     */
+    public static function snippetPreviewEnabled(int $pageId, array $pageRecord, ?array $pageTs = null): bool
     {
         if (!$GLOBALS['BE_USER'] instanceof BackendUserAuthentication ||
             !$GLOBALS['BE_USER']->check('non_exclude_fields', 'pages:tx_yoastseo_snippetpreview')) {
@@ -78,6 +88,9 @@ class YoastUtility
         return $focusKeyword;
     }
 
+    /**
+     * @return array<string, array{keyword: string, synonyms: string}>
+     */
     public static function getRelatedKeyphrases(string $parentTable, int $parentId): array
     {
         $config = [];
@@ -109,10 +122,10 @@ class YoastUtility
      *
      * You can set development by using TypoScript "module.tx_yoastseo.settings.developmentMode = 1"
      *
-     * @param array|null $configuration
+     * @param array<string, mixed>|null $configuration
      * @return bool
      */
-    public static function inProductionMode(array $configuration = null): bool
+    public static function inProductionMode(?array $configuration = null): bool
     {
         if ($configuration === null) {
             $configuration = self::getTypoScriptConfiguration();
@@ -121,6 +134,9 @@ class YoastUtility
         return !((int)($_ENV['YOAST_DEVELOPMENT_MODE'] ?? 0) === 1 || (int)($configuration['developmentMode'] ?? 0) === 1);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected static function getTypoScriptConfiguration(): array
     {
         $configurationManager = GeneralUtility::makeInstance(ConfigurationManager::class);

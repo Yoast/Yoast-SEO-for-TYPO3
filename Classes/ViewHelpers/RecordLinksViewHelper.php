@@ -19,6 +19,9 @@ class RecordLinksViewHelper extends AbstractViewHelper
         $this->registerArgument('module', 'string', '', true, '');
     }
 
+    /**
+     * @param array<string, mixed> $arguments
+     */
     public static function renderStatic(
         array $arguments,
         \Closure $renderChildrenClosure,

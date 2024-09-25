@@ -11,6 +11,9 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class FocusKeywordAnalysis extends AbstractNode
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function render(): array
     {
         $resultArray = $this->initializeResultArray();

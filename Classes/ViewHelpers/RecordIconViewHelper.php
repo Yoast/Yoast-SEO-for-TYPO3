@@ -21,6 +21,9 @@ class RecordIconViewHelper extends AbstractViewHelper
         $this->registerArgument('size', 'string', '', false, Icon::SIZE_DEFAULT);
     }
 
+    /**
+     * @param array<string, mixed> $arguments
+     */
     public static function renderStatic(
         array $arguments,
         \Closure $renderChildrenClosure,

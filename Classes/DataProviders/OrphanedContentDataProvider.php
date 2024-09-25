@@ -12,26 +12,50 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class OrphanedContentDataProvider extends AbstractOverviewDataProvider
 {
+    public function getKey(): string
+    {
+        return 'orphaned';
+    }
+
+    public function getLabel(): string
+    {
+        return 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:orphanedContent';
+    }
+
+    public function getDescription(): string
+    {
+        return 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:orphanedContent.description';
+    }
+
+    public function getLink(): ?string
+    {
+        return 'https://yoa.st/1ja';
+    }
+
+    /** @var int[] */
     protected array $referencedPages = [];
 
+    /**
+     * @param int[] $pageIds
+     */
     public function getResults(array $pageIds = []): ?Result
     {
         if ($this->referencedPages === []) {
-            $this->setReferencedPages();
+            $this->referencedPages = $this->getReferencedPages();
         }
 
         $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('pages');
 
         $constraints = [
             $qb->expr()->in('doktype', YoastUtility::getAllowedDoktypes()),
-            $qb->expr()->eq('sys_language_uid', (int)$this->callerParams['language'])
+            $qb->expr()->eq('sys_language_uid', $this->dataProviderRequest->getLanguage())
         ];
         if (count($this->referencedPages) > 0) {
             $constraints[] = $qb->expr()->notIn('uid', $this->referencedPages);
         }
         if (count($pageIds) > 0) {
             $constraints[] = $qb->expr()->in(
-                (int)$this->callerParams['language'] > 0 ? $GLOBALS['TCA']['pages']['ctrl']['transOrigPointerField'] : 'uid',
+                $this->dataProviderRequest->getLanguage() > 0 ? $GLOBALS['TCA']['pages']['ctrl']['transOrigPointerField'] : 'uid',
                 $pageIds
             );
         }
@@ -42,7 +66,10 @@ class OrphanedContentDataProvider extends AbstractOverviewDataProvider
             ->executeQuery();
     }
 
-    protected function setReferencedPages(): void
+    /**
+     * @return int[]
+     */
+    protected function getReferencedPages(): array
     {
         $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_refindex');
 
@@ -64,8 +91,6 @@ class OrphanedContentDataProvider extends AbstractOverviewDataProvider
             ->executeQuery()
             ->fetchAllAssociative();
 
-        foreach ($references as $ref) {
-            $this->referencedPages[] = $ref['ref_uid'];
-        }
+        return array_column($references, 'ref_uid');
     }
 }

@@ -10,6 +10,9 @@ use TYPO3\CMS\Fluid\View\StandaloneView;
 
 class Insights extends AbstractNode
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function render(): array
     {
         $resultArray = $this->initializeResultArray();

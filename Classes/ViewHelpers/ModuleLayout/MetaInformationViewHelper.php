@@ -14,16 +14,19 @@ class MetaInformationViewHelper extends AbstractViewHelper
 {
     use CompileWithRenderStatic;
 
-    public function initializeArguments()
+    public function initializeArguments(): void
     {
         $this->registerArgument('pageInformation', 'array', 'Page information', true);
     }
 
+    /**
+     * @param array<string, mixed> $arguments
+     */
     public static function renderStatic(
         array $arguments,
         \Closure $renderChildrenClosure,
         RenderingContextInterface $renderingContext
-    ) {
+    ): void {
         $viewHelperVariableContainer = $renderingContext->getViewHelperVariableContainer();
 
         /** @var \TYPO3\CMS\Backend\Template\ModuleTemplate $moduleTemplate */

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Controller;
 
+use Throwable;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
@@ -63,10 +64,19 @@ class AjaxController
         return new JsonResponse($data);
     }
 
+    /**
+     * @param array<string, string> $data
+     */
     protected function saveScores(array $data): void
     {
         $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable($data['table']);
-        $row = $connection->select(['*'], $data['table'], ['uid' => (int)$data['uid']], [], [], 1)->fetchAssociative();
+        try {
+            $row = $connection->select(['*'], $data['table'], ['uid' => (int)$data['uid']], [],
+                [],
+                1)->fetchAssociative();
+        } catch (Throwable) {
+            return;
+        }
 
         if ($row !== false && isset($row['tx_yoastseo_score_readability'], $row['tx_yoastseo_score_seo'])) {
             $connection->update($data['table'], [
@@ -149,6 +159,9 @@ class AjaxController
         return new JsonResponse($indexInformation);
     }
 
+    /**
+     * @return array<string, int>
+     */
     protected function getCrawlerRequestData(ServerRequestInterface $request): array
     {
         $crawlerData = $this->getJsonData($request);
@@ -162,6 +175,9 @@ class AjaxController
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function getJsonData(ServerRequestInterface $request): array
     {
         $body = $request->getBody()->getContents();

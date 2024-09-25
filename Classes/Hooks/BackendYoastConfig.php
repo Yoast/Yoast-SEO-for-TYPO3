@@ -12,6 +12,9 @@ use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
 
 class BackendYoastConfig
 {
+    /**
+     * @param array<string, mixed> $params
+     */
     public function renderConfig(array &$params, PageRenderer $pObject): void
     {
         if (!($GLOBALS['TYPO3_REQUEST'] ?? null) instanceof ServerRequestInterface

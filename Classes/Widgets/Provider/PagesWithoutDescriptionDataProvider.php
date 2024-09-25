@@ -8,21 +8,26 @@ use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Traits\BackendUserTrait;
 
 /**
  * @deprecated Will be removed once TYPO3 v11 support is dropped
  */
 class PagesWithoutDescriptionDataProvider implements PageProviderInterface
 {
-    private array $excludedDoktypes;
-    private int $limit;
+    use BackendUserTrait;
 
-    public function __construct(array $excludedDoktypes, int $limit)
-    {
-        $this->excludedDoktypes = $excludedDoktypes;
+    public function __construct(
+        /** @var int[] */
+        private array $excludedDoktypes,
+        private int $limit
+    ) {
         $this->limit = $limit ?: 5;
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function getPages(): array
     {
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('pages');
@@ -66,10 +71,5 @@ class PagesWithoutDescriptionDataProvider implements PageProviderInterface
             $counter++;
         }
         return $items;
-    }
-
-    protected function getBackendUser(): BackendUserAuthentication
-    {
-        return $GLOBALS['BE_USER'];
     }
 }

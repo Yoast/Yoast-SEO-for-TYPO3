@@ -13,16 +13,13 @@ use YoastSeoForTypo3\YoastSeo\Record\RecordService;
 
 class AdvancedRobotsGenerator
 {
-    protected RecordService $recordService;
+    public function __construct(
+        protected RecordService $recordService
+    ) {}
 
-    public function __construct(RecordService $recordService = null)
-    {
-        if ($recordService === null) {
-            $recordService = GeneralUtility::makeInstance(RecordService::class);
-        }
-        $this->recordService = $recordService;
-    }
-
+    /**
+     * @param array<string, mixed> $params
+     */
     public function generate(array $params): void
     {
         $activeRecord = $this->recordService->getActiveRecord();

@@ -29,6 +29,9 @@ class SnippetPreview extends AbstractNode
 
     protected UrlService $urlService;
 
+    /**
+     * @return array<string, mixed>
+     */
     public function render(): array
     {
         $this->initialize();
@@ -187,7 +190,7 @@ class SnippetPreview extends AbstractNode
         // map record data to GET parameters
         if (isset($previewConfiguration['fieldToParameterMap.'])) {
             foreach ($previewConfiguration['fieldToParameterMap.'] as $field => $parameterName) {
-                $value = $recordArray[$field];
+                $value = $recordArray[$field] ?? '';
                 if ($field === 'uid') {
                     $value = $recordId;
                 }
@@ -220,6 +223,9 @@ class SnippetPreview extends AbstractNode
         return $this->urlService->getPreviewUrl($previewPageId, $languageId, $additionalParamsForUrl);
     }
 
+    /**
+     * @param array<string, mixed> $previewConfiguration
+     */
     protected function getPreviewPageId(int $currentPageId, array $previewConfiguration): int
     {
         // find the right preview page id
@@ -259,8 +265,8 @@ class SnippetPreview extends AbstractNode
      * The result can be used to create a query string with
      * GeneralUtility::implodeArrayForUrl().
      *
-     * @param array $parameters Should be an empty array by default
-     * @param array $typoScript The TypoScript configuration
+     * @param array<string, mixed> $parameters Should be an empty array by default
+     * @param array<string, mixed> $typoScript The TypoScript configuration
      */
     protected function parseAdditionalGetParameters(
         array &$parameters,

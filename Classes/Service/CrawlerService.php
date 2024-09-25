@@ -27,7 +27,10 @@ class CrawlerService
         return count($this->getPagesToIndex($site, $languageId));
     }
 
-    public function getIndexInformation(int $site, int $languageId, $offset = 0): array
+    /**
+     * @return array{pages: array<int>, current: int, nextOffset: int, total: int}
+     */
+    public function getIndexInformation(int $site, int $languageId, int $offset = 0): array
     {
         $pagesToIndex = $this->getPagesToIndex($site, $languageId);
         $total = count($pagesToIndex);
@@ -44,6 +47,9 @@ class CrawlerService
         ];
     }
 
+    /**
+     * @return array{offset?: int, total?: int}
+     */
     public function getProgressInformation(int $site, int $languageId): array
     {
         return (array)$this->registry->get(
@@ -70,6 +76,9 @@ class CrawlerService
         $this->registry->remove(self::REGISTRY_NAMESPACE, sprintf(self::REGISTRY_KEY, $site, $languageId));
     }
 
+    /**
+     * @return int[]
+     */
     protected function getPagesToIndex(int $site, int $languageId): array
     {
         $cacheIdentifier = 'YoastSeoCrawler' . $site . '-' . $languageId;

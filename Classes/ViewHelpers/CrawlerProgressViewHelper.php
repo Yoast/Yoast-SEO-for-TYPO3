@@ -19,6 +19,9 @@ class CrawlerProgressViewHelper extends AbstractViewHelper
         $this->registerArgument('language', 'integer', 'Language id', true);
     }
 
+    /**
+     * @return array{percentage: int|float, offset: int, total: int}|null
+     */
     public function render(): ?array
     {
         $progressInformation = $this->crawlerService->getProgressInformation(

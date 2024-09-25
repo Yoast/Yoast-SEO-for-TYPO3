@@ -7,7 +7,7 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 GeneralUtility::makeInstance(TcaService::class)
     ->addYoastFields(
         'pages',
-        YoastUtility::getAllowedDoktypes(null, true)
+        YoastUtility::getAllowedDoktypesList()
     );
 
 // Remove description from metatags tab

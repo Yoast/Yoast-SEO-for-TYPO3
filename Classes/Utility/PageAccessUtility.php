@@ -14,8 +14,12 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class PageAccessUtility
 {
+    /** @var int[] */
     protected static array $cache = [];
 
+    /**
+     * @return int[]
+     */
     public static function getPageIds(int $pid): array
     {
         if (self::$cache !== []) {
@@ -33,12 +37,6 @@ class PageAccessUtility
 
     /**
      * Copied from EXT:core, removed in v12
-     *
-     * @param int $id
-     * @param int $depth
-     * @param int $begin
-     * @param string $permClause
-     * @return string
      */
     protected static function getTreeList(int $id, int $depth, int $begin = 0, string $permClause = ''): string
     {

@@ -61,7 +61,7 @@ class UrlService implements SingletonInterface
         return '';
     }
 
-    public function checkMountPoint(int &$pageId, &$additionalGetVars): void
+    public function checkMountPoint(int &$pageId, string &$additionalGetVars): void
     {
         $pageRepository = GeneralUtility::makeInstance(PageRepository::class);
         $mountPointInformation = $pageRepository->getMountPointInfo($pageId);
@@ -72,11 +72,17 @@ class UrlService implements SingletonInterface
         }
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getRootLine(int $pageId): array
     {
         return BackendUtility::BEgetRootLine($pageId);
     }
 
+    /**
+     * @param array<string, mixed> $rootLine
+     */
     public function getSite(int $pageId, array $rootLine): ?Site
     {
         $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
@@ -100,7 +106,7 @@ class UrlService implements SingletonInterface
     {
         try {
             return (string)$this->uriBuilder->buildUriFromRoute('ajax_yoast_save_scores');
-        } catch (RouteNotFoundException $e) {
+        } catch (RouteNotFoundException) {
             return '';
         }
     }
@@ -109,7 +115,7 @@ class UrlService implements SingletonInterface
     {
         try {
             return (string)$this->uriBuilder->buildUriFromRoute('ajax_yoast_prominent_words');
-        } catch (RouteNotFoundException $e) {
+        } catch (RouteNotFoundException) {
             return '';
         }
     }

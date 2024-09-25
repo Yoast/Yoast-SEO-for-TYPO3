@@ -41,7 +41,7 @@ class RecordRegistry implements SingletonInterface
         if ($this->records === null) {
             $this->retrieveRecords($useCache);
         }
-        return $this->records;
+        return (array)$this->records;
     }
 
     protected function retrieveRecords(bool $useCache): void
