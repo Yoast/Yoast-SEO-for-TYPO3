@@ -21,7 +21,10 @@ class PageLayoutHeader
     ) {
     }
 
-    public function render(array $params = null, $parentObj = null): string
+    /**
+     * @param array<string, string>|null $params
+     */
+    public function render(array $params = null, PageLayoutController|ModuleTemplate|null $parentObj = null): string
     {
         $languageId = $this->getLanguageId();
         $pageId = (int)$_GET['id'];
@@ -60,7 +63,10 @@ class PageLayoutHeader
         return $templateView->render();
     }
 
-    protected function getCurrentPage(int $pageId, int $languageId, object $parentObj): ?array
+    /**
+     * @return array<string, string>|null
+     */
+    protected function getCurrentPage(int $pageId, int $languageId, PageLayoutController|ModuleTemplate|null $parentObj): ?array
     {
         if ((!$parentObj instanceof PageLayoutController && !$parentObj instanceof ModuleTemplate) || $pageId <= 0) {
             return null;
@@ -88,6 +94,9 @@ class PageLayoutHeader
         return null;
     }
 
+    /**
+     * @param array<string, string> $pageRecord
+     */
     protected function shouldShowPreview(int $pageId, array $pageRecord): bool
     {
         if (!YoastUtility::snippetPreviewEnabled($pageId, $pageRecord)) {

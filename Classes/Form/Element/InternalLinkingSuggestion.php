@@ -22,6 +22,9 @@ class InternalLinkingSuggestion extends AbstractNode
     protected int $languageId;
     protected int $currentPage;
 
+    /**
+     * @return array<string, mixed>
+     */
     public function render(): array
     {
         $this->init();

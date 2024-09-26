@@ -1,11 +1,21 @@
 parameters:
-  level: 0
+  level: 8
   paths:
     - ../Classes
     - ../Configuration
+  excludePaths:
+    - ../Classes/Updates
   ignoreErrors:
     - '#Parameter \$event of method#'
     - '#TYPO3\\CMS\\Frontend\\Page\\PageInformation#'
     - '#TYPO3\\CMS\\Backend\\View\\BackendViewFactory#'
-    - '#TYPO3\\CMS\\Install\\Attribute\\UpgradeWizard#'
+    - '#TYPO3\\CMS\\Backend\\Template\\ModuleTemplate#'
+    - '#TYPO3\\CMS\\Extbase\\Mvc\\RequestInterface#'
+    - '#TYPO3\\CMS\\Core\\View\\ViewInterface#'
+    - '#TYPO3\\CMS\\Core\\Domain\\Repository\\PageRepository::getLanguageOverlay#'
     - '#frontend.page.information#'
+    - '#ModifyPageLayoutContentEvent#'
+    - '#AfterCacheableContentIsGeneratedEvent#'
+    - '#loadJavaScriptModule#'
+    - '#getLanguageCode#'
+    - '#addJsInlineCode#'

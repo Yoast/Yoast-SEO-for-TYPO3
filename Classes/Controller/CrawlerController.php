@@ -23,7 +23,7 @@ class CrawlerController extends AbstractBackendController
     public function indexAction(): ResponseInterface
     {
         $this->addYoastJavascriptConfig();
-        return $this->returnResponse(['sites' => $this->siteFinder->getAllSites()]);
+        return $this->returnResponse('Crawler/Index', ['sites' => $this->siteFinder->getAllSites()]);
     }
 
     public function resetProgressAction(int $site, int $language):? ResponseInterface

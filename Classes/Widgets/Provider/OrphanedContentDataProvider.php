@@ -4,23 +4,27 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Widgets\Provider;
 
-use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Traits\BackendUserTrait;
 
 class OrphanedContentDataProvider implements PageProviderInterface
 {
-    private array $excludedDoktypes;
-    private int $limit;
+    use BackendUserTrait;
 
-    public function __construct(array $excludedDoktypes, int $limit)
-    {
-        $this->excludedDoktypes = $excludedDoktypes;
+    public function __construct(
+        /** @var int[] */
+        private array $excludedDoktypes,
+        private int $limit
+    ) {
         $this->limit = $limit ?: 5;
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function getPages(): array
     {
         $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_refindex');
@@ -87,10 +91,5 @@ class OrphanedContentDataProvider implements PageProviderInterface
         }
 
         return $items;
-    }
-
-    protected function getBackendUser(): BackendUserAuthentication
-    {
-        return $GLOBALS['BE_USER'];
     }
 }

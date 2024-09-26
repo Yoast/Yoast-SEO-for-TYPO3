@@ -17,5 +17,9 @@ abstract class AbstractBuilder
     }
 
     abstract public function build(): void;
+
+    /**
+     * @return array<string, mixed>|string[]
+     */
     abstract public function getResult(): array;
 }

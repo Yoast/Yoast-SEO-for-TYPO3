@@ -6,6 +6,7 @@ namespace YoastSeoForTypo3\YoastSeo\Widgets;
 
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Backend\View\BackendViewFactory;
+use TYPO3\CMS\Core\View\ViewInterface;
 use TYPO3\CMS\Dashboard\Widgets\RequestAwareWidgetInterface;
 use TYPO3\CMS\Dashboard\Widgets\WidgetConfigurationInterface;
 use TYPO3\CMS\Dashboard\Widgets\WidgetInterface;
@@ -15,9 +16,13 @@ use YoastSeoForTypo3\YoastSeo\Widgets\Provider\PageProviderInterface;
 if (interface_exists(RequestAwareWidgetInterface::class)) {
     abstract class AbstractPageOverviewWidget implements WidgetInterface, RequestAwareWidgetInterface
     {
-        protected ?ServerRequestInterface $request = null;
+        protected ServerRequestInterface $request;
+        /** @var array|string[] */
         protected array $options;
 
+        /**
+         * @param array|string[] $options
+         */
         public function __construct(
             protected WidgetConfigurationInterface $configuration,
             protected PageProviderInterface $dataProvider,
@@ -44,13 +49,17 @@ if (interface_exists(RequestAwareWidgetInterface::class)) {
             return $view->render($this->options['template']);
         }
 
-        abstract protected function assignToView($view): void;
+        abstract protected function assignToView(ViewInterface|StandaloneView $view): void;
     }
 } else {
     abstract class AbstractPageOverviewWidget implements WidgetInterface
     {
+        /** @var array|string[] */
         protected array $options;
 
+        /**
+         * @param array|string[] $options
+         */
         public function __construct(
             protected WidgetConfigurationInterface $configuration,
             protected PageProviderInterface $dataProvider,
@@ -72,6 +81,6 @@ if (interface_exists(RequestAwareWidgetInterface::class)) {
             return $this->view->render();
         }
 
-        abstract protected function assignToView($view): void;
+        abstract protected function assignToView(ViewInterface|StandaloneView $view): void;
     }
 }

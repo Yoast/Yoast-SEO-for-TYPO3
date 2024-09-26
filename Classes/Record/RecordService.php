@@ -68,6 +68,9 @@ class RecordService implements SingletonInterface
         return null;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function getRecordData(Record $record): array
     {
         $recordRow = GeneralUtility::makeInstance(ConnectionPool::class)

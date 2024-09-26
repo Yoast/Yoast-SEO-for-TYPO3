@@ -62,7 +62,7 @@ class Pagination
     }
 
     /**
-     * @return int[]
+     * @return array<int, float>
      */
     public function getAllPageNumbers(): array
     {

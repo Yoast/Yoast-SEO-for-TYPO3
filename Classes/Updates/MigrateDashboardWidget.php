@@ -16,7 +16,7 @@ class MigrateDashboardWidget implements UpgradeWizardInterface
 {
     protected const DASHBOARD_TABLE = 'be_dashboards';
 
-    protected ?ConnectionPool $connectionPool = null;
+    protected ConnectionPool $connectionPool;
 
     public function __construct()
     {

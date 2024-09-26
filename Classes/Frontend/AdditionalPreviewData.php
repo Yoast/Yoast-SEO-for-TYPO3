@@ -13,6 +13,7 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastRequestHash;
 
 class AdditionalPreviewData implements SingletonInterface
 {
+    /** @var array<string, mixed> */
     protected array $config;
 
     public function __construct()
@@ -20,6 +21,9 @@ class AdditionalPreviewData implements SingletonInterface
         $this->config = $GLOBALS['TSFE']->tmpl->setup['config.'] ?? [];
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function render(array &$params, object $pObj): void
     {
         $serverParams = $GLOBALS['TYPO3_REQUEST'] ? $GLOBALS['TYPO3_REQUEST']->getServerParams() : $_SERVER;
@@ -51,6 +55,9 @@ class AdditionalPreviewData implements SingletonInterface
         return '';
     }
 
+    /**
+     * @return string[]
+     */
     protected function getPageTitlePrependAppend(): array
     {
         $prependAppend = ['prepend' => '', 'append' => ''];
@@ -81,7 +88,7 @@ class AdditionalPreviewData implements SingletonInterface
         }
 
         if (is_array($this->config['pageTitleSeparator.'] ?? null)) {
-            return GeneralUtility::makeInstance(ContentObjectRenderer::class)
+            return (string)GeneralUtility::makeInstance(ContentObjectRenderer::class)
                 ->stdWrap($this->config['pageTitleSeparator'], $this->config['pageTitleSeparator.']);
         }
 

@@ -256,6 +256,9 @@ class TcaService
         );
     }
 
+    /**
+     * @return array<array<int|string, string|bool>>
+     */
     protected function getInvertedCheckbox(): array
     {
         if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() >= 12) {

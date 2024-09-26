@@ -6,6 +6,7 @@ namespace YoastSeoForTypo3\YoastSeo\Record\Builder;
 
 class SchemaBuilder extends AbstractBuilder
 {
+    /** @var string[] */
     protected array $sqlData = [];
 
     public function build(): void

@@ -12,7 +12,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Service\ImageService;
 use YoastSeoForTypo3\YoastSeo\Record\Record;
 
-abstract class AbstractGenerator
+abstract class AbstractGenerator implements GeneratorInterface
 {
     protected MetaTagManagerRegistry $managerRegistry;
 
@@ -26,8 +26,8 @@ abstract class AbstractGenerator
 
     /**
      * @see \TYPO3\CMS\Seo\MetaTag\MetaTagGenerator
-     * @param array $fileReferences
-     * @return array
+     * @param FileReference[] $fileReferences
+     * @return array<array{url: string, width: float, height: float, alternative: string}>
      */
     protected function generateSocialImages(array $fileReferences): array
     {
@@ -35,7 +35,6 @@ abstract class AbstractGenerator
 
         $socialImages = [];
 
-        /** @var FileReference $file */
         foreach ($fileReferences as $file) {
             $arguments = $file->getProperties();
             $cropVariantCollection = CropVariantCollection::create((string)$arguments['crop']);
@@ -65,6 +64,4 @@ abstract class AbstractGenerator
 
         return $socialImages;
     }
-
-    abstract public function generate(Record $record): void;
 }

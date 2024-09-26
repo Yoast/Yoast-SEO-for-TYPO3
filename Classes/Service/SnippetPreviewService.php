@@ -20,6 +20,10 @@ class SnippetPreviewService
     ) {
     }
 
+    /**
+     * @param array<string, mixed> $currentData
+     * @param array<string, mixed> $additionalConfiguration
+     */
     public function buildSnippetPreview(
         string $previewUrl,
         array $currentData,

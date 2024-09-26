@@ -5,16 +5,20 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Context\LanguageAspect;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\Exception\SiteNotFoundException;
-use TYPO3\CMS\Core\Localization\LanguageService;
+use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Traits\LanguageServiceTrait;
 
 class LinkingSuggestionsService
 {
+    use LanguageServiceTrait;
+
     protected const PROMINENT_WORDS_TABLE = 'tx_yoastseo_prominent_word';
 
     protected int $excludePageId;
@@ -27,6 +31,10 @@ class LinkingSuggestionsService
     ) {
     }
 
+    /**
+     * @param array<array{_occurrences: int, _stem: string}> $words
+     * @return array<array<string, mixed>>
+     */
     public function getLinkingSuggestions(
         array $words,
         int $excludePageId,
@@ -80,6 +88,10 @@ class LinkingSuggestionsService
         return $this->linkRecords($scores, $this->getCurrentContentLinks($content));
     }
 
+    /**
+     * @param array<string, int|string> $requestWords
+     * @return array<string, array{weight: int, df: int}>
+     */
     protected function composeRequestData(array $requestWords): array
     {
         $requestDocFrequencies = $this->countDocumentFrequencies(array_keys($requestWords));
@@ -97,6 +109,10 @@ class LinkingSuggestionsService
         return $combinedRequestData;
     }
 
+    /**
+     * @param string[] $stems
+     * @return array<string, int>
+     */
     protected function countDocumentFrequencies(array $stems): array
     {
         if ($stems === []) {
@@ -133,6 +149,9 @@ class LinkingSuggestionsService
         return $docFrequencies;
     }
 
+    /**
+     * @param array<string, array{weight: int, df: int}> $prominentWords
+     */
     protected function computeVectorLength(array $prominentWords): float
     {
         $sumOfSquares = 0;
@@ -148,12 +167,16 @@ class LinkingSuggestionsService
         return sqrt($sumOfSquares);
     }
 
-    protected function computeTfIdfScore(int $termFrequency, int $docFrequency)
+    protected function computeTfIdfScore(int $termFrequency, int $docFrequency): float
     {
         $docFrequency = max(1, $docFrequency);
         return $termFrequency * (1 / $docFrequency);
     }
 
+    /**
+     * @param string[] $stems
+     * @return array<array{stem: string, weight: int, pid: int, tablenames: string, uid_foreign: int, df?: int}>
+     */
     protected function getCandidateWords(array $stems, int $batchSize, int $page): array
     {
         return $this->findStemsByRecords(
@@ -161,6 +184,10 @@ class LinkingSuggestionsService
         );
     }
 
+    /**
+     * @param array<array{pid: int, tablenames: string}> $records
+     * @return array<array{stem: string, weight: int, pid: int, tablenames: string, uid_foreign: int, df?: int}>
+     */
     protected function findStemsByRecords(array $records): array
     {
         if ($records === []) {
@@ -200,10 +227,14 @@ class LinkingSuggestionsService
         return $prominentWords;
     }
 
+    /**
+     * @param string[] $stems
+     * @return array<array{pid: int, tablenames: string}>
+     */
     protected function findRecordsByStems(array $stems, int $batchSize, int $page): array
     {
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::PROMINENT_WORDS_TABLE);
-        return $queryBuilder->select('pid', 'tablenames')
+        $queryBuilder->select('pid', 'tablenames')
             ->from(self::PROMINENT_WORDS_TABLE)
             ->where(
                 $queryBuilder->expr()->in(
@@ -214,11 +245,16 @@ class LinkingSuggestionsService
                 $queryBuilder->expr()->eq('site', $this->site)
             )
             ->setMaxResults($batchSize)
-            ->setFirstResult(($page - 1) * $batchSize)
-            ->executeQuery()
-            ->fetchAllAssociative();
+            ->setFirstResult(($page - 1) * $batchSize);
+        /** @var array<array{pid: int, tablenames: string}> $records */
+        $records = $queryBuilder->executeQuery()->fetchAllAssociative();
+        return $records;
     }
 
+    /**
+     * @param array<array{pid: int, tablenames: string}> $records
+     * @return array<array{stem: string, weight: int, pid: int, tablenames: string, uid_foreign: int}>
+     */
     protected function getProminentWords(array $records): array
     {
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::PROMINENT_WORDS_TABLE);
@@ -233,31 +269,40 @@ class LinkingSuggestionsService
                 )
             );
         }
-        return $queryBuilder->select('stem', 'weight', 'pid', 'tablenames', 'uid_foreign')
+        $queryBuilder->select('stem', 'weight', 'pid', 'tablenames', 'uid_foreign')
             ->from(self::PROMINENT_WORDS_TABLE)
             ->where(
                 $queryBuilder->expr()->or(...$orStatements)
-            )
-            ->executeQuery()
-            ->fetchAllAssociative();
+            );
+        /** @var array<array{stem: string, weight: int, pid: int, tablenames: string, uid_foreign: int}> $prominentWords */
+        $prominentWords = $queryBuilder->executeQuery()->fetchAllAssociative();
+        return $prominentWords;
     }
 
+    /**
+     * @param array<array{stem: string, weight: int, pid: int, tablenames: string, uid_foreign: int, df?: int}> $candidateWords
+     * @return array<string, array<string, array{weight: int, df: int}>>
+     */
     protected function groupWordsByRecord(array $candidateWords): array
     {
         $candidateWordsByRecords = [];
         foreach ($candidateWords as $candidateWord) {
-            if (!isset($candidateWord['weight'], $candidateWord['df'])) {
+            if (!isset($candidateWord['df'])) {
                 continue;
             }
             $recordKey = $candidateWord['uid_foreign'] . '-' . $candidateWord['tablenames'];
             $candidateWordsByRecords[$recordKey][$candidateWord['stem']] = [
                 'weight' => (int)$candidateWord['weight'],
-                'df' => (int)$candidateWord['df']
+                'df' => (int)$candidateWord['df'],
             ];
         }
         return $candidateWordsByRecords;
     }
 
+    /**
+     * @param array<string, array{weight: int, df: int}> $requestData
+     * @param array<string, array{weight: int, df: int}> $candidateData
+     */
     protected function calculateScoreForIndexable(
         array $requestData,
         float $requestVectorLength,
@@ -268,6 +313,10 @@ class LinkingSuggestionsService
         return $this->normalizeScore($rawScore, $candidateVectorLength, $requestVectorLength);
     }
 
+    /**
+     * @param array<string, array{weight: int, df: int}> $requestData
+     * @param array<string, array{weight: int, df: int}> $candidateData
+     */
     protected function computeRawScore(array $requestData, array $candidateData): float
     {
         $rawScore = 0;
@@ -299,6 +348,10 @@ class LinkingSuggestionsService
         return (float)($rawScore / $normalizingFactor);
     }
 
+    /**
+     * @param array<string, float|int> $scores
+     * @return array<string, float|int>
+     */
     protected function getTopSuggestions(array $scores): array
     {
         // Sort the indexables by descending score.
@@ -316,6 +369,11 @@ class LinkingSuggestionsService
         return \array_slice($scores, 0, 20, true);
     }
 
+    /**
+     * @param array<string, float|int> $scores
+     * @param array<string, bool> $currentLinks
+     * @return array<string, array{label: string, recordType: string, id: int, table: string, cornerstone: int, score: float, active: bool}>
+     */
     protected function linkRecords(array $scores, array $currentLinks): array
     {
         $links = [];
@@ -330,7 +388,7 @@ class LinkingSuggestionsService
                 continue;
             }
             if ($this->languageId > 0
-                && ($overlay = $this->pageRepository->getRecordOverlay($table, $data, $this->languageId, 'mixed'))) {
+                && ($overlay = $this->getRecordOverlay($table, $data, $this->languageId))) {
                 $data = $overlay;
             }
 
@@ -343,7 +401,7 @@ class LinkingSuggestionsService
                 'table' => $table,
                 'cornerstone' => (int)($data['tx_yoastseo_cornerstone'] ?? 0),
                 'score' => $score,
-                'active' => isset($currentLinks[$record])
+                'active' => isset($currentLinks[$record]),
             ];
         }
         $this->sortSuggestions($links);
@@ -354,6 +412,9 @@ class LinkingSuggestionsService
         return array_merge_recursive([], $cornerStoneSuggestions, $nonCornerStoneSuggestions);
     }
 
+    /**
+     * @param array<string, array{label: string, recordType: string, id: int, table: string, cornerstone: int, score: float, active: bool}> $links
+     */
     protected function sortSuggestions(array &$links): void
     {
         usort(
@@ -368,6 +429,10 @@ class LinkingSuggestionsService
         );
     }
 
+    /**
+     * @param array<string, array{label: string, recordType: string, id: int, table: string, cornerstone: int, score: float, active: bool}> $links
+     * @return array<string, array{label: string, recordType: string, id: int, table: string, cornerstone: int, score: float, active: bool}>
+     */
     protected function filterSuggestions(array $links, bool $cornerstone): array
     {
         return \array_filter(
@@ -378,6 +443,9 @@ class LinkingSuggestionsService
         );
     }
 
+    /**
+     * @return array<string, bool>
+     */
     protected function getCurrentContentLinks(string $content): array
     {
         $currentLinks = [];
@@ -406,8 +474,17 @@ class LinkingSuggestionsService
         );
     }
 
-    protected function getLanguageService(): LanguageService
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>|null
+     */
+    protected function getRecordOverlay(string $table, array $data, int $languageId): array|null
     {
-        return $GLOBALS['LANG'];
+        if (is_callable([$this->pageRepository, 'getRecordOverlay'])
+            && GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 12) {
+            return $this->pageRepository->getRecordOverlay($table, $data, $languageId, 'mixed');
+        }
+        $languageAspect = GeneralUtility::makeInstance(LanguageAspect::class, $languageId, $languageId, 'mixed');
+        return $this->pageRepository->getLanguageOverlay($table, $data, $languageAspect);
     }
 }

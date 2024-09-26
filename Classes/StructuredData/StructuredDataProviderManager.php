@@ -23,7 +23,10 @@ class StructuredDataProviderManager implements SingletonInterface
         protected FrontendInterface $pageCache
     ) {}
 
-    public function render(array &$params, $pObj): void
+    /**
+     * @param array<string, mixed> $params
+     */
+    public function render(array &$params, object $pObj): void
     {
         if (!$this->isFrontendRequest()) {
             return;
@@ -35,6 +38,9 @@ class StructuredDataProviderManager implements SingletonInterface
             = $this->getSourceComment() . PHP_EOL . $this->buildJsonLdBlob($data);
     }
 
+    /**
+     * @param array<string, array<string, mixed>> $src
+     */
     protected function buildJsonLdBlob(array $src): string
     {
         $data = [];
@@ -51,16 +57,20 @@ class StructuredDataProviderManager implements SingletonInterface
         return '<script type="application/ld+json">' . json_encode($data) . '</script>';
     }
 
+    /**
+     * @return array<string, array<string, mixed>>
+     */
     public function getStructuredData(): array
     {
         $structuredData = [];
         foreach ($this->getOrderedStructuredDataProviders() as $provider => $configuration) {
             $cacheIdentifier = $this->getTypoScriptFrontendController()->newHash . '-structured-data-' . $provider;
-            if ($this->pageCache instanceof FrontendInterface && $data = $this->pageCache->get($cacheIdentifier)) {
-                if (!empty($data)) {
+            if ($this->pageCache instanceof FrontendInterface) {
+                $data = $this->pageCache->get($cacheIdentifier);
+                if ($data !== false) {
                     $structuredData[$provider] = $data;
+                    continue;
                 }
-                continue;
             }
             $structuredDataProviderObject = $this->getStructuredDataProviderObject($configuration);
             if ($structuredDataProviderObject === null) {
@@ -71,7 +81,7 @@ class StructuredDataProviderManager implements SingletonInterface
                 $this->pageCache->set(
                     $cacheIdentifier,
                     $data,
-                    ['pageId_' . $this->getTypoScriptFrontendController()->page['uid']],
+                    ['pageId_' . ($this->getTypoScriptFrontendController()->page['uid'] ?? $this->getTypoScriptFrontendController()->id)],
                     // TODO: Fix this call, protected method since v13
                     //$this->getTypoScriptFrontendController()->get_cache_timeout()
                 );
@@ -85,6 +95,9 @@ class StructuredDataProviderManager implements SingletonInterface
         return $structuredData;
     }
 
+    /**
+     * @param array<string, mixed> $configuration
+     */
     protected function getStructuredDataProviderObject(array $configuration): StructuredDataProviderInterface|null
     {
         if (!class_exists($configuration['provider']) || !is_subclass_of($configuration['provider'], StructuredDataProviderInterface::class)) {
@@ -103,6 +116,9 @@ class StructuredDataProviderManager implements SingletonInterface
         return $GLOBALS['TSFE'];
     }
 
+    /**
+     * @return array<string, array<string, mixed>>
+     */
     private function getOrderedStructuredDataProviders(): array
     {
         $structuredDataProviders = $this->getStructuredDataProviderConfiguration();
@@ -112,6 +128,9 @@ class StructuredDataProviderManager implements SingletonInterface
             ->orderByDependencies($structuredDataProviders);
     }
 
+    /**
+     * @return array<string, array<string, mixed>>
+     */
     private function getStructuredDataProviderConfiguration(): array
     {
         $typoscriptService = GeneralUtility::makeInstance(TypoScriptService::class);
@@ -122,6 +141,10 @@ class StructuredDataProviderManager implements SingletonInterface
         return $config['structuredData']['providers'] ?? [];
     }
 
+    /**
+     * @param array<string, array<string, mixed>> $orderInformation
+     * @return array<string, array<string, mixed>>
+     */
     protected function setProviderOrder(array $orderInformation): array
     {
         foreach ($orderInformation as $provider => &$configuration) {
@@ -135,6 +158,10 @@ class StructuredDataProviderManager implements SingletonInterface
         return $orderInformation;
     }
 
+    /**
+     * @param array<string, mixed> $configuration
+     * @return string[]
+     */
     private function getOrderConfiguration(string $provider, array $configuration, string $key): array
     {
         if (is_string($configuration[$key])) {

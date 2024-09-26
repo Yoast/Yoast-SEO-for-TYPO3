@@ -24,6 +24,9 @@ class ProminentWordsService
         protected ConnectionPool $connectionPool
     ) {}
 
+    /**
+     * @param array<string, int|string> $prominentWords
+     */
     public function saveProminentWords(
         int $uid,
         ?int $pid,
@@ -53,6 +56,9 @@ class ProminentWordsService
         $this->createNewWords($prominentWords);
     }
 
+    /**
+     * @param array{uid: int, weight: int} $oldWord
+     */
     protected function updateIfWeightHasChanged(array $oldWord, int $weight): void
     {
         if ((int)$oldWord['weight'] === $weight) {
@@ -65,9 +71,12 @@ class ProminentWordsService
                 $queryBuilder->expr()->eq('uid', $oldWord['uid'])
             )
             ->setMaxResults(1)
-            ->executeQuery();
+            ->executeStatement();
     }
 
+    /**
+     * @param int[] $wordsToDelete
+     */
     protected function deleteProminentWords(array $wordsToDelete): void
     {
         if ($wordsToDelete === []) {
@@ -82,9 +91,12 @@ class ProminentWordsService
                     $queryBuilder->createNamedParameter($wordsToDelete, Connection::PARAM_INT_ARRAY)
                 )
             )
-            ->executeQuery();
+            ->executeStatement();
     }
 
+    /**
+     * @param array<string, int|string> $prominentWords
+     */
     protected function createNewWords(array $prominentWords): void
     {
         $site = $this->getSiteRootPageId();
@@ -96,25 +108,29 @@ class ProminentWordsService
                 'site' => $site,
                 'tablenames' => $this->table,
                 'stem' => $word,
-                'weight' => $weight
+                'weight' => (int)$weight
             ];
             $this->connectionPool->getConnectionForTable(self::PROMINENT_WORDS_TABLE)
                 ->insert(self::PROMINENT_WORDS_TABLE, $data);
         }
     }
 
+    /**
+     * @return array<array{uid: int, stem: string, weight: int}>
+     */
     protected function getOldWords(): array
     {
         $queryBuilder = $this->getQueryBuilder();
-        return $queryBuilder->select('uid', 'stem', 'weight')
+        $queryBuilder->select('uid', 'stem', 'weight')
             ->from(self::PROMINENT_WORDS_TABLE)
             ->where(
                 $queryBuilder->expr()->eq('uid_foreign', $this->uid),
                 $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($this->table)),
                 $queryBuilder->expr()->eq('sys_language_uid', $this->languageId)
-            )
-            ->executeQuery()
-            ->fetchAllAssociative();
+            );
+        /** @var array<array{uid: int, stem: string, weight: int}> $oldWords */
+        $oldWords = $queryBuilder->executeQuery()->fetchAllAssociative();
+        return $oldWords;
     }
 
     protected function getPidForRecord(int $uid, string $table): int

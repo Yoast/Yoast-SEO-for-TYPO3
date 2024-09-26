@@ -10,6 +10,7 @@ use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 class SiteStructuredDataProvider implements StructuredDataProviderInterface
 {
+    /** @var array<string, mixed> */
     protected array $configuration = [];
 
     public function __construct(
@@ -17,9 +18,13 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
         protected PageRepository $pageRepository,
     ) {}
 
+    /**
+     * @return array<array<string, mixed>>
+     */
     public function getData(): array
     {
-        if ((int)$this->getTyposcriptFrontendController()->page['is_siteroot'] !== 1) {
+        if ($this->getTyposcriptFrontendController()->page === null
+            || (int)$this->getTyposcriptFrontendController()->page['is_siteroot'] !== 1) {
             return [];
         }
         return [
@@ -49,6 +54,9 @@ class SiteStructuredDataProvider implements StructuredDataProviderInterface
         return $GLOBALS['TSFE'];
     }
 
+    /**
+     * @param array<string, mixed> $configuration
+     */
     public function setConfiguration(array $configuration): void
     {
         $this->configuration = $configuration;

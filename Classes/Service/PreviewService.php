@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
 use GuzzleHttp\Exception\RequestException;
+use JsonException;
 use TYPO3\CMS\Core\Exception;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -13,10 +14,9 @@ use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 class PreviewService
 {
     protected int $pageId = 0;
-    protected array $config = [];
     protected ContentObjectRenderer $cObj;
 
-    public function getPreviewData(string $uriToCheck, int $pageId)
+    public function getPreviewData(string $uriToCheck, int $pageId): string
     {
         $this->pageId = $pageId;
 
@@ -33,7 +33,12 @@ class PreviewService
                 ]
             ];
         }
-        return json_encode($data);
+
+        try {
+            return (string)json_encode($data, JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            return '';
+        }
     }
 
     protected function getContentFromUrl(string $uriToCheck): ?string
@@ -65,8 +70,15 @@ class PreviewService
         throw new Exception((string)$response->getStatusCode());
     }
 
+    /**
+     * @return array<string, int|string>
+     */
     protected function getDataFromContent(?string $content, string $uriToCheck): array
     {
+        if ($content === null) {
+            return [];
+        }
+
         $title = $body = $metaDescription = '';
         $locale = 'en';
 
@@ -104,11 +116,11 @@ class PreviewService
         if ($localeFound) {
             [$locale] = explode('-', trim($matchesLocale[1]));
         }
-        $urlParts = parse_url(preg_replace('/\/$/', '', $uriToCheck));
+        $urlParts = parse_url((string)preg_replace('/\/$/', '', $uriToCheck));
         if ($urlParts['port'] ?? false) {
-            $baseUrl = $urlParts['scheme'] . '://' . $urlParts['host'] . ':' . $urlParts['port'];
+            $baseUrl = (isset($urlParts['scheme']) ? $urlParts['scheme'] . ':' : '') . '//' . ($urlParts['host'] ?? '') . ':' . $urlParts['port'];
         } else {
-            $baseUrl = $urlParts['scheme'] . '://' . $urlParts['host'];
+            $baseUrl = (isset($urlParts['scheme']) ? $urlParts['scheme'] . ':' : '') . '//' . ($urlParts['host'] ?? '');
         }
         $url = $baseUrl . ($urlParts['path'] ?? '');
 
@@ -130,29 +142,26 @@ class PreviewService
 
         $body = $this->prepareBody($body);
 
-        if ($content !== null) {
-            return [
-                'id' => $this->pageId,
-                'url' => $url,
-                'baseUrl' => $baseUrl,
-                'slug' => '/',
-                'title' => strip_tags(html_entity_decode($title)),
-                'description' => strip_tags(html_entity_decode($metaDescription)),
-                'locale' => $locale,
-                'body' => $body,
-                'faviconSrc' => $faviconSrc,
-                'pageTitlePrepend' => $titlePrepend,
-                'pageTitleAppend' => $titleAppend,
-            ];
-        }
-        return [];
+        return [
+            'id' => $this->pageId,
+            'url' => $url,
+            'baseUrl' => $baseUrl,
+            'slug' => '/',
+            'title' => strip_tags(html_entity_decode($title)),
+            'description' => strip_tags(html_entity_decode($metaDescription)),
+            'locale' => $locale,
+            'body' => $body,
+            'faviconSrc' => $faviconSrc,
+            'pageTitlePrepend' => $titlePrepend,
+            'pageTitleAppend' => $titleAppend,
+        ];
     }
 
     protected function prepareBody(string $body): string
     {
         $body = $this->stripTagsContent($body, '<script><noscript>');
         $body = preg_replace(['/\s?\n\s?/', '/\s{2,}/'], [' ', ' '], $body);
-        $body = strip_tags($body, '<h1><h2><h3><h4><h5><p><a><img>');
+        $body = strip_tags((string)$body, '<h1><h2><h3><h4><h5><p><a><img>');
 
         return trim($body);
     }
@@ -163,7 +172,7 @@ class PreviewService
         $tagsArray = array_unique($foundTags[1]);
 
         if (is_array($tagsArray) && count($tagsArray) > 0) {
-            return preg_replace('@<(' . implode('|', $tagsArray) . ')\b.*?>.*?</\1>@si', '', $text);
+            return (string)preg_replace('@<(' . implode('|', $tagsArray) . ')\b.*?>.*?</\1>@si', '', $text);
         }
 
         return $text;

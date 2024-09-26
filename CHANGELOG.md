@@ -11,6 +11,10 @@ We will follow [Semantic Versioning](http://semver.org/).
 - Dropped support for PHP 7
 - Removed `DbalService` which was used to support older `doctrine/dbal` versions for TYPO3 10
 - Removed `ArrayPaginator` which was used to support TYPO3 10
+- Changed the structure of the overview filters for the `Overview` backend module
+  - Instead of registering it in the `EXTCONF` the filters are now registered through the `Services.yaml`
+  - Extra methods have been added to the `OverviewDataProviderInterface` as a replacement of the array configuration
+  - DataProviders are now initialized with a new `DataProviderRequest` DTO object
 
 ### Added
 - Support for TYPO3 13

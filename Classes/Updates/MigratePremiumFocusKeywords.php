@@ -18,7 +18,7 @@ class MigratePremiumFocusKeywords implements UpgradeWizardInterface
     protected const PREMIUM_TABLE = 'tx_yoast_seo_premium_focus_keywords';
     protected const NEW_TABLE = 'tx_yoastseo_related_focuskeyword';
 
-    protected ?ConnectionPool $connectionPool = null;
+    protected ConnectionPool $connectionPool;
 
     public function __construct()
     {

@@ -13,11 +13,11 @@
     </f:then>
     <f:else>
         <div class="yoast">
-            <h1><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:mlang_tabs_tab" /> <span>- {subtitle}</span></h1>
+            <h1><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:mlang_tabs_tab" /> <span>- <f:translate key="{activeFilter.label}" /></span></h1>
 
             <div class="yoast-overview-filters">
-                <f:for each="{filters}" as="filter" key="filterKey">
-                    <f:link.action class="btn btn-sm {f:if(condition: '{activeFilter} == {filterKey}', then: 'btn-primary', else: 'btn-default')}" arguments="{filter: filter.key}" addQueryString="true"><f:translate key="{filter.label}" /> ({filter.numberOfItems})</f:link.action>
+                <f:for each="{filters}" as="filter">
+                    <f:link.action class="btn btn-sm {f:if(condition: '{activeFilter.key} == {filter.key}', then: 'btn-primary', else: 'btn-default')}" arguments="{filter: filter.key}" addQueryString="true"><f:translate key="{filter.label}" /> ({filter.numberOfItems})</f:link.action>
                 </f:for>
             </div>
 
@@ -27,9 +27,9 @@
 </f:if>
 
 <f:section name="overview">
-    <f:if condition="{description}">
-        <f:be.infobox state="-1" title="{subtitle}">
-            <p><f:format.raw><f:translate key="{description}" arguments="{0: link}" /></f:format.raw></p>
+    <f:if condition="{activeFilter.description}">
+        <f:be.infobox state="-1" title="{f:translate(key: activeFilter.label)}">
+            <p><f:format.raw><f:translate key="{activeFilter.description}" arguments="{0: activeFilter.link}" /></f:format.raw></p>
         </f:be.infobox>
     </f:if>
 
