@@ -22,7 +22,7 @@ abstract class AbstractBackendController extends ActionController
     /**
      * @param array<string, mixed> $data
      */
-    protected function returnResponse(array $data = [], ModuleTemplate $moduleTemplate = null): ResponseInterface
+    protected function returnResponse(string $template, array $data = [], ModuleTemplate $moduleTemplate = null): ResponseInterface
     {
         $data['layout'] = GeneralUtility::makeInstance(Typo3Version::class)
             ->getMajorVersion() < 13 ? 'Default' : 'Module';
@@ -39,7 +39,7 @@ abstract class AbstractBackendController extends ActionController
         $moduleTemplate->getDocHeaderComponent()->setMetaInformation($this->getPageInformation());
 
         $moduleTemplate->assignMultiple($data);
-        return $moduleTemplate->renderResponse();
+        return $moduleTemplate->renderResponse($template);
     }
 
     protected function getModuleTemplate(): ModuleTemplate

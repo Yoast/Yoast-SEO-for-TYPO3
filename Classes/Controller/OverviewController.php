@@ -34,7 +34,7 @@ class OverviewController extends AbstractBackendController
         $overviewData = $this->getOverviewData($currentPage) + ['action' => 'list'];
         $moduleTemplate = $this->getModuleTemplate();
         if (!isset($overviewData['pageInformation'])) {
-            return $this->returnResponse($overviewData, $moduleTemplate);
+            return $this->returnResponse('Overview/List', $overviewData, $moduleTemplate);
         }
 
         $moduleTemplate->getDocHeaderComponent()->setMetaInformation($overviewData['pageInformation']);
@@ -47,7 +47,7 @@ class OverviewController extends AbstractBackendController
             $moduleTemplate->getDocHeaderComponent()->getMenuRegistry()->addMenu($languageMenu);
         }
 
-        return $this->returnResponse($overviewData, $moduleTemplate);
+        return $this->returnResponse('Overview/List', $overviewData, $moduleTemplate);
     }
 
     /**
