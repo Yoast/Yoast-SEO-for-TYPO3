@@ -1,0 +1,54 @@
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.2', '8.3']
+        typo3: ['11', '12', '13']
+        composerInstall: ['composerInstallLowest', 'composerInstallHighest']
+        include:
+          - typo3: '11'
+            php: '8.0'
+            composerInstall: 'composerInstallLowest'
+          - typo3: '11'
+            php: '8.0'
+            composerInstall: 'composerInstallHighest'
+          - typo3: '11'
+            php: '8.1'
+            composerInstall: 'composerInstallLowest'
+          - typo3: '11'
+            php: '8.1'
+            composerInstall: 'composerInstallHighest'
+          - typo3: '12'
+            php: '8.1'
+            composerInstall: 'composerInstallLowest'
+          - typo3: '12'
+            php: '8.1'
+            composerInstall: 'composerInstallHighest'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Composer validate
+        run: Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php }} -s composerValidate
+
+      - name: Install dependencies
+        run: Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php }} -s ${{ matrix.composerInstall }}
+
+      - name: Composer normalize
+        run: Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php }} -s composerNormalize -n
+
+      - name: Lint PHP
+        run: Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php }} -s lint
+
+      - name: CGL
+        run: Build/Scripts/runTests.sh -n -t ${{ matrix.typo3 }} -p ${{ matrix.php }} -s cgl -n
+
+      - name: PHPStan
+        run: Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php }} -s phpstan -e "--error-format=github"

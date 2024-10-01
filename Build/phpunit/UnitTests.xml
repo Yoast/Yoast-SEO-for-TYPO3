@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.6/phpunit.xsd"
+        beStrictAboutTestsThatDoNotTestAnything="false"
+        bootstrap="UnitTestsBootstrap.php"
+        cacheResult="false"
+        displayDetailsOnTestsThatTriggerWarnings="true"
+        colors="true"
+        failOnRisky="true"
+        failOnWarning="true"
+        processIsolation="false"
+        stopOnError="false"
+        stopOnFailure="false"
+        stopOnIncomplete="false"
+        stopOnSkipped="false"
+>
+    <coverage/>
+    <testsuites>
+        <testsuite name="Unit tests">
+            <directory>../../Tests/Unit/</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <ini name="display_errors" value="1"/>
+        <env name="TYPO3_CONTEXT" value="Testing"/>
+        <env name="HTTP_HOST" value="localhost"/>
+    </php>
+</phpunit>

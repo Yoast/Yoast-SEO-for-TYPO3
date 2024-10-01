@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Widgets\Provider;
 
-use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Core\Utility\GeneralUtility;

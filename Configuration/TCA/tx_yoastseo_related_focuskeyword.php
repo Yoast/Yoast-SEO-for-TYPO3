@@ -37,7 +37,7 @@ $focusKeywordTca = [
                 'size' => 30,
                 'eval' => 'required',
                 'required' => true,
-            ]
+            ],
         ],
         'synonyms' => [
             'exclude' => 1,
@@ -46,7 +46,7 @@ $focusKeywordTca = [
             'config' => [
                 'type' => 'input',
                 'size' => 30,
-            ]
+            ],
         ],
         'analysis' => [
             'exclude' => 1,
@@ -55,7 +55,7 @@ $focusKeywordTca = [
             'config' => [
                 'type' => 'none',
                 'renderType' => 'focusKeywordAnalysis',
-            ]
+            ],
         ],
         'uid_foreign' => [
             'config' => [
@@ -73,16 +73,16 @@ $focusKeywordTca = [
             'showitem' => '
                 --linebreak--, keyword,
                 --linebreak--, synonyms,
-                --linebreak--, analysis'
-        ]
+                --linebreak--, analysis',
+        ],
     ],
     'types' => [
         '0' => [
             'showitem' => '
                 --div--;General, --palette--;;yoast-focuskeyword,
                 --div--;Visibility, sys_language_uid, l10n_parent,l10n_diffsource, uid_foreign, tablenames, hidden
-            '
-        ]
+            ',
+        ],
     ],
 ];
 
@@ -95,7 +95,7 @@ if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 13) {
                 'config' => [
                     'foreign_table' => 'tx_yoastseo_related_focuskeyword',
                     'foreign_table_where' => 'AND tx_yoastseo_related_focuskeyword.pid=###CURRENT_PID### AND tx_yoastseo_related_focuskeyword.sys_language_uid IN (-1,0)',
-                ]
+                ],
             ]),
             'l10n_source' => $GLOBALS['TCA']['tt_content']['columns']['l10n_source'],
             'l10n_diffsource' => $GLOBALS['TCA']['tt_content']['columns']['l18n_diffsource'],

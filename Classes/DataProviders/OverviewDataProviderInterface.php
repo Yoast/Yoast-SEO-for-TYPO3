@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 
 use Doctrine\DBAL\Result;
-use YoastSeoForTypo3\YoastSeo\Backend\Overview\DataProviderRequest;
+use YoastSeoForTypo3\YoastSeo\Service\Overview\Dto\DataProviderRequest;
 
 interface OverviewDataProviderInterface
 {

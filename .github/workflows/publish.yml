@@ -1,0 +1,49 @@
+name: TYPO3 Extension Repository
+
+on:
+  push:
+    tag:
+
+jobs:
+  publish:
+    name: Publish new version to TER
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Check tag
+        run: |
+          if ! [[ ${{ github.ref }} =~ ^refs/tags/[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ ]]; then
+            exit 1
+          fi
+      - name: Set up PHP Version
+        run: |
+          sudo update-alternatives --set php /usr/bin/php7.4
+          php -v
+
+      - name: Update Composer
+        run: |
+          sudo composer self-update
+          composer --version
+
+      - name: Composer Install
+        run: |
+          composer install
+
+      - name: Create token
+        run: |
+          rm -f token.txt
+          echo "Create token..."
+          TYPO3_API_USERNAME=${{ secrets.TYPO3_API_USERNAME }} TYPO3_API_PASSWORD=${{ secrets.TYPO3_API_PASSWORD }} vendor/bin/tailor ter:token:create --name="token for yoast_seo" --extensions=yoast_seo --expires=300 --no-ansi > token.txt
+          echo "And wait for token to be active... (60s)"
+          sleep 60s
+
+      - name: Get version
+        id: get-version
+        run: |
+          echo ::set-output name=version::${GITHUB_REF/refs\/tags\//}
+
+      - name: Publish to TER
+        run: TYPO3_API_USERNAME=${{ secrets.TYPO3_API_USERNAME }} TYPO3_API_PASSWORD=${{ secrets.TYPO3_API_PASSWORD }} TYPO3_API_TOKEN=$(awk '/Access token:(.*)/ { print $3 }' token.txt) TYPO3_EXCLUDE_FROM_PACKAGING=./Build/ExcludeFromPackaging.php vendor/bin/tailor ter:publish --comment "Check https://github.com/Yoast/Yoast-SEO-for-TYPO3/blob/main/CHANGELOG.md for the latest changes." ${{ steps.get-version.outputs.version }} yoast_seo

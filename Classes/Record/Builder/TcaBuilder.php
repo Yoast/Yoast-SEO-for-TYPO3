@@ -71,7 +71,7 @@ class TcaBuilder extends AbstractBuilder
                 'twitter_description' => $GLOBALS['TCA']['pages']['columns']['twitter_description'],
                 'twitter_image' => $GLOBALS['TCA']['pages']['columns']['twitter_image'],
                 'twitter_card' => $GLOBALS['TCA']['pages']['columns']['twitter_card'],
-            ]
+            ],
         ];
         $GLOBALS['TCA'][$this->record->getTableName()] = array_replace_recursive(
             $GLOBALS['TCA'][$this->record->getTableName()],
@@ -111,7 +111,7 @@ class TcaBuilder extends AbstractBuilder
             'columns' => [
                 'sitemap_changefreq' => $GLOBALS['TCA']['pages']['columns']['sitemap_changefreq'],
                 'sitemap_priority' => $GLOBALS['TCA']['pages']['columns']['sitemap_priority'],
-            ]
+            ],
         ];
         $GLOBALS['TCA'][$this->record->getTableName()] = array_replace_recursive(
             $GLOBALS['TCA'][$this->record->getTableName()],
@@ -128,7 +128,7 @@ class TcaBuilder extends AbstractBuilder
     protected function addDescriptionField(): void
     {
         ExtensionManagementUtility::addTCAcolumns($this->record->getTableName(), [
-            $this->record->getDescriptionField() => $GLOBALS['TCA']['pages']['columns']['description']
+            $this->record->getDescriptionField() => $GLOBALS['TCA']['pages']['columns']['description'],
         ]);
     }
 

@@ -34,7 +34,7 @@ return static function (ContainerConfigurator $configurator, ContainerBuilder $c
                 'description' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.widget.orphanedContent.description',
                 'iconIdentifier' => 'extension-yoast',
                 'height' => 'large',
-                'width' => 'medium'
+                'width' => 'medium',
             ]
         );
 
@@ -59,7 +59,7 @@ return static function (ContainerConfigurator $configurator, ContainerBuilder $c
                 'description' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.widget.pagesWithoutMetaDescription.description',
                 'iconIdentifier' => 'extension-yoast',
                 'height' => 'large',
-                'width' => 'medium'
+                'width' => 'medium',
             ]
         );
 };

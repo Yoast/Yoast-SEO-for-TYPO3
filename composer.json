@@ -1,8 +1,8 @@
 {
   "name": "yoast-seo-for-typo3/yoast_seo",
   "description": "Yoast SEO for TYPO3",
-  "type": "typo3-cms-extension",
   "license": "GPL-3.0-or-later",
+  "type": "typo3-cms-extension",
   "keywords": [
     "TYPO3 CMS",
     "Yoast",
@@ -23,65 +23,66 @@
   ],
   "homepage": "https://yoast.com",
   "support": {
-    "source": "https://github.com/Yoast/Yoast-SEO-for-TYPO3",
     "issues": "https://github.com/Yoast/Yoast-SEO-for-TYPO3/issues",
+    "source": "https://github.com/Yoast/Yoast-SEO-for-TYPO3",
     "docs": "https://docs.typo3.org/p/yoast-seo-for-typo3/yoast_seo/main/en-us/"
   },
   "require": {
-    "typo3/cms-core": "^11.5 || ^12.4 || ^13.0",
-    "typo3/cms-backend": "^11.5 || ^12.4 || ^13.0",
-    "typo3/cms-extbase": "^11.5 || ^12.4 || ^13.0",
-    "typo3/cms-fluid": "^11.5 || ^12.4 || ^13.0",
-    "typo3/cms-frontend": "^11.5 || ^12.4 || ^13.0",
-    "typo3/cms-install": "^11.5 || ^12.4 || ^13.0",
-    "typo3/cms-seo": "^11.5 || ^12.4 || ^13.0",
-    "ext-curl": "*",
+    "php": "^8.0",
     "ext-json": "*",
-    "php": "^8.0"
+    "typo3/cms-backend": "^11.5.25 || ^12.4.15 || ^13.0",
+    "typo3/cms-core": "^11.5.25 || ^12.4.15 || ^13.0",
+    "typo3/cms-extbase": "^11.5.25 || ^12.4.15 || ^13.0",
+    "typo3/cms-fluid": "^11.5.25 || ^12.4.15 || ^13.0",
+    "typo3/cms-frontend": "^11.5.25 || ^12.4.15 || ^13.0",
+    "typo3/cms-install": "^11.5.25 || ^12.4.15 || ^13.0",
+    "typo3/cms-seo": "^11.5.25 || ^12.4.15 || ^13.0"
   },
   "require-dev": {
-    "friendsofphp/php-cs-fixer": "^3.0",
-    "overtrue/phplint": ">=5.5 <10.0",
-    "phpstan/phpstan": "^1.9",
+    "ergebnis/composer-normalize": "^2.43",
+    "friendsofphp/php-cs-fixer": "^3.60.0",
+    "php-parallel-lint/php-parallel-lint": "^1.4",
     "phpstan/extension-installer": "^1.0",
-    "typo3/tailor": "^1.1",
-    "saschaegerer/phpstan-typo3": "^1.8"
-  },
-  "suggest": {
-    "typo3/cms-dashboard": "Display Yoast SEO widgets within the Dashboard of TYPO3"
+    "phpstan/phpstan": "^1.9",
+    "saschaegerer/phpstan-typo3": "^1.10",
+    "typo3/coding-standards": "^0.7.1 || ^0.8.0",
+    "typo3/testing-framework": "^7.1.0 || ^8.2.0"
   },
   "replace": {
     "typo3-ter/yoast-seo": "self.version"
+  },
+  "suggest": {
+    "typo3/cms-dashboard": "Display Yoast SEO widgets within the Dashboard of TYPO3"
   },
   "autoload": {
     "psr-4": {
       "YoastSeoForTypo3\\YoastSeo\\": "Classes/"
     }
   },
-  "extra": {
-    "typo3/cms": {
-      "extension-key": "yoast_seo"
+  "autoload-dev": {
+    "psr-4": {
+      "YoastSeoForTypo3\\YoastSeo\\Tests\\": "Tests/"
     }
   },
   "config": {
     "allow-plugins": {
+      "ergebnis/composer-normalize": true,
+      "phpstan/extension-installer": true,
+      "sbuerk/typo3-cmscomposerinstallers-testingframework-bridge": true,
       "typo3/class-alias-loader": true,
-      "typo3/cms-composer-installers": true,
-      "phpstan/extension-installer": true
-    }
+      "typo3/cms-composer-installers": true
+    },
+    "bin-dir": ".Build/bin",
+    "preferred-install": {
+      "*": "dist"
+    },
+    "sort-packages": true,
+    "vendor-dir": ".Build/vendor"
   },
-  "scripts": {
-    "test:php:lint": [
-      "phplint --configuration=.Build/.phplint.yml"
-    ],
-    "cgl": [
-      "php-cs-fixer fix --config=.Build/.php-cs-fixer.php -v --dry-run --using-cache no --diff"
-    ],
-    "cgl-fix": [
-      "php-cs-fixer fix --config=.Build/.php-cs-fixer.php -v --using-cache no"
-    ],
-    "test:php:phpstan": [
-      "phpstan analyse"
-    ]
+  "extra": {
+    "typo3/cms": {
+      "extension-key": "yoast_seo",
+      "web-dir": ".Build/public"
+    }
   }
 }

@@ -12,9 +12,9 @@ ExtensionManagementUtility::addTCAcolumns(
             'exclude' => true,
             'config' => [
                 'type' => 'none',
-                'renderType' => 'internalLinkingSuggestion'
-            ]
-        ]
+                'renderType' => 'internalLinkingSuggestion',
+            ],
+        ],
     ]
 );
 foreach ($GLOBALS['TCA']['tt_content']['types'] as $type => $config) {

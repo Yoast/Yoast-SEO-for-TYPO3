@@ -19,9 +19,9 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 class UrlService implements SingletonInterface
 {
     public function __construct(
-        protected UriBuilder $uriBuilder
-    ) {
-    }
+        protected UriBuilder $uriBuilder,
+        protected SiteFinder $siteFinder,
+    ) {}
 
     public function getPreviewUrl(
         int $pageId,
@@ -31,7 +31,7 @@ class UrlService implements SingletonInterface
         return (string)$this->uriBuilder->buildUriFromRoute('ajax_yoast_preview', [
             'pageId' => $pageId,
             'languageId' => $languageId,
-            'additionalGetVars' => urlencode($additionalGetVars)
+            'additionalGetVars' => urlencode($additionalGetVars),
         ]);
     }
 
@@ -51,7 +51,7 @@ class UrlService implements SingletonInterface
                     'urlToCheck' => $uriToCheck,
                     'site' => $site,
                     'finalPageIdToShow' => $pageId,
-                    'languageId' => $languageId
+                    'languageId' => $languageId,
                 ];
 
                 $uriToCheck = GeneralUtility::callUserFunction($_funcRef, $_params, $this);
@@ -85,10 +85,9 @@ class UrlService implements SingletonInterface
      */
     public function getSite(int $pageId, array $rootLine): ?Site
     {
-        $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
         try {
-            return $siteFinder->getSiteByPageId($pageId, $rootLine);
-        } catch (SiteNotFoundException $e) {
+            return $this->siteFinder->getSiteByPageId($pageId, $rootLine);
+        } catch (SiteNotFoundException) {
             return null;
         }
     }

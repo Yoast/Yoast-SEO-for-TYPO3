@@ -19,17 +19,20 @@ services:
   YoastSeoForTypo3\YoastSeo\Controller\AjaxController:
     public: true
 
-  YoastSeoForTypo3\YoastSeo\Controller\OverviewController:
+  YoastSeoForTypo3\YoastSeo\Service\Overview\OverviewService:
     arguments:
       $filters:
-        cornerstore: '@YoastSeoForTypo3\YoastSeo\DataProviders\CornerstoneOverviewDataProvider'
+        cornerstone: '@YoastSeoForTypo3\YoastSeo\DataProviders\CornerstoneOverviewDataProvider'
         withoutDescription: '@YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutDescriptionOverviewDataProvider'
         orphaned: '@YoastSeoForTypo3\YoastSeo\DataProviders\OrphanedContentDataProvider'
 
-  YoastSeoForTypo3\YoastSeo\Service\CrawlerService:
+  YoastSeoForTypo3\YoastSeo\Service\Crawler\CrawlerService:
     public: true
     arguments:
       $cache: '@cache.pages'
+
+  YoastSeoForTypo3\YoastSeo\Service\SnippetPreview\SnippetPreviewUrlGenerator:
+    public: true
 
   YoastSeoForTypo3\YoastSeo\StructuredData\StructuredDataProviderManager:
     public: true
@@ -70,6 +73,9 @@ services:
     public: true
 
   YoastSeoForTypo3\YoastSeo\MetaTag\AdvancedRobotsGenerator:
+    public: true
+
+  YoastSeoForTypo3\YoastSeo\Frontend\UsePageCache:
     public: true
 
   YoastSeoForTypo3\YoastSeo\Backend\ModifyPageLayoutContentListener:

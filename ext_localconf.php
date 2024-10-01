@@ -39,7 +39,7 @@ defined('TYPO3') || die;
         $GLOBALS['TYPO3_CONF_VARS']['SYS']['formEngine']['nodeRegistry'][$nodeKey] = [
             'nodeName' => $nodeInfo[0],
             'priority' => 40,
-            'class' => $nodeInfo[1]
+            'class' => $nodeInfo[1],
         ];
     }
 

@@ -1,0 +1,14 @@
+parameters:
+  level: 8
+  paths:
+    - ../../Classes
+    - ../../Configuration
+  excludePaths:
+    - ../../Classes/Updates
+  ignoreErrors:
+    - '#TYPO3\\CMS\\Frontend\\Page\\PageInformation#'
+    - '#frontend.page.information#'
+    - '#protected method getRecordOverlay#'
+  typo3:
+    requestGetAttributeMapping:
+        handlerRequest: string
