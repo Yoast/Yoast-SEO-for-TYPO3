@@ -79,10 +79,8 @@ li.score:after {
     width: 33px;
     min-height: 1px; }
 
-.yoast h1 {
+.yoast h1 span {
   color: #a4286a; }
-  .yoast h1 span {
-    color: #000; }
 
 .yoast-list--usp {
   padding: 0;
@@ -258,7 +256,6 @@ li.score:after {
 
 .yoast {
   line-height: 1.6;
-  color: #000;
   letter-spacing: 0.01em; }
   .yoast .callout-body a {
     font-weight: bold; }
@@ -280,6 +277,7 @@ li.score:after {
     position: relative;
     margin-bottom: 20px; }
     .yoast-seo-academy__item p {
+      color: #000;
       position: absolute;
       right: 0;
       bottom: 0;
