@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Form\Element;
 
 use TYPO3\CMS\Backend\Form\AbstractNode;
-use TYPO3\CMS\Backend\Form\NodeFactory;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Core\Exception\SiteNotFoundException;
 use TYPO3\CMS\Core\Page\PageRenderer;
+use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
@@ -22,32 +22,13 @@ class InternalLinkingSuggestion extends AbstractNode
     protected int $languageId;
     protected int $currentPage;
 
-    public function __construct(NodeFactory $nodeFactory, array $data)
-    {
-        parent::__construct($nodeFactory, $data);
-
-        $this->currentPage = $data['parentPageRow']['uid'];
-
-        if (isset($data['databaseRow']['sys_language_uid'])) {
-            if (is_array($data['databaseRow']['sys_language_uid']) && count(
-                    $data['databaseRow']['sys_language_uid']
-                ) > 0) {
-                $this->languageId = (int)current($data['databaseRow']['sys_language_uid']);
-            } else {
-                $this->languageId = (int)$data['databaseRow']['sys_language_uid'];
-            }
-        }
-
-        $this->templateView = GeneralUtility::makeInstance(StandaloneView::class);
-        $this->templateView->setTemplatePathAndFilename(
-            GeneralUtility::getFileAbsFileName(
-                'EXT:yoast_seo/Resources/Private/Templates/TCA/InternalLinkingSuggestion.html'
-            )
-        );
-    }
-
+    /**
+     * @return array<string, mixed>
+     */
     public function render(): array
     {
+        $this->init();
+
         $locale = $this->getLocale($this->currentPage);
         if ($locale === null) {
             $this->templateView->assign('languageError', true);
@@ -67,29 +48,24 @@ class InternalLinkingSuggestion extends AbstractNode
             'isCornerstoneContent' => false,
             'focusKeyphrase' => [
                 'keyword' => '',
-                'synonyms' => ''
+                'synonyms' => '',
             ],
             'data' => [
-                'languageId' => $this->languageId
+                'languageId' => $this->languageId,
             ],
             'linkingSuggestions' => [
                 'excludedPage' => $this->currentPage,
-                'locale' => $locale
+                'locale' => $locale,
             ],
             'urls' => [
                 'workerUrl' => $workerUrl,
                 'linkingSuggestions' => (string)GeneralUtility::makeInstance(UriBuilder::class)
-                    ->buildUriFromRoute('ajax_yoast_internal_linking_suggestions')
-            ]
+                    ->buildUriFromRoute('ajax_yoast_internal_linking_suggestions'),
+            ],
         ];
         $jsonConfigUtility->addConfig($config);
 
         $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
-        $pageRenderer->addRequireJsConfiguration([
-            'paths' => [
-                'YoastSEO' => $publicResourcesPath . '/JavaScript/',
-            ]
-        ]);
         JavascriptUtility::loadJavascript($pageRenderer);
 
         $resultArray['html'] = $this->templateView->render();
@@ -104,11 +80,42 @@ class InternalLinkingSuggestion extends AbstractNode
             $site = $siteFinder->getSiteByPageId($pageId);
             if ($this->languageId === -1) {
                 $this->languageId = $site->getDefaultLanguage()->getLanguageId();
-                return $site->getDefaultLanguage()->getTwoLetterIsoCode();
+                return $this->getLanguageCode($site->getDefaultLanguage());
             }
-            return $site->getLanguageById($this->languageId)->getTwoLetterIsoCode();
+            return $this->getLanguageCode($site->getLanguageById($this->languageId));
         } catch (SiteNotFoundException|\InvalidArgumentException $e) {
             return null;
         }
+    }
+
+    protected function getLanguageCode(SiteLanguage $siteLanguage): string
+    {
+        // Support for v11
+        if (method_exists($siteLanguage, 'getTwoLetterIsoCode')) {
+            return $siteLanguage->getTwoLetterIsoCode();
+        }
+        return $siteLanguage->getLocale()->getLanguageCode();
+    }
+
+    protected function init(): void
+    {
+        $this->currentPage = $this->data['parentPageRow']['uid'];
+
+        if (isset($this->data['databaseRow']['sys_language_uid'])) {
+            if (is_array($this->data['databaseRow']['sys_language_uid']) && count(
+                    $this->data['databaseRow']['sys_language_uid']
+                ) > 0) {
+                $this->languageId = (int)current($this->data['databaseRow']['sys_language_uid']);
+            } else {
+                $this->languageId = (int)$this->data['databaseRow']['sys_language_uid'];
+            }
+        }
+
+        $this->templateView = GeneralUtility::makeInstance(StandaloneView::class);
+        $this->templateView->setTemplatePathAndFilename(
+            GeneralUtility::getFileAbsFileName(
+                'EXT:yoast_seo/Resources/Private/Templates/TCA/InternalLinkingSuggestion.html'
+            )
+        );
     }
 }

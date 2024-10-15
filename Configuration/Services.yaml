@@ -19,6 +19,23 @@ services:
   YoastSeoForTypo3\YoastSeo\Controller\AjaxController:
     public: true
 
+  YoastSeoForTypo3\YoastSeo\Controller\OverviewController:
+    arguments:
+      $filters:
+        cornerstore: '@YoastSeoForTypo3\YoastSeo\DataProviders\CornerstoneOverviewDataProvider'
+        withoutDescription: '@YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutDescriptionOverviewDataProvider'
+        orphaned: '@YoastSeoForTypo3\YoastSeo\DataProviders\OrphanedContentDataProvider'
+
+  YoastSeoForTypo3\YoastSeo\Service\CrawlerService:
+    public: true
+    arguments:
+      $cache: '@cache.pages'
+
+  YoastSeoForTypo3\YoastSeo\StructuredData\StructuredDataProviderManager:
+    public: true
+    arguments:
+      $pageCache: '@cache.pages'
+
   YoastSeoForTypo3\YoastSeo\EventListener\TcaBuiltListener:
     arguments:
       - '@YoastSeoForTypo3\YoastSeo\Record\Builder\TcaBuilder'
@@ -47,12 +64,13 @@ services:
         method: 'setCanonical'
 
   YoastSeoForTypo3\YoastSeo\PageTitle\RecordPageTitleProvider:
-    arguments:
-      - '@YoastSeoForTypo3\YoastSeo\Record\RecordService'
+    public: true
 
   YoastSeoForTypo3\YoastSeo\MetaTag\RecordMetaTagGenerator:
-    arguments:
-      - '@YoastSeoForTypo3\YoastSeo\Record\RecordService'
+    public: true
+
+  YoastSeoForTypo3\YoastSeo\MetaTag\AdvancedRobotsGenerator:
+    public: true
 
   YoastSeoForTypo3\YoastSeo\Backend\ModifyPageLayoutContentListener:
     tags:

@@ -7,45 +7,57 @@ namespace YoastSeoForTypo3\YoastSeo\Service;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Traits\LanguageServiceTrait;
 
 class LocaleService
 {
-    protected const APP_TRANSLATION_FILE_PATTERN = 'EXT:yoast_seo/Resources/Private/Language/wordpress-seo-%s.json';
-    protected Locales $locales;
+    use LanguageServiceTrait;
 
-    public function __construct(Locales $locales)
-    {
-        $this->locales = $locales;
+    protected const APP_TRANSLATION_FILE_PATTERN = 'EXT:yoast_seo/Resources/Private/Language/wordpress-seo-%s.json';
+
+    public function __construct(
+        protected Locales $locales
+    ) {
     }
 
+    /**
+     * @return array<string, array<string, string>>
+     */
     public function getTranslations(): array
     {
         $interfaceLocale = $this->getInterfaceLocale();
 
-        if ($interfaceLocale !== null
-            && ($translationFilePath = sprintf(
-                static::APP_TRANSLATION_FILE_PATTERN,
-                $interfaceLocale
-            )) !== false
-            && ($translationFilePath = GeneralUtility::getFileAbsFileName(
-                $translationFilePath
-            )) !== false
-            && file_exists($translationFilePath)
-        ) {
-            return json_decode(file_get_contents($translationFilePath), true);
+        if ($interfaceLocale === null) {
+            return [];
         }
+
+        $translationFilePath = GeneralUtility::getFileAbsFileName(
+            sprintf(static::APP_TRANSLATION_FILE_PATTERN, $interfaceLocale)
+        );
+
+        if ($translationFilePath === '' || !file_exists($translationFilePath)) {
+            return [];
+        }
+
+        if ($jsonContents = file_get_contents($translationFilePath)) {
+            return json_decode($jsonContents, true);
+        }
+
         return [];
     }
 
+    /**
+     * @return array<string, string>
+     */
     public function getLabels(): array
     {
         $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:label';
         return [
-            'readability' => $GLOBALS['LANG']->sL($llPrefix . 'Readability'),
-            'seo' => $GLOBALS['LANG']->sL($llPrefix . 'Seo'),
-            'bad' => $GLOBALS['LANG']->sL($llPrefix . 'Bad'),
-            'ok' => $GLOBALS['LANG']->sL($llPrefix . 'Ok'),
-            'good' => $GLOBALS['LANG']->sL($llPrefix . 'Good')
+            'readability' => $this->getLanguageService()->sL($llPrefix . 'Readability'),
+            'seo' => $this->getLanguageService()->sL($llPrefix . 'Seo'),
+            'bad' => $this->getLanguageService()->sL($llPrefix . 'Bad'),
+            'ok' => $this->getLanguageService()->sL($llPrefix . 'Ok'),
+            'good' => $this->getLanguageService()->sL($llPrefix . 'Good')
         ];
     }
 

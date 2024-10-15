@@ -8,10 +8,11 @@ use Doctrine\DBAL\Exception\TableNotFoundException;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
+use TYPO3\CMS\Install\Attribute\UpgradeWizard;
 use TYPO3\CMS\Install\Updates\DatabaseUpdatedPrerequisite;
 use TYPO3\CMS\Install\Updates\UpgradeWizardInterface;
-use YoastSeoForTypo3\YoastSeo\Service\DbalService;
 
+#[UpgradeWizard('yoastRedirectsMigrate')]
 class MigrateRedirects implements UpgradeWizardInterface
 {
     protected const PAGE_LINK_PROTOCOL = 't3://page?uid=';
@@ -88,10 +89,9 @@ class MigrateRedirects implements UpgradeWizardInterface
         $queryBuilder->getRestrictions()->removeAll();
 
         try {
-            $statement = $queryBuilder->select('*')
+            $domains = $queryBuilder->select('*')
                 ->from('sys_domain')
-                ->execute();
-            $domains = GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
+                ->executeQuery()->fetchAllAssociative();
         } catch (TableNotFoundException $e) {
             return [];
         }
@@ -110,13 +110,13 @@ class MigrateRedirects implements UpgradeWizardInterface
         $queryBuilder->getRestrictions()->removeAll();
 
         try {
-            $statement = $queryBuilder->select('*')
+            return $queryBuilder->select('*')
                 ->from('tx_yoast_seo_premium_redirect')
                 ->where(
                     $queryBuilder->expr()->eq('deleted', 0)
                 )
-                ->execute();
-            return GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
+                ->executeQuery()
+                ->fetchAllAssociative();
         } catch (TableNotFoundException $e) {
             return [];
         }

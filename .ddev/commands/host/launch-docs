@@ -1,7 +1,8 @@
 #!/bin/bash
 
+FULLURL="https://docs.${DDEV_SITENAME}.ddev.site"
 
-FULLURL="Documentation-GENERATED-temp/Result/project/0.0.0/Index.html"
+echo "Opening \"https://docs.${DDEV_SITENAME}.ddev.site\"..."
 
 case $OSTYPE in
   linux-gnu)

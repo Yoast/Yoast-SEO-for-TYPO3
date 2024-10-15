@@ -8,6 +8,9 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class YoastRequestHash
 {
+    /**
+     * @param array<string, mixed> $serverParams
+     */
     public static function isValid(array $serverParams): bool
     {
         return isset($serverParams['HTTP_X_YOAST_PAGE_REQUEST'])

@@ -11,15 +11,12 @@ jobs:
       max-parallel: 6
       fail-fast: false
       matrix:
-        typo3: ['10', '11']
-        php: ['php7.4']
+        typo3: ['11', '12', '13']
+        php: ['php8.2']
         experimental: [false]
         include:
           - typo3: '11'
-            php: 'php8.1'
-            experimental: false
-          - typo3: '12'
-            php: 'php8.1'
+            php: 'php8.0'
             experimental: false
     steps:
       - uses: actions/checkout@v1

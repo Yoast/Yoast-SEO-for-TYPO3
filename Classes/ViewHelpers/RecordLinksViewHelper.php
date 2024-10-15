@@ -20,11 +20,7 @@ class RecordLinksViewHelper extends AbstractViewHelper
     }
 
     /**
-     * @param array $arguments
-     * @param \Closure $renderChildrenClosure
-     * @param \TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface $renderingContext
-     * @throws \TYPO3\CMS\Backend\Routing\Exception\RouteNotFoundException
-     * @return string
+     * @param array<string, mixed> $arguments
      */
     public static function renderStatic(
         array $arguments,
@@ -33,7 +29,7 @@ class RecordLinksViewHelper extends AbstractViewHelper
     ): string {
         $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
 
-        $returnUri = $uriBuilder->buildUriFromRoute($arguments['module'], GeneralUtility::_GET());
+        $returnUri = $uriBuilder->buildUriFromRoute($arguments['module'], $_GET);
 
         $module = '';
         $urlParameters = [];

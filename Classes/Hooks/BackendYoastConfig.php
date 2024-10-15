@@ -9,10 +9,12 @@ use TYPO3\CMS\Core\Http\ApplicationType;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
-use YoastSeoForTypo3\YoastSeo\Utility\PathUtility;
 
 class BackendYoastConfig
 {
+    /**
+     * @param array<string, mixed> $params
+     */
     public function renderConfig(array &$params, PageRenderer $pObject): void
     {
         if (!($GLOBALS['TYPO3_REQUEST'] ?? null) instanceof ServerRequestInterface

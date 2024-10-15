@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Pagination;
 
+use TYPO3\CMS\Core\Pagination\ArrayPaginator;
+
 /**
  * Class Pagination
  *
  * Functionality ported from the old fluid widget paginate, to support huge overviews
  * (prevent long lists of numbered links)
+ * TODO: Can be removed once CMS11 support is dropped
  */
 class Pagination
 {
-    /**
-     * @var \YoastSeoForTypo3\YoastSeo\Pagination\ArrayPaginator
-     */
     protected ArrayPaginator $paginator;
 
     protected int $maximumNumberOfLinks = 15;
@@ -62,7 +62,7 @@ class Pagination
     }
 
     /**
-     * @return int[]
+     * @return array<int, float>
      */
     public function getAllPageNumbers(): array
     {

@@ -4,64 +4,31 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Widgets;
 
-use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
-use TYPO3\CMS\Dashboard\Widgets\WidgetConfigurationInterface;
-use TYPO3\CMS\Dashboard\Widgets\WidgetInterface;
+use TYPO3\CMS\Core\View\ViewInterface;
 use TYPO3\CMS\Fluid\View\StandaloneView;
-use YoastSeoForTypo3\YoastSeo\Widgets\Provider\PageProviderInterface;
+use YoastSeoForTypo3\YoastSeo\Traits\BackendUserTrait;
 
-class PageOverviewWidget implements WidgetInterface
+class PageOverviewWidget extends AbstractPageOverviewWidget
 {
-    protected WidgetConfigurationInterface $configuration;
-    protected PageProviderInterface $dataProvider;
-    protected StandaloneView $view;
-    protected $buttonProvider;
+    use BackendUserTrait;
+
     /**
-     * @var array
+     * @return array|string[]
      */
-    private $options;
-
-    public function __construct(
-        WidgetConfigurationInterface $configuration,
-        PageProviderInterface $dataProvider,
-        StandaloneView $view,
-        $buttonProvider = null,
-        array $options = []
-    ) {
-        $this->configuration = $configuration;
-        $this->dataProvider = $dataProvider;
-        $this->view = $view;
-        $this->buttonProvider = $buttonProvider;
-        $this->options = array_merge(
-            [
-                'template' => 'Widget/ExtendedListWidget',
-            ],
-            $options
-        );
-    }
-
     public function getOptions(): array
     {
         return [];
     }
 
-    public function renderWidgetContent(): string
+    protected function assignToView(ViewInterface|StandaloneView $view): void
     {
-        $this->view->setTemplate($this->options['template']);
-
-        $this->view->assignMultiple([
+        $view->assignMultiple([
             'pages' => $this->dataProvider->getPages(),
             'options' => $this->options,
-            'button' => $this->buttonProvider,
+            'button' => null,
             'configuration' => $this->configuration,
             'dateFormat' => $GLOBALS['TYPO3_CONF_VARS']['SYS']['ddmmyy'],
             'timeFormat' => $GLOBALS['TYPO3_CONF_VARS']['SYS']['hhmm'],
         ]);
-        return $this->view->render();
-    }
-
-    protected function getBackendUser(): BackendUserAuthentication
-    {
-        return $GLOBALS['BE_USER'];
     }
 }

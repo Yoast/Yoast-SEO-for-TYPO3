@@ -10,10 +10,6 @@ class DashboardController extends AbstractBackendController
 {
     public function indexAction(): ResponseInterface
     {
-        return $this->returnResponse();
-    }
-
-    public function legacyAction(): void
-    {
+        return $this->returnResponse('Dashboard/Index');
     }
 }

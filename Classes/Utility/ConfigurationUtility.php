@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Utility;
 
 use YoastSeoForTypo3\YoastSeo\Form\Element;
-use YoastSeoForTypo3\YoastSeo\DataProviders;
 use YoastSeoForTypo3\YoastSeo\MetaTag\Generator;
 
 class ConfigurationUtility
 {
+    /**
+     * @return array<int, array<int, string>>
+     */
     public static function getFormEngineNodes(): array
     {
         return [
@@ -22,13 +24,15 @@ class ConfigurationUtility
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public static function getDefaultConfiguration(): array
     {
-        $llBackendOverview = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf';
         return [
             'allowedDoktypes' => [
                 'page' => 1,
-                'backend_section' => 5
+                'backend_section' => 5,
             ],
             'translations' => [
                 'availableLocales' => [
@@ -83,7 +87,7 @@ class ConfigurationUtility
                     'vi',
                     'zh_CN',
                     'zh_HK',
-                    'zh_TW'
+                    'zh_TW',
                 ],
                 'languageKeyToLocaleMapping' => [
                     'bg' => 'bg_BG',
@@ -102,46 +106,20 @@ class ConfigurationUtility
                     'ru' => 'ru_RU',
                     'sk' => 'sk_SK',
                     'sv' => 'sv_SE',
-                    'tr' => 'tr_TR'
-                ]
+                    'tr' => 'tr_TR',
+                ],
             ],
             'previewSettings' => [
                 'basicAuth' => [
                     'username' => '',
                     'password' => '',
-                ]
-            ],
-            'overview_filters' => [
-                '10' => [
-                    'key' => 'cornerstone',
-                    'label' => $llBackendOverview . ':cornerstoneContent',
-                    'description' => $llBackendOverview . ':cornerstoneContent.description',
-                    'link' => 'https://yoa.st/typo3-cornerstone-content',
-                    'dataProvider' => DataProviders\CornerstoneOverviewDataProvider::class . '->process',
-                    'countProvider' => DataProviders\CornerstoneOverviewDataProvider::class . '->numberOfItems'
                 ],
-                '20' => [
-                    'key' => 'withoutDescription',
-                    'label' => $llBackendOverview . ':withoutDescription',
-                    'description' => $llBackendOverview . ':withoutDescription.description',
-                    'link' => 'https://yoa.st/typo3-meta-description',
-                    'dataProvider' => DataProviders\PagesWithoutDescriptionOverviewDataProvider::class . '->process',
-                    'countProvider' => DataProviders\PagesWithoutDescriptionOverviewDataProvider::class . '->numberOfItems'
-                ],
-                '30' => [
-                    'key' => 'orphaned',
-                    'label' => $llBackendOverview . ':orphanedContent',
-                    'description' => $llBackendOverview . ':orphanedContent.description',
-                    'link' => 'https://yoa.st/1ja',
-                    'dataProvider' => DataProviders\OrphanedContentDataProvider::class . '->process',
-                    'countProvider' => DataProviders\OrphanedContentDataProvider::class . '->numberOfItems'
-                ]
             ],
             'recordMetaTags' => [
                 'description' => Generator\DescriptionGenerator::class,
                 'opengraph' => Generator\OpenGraphGenerator::class,
-                'twitter' => Generator\TwitterGenerator::class
-            ]
+                'twitter' => Generator\TwitterGenerator::class,
+            ],
         ];
     }
 }

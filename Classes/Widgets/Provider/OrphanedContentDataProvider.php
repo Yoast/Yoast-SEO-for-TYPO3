@@ -4,24 +4,27 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Widgets\Provider;
 
-use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use YoastSeoForTypo3\YoastSeo\Service\DbalService;
+use YoastSeoForTypo3\YoastSeo\Traits\BackendUserTrait;
 
 class OrphanedContentDataProvider implements PageProviderInterface
 {
-    private array $excludedDoktypes;
-    private int $limit;
+    use BackendUserTrait;
 
-    public function __construct(array $excludedDoktypes, int $limit)
-    {
-        $this->excludedDoktypes = $excludedDoktypes;
+    public function __construct(
+        /** @var int[] */
+        private array $excludedDoktypes,
+        private int $limit
+    ) {
         $this->limit = $limit ?: 5;
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function getPages(): array
     {
         $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_refindex');
@@ -37,12 +40,12 @@ class OrphanedContentDataProvider implements PageProviderInterface
             )
         ];
 
-        $statement = $qb->select('ref_uid')
+        $refs = $qb->select('ref_uid')
             ->from('sys_refindex')
             ->where(...$constraints)
             ->groupBy('ref_uid')
-            ->execute();
-        $refs = GeneralUtility::makeInstance(DbalService::class)->getAllResults($statement);
+            ->executeQuery()
+            ->fetchAllAssociative();
 
         $pageIds = [];
         foreach ($refs as $ref) {
@@ -63,14 +66,14 @@ class OrphanedContentDataProvider implements PageProviderInterface
 
         $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('pages');
         while ($counter < $this->limit) {
-            $statement = $qb->select('p.*')
+            $row = $qb->select('p.*')
                 ->from('pages', 'p')
                 ->where(...$constraints)
                 ->orderBy('tstamp', 'DESC')
                 ->setFirstResult($iterator)
                 ->setMaxResults(1)
-                ->execute();
-            $row = GeneralUtility::makeInstance(DbalService::class)->getSingleResult($statement);
+                ->executeQuery()
+                ->fetchAssociative();
 
             if ($row === false) {
                 // Likely fewer pages than the limit, prevent infinite loop
@@ -88,10 +91,5 @@ class OrphanedContentDataProvider implements PageProviderInterface
         }
 
         return $items;
-    }
-
-    protected function getBackendUser(): BackendUserAuthentication
-    {
-        return $GLOBALS['BE_USER'];
     }
 }

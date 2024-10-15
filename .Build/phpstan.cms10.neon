@@ -1,9 +1,0 @@
-parameters:
-  level: 0
-  paths:
-    - ../Classes
-    - ../Configuration
-  ignoreErrors:
-    - '#Parameter \$event of method#'
-    - '#undefined method YoastSeoForTypo3\\YoastSeo\\Controller\\AbstractBackendController::htmlResponse\(\)#'
-    - '#Class TYPO3\\CMS\\Backend\\Template\\ModuleTemplateFactory not found#'

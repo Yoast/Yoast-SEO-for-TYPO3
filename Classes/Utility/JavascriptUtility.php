@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Utility;
 
+use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -16,7 +17,15 @@ class JavascriptUtility
         }
 
         if (YoastUtility::inProductionMode() === true) {
-            $pageRenderer->loadRequireJsModule('TYPO3/CMS/YoastSeo/dist/plugin');
+            if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() >= 13) {
+                $pageRenderer->loadJavaScriptModule(
+                    '@yoast/yoast-seo-for-typo3/dist/plugin.js',
+                );
+            } else {
+                $pageRenderer->loadRequireJsModule(
+                    'TYPO3/CMS/YoastSeo/dist/plugin',
+                );
+            }
         } else {
             $pageRenderer->addHeaderData(
                 '<script type="text/javascript" src="https://localhost:3333/typo3conf/ext/yoast_seo/Resources/Public/JavaScript/dist/plugin.js" async></script>'

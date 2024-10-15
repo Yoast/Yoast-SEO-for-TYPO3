@@ -11,7 +11,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 class RecordRegistry implements SingletonInterface
 {
     /**
-     * @var \YoastSeoForTypo3\YoastSeo\Record\Record[]
+     * @var Record[]
      */
     protected ?array $records = null;
 
@@ -34,14 +34,14 @@ class RecordRegistry implements SingletonInterface
     }
 
     /**
-     * @return \YoastSeoForTypo3\YoastSeo\Record\Record[]
+     * @return Record[]
      */
     public function getRecords(bool $useCache = false): array
     {
         if ($this->records === null) {
             $this->retrieveRecords($useCache);
         }
-        return $this->records;
+        return (array)$this->records;
     }
 
     protected function retrieveRecords(bool $useCache): void

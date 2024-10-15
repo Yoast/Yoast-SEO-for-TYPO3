@@ -1,14 +1,16 @@
 <?php
 
+use TYPO3\CMS\Core\Information\Typo3Version;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+
 $llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/TCA.xlf:';
 
-return [
+$focusKeywordTca = [
     'ctrl' => [
         'title' => $llPrefix . 'tx_yoastseo_related_focuskeyword.title',
         'label' => 'keyword',
         'tstamp' => 'tstamp',
         'crdate' => 'crdate',
-        'cruser_id' => 'cruser_id',
         'languageField' => 'sys_language_uid',
         'transOrigPointerField' => 'l10n_parent',
         'transOrigDiffSourceField' => 'l10n_diffsource',
@@ -21,18 +23,11 @@ return [
         ],
         'versioningWS' => true,
         'origUid' => 't3_origuid',
+        'security' => [
+            'ignorePageTypeRestriction' => true,
+        ],
     ],
     'columns' => [
-        'sys_language_uid' => $GLOBALS['TCA']['tt_content']['columns']['sys_language_uid'],
-        'l10n_parent' => array_replace_recursive($GLOBALS['TCA']['tt_content']['columns']['l18n_parent'], [
-            'config' => [
-                'foreign_table' => 'tx_yoastseo_related_focuskeyword',
-                'foreign_table_where' => 'AND tx_yoastseo_related_focuskeyword.pid=###CURRENT_PID### AND tx_yoastseo_related_focuskeyword.sys_language_uid IN (-1,0)',
-            ]
-        ]),
-        'l10n_source' => $GLOBALS['TCA']['tt_content']['columns']['l10n_source'],
-        'l10n_diffsource' => $GLOBALS['TCA']['tt_content']['columns']['l18n_diffsource'],
-        'hidden' => $GLOBALS['TCA']['tt_content']['columns']['hidden'],
         'keyword' => [
             'exclude' => 1,
             'l10n_mode' => 'prefixLangTitle',
@@ -41,6 +36,7 @@ return [
                 'type' => 'input',
                 'size' => 30,
                 'eval' => 'required',
+                'required' => true,
             ]
         ],
         'synonyms' => [
@@ -89,3 +85,23 @@ return [
         ]
     ],
 ];
+
+if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 13) {
+    $focusKeywordTca['columns'] = array_merge(
+        $focusKeywordTca['columns'],
+        [
+            'sys_language_uid' => $GLOBALS['TCA']['tt_content']['columns']['sys_language_uid'],
+            'l10n_parent' => array_replace_recursive($GLOBALS['TCA']['tt_content']['columns']['l18n_parent'], [
+                'config' => [
+                    'foreign_table' => 'tx_yoastseo_related_focuskeyword',
+                    'foreign_table_where' => 'AND tx_yoastseo_related_focuskeyword.pid=###CURRENT_PID### AND tx_yoastseo_related_focuskeyword.sys_language_uid IN (-1,0)',
+                ]
+            ]),
+            'l10n_source' => $GLOBALS['TCA']['tt_content']['columns']['l10n_source'],
+            'l10n_diffsource' => $GLOBALS['TCA']['tt_content']['columns']['l18n_diffsource'],
+            'hidden' => $GLOBALS['TCA']['tt_content']['columns']['hidden'],
+        ]
+    );
+}
+
+return $focusKeywordTca;

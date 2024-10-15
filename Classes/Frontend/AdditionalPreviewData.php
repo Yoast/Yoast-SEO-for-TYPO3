@@ -13,6 +13,7 @@ use YoastSeoForTypo3\YoastSeo\Utility\YoastRequestHash;
 
 class AdditionalPreviewData implements SingletonInterface
 {
+    /** @var array<string, mixed> */
     protected array $config;
 
     public function __construct()
@@ -20,6 +21,9 @@ class AdditionalPreviewData implements SingletonInterface
         $this->config = $GLOBALS['TSFE']->tmpl->setup['config.'] ?? [];
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public function render(array &$params, object $pObj): void
     {
         $serverParams = $GLOBALS['TYPO3_REQUEST'] ? $GLOBALS['TYPO3_REQUEST']->getServerParams() : $_SERVER;
@@ -51,6 +55,9 @@ class AdditionalPreviewData implements SingletonInterface
         return '';
     }
 
+    /**
+     * @return string[]
+     */
     protected function getPageTitlePrependAppend(): array
     {
         $prependAppend = ['prepend' => '', 'append' => ''];
@@ -76,24 +83,15 @@ class AdditionalPreviewData implements SingletonInterface
 
     protected function getPageTitleSeparator(): string
     {
-        $pageTitleSeparator = '';
-        // Check for a custom pageTitleSeparator, and perform stdWrap on it
-        if (isset($this->config['pageTitleSeparator'])
-            && $this->config['pageTitleSeparator'] !== '') {
-            $pageTitleSeparator = $this->config['pageTitleSeparator'];
-
-            if (isset($this->config['pageTitleSeparator.'])
-                && is_array($this->config['pageTitleSeparator.'])) {
-                $cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
-                $pageTitleSeparator = $cObj->stdWrap(
-                    $pageTitleSeparator,
-                    $this->config['pageTitleSeparator.']
-                );
-            } else {
-                $pageTitleSeparator .= ' ';
-            }
+        if (!isset($this->config['pageTitleSeparator']) || $this->config['pageTitleSeparator'] === '') {
+            return '';
         }
 
-        return $pageTitleSeparator;
+        if (is_array($this->config['pageTitleSeparator.'] ?? null)) {
+            return (string)GeneralUtility::makeInstance(ContentObjectRenderer::class)
+                ->stdWrap($this->config['pageTitleSeparator'], $this->config['pageTitleSeparator.']);
+        }
+
+        return $this->config['pageTitleSeparator'] . ' ';
     }
 }

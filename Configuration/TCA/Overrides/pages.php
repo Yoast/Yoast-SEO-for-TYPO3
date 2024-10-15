@@ -1,10 +1,13 @@
 <?php
-$llPrefix = 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:';
 
-\TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\YoastSeoForTypo3\YoastSeo\Service\TcaService::class)
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Service\TcaService;
+use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
+
+GeneralUtility::makeInstance(TcaService::class)
     ->addYoastFields(
         'pages',
-        \YoastSeoForTypo3\YoastSeo\Utility\YoastUtility::getAllowedDoktypes(null, true)
+        YoastUtility::getAllowedDoktypesList()
     );
 
 // Remove description from metatags tab

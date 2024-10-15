@@ -5,6 +5,26 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## UNRELEASED
+### Breaking
+- Dropped support for TYPO3 10
+- Dropped support for PHP 7
+- Removed `DbalService` which was used to support older `doctrine/dbal` versions for TYPO3 10
+- Removed `ArrayPaginator` which was used to support TYPO3 10
+- Changed the structure of the overview filters for the `Overview` backend module
+  - Instead of registering it in the `EXTCONF` the filters are now registered through the `Services.yaml`
+  - Extra methods have been added to the `OverviewDataProviderInterface` as a replacement of the array configuration
+  - DataProviders are now initialized with a new `DataProviderRequest` DTO object
+
+### Added
+- Support for TYPO3 13
+- Upgrade wizard to migrate the dashboard widget "Pages without meta description" to the core widget
+
+#### Changed
+- Update ddev configuration with latest changes from https://github.com/a-r-m-i-n/ddev-for-typo3-extensions
+  - Added `ddev composer-install-dashboard $VERSION` and `ddev composer-remove-dashboard $VERSION` commands to simplify testing dashboard widgets
+  - Added `ddev composer-update-all $VERSION` to update all composer dependencies to the latest version
+
 ## 9.0.3 December 18, 2023
 ### Fixed
 - Prevent undefined array key warning within `LinkingSuggestionsService`

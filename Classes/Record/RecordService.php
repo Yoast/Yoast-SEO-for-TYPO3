@@ -10,7 +10,6 @@ use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\Exception\MissingArrayPathException;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use YoastSeoForTypo3\YoastSeo\Service\DbalService;
 
 class RecordService implements SingletonInterface
 {
@@ -41,12 +40,12 @@ class RecordService implements SingletonInterface
     }
 
     /**
-     * @param \YoastSeoForTypo3\YoastSeo\Record\Record[] $records
-     * @return \YoastSeoForTypo3\YoastSeo\Record\Record|null
+     * @param Record[] $records
+     * @return Record|null
      */
     protected function findRecord(array $records): ?Record
     {
-        $currentGetParameters = GeneralUtility::_GET();
+        $currentGetParameters = $_GET;
 
         foreach ($records as $record) {
             if (empty($record->getGetParameters())) {
@@ -69,13 +68,15 @@ class RecordService implements SingletonInterface
         return null;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function getRecordData(Record $record): array
     {
-        $statement = GeneralUtility::makeInstance(ConnectionPool::class)
+        $recordRow = GeneralUtility::makeInstance(ConnectionPool::class)
             ->getConnectionForTable($record->getTableName())
-            ->select(['*'], $record->getTableName(), ['uid' => $record->getRecordUid()]);
-
-        $recordRow = GeneralUtility::makeInstance(DbalService::class)->getSingleResult($statement);
+            ->select(['*'], $record->getTableName(), ['uid' => $record->getRecordUid()])
+            ->fetchAssociative();
 
         return (array)GeneralUtility::makeInstance(PageRepository::class)
             ->getLanguageOverlay($record->getTableName(), (array)$recordRow);

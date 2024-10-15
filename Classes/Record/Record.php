@@ -16,9 +16,12 @@ class Record
     protected string $descriptionField = 'description';
     protected bool $addDescriptionField = false;
     protected string $fieldsPosition = 'after:' . self::DEFAULT_TITLE_FIELD;
+    /** @var array<string, mixed> */
     protected array $overrideTca = [];
+    /** @var array<string, mixed> */
     protected array $getParameters = [];
     protected ?int $recordUid = null;
+    /** @var array<string, mixed> */
     protected array $recordData = [];
     protected bool $generatePageTitle = true;
     protected bool $generateMetaTags = true;
@@ -123,22 +126,34 @@ class Record
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getOverrideTca(): array
     {
         return $this->overrideTca;
     }
 
+    /**
+     * @param array<string, mixed> $overrideTca
+     */
     public function setOverrideTca(array $overrideTca): self
     {
         $this->overrideTca = $overrideTca;
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getGetParameters(): array
     {
         return $this->getParameters;
     }
 
+    /**
+     * @param array<string, mixed> $getParameters
+     */
     public function setGetParameters(array $getParameters): self
     {
         $this->getParameters = $getParameters;
@@ -189,11 +204,17 @@ class Record
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getRecordData(): array
     {
         return $this->recordData;
     }
 
+    /**
+     * @param  array<string, mixed> $recordData
+     */
     public function setRecordData(array $recordData): self
     {
         $this->recordData = $recordData;
