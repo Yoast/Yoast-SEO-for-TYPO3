@@ -5,7 +5,7 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
-## UNRELEASED
+## 10.0.0 October 15, 2024
 ### Breaking
 - Dropped support for TYPO3 10
 - Dropped support for PHP 7

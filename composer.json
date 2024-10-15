@@ -28,13 +28,13 @@
     "docs": "https://docs.typo3.org/p/yoast-seo-for-typo3/yoast_seo/main/en-us/"
   },
   "require": {
-    "typo3/cms-core": "^11.5 || ^12.4 || ^13.0",
-    "typo3/cms-backend": "^11.5 || ^12.4 || ^13.0",
-    "typo3/cms-extbase": "^11.5 || ^12.4 || ^13.0",
-    "typo3/cms-fluid": "^11.5 || ^12.4 || ^13.0",
-    "typo3/cms-frontend": "^11.5 || ^12.4 || ^13.0",
-    "typo3/cms-install": "^11.5 || ^12.4 || ^13.0",
-    "typo3/cms-seo": "^11.5 || ^12.4 || ^13.0",
+    "typo3/cms-core": "^11.5 || ^12.4 || ^13.4",
+    "typo3/cms-backend": "^11.5 || ^12.4 || ^13.4",
+    "typo3/cms-extbase": "^11.5 || ^12.4 || ^13.4",
+    "typo3/cms-fluid": "^11.5 || ^12.4 || ^13.4",
+    "typo3/cms-frontend": "^11.5 || ^12.4 || ^13.4",
+    "typo3/cms-install": "^11.5 || ^12.4 || ^13.4",
+    "typo3/cms-seo": "^11.5 || ^12.4 || ^13.4",
     "ext-curl": "*",
     "ext-json": "*",
     "php": "^8.0"
