@@ -32,7 +32,7 @@ class VisibilityChecker
     {
         $backendUser = $this->getBackendUser();
 
-        if (!$GLOBALS['BE_USER']->check('non_exclude_fields', 'pages:tx_yoastseo_snippetpreview')) {
+        if (!$backendUser->check('non_exclude_fields', 'pages:tx_yoastseo_snippetpreview')) {
             return false;
         }
 

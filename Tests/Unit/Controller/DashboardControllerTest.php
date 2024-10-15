@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Tests\Unit\Controller;
 
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\Http\HtmlResponse;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 use YoastSeoForTypo3\YoastSeo\Controller\DashboardController;
 
-/**
- * @covers \YoastSeoForTypo3\YoastSeo\Controller\DashboardController
- */
+#[CoversClass(DashboardController::class)]
 final class DashboardControllerTest extends UnitTestCase
 {
     private DashboardController $subject;
@@ -32,17 +32,13 @@ final class DashboardControllerTest extends UnitTestCase
         $this->subject->method('returnResponse')->willReturn($responseStub);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function isActionController(): void
     {
         self::assertInstanceOf(ActionController::class, $this->subject);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function indexActionReturnsHtmlResponse(): void
     {
         $result = $this->subject->indexAction();
