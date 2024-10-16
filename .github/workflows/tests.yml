@@ -7,6 +7,7 @@ jobs:
     name: Tests
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         php: ['8.2', '8.3']
         typo3: ['11', '12', '13']
@@ -54,7 +55,9 @@ jobs:
         run: Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php }} -s phpstan -e "--error-format=github"
 
       - name: Functional tests
+        if: ${{ matrix.php != '8.0' }} # Functional tests are not supported for PHP 8.0 due to PHP requirement of phpunit ^10
         run: Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php }} -s functional
 
       - name: Unit tests
+        if: ${{ matrix.php != '8.0' }} # Unit tests are not supported for PHP 8.0 due to PHP requirement of phpunit ^10
         run: Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php }} -s unit
