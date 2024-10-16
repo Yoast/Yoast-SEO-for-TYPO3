@@ -9,7 +9,6 @@
         displayDetailsOnSkippedTests="true"
         displayDetailsOnTestsThatTriggerDeprecations="true"
         displayDetailsOnTestsThatTriggerErrors="true"
-        displayDetailsOnPhpunitDeprecations="true"
         colors="true"
         failOnRisky="true"
         failOnWarning="true"
