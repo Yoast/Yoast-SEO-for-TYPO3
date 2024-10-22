@@ -34,6 +34,10 @@ class SnippetPreview extends AbstractNode
      */
     public function render(): array
     {
+        if ($this->data['command'] === 'new') {
+            return [];
+        }
+
         $this->initialize();
 
         $resultArray = $this->initializeResultArray();
