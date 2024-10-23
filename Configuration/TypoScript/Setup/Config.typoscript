@@ -10,6 +10,11 @@ config {
         site {
             provider = YoastSeoForTypo3\YoastSeo\StructuredData\SiteStructuredDataProvider
         }
+
+        typoscript {
+            provider = YoastSeoForTypo3\YoastSeo\StructuredData\TypoScriptStructuredDataProvider
+            after = breadcrumb
+        }
     }
     pageTitleProviders {
         yoastRecord {

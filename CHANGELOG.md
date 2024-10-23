@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
 ## UNRELEASED
+### Added
+- `TypoScriptStructuredDataProvider` to add structured data to the page, configured with TypoScript (premium functionality)
+
 ### Fixed
 - Renamed `JavascriptModules.php` to `JavaScriptModules.php`
 
