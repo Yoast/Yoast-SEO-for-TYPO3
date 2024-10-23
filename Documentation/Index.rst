@@ -59,10 +59,7 @@ and help editors write high quality content.
 .. tip::
 
    Community support is available in the TYPO3 Slack channel
-   `#yoast-seo-for-typo3 <https://typo3.slack.com/archives/C14EQDFL1>`__. If you
-   want support for your installation, you can buy our
-   `premium plugin <https://yoast.com/typo3-extensions-seo/>`__ and get 24/7
-   support.
+   `#yoast-seo-for-typo3 <https://typo3.slack.com/archives/C14EQDFL1>`__.
 
 .. note::
 
