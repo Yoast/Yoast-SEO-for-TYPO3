@@ -9,11 +9,11 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\MockObject;
 use TYPO3\TestingFramework\Core\AccessibleObjectInterface;
-use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 use YoastSeoForTypo3\YoastSeo\Service\PageLayoutHeader\VisibilityChecker;
+use YoastSeoForTypo3\YoastSeo\Tests\Functional\AbstractFunctionalTestCase;
 
 #[CoversClass(VisibilityChecker::class)]
-class VisibilityCheckerTest extends FunctionalTestCase
+class VisibilityCheckerTest extends AbstractFunctionalTestCase
 {
     /**
      * @var VisibilityChecker&MockObject&AccessibleObjectInterface
@@ -28,11 +28,12 @@ class VisibilityCheckerTest extends FunctionalTestCase
         ],
     ];
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
         $this->importCSVDataSet(__DIR__ . '/../../Fixtures/be_users.csv');
+        $this->importCSVDataSet(__DIR__ . '/../../Fixtures/pages.csv');
         $this->setUpBackendUser(1);
     }
 

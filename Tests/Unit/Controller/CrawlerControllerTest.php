@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Tests\Unit\Controller;
 
+use DG\BypassFinals;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\Http\HtmlResponse;
@@ -24,6 +25,7 @@ final class CrawlerControllerTest extends UnitTestCase
 
     protected function setUp(): void
     {
+        BypassFinals::enable();
         parent::setUp();
 
         $this->subject = $this->getAccessibleMock(

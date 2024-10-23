@@ -21,6 +21,7 @@ class YoastUtility
         $allowedDoktypes = array_map(function ($doktype) {
             return (int)$doktype;
         }, array_values((array)($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['allowedDoktypes'] ?? [])));
+        $allowedDoktypes = array_unique($allowedDoktypes);
 
         if (isset($configuration['allowedDoktypes'])
             && is_array($configuration['allowedDoktypes'])

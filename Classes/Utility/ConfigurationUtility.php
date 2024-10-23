@@ -32,7 +32,7 @@ class ConfigurationUtility
         return [
             'allowedDoktypes' => [
                 'page' => 1,
-                'backend_section' => 5,
+                'backend_section' => 6,
             ],
             'translations' => [
                 'availableLocales' => [
