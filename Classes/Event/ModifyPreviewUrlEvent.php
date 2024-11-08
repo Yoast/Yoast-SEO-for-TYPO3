@@ -13,8 +13,7 @@ final class ModifyPreviewUrlEvent
         private Site $site,
         private int $pageId,
         private int $languageId,
-    ) {
-    }
+    ) {}
 
     public function getUrl(): string
     {

@@ -1,106 +1,131 @@
+/*!****************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[4].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[4].use[2]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[4].use[3]!./sass/yoast.scss ***!
+  \****************************************************************************************************************************************************************************************************************************************/
 .yoast-seo {
   padding: 15px;
-  background-color: #FFF; }
+  background-color: var(--module-bg, #FFF);
+}
+
+#yoast-snippet-preview-container {
+  background-color: var(--module-bg, #FFF) !important;
+}
+#yoast-snippet-preview-container div:nth-child(1) > div:first-child {
+  color: var(--module-color, #000) !important;
+}
+#yoast-snippet-preview-container div:nth-child(2) > div {
+  color: var(--module-color, #000) !important;
+}
 
 .yoast-seo-snippet-header {
-  padding: 10px;
-  background-color: #eee;
-  color: #000; }
-  .yoast-seo-snippet-header-premium {
-    float: right; }
-    .yoast-seo-snippet-header-premium a {
-      margin-left: 5px;
-      text-decoration: underline; }
-      .yoast-seo-snippet-header-premium a i {
-        margin-right: 5px;
-        color: #a4286a; }
+  padding: 5px;
+  background-color: var(--module-docheader-bg, #eee);
+  color: var(--module-color, #000);
+  border-radius: 5px;
+}
+.yoast-seo-snippet-header-premium {
+  float: right;
+}
+.yoast-seo-snippet-header-premium a {
+  margin-left: 5px;
+  text-decoration: underline;
+}
+.yoast-seo-snippet-header-premium a i {
+  margin-right: 5px;
+  color: #a4286a;
+}
 
 .yoast-seo-score-bar {
-  margin-bottom: 15px; }
-  .yoast-seo-score-bar--analysis {
-    margin-right: 20px; }
-    .yoast-seo-score-bar--analysis.yoast-seo-page {
-      cursor: pointer; }
-    .yoast-seo-score-bar--analysis svg {
-      vertical-align: middle; }
+  margin-bottom: 15px;
+}
+.yoast-seo-score-bar--analysis {
+  margin-right: 20px;
+}
+.yoast-seo-score-bar--analysis.yoast-seo-page {
+  cursor: pointer;
+}
+.yoast-seo-score-bar--analysis svg {
+  vertical-align: middle;
+}
 
 .yoast-seo-snippet-error {
   color: #dc3232;
   padding: 10px;
-  text-align: center; }
-  .yoast-seo-snippet-error a {
-    color: #dc3232;
-    text-decoration: underline; }
+  text-align: center;
+}
+.yoast-seo-snippet-error a {
+  color: #dc3232;
+  text-decoration: underline;
+}
 
 .spinner {
   width: 70px;
   margin: 50px auto;
-  text-align: center; }
-  .spinner > div {
-    display: inline-block;
-    width: 18px;
-    height: 18px;
-    border-radius: 100%;
-    background-color: #cccccc;
-    -webkit-animation: sk-bouncedelay 1.4s infinite ease-in-out both;
-    animation: sk-bouncedelay 1.4s infinite ease-in-out both; }
-  .spinner .bounce1 {
-    -webkit-animation-delay: -0.32s;
-    animation-delay: -0.32s; }
-  .spinner .bounce2 {
-    -webkit-animation-delay: -0.16s;
-    animation-delay: -0.16s; }
-
-@-webkit-keyframes sk-bouncedelay {
-  0%,
-  80%,
-  100% {
-    -webkit-transform: scale(0); }
-  40% {
-    -webkit-transform: scale(1); } }
-
+  text-align: center;
+}
+.spinner > div {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 100%;
+  background-color: #cccccc;
+  animation: sk-bouncedelay 1.4s infinite ease-in-out both;
+}
+.spinner .bounce1 {
+  animation-delay: -0.32s;
+}
+.spinner .bounce2 {
+  animation-delay: -0.16s;
+}
 @keyframes sk-bouncedelay {
-  0%,
-  80%,
-  100% {
+  0%, 80%, 100% {
     transform: scale(0);
-    -webkit-transform: scale(0); }
+    -webkit-transform: scale(0);
+  }
   40% {
     transform: scale(1);
-    -webkit-transform: scale(1); } }
-
+    -webkit-transform: scale(1);
+  }
+}
 .yoast-seo-snippet-preview {
   padding: 15px;
   border: 1px solid #cccccc;
-  background-color: #FFF; }
+}
 
 .yoast-seo-snippet-preview-styling {
-  min-height: 235px; }
-  .yoast-seo-snippet-preview-styling fieldset legend {
-    font-size: 12px !important;
-    border-bottom: 0 !important; }
-  .yoast-seo-snippet-preview-styling fieldset label {
-    font-size: 12px !important;
-    font-weight: normal; }
+  min-height: 235px;
+}
+.yoast-seo-snippet-preview-styling fieldset legend {
+  font-size: 12px !important;
+  border-bottom: 0 !important;
+}
+.yoast-seo-snippet-preview-styling fieldset label {
+  font-size: 12px !important;
+  font-weight: normal;
+}
 
 div.yoast-analysis button {
   background-color: inherit !important;
-  font-size: 12px !important; }
-  div.yoast-analysis button:disabled {
-    display: none; }
-
+  font-size: 12px !important;
+}
+div.yoast-analysis button:disabled {
+  display: none;
+}
 div.yoast-analysis div:not(.bounce) {
-  background-color: inherit !important; }
-
+  background-color: inherit !important;
+}
 div.yoast-analysis a {
-  text-decoration: underline; }
+  text-decoration: underline;
+}
 
 .yoastSeo-insights ol {
   padding: 0;
-  margin: 1em 2em; }
-
+  margin: 1em 2em;
+}
 .yoastSeo-insights a {
-  font-weight: bold; }
-
+  font-weight: bold;
+}
 .yoastSeo-insights a:hover {
-  text-decoration: underline; }
+  text-decoration: underline;
+}
+
+/*# sourceMappingURL=yoast.min.css.map*/

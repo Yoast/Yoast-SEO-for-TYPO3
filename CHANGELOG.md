@@ -9,7 +9,15 @@ We will follow [Semantic Versioning](http://semver.org/).
 
 ### Breaking
 - Replaced the `urlToCheck` with a new `ModifyPreviewUrl` event
-  - TODO: Add documentation 
+  - TODO: Add documentation
+
+### Changed
+- Updated all the underlying Yoast libraries to the latest version
+  - Added custom combine-reducers package to replace the existing one with CSP issues 
+- Moved all build related files to the `Build` directory
+- Added translations script to download translations from GlotPress (wordpress)
+- Updates scss files to work with the new dark mode in TYPO3 13
+- Labels for Readability and SEO score are now taken from the Yoast translations instead of xlf
 
 ## 10.0.0 October 15, 2024
 ### Breaking

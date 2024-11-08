@@ -32,7 +32,7 @@ class PageLayoutHeaderTest extends AbstractFunctionalTestCase
     {
         $_GET['id'] = '99999'; // page does not exist in the fixture
         $result = $this->pageLayoutHeader->render(null, $this->getContainer()->get(PageLayoutController::class));
-        $this->assertSame('', $result);
+        self::assertSame('', $result);
     }
 
     #[Test]
@@ -40,6 +40,6 @@ class PageLayoutHeaderTest extends AbstractFunctionalTestCase
     {
         $_GET['id'] = '1'; // page exists in the fixture
         $result = $this->pageLayoutHeader->render(null, $this->getContainer()->get(PageLayoutController::class));
-        $this->assertNotEmpty($result);
+        self::assertNotEmpty($result);
     }
 }

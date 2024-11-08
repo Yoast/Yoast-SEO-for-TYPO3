@@ -6,7 +6,6 @@ grunt/node_modules
 vendor
 composer.lock
 .php-cs-fixer.cache
-yarn.lock
 .Build
 Documentation-GENERATED-temp
 /public
@@ -14,3 +13,5 @@ Documentation-GENERATED-temp
 .cache
 composer.json.testing
 var
+*.map
+plugin.css

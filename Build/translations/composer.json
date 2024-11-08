@@ -1,0 +1,14 @@
+{
+    "name": "yoast-seo-for-typo3/translations",
+    "description": "Download and convert translations from wordpress",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "YoastSeoForTypo3\\Translations\\": "src/"
+        }
+    },
+    "require": {
+        "guzzlehttp/guzzle": "^7.0",
+        "sepia/po-parser": "^6.0"
+    }
+}

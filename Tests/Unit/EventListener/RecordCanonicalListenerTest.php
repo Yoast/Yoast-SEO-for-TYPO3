@@ -35,7 +35,7 @@ class RecordCanonicalListenerTest extends UnitTestCase
         $event = $this->createMock(ModifyUrlForCanonicalTagEvent::class);
         $this->recordService->method('getActiveRecord')->willReturn(null);
 
-        $event->expects($this->never())->method('setUrl');
+        $event->expects(self::never())->method('setUrl');
 
         $this->subject->setCanonical($event);
     }
@@ -49,7 +49,7 @@ class RecordCanonicalListenerTest extends UnitTestCase
 
         $this->recordService->method('getActiveRecord')->willReturn($record);
 
-        $event->expects($this->never())->method('setUrl');
+        $event->expects(self::never())->method('setUrl');
 
         $this->subject->setCanonical($event);
     }
@@ -67,7 +67,7 @@ class RecordCanonicalListenerTest extends UnitTestCase
         $GLOBALS['TSFE']->cObj = $this->createMock(ContentObjectRenderer::class);
         $GLOBALS['TSFE']->cObj->method('typoLink_URL')->willReturn('https://example.com');
 
-        $event->expects($this->once())->method('setUrl')->with('https://example.com');
+        $event->expects(self::once())->method('setUrl')->with('https://example.com');
 
         $this->subject->setCanonical($event);
     }
