@@ -9,8 +9,10 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\Http\HtmlResponse;
 use TYPO3\CMS\Core\Http\RedirectResponse;
+use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
+use TYPO3\CMS\Extbase\Mvc\Exception\StopActionException;
 use TYPO3\CMS\Extbase\Mvc\Request;
 use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
@@ -72,8 +74,12 @@ final class CrawlerControllerTest extends UnitTestCase
     #[Test]
     public function resetProgressActionReturnsRedirectResponse(): void
     {
+        if ((new Typo3Version())->getMajorVersion() === 11) {
+            $this->expectException(StopActionException::class);
+        }
         $result = $this->subject->resetProgressAction(1, 1);
-
-        self::assertInstanceOf(RedirectResponse::class, $result);
+        if ((new Typo3Version())->getMajorVersion() > 11) {
+            self::assertInstanceOf(RedirectResponse::class, $result);
+        }
     }
 }
