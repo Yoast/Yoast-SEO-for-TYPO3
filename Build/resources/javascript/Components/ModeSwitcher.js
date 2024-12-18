@@ -17,7 +17,7 @@ const SwitcherTitle = styled.p`
 `
 
 const ModeText = ({text, active}) => {
-    const translatedText = __(text, "yoast-components")
+    const translatedText = __(text, "wordpress-seo")
     if (active) {
         return <strong>{translatedText}</strong>
     }
@@ -26,7 +26,7 @@ const ModeText = ({text, active}) => {
 
 const ModeSwitcher = ({onChange, active}) => {
     return <Switcher>
-        <SwitcherTitle>{ __( "Preview as:", "yoast-components" ) }</SwitcherTitle>
+        <SwitcherTitle>{ __( "Preview as:", "wordpress-seo" ) }</SwitcherTitle>
         <Mode onClick={() => onChange('mobile')} className={`btn btn-light btn-sm`}><ModeText text={"Mobile result"} active={active === 'mobile'} /></Mode>
         <Mode onClick={() => onChange('desktop')} className={`btn btn-light btn-sm`}><ModeText text={"Desktop result"} active={active === 'desktop'} /></Mode>
     </Switcher>
