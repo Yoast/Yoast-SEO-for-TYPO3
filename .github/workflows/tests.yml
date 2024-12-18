@@ -53,3 +53,28 @@ jobs:
 
       - name: Unit tests
         run: Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php }} -s unit
+
+      - name: Functional tests coverage
+        if: matrix.php == '8.2' && matrix.typo3 == '13' && matrix.composerInstall == 'composerInstallHighest'
+        run: Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php }} -s unit -x -e "--coverage-php=.Build/coverage/functional.cov"
+
+      - name: Unit tests coverage
+        if: matrix.php == '8.2' && matrix.typo3 == '13' && matrix.composerInstall == 'composerInstallHighest'
+        run: Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php }} -s unit -x -e "--coverage-php=.Build/coverage/unit.cov"
+
+      - name: Composer require phpunit/phpcov for merging the code coverage
+        if: matrix.php == '8.2' && matrix.typo3 == '13' && matrix.composerInstall == 'composerInstallHighest'
+        run: Build/Scripts/runTests.sh -t ${{ matrix.typo3 }} -p ${{ matrix.php }} -s composer require --dev phpunit/phpcov
+
+      - name: Merge coverage
+        if: matrix.php == '8.2' && matrix.typo3 == '13' && matrix.composerInstall == 'composerInstallHighest'
+        run: ./.Build/bin/phpcov merge --clover=build/logs/clover.xml .Build/coverage
+
+      - name: Upload coverage
+        if: matrix.php == '8.2' && matrix.typo3 == '13' && matrix.composerInstall == 'composerInstallHighest'
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          composer global require php-coveralls/php-coveralls
+          export PATH="$(composer config -g home)/vendor/bin:$PATH"
+          php-coveralls --coverage_clover=build/logs/clover.xml -v

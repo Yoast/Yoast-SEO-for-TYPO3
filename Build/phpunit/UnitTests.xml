@@ -29,4 +29,9 @@
         <env name="TYPO3_CONTEXT" value="Testing"/>
         <env name="HTTP_HOST" value="localhost"/>
     </php>
+    <source>
+        <include>
+            <directory>../../Classes/</directory>
+        </include>
+    </source>
 </phpunit>

@@ -277,15 +277,14 @@ if ! type "docker" >/dev/null 2>&1 && ! type "podman" >/dev/null 2>&1; then
 fi
 
 # Option defaults
-# @todo Consider to switch from cgl to help as default
-TEST_SUITE="cgl"
+TEST_SUITE="help"
 TYPO3_VERSION="11"
 EXTRA_TEST_OPTIONS=""
 DATABASE_DRIVER=""
 DBMS="sqlite"
 DBMS_VERSION=""
 PHP_VERSION="8.2"
-PHP_XDEBUG_ON=0
+PHP_XDEBUG_COVERAGE=0
 PHP_XDEBUG_PORT=9003
 CGLCHECK_DRY_RUN=0
 CI_PARAMS="${CI_PARAMS:-}"
@@ -335,7 +334,7 @@ while getopts "a:b:d:i:s:p:e:t:xy:nhu" OPT; do
             fi
             ;;
         x)
-            PHP_XDEBUG_ON=1
+            PHP_XDEBUG_COVERAGE=1
             ;;
         y)
             PHP_XDEBUG_PORT=${OPTARG}
@@ -438,12 +437,11 @@ else
     CONTAINER_DOCS_PARAMS="${CONTAINER_INTERACTIVE} ${DOCS_PARAMS} --rm --network ${NETWORK} -v ${ROOT_DIR}:/project"
 fi
 
-if [ ${PHP_XDEBUG_ON} -eq 0 ]; then
+if [ ${PHP_XDEBUG_COVERAGE} -eq 0 ]; then
     XDEBUG_MODE="-e XDEBUG_MODE=off"
     XDEBUG_CONFIG=" "
 else
-    XDEBUG_MODE="-e XDEBUG_MODE=debug -e XDEBUG_TRIGGER=foo"
-    XDEBUG_CONFIG="client_port=${PHP_XDEBUG_PORT} client_host=${CONTAINER_HOST}"
+    XDEBUG_MODE="-e XDEBUG_MODE=coverage"
 fi
 
 # Suite execution
