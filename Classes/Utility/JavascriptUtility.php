@@ -10,7 +10,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class JavascriptUtility
 {
-    public static function loadJavascript(PageRenderer $pageRenderer = null): void
+    public static function loadJavascript(?PageRenderer $pageRenderer = null): void
     {
         if ($pageRenderer === null) {
             $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
