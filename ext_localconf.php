@@ -5,7 +5,7 @@ use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader;
 use YoastSeoForTypo3\YoastSeo\Frontend\AdditionalPreviewData;
 use YoastSeoForTypo3\YoastSeo\Frontend\UsePageCache;
-use YoastSeoForTypo3\YoastSeo\MetaTag\AdvancedRobotsGenerator;
+use YoastSeoForTypo3\YoastSeo\MetaTag\AdvancedRobots\AdvancedRobotsGenerator;
 use YoastSeoForTypo3\YoastSeo\MetaTag\RecordMetaTagGenerator;
 use YoastSeoForTypo3\YoastSeo\StructuredData\StructuredDataProviderManager;
 use YoastSeoForTypo3\YoastSeo\Updates\MigrateDashboardWidget;
