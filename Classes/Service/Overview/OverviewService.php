@@ -7,6 +7,7 @@ namespace YoastSeoForTypo3\YoastSeo\Service\Overview;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Extbase\Mvc\RequestInterface;
+use YoastSeoForTypo3\YoastSeo\Controller\OverviewController;
 use YoastSeoForTypo3\YoastSeo\DataProviders\OverviewDataProviderInterface;
 use YoastSeoForTypo3\YoastSeo\Service\Overview\Dto\DataProviderRequest;
 use YoastSeoForTypo3\YoastSeo\Service\Overview\Dto\OverviewData;
@@ -93,7 +94,7 @@ class OverviewService
     {
         return new DataProviderRequest(
             (int)($request->getQueryParams()['id'] ?? 0),
-            (int)($request->getQueryParams()['tx_yoastseo_yoast_yoastseooverview']['language'] ?? $request->getQueryParams()['language'] ?? 0),
+            (int)($request->getQueryParams()[OverviewController::REQUEST_ARGUMENT]['language'] ?? $request->getQueryParams()['language'] ?? 0),
             'pages'
         );
     }

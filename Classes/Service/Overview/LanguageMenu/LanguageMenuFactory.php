@@ -11,6 +11,7 @@ use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Extbase\Mvc\RequestInterface;
 use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
+use YoastSeoForTypo3\YoastSeo\Controller\OverviewController;
 use YoastSeoForTypo3\YoastSeo\Service\Overview\Dto\LanguageMenuItem;
 use YoastSeoForTypo3\YoastSeo\Traits\BackendUserTrait;
 use YoastSeoForTypo3\YoastSeo\Traits\LanguageServiceTrait;
@@ -94,7 +95,7 @@ class LanguageMenuFactory
                 ->setRequest($this->request)
                 ->setTargetPageUid($this->pageUid)
                 ->setArguments([
-                    'tx_yoastseo_yoast_yoastseooverview' => [
+                    OverviewController::REQUEST_ARGUMENT => [
                         'filter' => $filter,
                         'language' => $language->getLanguageId(),
                         'returnUrl' => $returnUrl,
@@ -116,6 +117,6 @@ class LanguageMenuFactory
      */
     protected function getArguments(): array
     {
-        return $this->request->getArguments()['tx_yoastseo_yoast_yoastseooverview'] ?? $this->request->getArguments();
+        return $this->request->getArguments()[OverviewController::REQUEST_ARGUMENT] ?? $this->request->getArguments();
     }
 }

@@ -13,5 +13,11 @@ if (method_exists($config, 'setParallelConfig')) {
         'single_line_empty_body' => true
     ]);
 }
+
+// TODO: This construction can be removed when 11 support is dropped
+$config->addRules([
+    'php_unit_test_case_static_method_calls' => false,
+]);
+
 $config->getFinder()->in('Classes')->in('Configuration')->in('Tests');
 return $config;

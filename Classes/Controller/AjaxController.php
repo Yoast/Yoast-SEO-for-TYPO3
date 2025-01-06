@@ -34,7 +34,7 @@ class AjaxController
         return $this->saveScoresHandler->handle($request);
     }
 
-    public function promimentWordsAction(
+    public function prominentWordsAction(
         ServerRequestInterface $request
     ): ResponseInterface {
         return $this->prominentWordsHandler->handle($request);

@@ -13,7 +13,7 @@ return [
     ],
     'yoast_prominent_words' => [
         'path' => 'yoast/prominentwords',
-        'target' => AjaxController::class . '::promimentWordsAction',
+        'target' => AjaxController::class . '::prominentWordsAction',
     ],
     'yoast_internal_linking_suggestions' => [
         'path' => 'yoast/internallinkingsuggestions',

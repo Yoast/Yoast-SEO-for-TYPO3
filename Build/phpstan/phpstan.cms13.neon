@@ -9,6 +9,7 @@ parameters:
     - '#TYPO3\\CMS\\Backend\\Template\\ModuleTemplate#'
     - '#getRecordOverlay#'
     - '#loadRequireJsModule#'
+    - '#get_cache_timeout#'
   typo3:
     requestGetAttributeMapping:
         frontend.page.information: TYPO3\CMS\Frontend\Page\PageInformation

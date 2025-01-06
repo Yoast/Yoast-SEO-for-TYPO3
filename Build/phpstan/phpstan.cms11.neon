@@ -19,6 +19,8 @@ parameters:
     - '#loadJavaScriptModule#'
     - '#getLanguageCode#'
     - '#addJsInlineCode#'
+    - '#calculateLifetimeForPage#'
+    - '#CacheLifetimeCalculator#'
   typo3:
     requestGetAttributeMapping:
         handlerRequest: string

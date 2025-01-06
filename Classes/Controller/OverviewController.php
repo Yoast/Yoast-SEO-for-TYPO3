@@ -11,6 +11,8 @@ use YoastSeoForTypo3\YoastSeo\Service\Overview\OverviewService;
 
 class OverviewController extends AbstractBackendController
 {
+    public const REQUEST_ARGUMENT = 'tx_yoastseo_yoast_yoastseooverview';
+
     public function __construct(
         protected ModuleTemplateFactory $moduleTemplateFactory,
         protected LanguageMenuFactory $languageMenuFactory,
