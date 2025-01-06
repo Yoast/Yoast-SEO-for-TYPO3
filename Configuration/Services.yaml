@@ -16,6 +16,15 @@ services:
   YoastSeoForTypo3\YoastSeo\Service\SnippetPreviewService:
     public: true
 
+  YoastSeoForTypo3\YoastSeo\Service\Preview\ContentParser:
+    public: true
+
+  YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\BaseUrlParserInterface: '@YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\BaseUrlParser'
+  YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\BodyProcessorInterface: '@YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\BodyProcessor'
+  YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\ContentMetadataExtractorInterface: '@YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\ContentMetadataExtractor'
+  YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\FaviconExtractorInterface: '@YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\FaviconExtractor'
+  YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\TitleConfigurationExtractorInterface: '@YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\TitleConfigurationExtractor'
+
   YoastSeoForTypo3\YoastSeo\Controller\AjaxController:
     public: true
 
