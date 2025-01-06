@@ -72,7 +72,7 @@ services:
   YoastSeoForTypo3\YoastSeo\MetaTag\RecordMetaTagGenerator:
     public: true
 
-  YoastSeoForTypo3\YoastSeo\MetaTag\AdvancedRobotsGenerator:
+  YoastSeoForTypo3\YoastSeo\MetaTag\AdvancedRobots\AdvancedRobotsGenerator:
     public: true
 
   YoastSeoForTypo3\YoastSeo\Frontend\UsePageCache:
