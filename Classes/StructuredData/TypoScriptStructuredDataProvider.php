@@ -34,7 +34,7 @@ class TypoScriptStructuredDataProvider implements StructuredDataProviderInterfac
                 foreach ($config as $key => $value) {
                     $cObject = $key . '.';
                     if (isset($dataConfig[$cObject])) {
-                        $value = $this->getTyposcriptFrontendController()->cObj->stdWrap($key, $dataConfig[$cObject]);
+                        $value = $this->getTyposcriptFrontendController()->cObj->stdWrap((string)$key, $dataConfig[$cObject]);
                     }
                     $key = in_array($key, ['type', 'context']) ? '@' . $key : $key;
 
