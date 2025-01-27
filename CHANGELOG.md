@@ -5,6 +5,16 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## UNRELEASED
+### Added
+- `TypoScriptStructuredDataProvider` to add structured data to the page, configured with TypoScript (premium functionality)
+
+### Fixed
+- Renamed `JavascriptModules.php` to `JavaScriptModules.php`
+
+### Changed
+- Removed the premium support mention within the documentation
+
 ## 10.0.0 October 15, 2024
 ### Breaking
 - Dropped support for TYPO3 10
