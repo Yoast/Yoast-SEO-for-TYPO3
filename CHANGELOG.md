@@ -9,7 +9,6 @@ We will follow [Semantic Versioning](http://semver.org/).
 
 ### Breaking
 - Replaced the `urlToCheck` with a new `ModifyPreviewUrl` event
-  - TODO: Add documentation
 
 ### Changed
 - Updated all the underlying Yoast libraries to the latest version
