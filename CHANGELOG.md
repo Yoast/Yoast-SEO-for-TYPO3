@@ -19,6 +19,16 @@ We will follow [Semantic Versioning](http://semver.org/).
 - Updates scss files to work with the new dark mode in TYPO3 13
 - Labels for Readability and SEO score are now taken from the Yoast translations instead of xlf
 
+## 10.1.0 January 27, 2025
+### Added
+- `TypoScriptStructuredDataProvider` to add structured data to the page, configured with TypoScript (premium functionality)
+
+### Fixed
+- Renamed `JavascriptModules.php` to `JavaScriptModules.php`
+
+### Removed
+- Premium support mention within the documentation
+
 ## 10.0.0 October 15, 2024
 ### Breaking
 - Dropped support for TYPO3 10

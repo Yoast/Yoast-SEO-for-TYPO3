@@ -28,7 +28,7 @@ class PageLayoutHeader
     /**
      * @param array<string, string>|null $params
      */
-    public function render(array $params = null, PageLayoutController|ModuleTemplate|null $parentObj = null): string
+    public function render(?array $params = null, PageLayoutController|ModuleTemplate|null $parentObj = null): string
     {
         $languageId = $this->getLanguageId();
         $pageId = (int)$_GET['id'];

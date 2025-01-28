@@ -25,7 +25,7 @@ abstract class AbstractBackendController extends ActionController
     /**
      * @param array<string, mixed> $data
      */
-    protected function returnResponse(string $template, array $data = [], ModuleTemplate $moduleTemplate = null): ResponseInterface
+    protected function returnResponse(string $template, array $data = [], ?ModuleTemplate $moduleTemplate = null): ResponseInterface
     {
         $data['layout'] = GeneralUtility::makeInstance(Typo3Version::class)
             ->getMajorVersion() < 13 ? 'Default' : 'Module';
