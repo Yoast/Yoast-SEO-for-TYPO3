@@ -19,6 +19,7 @@ $gutter: 32px;
 	}
 
 	&-content {
+		color: var(--typo3-state-default-color, #000);
 
 		.row {
 			max-width: 1650px;

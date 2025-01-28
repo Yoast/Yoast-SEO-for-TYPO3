@@ -13,6 +13,7 @@ parameters:
     - '#TYPO3\\CMS\\Extbase\\Mvc\\RequestInterface#'
     - '#TYPO3\\CMS\\Core\\View\\ViewInterface#'
     - '#TYPO3\\CMS\\Core\\Domain\\Repository\\PageRepository::getLanguageOverlay#'
+    - '#TYPO3\\CMS\\Core\\Domain\\ConsumableString#'
     - '#frontend.page.information#'
     - '#ModifyPageLayoutContentEvent#'
     - '#AfterCacheableContentIsGeneratedEvent#'
@@ -21,6 +22,7 @@ parameters:
     - '#addJsInlineCode#'
     - '#calculateLifetimeForPage#'
     - '#CacheLifetimeCalculator#'
+    - '#nonce#'
   typo3:
     requestGetAttributeMapping:
         handlerRequest: string

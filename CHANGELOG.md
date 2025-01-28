@@ -18,6 +18,10 @@ We will follow [Semantic Versioning](http://semver.org/).
 - Updates scss files to work with the new dark mode in TYPO3 13
 - Labels for Readability and SEO score are now taken from the Yoast translations instead of xlf
 
+### Fixed
+- CSP issues within the `Cornerstone` form element and the Dashboard backend module
+- Dark mode styling for the Dashboard and Overview backend module
+
 ## 10.1.0 January 27, 2025
 ### Added
 - `TypoScriptStructuredDataProvider` to add structured data to the page, configured with TypoScript (premium functionality)

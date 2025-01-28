@@ -7,7 +7,10 @@ namespace YoastSeoForTypo3\YoastSeo\Tests\Unit\Controller;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\Http\HtmlResponse;
+use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
+use TYPO3\CMS\Extbase\Mvc\ExtbaseRequestParameters;
+use TYPO3\CMS\Extbase\Mvc\Request;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 use YoastSeoForTypo3\YoastSeo\Controller\DashboardController;
 
@@ -41,6 +44,8 @@ final class DashboardControllerTest extends UnitTestCase
     #[Test]
     public function indexActionReturnsHtmlResponse(): void
     {
+        $serverRequest = (new ServerRequest())->withAttribute('extbase', new ExtbaseRequestParameters());
+        $this->subject->_set('request', new Request($serverRequest));
         $result = $this->subject->indexAction();
 
         self::assertInstanceOf(HtmlResponse::class, $result);

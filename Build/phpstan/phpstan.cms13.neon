@@ -14,3 +14,4 @@ parameters:
     requestGetAttributeMapping:
         frontend.page.information: TYPO3\CMS\Frontend\Page\PageInformation
         handlerRequest: string
+        nonce: TYPO3\CMS\Core\Security\ContentSecurityPolicy\ConsumableNonce

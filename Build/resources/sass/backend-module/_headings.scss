@@ -3,7 +3,7 @@
 		color: $yoast_color_headings;
 
 		span {
-			color: #000;
+			color: var(--typo3-state-default-color, #000);
 		}
 	}
 }
