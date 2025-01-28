@@ -13,7 +13,7 @@ class RecordPageTitleProvider extends AbstractPageTitleProvider
 {
     protected RecordService $recordService;
 
-    public function __construct(RecordService $recordService = null)
+    public function __construct(?RecordService $recordService = null)
     {
         if ($recordService === null) {
             $recordService = GeneralUtility::makeInstance(RecordService::class);

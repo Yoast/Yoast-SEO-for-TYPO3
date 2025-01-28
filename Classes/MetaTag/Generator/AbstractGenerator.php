@@ -16,7 +16,7 @@ abstract class AbstractGenerator implements GeneratorInterface
 {
     protected MetaTagManagerRegistry $managerRegistry;
 
-    public function __construct(MetaTagManagerRegistry $managerRegistry = null)
+    public function __construct(?MetaTagManagerRegistry $managerRegistry = null)
     {
         if ($managerRegistry === null) {
             $managerRegistry = GeneralUtility::makeInstance(MetaTagManagerRegistry::class);
