@@ -29,8 +29,10 @@ export function saveRelevantWords(object, uid, pid, languageId, table, url)
 
         if (url) {
             fetch(url, {
-                method: 'post',
-                headers : new Headers(),
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({words: compressedWords, uid: uid, pid: pid, languageId: languageId, table: table})
             });
         }

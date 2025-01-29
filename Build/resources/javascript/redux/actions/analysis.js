@@ -8,8 +8,10 @@ const saveScores = (results) => {
 
     if (typeof YoastConfig.data !== "undefined" && typeof YoastConfig.urls.saveScores !== "undefined") {
         fetch(YoastConfig.urls.saveScores, {
-            method: 'post',
-            headers: new Headers(),
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
                 table: YoastConfig.data.table,
                 uid: YoastConfig.data.uid,
