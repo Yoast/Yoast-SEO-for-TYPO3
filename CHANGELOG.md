@@ -22,6 +22,8 @@ We will follow [Semantic Versioning](http://semver.org/).
 - CSP issues within the `Cornerstone` form element and the Dashboard backend module
 - Dark mode styling for the Dashboard and Overview backend module
 - Ajax Calls for `saveScores` and `prominentWords` have the correct JSON header now
+- (TYPO3 12+) Language id is now taken from `moduleData` within the request object for displaying the snippet preview
+  - All languages mode now shows the default language instead of nothing
 
 ## 10.1.0 January 27, 2025
 ### Added

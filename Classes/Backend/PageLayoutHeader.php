@@ -7,6 +7,8 @@ namespace YoastSeoForTypo3\YoastSeo\Backend;
 use TYPO3\CMS\Backend\Controller\PageLayoutController;
 use TYPO3\CMS\Backend\Template\ModuleTemplate;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Information\Typo3Version;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Service\PageLayoutHeader\PageDataService;
 use YoastSeoForTypo3\YoastSeo\Service\PageLayoutHeader\PageLayoutHeaderRenderer;
 use YoastSeoForTypo3\YoastSeo\Service\PageLayoutHeader\VisibilityChecker;
@@ -49,7 +51,26 @@ class PageLayoutHeader
 
     protected function getLanguageId(): int
     {
-        $moduleData = (array)BackendUtility::getModuleData(['language'], [], 'web_layout');
-        return (int)$moduleData['language'];
+        if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() === 11) {
+            $moduleData = BackendUtility::getModuleData(['language'], [], 'web_layout');
+            return (int)$moduleData['language'];
+        }
+
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if ($request === null) {
+            return 0;
+        }
+
+        $moduleData = $request->getAttribute('moduleData');
+        if ($moduleData === null) {
+            return 0;
+        }
+
+        $language = (int)$moduleData->get('language');
+        if ($language === -1) {
+            return 0;
+        }
+
+        return $language;
     }
 }
