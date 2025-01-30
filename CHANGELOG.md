@@ -24,6 +24,8 @@ We will follow [Semantic Versioning](http://semver.org/).
 - Ajax Calls for `saveScores` and `prominentWords` have the correct JSON header now
 - (TYPO3 12+) Language id is now taken from `moduleData` within the request object for displaying the snippet preview
   - All languages mode now shows the default language instead of nothing
+- Optimized images that are used in the Dashboard module and load them directly instead of through `f:image`
+  - Removed old unused images
 
 ## 10.1.0 January 27, 2025
 ### Added
