@@ -157,15 +157,90 @@ div.yoast-analysis {
 }
 
 .yoastSeo-insights {
-	ol {
-		padding: 0;
-		margin: 1em 2em;
-	}
-
 	a {
 		font-weight: bold;
 	}
 	a:hover {
 		text-decoration: underline;
+	}
+
+	.yoast-field-group__title {
+		font-weight: 600;
+	}
+
+	.yoast-help {
+		margin-left: 5px;
+
+		&__icon svg {
+			fill: #707070;
+			height: 12px;
+			transition: all 150ms ease-out;
+			width: 12px;
+		}
+
+		&:focus svg, &:hover svg {
+			fill: #000;
+		}
+	}
+
+	.screen-reader-text {
+		position: absolute;
+		left: -10000px;
+		top: auto;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+	}
+
+	.yoast-data-model {
+		width: 300px;
+		padding: 3px 0 0 0;
+		list-style: none;
+	}
+
+	.yoast-data-model li {
+		line-height: 1.8;
+		padding: 0 8px;
+		position: relative;
+		z-index: 2;
+		font-weight: 600;
+	}
+
+	.yoast-data-model span {
+		float: right;
+		font-weight: 400;
+	}
+
+	.yoast-data-model li + li {
+		margin-top: 9px;
+	}
+
+	.yoast-data-model li:after {
+		position: absolute;
+		left: 0;
+		height: 20px;
+		background: var(--typo3-surface-container-info, #d5eef6);
+		content: "";
+		width: var(--yoast-width);
+		z-index: -1;
+	}
+
+	.yoast-insights-card {
+		&__content {
+			padding-top: 5px;
+			display: flex;
+		}
+		&__score {
+			flex-shrink: 0;
+			margin-right: 2em;
+		}
+		&__amount {
+			display: block;
+			font-size: 3.5em;
+			line-height: 1;
+		}
+		&__description {
+			max-width: 600px;
+		}
 	}
 }

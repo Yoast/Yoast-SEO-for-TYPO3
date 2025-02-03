@@ -10,6 +10,7 @@ import TitleProgressBar from './Components/TitleProgressBar';
 import DescriptionProgressBar from './Components/DescriptionProgressBar';
 import LinkingSuggestions from "./Components/LinkingSuggestions";
 import Insights from "./Components/Insights";
+import FleschReadingScore from "./Components/FleschReadingScore";
 import store from './redux/store';
 import {getContent, updateContent} from './redux/actions/content';
 import {setFocusKeyword} from './redux/actions/focusKeyword';
@@ -221,6 +222,11 @@ let YoastPlugin = {
         document.querySelectorAll('[data-yoast-insights]').forEach(container => {
             const insightsRoot = createRoot(container);
             insightsRoot.render(<Provider store={store}><Insights /></Provider>);
+        });
+
+        document.querySelectorAll('[data-yoast-flesch]').forEach(container => {
+            const fleschRoot = createRoot(container);
+            fleschRoot.render(<Provider store={store}><FleschReadingScore /></Provider>);
         });
     },
 

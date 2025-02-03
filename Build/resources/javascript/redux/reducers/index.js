@@ -4,6 +4,7 @@ import focusKeywordSynonyms from './focusKeywordSynonyms';
 import analysis from './analysis';
 import relevantWords from './relevantWords';
 import insights from "./insights";
+import flesch from "./flesch";
 import linkingSuggestions from "./linkingSuggestions";
 export default {
     content,
@@ -12,5 +13,6 @@ export default {
     analysis,
     relevantWords,
     insights,
+    flesch,
     linkingSuggestions
 }

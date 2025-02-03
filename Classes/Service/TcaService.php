@@ -109,7 +109,6 @@ class TcaService
                 ],
             ],
             'tx_yoastseo_insights' => [
-                'label' => self::LL_PREFIX_TCA . 'pages.fields.tx_yoastseo_insights',
                 'exclude' => true,
                 'config' => [
                     'type' => 'none',
