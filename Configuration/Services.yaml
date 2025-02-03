@@ -16,6 +16,9 @@ services:
   YoastSeoForTypo3\YoastSeo\Service\SnippetPreviewService:
     public: true
 
+  YoastSeoForTypo3\YoastSeo\Service\Javascript\JavascriptService:
+    public: true
+
   YoastSeoForTypo3\YoastSeo\Service\Preview\ContentParser:
     public: true
 

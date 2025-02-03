@@ -58,6 +58,7 @@ class InternalLinkingSuggestion extends AbstractNode
                 'linkingSuggestions' => (string)$this->uriBuilder
                     ->buildUriFromRoute('ajax_yoast_internal_linking_suggestions'),
             ],
+            'translations' => [$this->localeService->getTranslations()],
         ]);
 
         $this->javascriptService->loadPluginJavascript();
