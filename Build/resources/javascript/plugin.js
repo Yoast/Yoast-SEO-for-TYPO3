@@ -22,6 +22,8 @@ import {setFocusKeywordSynonyms} from "./redux/actions/focusKeywordSynonyms";
 import {setLocaleData} from "@wordpress/i18n";
 import {Paper} from "yoastseo";
 import {getLinkingSuggestions} from "./redux/actions/linkingSuggestions";
+import ReadingTime from "./Components/ReadingTime";
+import WordCount from "./Components/WordCount";
 
 let YoastTypo3 = {
     _yoastWorker: null,
@@ -227,6 +229,16 @@ let YoastPlugin = {
         document.querySelectorAll('[data-yoast-flesch]').forEach(container => {
             const fleschRoot = createRoot(container);
             fleschRoot.render(<Provider store={store}><FleschReadingScore /></Provider>);
+        });
+
+        document.querySelectorAll('[data-yoast-readingtime]').forEach(container => {
+            const readingTimeRoot = createRoot(container);
+            readingTimeRoot.render(<Provider store={store}><ReadingTime /></Provider>);
+        });
+
+        document.querySelectorAll('[data-yoast-wordcount]').forEach(container => {
+            const wordCountRoot = createRoot(container);
+            wordCountRoot.render(<Provider store={store}><WordCount /></Provider>);
         });
     },
 

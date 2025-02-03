@@ -6,6 +6,8 @@ import {getRelevantWords} from "./relevantWords";
 import {getInsights} from "./insights";
 import {getFleschReadingScore} from "./flesch";
 import {getLinkingSuggestions} from "./linkingSuggestions";
+import {getReadingTime} from "./readingTime";
+import {getWordCount} from "./wordCount";
 
 export default {
     getContent,
@@ -15,5 +17,7 @@ export default {
     getRelevantWords,
     getInsights,
     getFleschReadingScore,
+    getReadingTime,
+    getWordCount,
     getLinkingSuggestions
 };

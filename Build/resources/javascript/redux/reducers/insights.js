@@ -1,8 +1,7 @@
 import {GET_INSIGHTS_REQUEST, GET_INSIGHTS_SUCCESS} from '../actions/insights';
 
 const initialState = {
-    isCheckingInsights: false,
-    words: []
+    isCheckingInsights: false
 };
 
 function insightsReducer (state = initialState, action) {

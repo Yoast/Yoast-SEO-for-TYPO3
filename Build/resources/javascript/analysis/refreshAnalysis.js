@@ -4,6 +4,8 @@ import {analyzeData} from '../redux/actions/analysis';
 import {getRelevantWords} from '../redux/actions/relevantWords';
 import {getInsights} from "../redux/actions/insights";
 import {getFleschReadingScore} from "../redux/actions/flesch";
+import {getReadingTime} from "../redux/actions/readingTime";
+import {getWordCount} from "../redux/actions/wordCount";
 
 export default function refreshAnalysis(worker, store) {
     const state = store.getState();
@@ -23,5 +25,7 @@ export default function refreshAnalysis(worker, store) {
         store.dispatch(getRelevantWords(worker, paper)),
         store.dispatch(getInsights(worker, paper)),
         store.dispatch(getFleschReadingScore(worker, paper)),
+        store.dispatch(getReadingTime(worker, paper)),
+        store.dispatch(getWordCount(worker, paper)),
     ]);
 }

@@ -10,6 +10,11 @@ We will follow [Semantic Versioning](http://semver.org/).
 ### Breaking
 - Replaced the `urlToCheck` with a new `ModifyPreviewUrl` event
 
+### Added
+- Added "Flesh reading score" to the Insights
+- Added "Reading time" to the Insights
+- Added "Word count" to the Insights
+
 ### Changed
 - Updated all the underlying Yoast libraries to the latest version
   - Added custom combine-reducers package to replace the existing one with CSP issues 

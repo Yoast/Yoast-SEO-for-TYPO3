@@ -1,8 +1,7 @@
 import {GET_FLESCH_REQUEST, GET_FLESCH_SUCCESS} from '../actions/flesch';
 
 const initialState = {
-    isCheckingFlesch: false,
-    words: []
+    isCheckingFlesch: false
 };
 
 function fleschReducer (state = initialState, action) {
