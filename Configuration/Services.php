@@ -7,6 +7,7 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 use Symfony\Component\DependencyInjection\Reference;
 use TYPO3\CMS\Backend\View\BackendViewFactory;
 use TYPO3\CMS\Dashboard\Dashboard;
+use YoastSeoForTypo3\YoastSeo\MetaTag\Generator\GeneratorInterface;
 use YoastSeoForTypo3\YoastSeo\StructuredData\StructuredDataProviderInterface;
 use YoastSeoForTypo3\YoastSeo\Widgets\PageOverviewWidget;
 use YoastSeoForTypo3\YoastSeo\Widgets\Provider\OrphanedContentDataProvider;
@@ -14,6 +15,7 @@ use YoastSeoForTypo3\YoastSeo\Widgets\Provider\PagesWithoutDescriptionDataProvid
 
 return static function (ContainerConfigurator $configurator, ContainerBuilder $containerBuilder) {
     $containerBuilder->registerForAutoconfiguration(StructuredDataProviderInterface::class)->setPublic(true);
+    $containerBuilder->registerForAutoconfiguration(GeneratorInterface::class)->setPublic(true);
 
     $services = $configurator->services();
 
