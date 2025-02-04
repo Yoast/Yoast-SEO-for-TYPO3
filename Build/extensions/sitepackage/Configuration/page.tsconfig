@@ -1,0 +1,15 @@
+TCEMAIN.preview {
+    tx_news_domain_model_news {
+        # This previewPageId should probably be overridden within the installation
+        previewPageId = 6
+        useCacheHash = 1
+        useDefaultLanguageRecord = 0
+        fieldToParameterMap {
+            uid = tx_news_pi1[news_preview]
+        }
+        additionalGetParameters {
+            tx_news_pi1.controller = News
+            tx_news_pi1.action = detail
+        }
+    }
+}
