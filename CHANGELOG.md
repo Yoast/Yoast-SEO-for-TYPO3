@@ -14,14 +14,18 @@ We will follow [Semantic Versioning](http://semver.org/).
 - Added "Flesh reading score" to the Insights
 - Added "Reading time" to the Insights
 - Added "Word count" to the Insights
+- New testing setup for unit, functional and acceptance tests 
+- Translations script to download translations from GlotPress (wordpress)
 
 ### Changed
 - Updated all the underlying Yoast libraries to the latest version
-  - Added custom combine-reducers package to replace the existing one with CSP issues 
+  - Added custom combine-reducers package to replace the existing one with CSP issues
 - Moved all build related files to the `Build` directory
-- Added translations script to download translations from GlotPress (wordpress)
+- Lots of splitting up code and moving it to separate classes
 - Updates scss files to work with the new dark mode in TYPO3 13
 - Labels for Readability and SEO score are now taken from the Yoast translations instead of xlf
+- Moved `tx_yoastseo_hide_snippet_preview` to the SEO tab
+- PHPStan level set to 8
 
 ### Fixed
 - CSP issues within the `Cornerstone` form element and the Dashboard backend module
@@ -31,6 +35,7 @@ We will follow [Semantic Versioning](http://semver.org/).
   - All languages mode now shows the default language instead of nothing
 - Optimized images that are used in the Dashboard module and load them directly instead of through `f:image`
   - Removed old unused images
+- Translations are now correctly loaded based on the backend locale 
 
 ## 10.1.0 January 27, 2025
 ### Added
