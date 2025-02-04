@@ -252,7 +252,7 @@ class TcaService
             $this->table,
             '--palette--;' . self::LL_PREFIX_TCA . 'pages.palettes.advances;yoast-advanced,',
             $this->types,
-            'after: twitter_image'
+            'after: sitemap_priority'
         );
     }
 
