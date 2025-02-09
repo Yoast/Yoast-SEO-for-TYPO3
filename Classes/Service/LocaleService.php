@@ -141,4 +141,12 @@ class LocaleService
         }
         return (int)$data['databaseRow']['sys_language_uid'];
     }
+
+    /**
+     * @return array<int, string>
+     */
+    public function getSupportedLanguages(): array
+    {
+        return $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['yoast_seo']['supportedLanguages'] ?? [];
+    }
 }

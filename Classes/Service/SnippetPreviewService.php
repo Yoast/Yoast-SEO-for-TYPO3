@@ -41,6 +41,7 @@ class SnippetPreviewService
                 'synonyms' => (string)($currentData['tx_yoastseo_focuskeyword_synonyms'] ?? ''),
             ],
             'translations' => [$this->localeService->getTranslations()],
+            'supportedLanguages' => $this->localeService->getSupportedLanguages(),
         ];
 
         $this->javascriptService->loadPluginJavascript();

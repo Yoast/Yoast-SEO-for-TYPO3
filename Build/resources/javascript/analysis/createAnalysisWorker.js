@@ -1,7 +1,13 @@
 import {AnalysisWorkerWrapper, createWorker} from 'yoastseo';
 
+const loadWebWorker = ( language ) => {
+  const workerUnwrapped = createWorker( YoastConfig.urls.workerUrl );
+  workerUnwrapped.postMessage( { language } );
+  return new AnalysisWorkerWrapper( workerUnwrapped);
+}
+
 export default function createAnalysisWorker(useCornerstone, locale) {
-    const worker = new AnalysisWorkerWrapper( createWorker( YoastConfig.urls.workerUrl ) );
+    const worker = loadWebWorker(locale);
 
     worker.initialize( {
         locale: locale,

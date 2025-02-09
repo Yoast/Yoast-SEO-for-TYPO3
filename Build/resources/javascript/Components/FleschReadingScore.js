@@ -106,6 +106,11 @@ function getDescriptionElement( score, difficulty, link ) {
 
 const FleschReadingScore = ({flesch}) => {
     if (flesch) {
+        if (flesch.result === false) {
+          // No flesch reading score available for the current language
+          return <></>
+        }
+
         let score = flesch.result.score;
 
         const description = useMemo(() => {

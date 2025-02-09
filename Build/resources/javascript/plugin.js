@@ -30,6 +30,8 @@ let YoastTypo3 = {
 
     _progressBarInitialized: false,
 
+    _fallbackLanguage: 'en',
+
     init: function () {
         if (typeof YoastConfig === 'undefined') {
             return;
@@ -45,11 +47,13 @@ let YoastTypo3 = {
         }
     },
 
-    setWorker: function (cornerstone, locale = 'en_US') {
+    setWorker: function (cornerstone, locale = YoastTypo3._fallbackLanguage) {
         if (YoastTypo3._yoastWorker !== null) {
             YoastTypo3._yoastWorker._worker.terminate();
         }
-        YoastTypo3._yoastWorker = createAnalysisWorker(cornerstone, locale);
+        const languageCode = locale.slice(0, 2);
+        const supportedLocale = YoastConfig.supportedLanguages.includes(languageCode) ? languageCode : YoastTypo3._fallbackLanguage;
+        YoastTypo3._yoastWorker = createAnalysisWorker(cornerstone, supportedLocale);
     },
 
     setLocales: function () {
@@ -246,7 +250,7 @@ let YoastPlugin = {
         let cornerStoneField = YoastPlugin.getFormEngineElement('cornerstone');
         if (cornerStoneField !== null) {
             cornerStoneField.addEventListener('change', function () {
-                YoastTypo3.setWorker(this.checked);
+                YoastTypo3.setWorker(this.checked, store.getState().content.locale);
                 YoastPlugin.refreshAnalysis();
             });
         }
