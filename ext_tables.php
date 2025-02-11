@@ -15,10 +15,14 @@ defined('TYPO3') || die;
     $typo3Version = GeneralUtility::makeInstance(Typo3Version::class);
     if ($typo3Version->getMajorVersion() < 12) {
         ExtensionManagementUtility::addModule(
-            'yoast', '', 'after:web', null, [
+            'yoast',
+            '',
+            'after:web',
+            null,
+            [
                 'iconIdentifier' => 'module-yoast',
                 'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf',
-                'name' => 'yoast'
+                'name' => 'yoast',
             ]
         );
         ExtensionManagementUtility::addCoreNavigationComponent(
@@ -36,7 +40,7 @@ defined('TYPO3') || die;
                 'access' => 'user,group',
                 'iconIdentifier' => 'module-yoast-dashboard',
                 'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleDashboard.xlf',
-                'inheritNavigationComponentFromMainModule' => false
+                'inheritNavigationComponentFromMainModule' => false,
             ]
         );
 
@@ -63,7 +67,7 @@ defined('TYPO3') || die;
                 'access' => 'user,group',
                 'iconIdentifier' => 'module-yoast-crawler',
                 'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleCrawler.xlf',
-                'inheritNavigationComponentFromMainModule' => false
+                'inheritNavigationComponentFromMainModule' => false,
             ]
         );
 
@@ -78,7 +82,7 @@ defined('TYPO3') || die;
     // Extend user settings
     $GLOBALS['TYPO3_USER_SETTINGS']['columns']['hideYoastInPageModule'] = [
         'label' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:usersettings.hideYoastInPageModule',
-        'type' => 'check'
+        'type' => 'check',
     ];
     ExtensionManagementUtility::addFieldsToUserSettings(
         '--div--;LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:usersettings.title,hideYoastInPageModule'

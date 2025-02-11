@@ -38,10 +38,10 @@ class RecordLinksViewHelper extends AbstractViewHelper
                 $urlParameters = [
                     'edit' => [
                         $arguments['table'] => [
-                            $arguments['uid'] => $arguments['command']
-                        ]
+                            $arguments['uid'] => $arguments['command'],
+                        ],
                     ],
-                    'returnUrl' => (string)$returnUri
+                    'returnUrl' => (string)$returnUri,
                 ];
                 $module = 'record_edit';
                 break;

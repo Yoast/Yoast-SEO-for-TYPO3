@@ -9,15 +9,16 @@ use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
-use YoastSeoForTypo3\YoastSeo\Utility\YoastRequestHash;
+use YoastSeoForTypo3\YoastSeo\Service\YoastRequestService;
 
 class AdditionalPreviewData implements SingletonInterface
 {
     /** @var array<string, mixed> */
     protected array $config;
 
-    public function __construct()
-    {
+    public function __construct(
+        protected YoastRequestService $yoastRequestService
+    ) {
         $this->config = $GLOBALS['TSFE']->tmpl->setup['config.'] ?? [];
     }
 
@@ -27,7 +28,7 @@ class AdditionalPreviewData implements SingletonInterface
     public function render(array &$params, object $pObj): void
     {
         $serverParams = $GLOBALS['TYPO3_REQUEST'] ? $GLOBALS['TYPO3_REQUEST']->getServerParams() : $_SERVER;
-        if (!YoastRequestHash::isValid($serverParams)) {
+        if (!$this->yoastRequestService->isValidRequest($serverParams)) {
             return;
         }
 

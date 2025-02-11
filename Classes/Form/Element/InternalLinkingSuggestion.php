@@ -6,19 +6,22 @@ namespace YoastSeoForTypo3\YoastSeo\Form\Element;
 
 use TYPO3\CMS\Backend\Form\AbstractNode;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
-use TYPO3\CMS\Core\Exception\SiteNotFoundException;
-use TYPO3\CMS\Core\Page\PageRenderer;
-use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
-use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Fluid\View\StandaloneView;
-use YoastSeoForTypo3\YoastSeo\Utility\JavascriptUtility;
-use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
+use YoastSeoForTypo3\YoastSeo\Service\Form\NodeTemplateService;
+use YoastSeoForTypo3\YoastSeo\Service\Javascript\JavascriptService;
+use YoastSeoForTypo3\YoastSeo\Service\Javascript\JsonConfigService;
+use YoastSeoForTypo3\YoastSeo\Service\LocaleService;
 use YoastSeoForTypo3\YoastSeo\Utility\PathUtility;
 
 class InternalLinkingSuggestion extends AbstractNode
 {
-    protected StandaloneView $templateView;
+    // TODO: Use constructor DI when TYPO3 v11 can be dropped
+    protected LocaleService $localeService;
+    protected NodeTemplateService $templateService;
+    protected JsonConfigService $jsonConfigService;
+    protected JavascriptService $javascriptService;
+    protected UriBuilder $uriBuilder;
+
     protected int $languageId;
     protected int $currentPage;
 
@@ -29,22 +32,15 @@ class InternalLinkingSuggestion extends AbstractNode
     {
         $this->init();
 
-        $locale = $this->getLocale($this->currentPage);
-        if ($locale === null) {
-            $this->templateView->assign('languageError', true);
-            $resultArray['html'] = $this->templateView->render();
+        $resultArray = $this->initializeResultArray();
+
+        if (($locale = $this->localeService->getLocale($this->currentPage, $this->languageId)) === null) {
+            $resultArray['html'] = $this->templateService->renderView('InternalLinkingSuggestion', ['languageError' => true]);
             return $resultArray;
         }
-
-        $publicResourcesPath = PathUtility::getPublicPathToResources();
-
-        $resultArray = $this->initializeResultArray();
         $resultArray['stylesheetFiles'][] = 'EXT:yoast_seo/Resources/Public/CSS/yoast.min.css';
-        $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigUtility::class);
 
-        $workerUrl = $publicResourcesPath . '/JavaScript/dist/worker.js';
-
-        $config = [
+        $this->jsonConfigService->addConfig([
             'isCornerstoneContent' => false,
             'focusKeyphrase' => [
                 'keyword' => '',
@@ -58,64 +54,30 @@ class InternalLinkingSuggestion extends AbstractNode
                 'locale' => $locale,
             ],
             'urls' => [
-                'workerUrl' => $workerUrl,
-                'linkingSuggestions' => (string)GeneralUtility::makeInstance(UriBuilder::class)
+                'workerUrl' => PathUtility::getPublicPathToResources() . '/JavaScript/dist/worker.js',
+                'linkingSuggestions' => (string)$this->uriBuilder
                     ->buildUriFromRoute('ajax_yoast_internal_linking_suggestions'),
             ],
-        ];
-        $jsonConfigUtility->addConfig($config);
+            'translations' => [$this->localeService->getTranslations()],
+            'supportedLanguages' => $this->localeService->getSupportedLanguages(),
+        ]);
 
-        $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
-        JavascriptUtility::loadJavascript($pageRenderer);
+        $this->javascriptService->loadPluginJavascript();
 
-        $resultArray['html'] = $this->templateView->render();
+        $resultArray['html'] = $this->templateService->renderView('InternalLinkingSuggestion');
 
         return $resultArray;
     }
 
-    protected function getLocale(int $pageId): ?string
-    {
-        $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
-        try {
-            $site = $siteFinder->getSiteByPageId($pageId);
-            if ($this->languageId === -1) {
-                $this->languageId = $site->getDefaultLanguage()->getLanguageId();
-                return $this->getLanguageCode($site->getDefaultLanguage());
-            }
-            return $this->getLanguageCode($site->getLanguageById($this->languageId));
-        } catch (SiteNotFoundException|\InvalidArgumentException $e) {
-            return null;
-        }
-    }
-
-    protected function getLanguageCode(SiteLanguage $siteLanguage): string
-    {
-        // Support for v11
-        if (method_exists($siteLanguage, 'getTwoLetterIsoCode')) {
-            return $siteLanguage->getTwoLetterIsoCode();
-        }
-        return $siteLanguage->getLocale()->getLanguageCode();
-    }
-
     protected function init(): void
     {
+        $this->localeService = GeneralUtility::makeInstance(LocaleService::class);
+        $this->templateService = GeneralUtility::makeInstance(NodeTemplateService::class);
+        $this->jsonConfigService = GeneralUtility::makeInstance(JsonConfigService::class);
+        $this->javascriptService = GeneralUtility::makeInstance(JavascriptService::class);
+        $this->uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
+
         $this->currentPage = $this->data['parentPageRow']['uid'];
-
-        if (isset($this->data['databaseRow']['sys_language_uid'])) {
-            if (is_array($this->data['databaseRow']['sys_language_uid']) && count(
-                    $this->data['databaseRow']['sys_language_uid']
-                ) > 0) {
-                $this->languageId = (int)current($this->data['databaseRow']['sys_language_uid']);
-            } else {
-                $this->languageId = (int)$this->data['databaseRow']['sys_language_uid'];
-            }
-        }
-
-        $this->templateView = GeneralUtility::makeInstance(StandaloneView::class);
-        $this->templateView->setTemplatePathAndFilename(
-            GeneralUtility::getFileAbsFileName(
-                'EXT:yoast_seo/Resources/Private/Templates/TCA/InternalLinkingSuggestion.html'
-            )
-        );
+        $this->languageId = $this->localeService->getLanguageIdFromData($this->data);
     }
 }

@@ -108,7 +108,7 @@ class ProminentWordsService
                 'site' => $site,
                 'tablenames' => $this->table,
                 'stem' => $word,
-                'weight' => (int)$weight
+                'weight' => (int)$weight,
             ];
             $this->connectionPool->getConnectionForTable(self::PROMINENT_WORDS_TABLE)
                 ->insert(self::PROMINENT_WORDS_TABLE, $data);

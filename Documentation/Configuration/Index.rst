@@ -18,4 +18,4 @@ However, a few things can still be configured using an extension that overwrites
    SnippetPreview/Index
    StructuredData/Index
    OtherPlugins/Index
-   Hooks/Index
+   Events/Index

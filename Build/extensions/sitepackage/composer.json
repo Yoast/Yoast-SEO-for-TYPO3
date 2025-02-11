@@ -1,0 +1,19 @@
+{
+    "name": "yoast-seo-for-typo3/sitepackage",
+    "type": "typo3-cms-extension",
+    "version": "1.0.0",
+    "description": "Test sitepackage for Yoast SEO for TYPO3",
+    "require": {
+        "georgringer/news": "*"
+    },
+    "extra": {
+        "typo3/cms": {
+            "extension-key": "sitepackage"
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "YoastSeoForTypo3\\Sitepackage\\": "Classes/"
+        }
+    }
+}

@@ -28,8 +28,7 @@ class LinkingSuggestionsService
     public function __construct(
         protected ConnectionPool $connectionPool,
         protected PageRepository $pageRepository
-    ) {
-    }
+    ) {}
 
     /**
      * @param array<array{_occurrences: int, _stem: string}> $words

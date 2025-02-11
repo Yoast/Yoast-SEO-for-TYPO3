@@ -6,38 +6,34 @@ namespace YoastSeoForTypo3\YoastSeo\Form\Element;
 
 use TYPO3\CMS\Backend\Form\AbstractNode;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Fluid\View\StandaloneView;
+use YoastSeoForTypo3\YoastSeo\Service\Form\NodeTemplateService;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class ReadabilityAnalysis extends AbstractNode
 {
+    // TODO: Use constructor DI when TYPO3 v11 can be dropped
+    protected NodeTemplateService $templateService;
+
     /**
      * @return array<string, mixed>
      */
     public function render(): array
     {
+        $this->init();
         $resultArray = $this->initializeResultArray();
-        $templateView = $this->getTemplateView();
 
-        $allowedDoktypes = YoastUtility::getAllowedDoktypes();
         if ($this->data['tableName'] === 'pages'
-            && !\in_array((int)($this->data['databaseRow']['doktype'][0] ?? 0), $allowedDoktypes)) {
-            $templateView->assign('wrongDoktype', true);
+            && !in_array((int)($this->data['databaseRow']['doktype'][0] ?? 0), YoastUtility::getAllowedDoktypes())) {
+            $resultArray['html'] = $this->templateService->renderView('ReadabilityAnalysis', ['wrongDoktype' => true]);
+            return $resultArray;
         }
-        $templateView->assign('subtype', '');
-        $resultArray['html'] = $templateView->render();
+
+        $resultArray['html'] = $this->templateService->renderView('ReadabilityAnalysis');
         return $resultArray;
     }
 
-    protected function getTemplateView(): StandaloneView
+    protected function init(): void
     {
-        $templateView = GeneralUtility::makeInstance(StandaloneView::class);
-        $templateView->setPartialRootPaths(
-            [GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Partials/TCA')]
-        );
-        $templateView->setTemplatePathAndFilename(
-            GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Templates/TCA/ReadabilityAnalysis.html')
-        );
-        return $templateView;
+        $this->templateService = GeneralUtility::makeInstance(NodeTemplateService::class);
     }
 }

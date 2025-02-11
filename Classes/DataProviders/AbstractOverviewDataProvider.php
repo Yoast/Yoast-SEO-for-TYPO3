@@ -7,7 +7,7 @@ namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Platform\PlatformInformation;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use YoastSeoForTypo3\YoastSeo\Backend\Overview\DataProviderRequest;
+use YoastSeoForTypo3\YoastSeo\Service\Overview\Dto\DataProviderRequest;
 use YoastSeoForTypo3\YoastSeo\Utility\PageAccessUtility;
 
 abstract class AbstractOverviewDataProvider implements OverviewDataProviderInterface

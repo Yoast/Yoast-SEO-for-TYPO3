@@ -44,7 +44,7 @@ class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataPr
             ),
             $queryBuilder->expr()->in('doktype', YoastUtility::getAllowedDoktypes()),
             $queryBuilder->expr()->eq('tx_yoastseo_hide_snippet_preview', 0),
-            $queryBuilder->expr()->eq('sys_language_uid', $this->dataProviderRequest->getLanguage())
+            $queryBuilder->expr()->eq('sys_language_uid', $this->dataProviderRequest->getLanguage()),
         ];
 
         if (count($pageIds) > 0) {

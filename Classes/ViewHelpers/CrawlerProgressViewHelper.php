@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\ViewHelpers;
 
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractViewHelper;
-use YoastSeoForTypo3\YoastSeo\Service\CrawlerService;
+use YoastSeoForTypo3\YoastSeo\Service\Crawler\CrawlerService;
 
 class CrawlerProgressViewHelper extends AbstractViewHelper
 {

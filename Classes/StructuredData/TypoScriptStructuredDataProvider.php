@@ -18,36 +18,38 @@ class TypoScriptStructuredDataProvider implements StructuredDataProviderInterfac
     ) {}
 
     /**
-     * @return array<array<string, mixed>>
+     * @return array<int, array<int|string, mixed>>
      */
     public function getData(): array
     {
         $data = [];
 
         foreach (
-            $this->getTyposcriptFrontendController()->config['config']['structuredData.']['data.'] ?? [] as $dataConfig
+            $this->getTypoScriptFrontendController()->config['config']['structuredData.']['data.'] ?? [] as $dataConfig
         ) {
-            if (array_key_exists('type', $dataConfig) && array_key_exists('context', $dataConfig)) {
-                $item = [];
-                $config = $this->typoScriptService->convertTypoScriptArrayToPlainArray($dataConfig);
-
-                foreach ($config as $key => $value) {
-                    $cObject = $key . '.';
-                    if (isset($dataConfig[$cObject])) {
-                        $value = $this->getTyposcriptFrontendController()->cObj->stdWrap((string)$key, $dataConfig[$cObject]);
-                    }
-                    $key = in_array($key, ['type', 'context']) ? '@' . $key : $key;
-
-                    $item[$key] = $value;
-                }
-                $data[] = $item;
+            if (!isset($dataConfig['type'], $dataConfig['context'])) {
+                continue;
             }
+
+            $item = [];
+            $config = $this->typoScriptService->convertTypoScriptArrayToPlainArray($dataConfig);
+
+            foreach ($config as $key => $value) {
+                $cObject = $key . '.';
+                if (isset($dataConfig[$cObject])) {
+                    $value = $this->getTypoScriptFrontendController()->cObj->stdWrap((string)$key, $dataConfig[$cObject]);
+                }
+                $key = in_array($key, ['type', 'context']) ? '@' . $key : $key;
+
+                $item[$key] = $value;
+            }
+            $data[] = $item;
         }
 
-        return (array)$data;
+        return $data;
     }
 
-    protected function getTyposcriptFrontendController(): TypoScriptFrontendController
+    protected function getTypoScriptFrontendController(): TypoScriptFrontendController
     {
         return $GLOBALS['TSFE'];
     }

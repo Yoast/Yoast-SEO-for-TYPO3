@@ -100,7 +100,8 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         try {
             $site = $this->siteFinder->getSiteByPageId($pageId);
             return (string)$site->getRouter()->generateUri(
-                $pageId, ['_language' => (int)$this->context->getPropertyFromAspect('language', 'id')]
+                $pageId,
+                ['_language' => (int)$this->context->getPropertyFromAspect('language', 'id')]
             );
         } catch (SiteNotFoundException|\InvalidArgumentException) {
             return '';

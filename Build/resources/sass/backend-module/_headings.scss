@@ -1,0 +1,9 @@
+.yoast {
+	h1 {
+		color: $yoast_color_headings;
+
+		span {
+			color: var(--typo3-state-default-color, #000);
+		}
+	}
+}

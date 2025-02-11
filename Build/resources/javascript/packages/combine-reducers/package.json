@@ -1,0 +1,11 @@
+{
+  "name": "combine-reducers",
+  "version": "1.0.0",
+  "description": "Combine reducers for CSP",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

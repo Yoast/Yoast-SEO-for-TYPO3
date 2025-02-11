@@ -41,9 +41,9 @@ class TcaService
                     'renderType' => 'snippetPreview',
                     'settings' => [
                         'titleField' => 'seo_title',
-                        'descriptionField' => $this->descriptionField
-                    ]
-                ]
+                        'descriptionField' => $this->descriptionField,
+                    ],
+                ],
             ],
             'tx_yoastseo_readability_analysis' => [
                 'label' => self::LL_PREFIX_BACKEND . 'analysis',
@@ -51,8 +51,8 @@ class TcaService
                 'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
                 'config' => [
                     'type' => 'none',
-                    'renderType' => 'readabilityAnalysis'
-                ]
+                    'renderType' => 'readabilityAnalysis',
+                ],
             ],
             'tx_yoastseo_focuskeyword' => [
                 'label' => self::LL_PREFIX_BACKEND . 'seoFocusKeyword',
@@ -60,7 +60,7 @@ class TcaService
                 'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
                 'config' => [
                     'type' => 'input',
-                ]
+                ],
             ],
             'tx_yoastseo_focuskeyword_analysis' => [
                 'label' => self::LL_PREFIX_BACKEND . 'analysis',
@@ -71,8 +71,8 @@ class TcaService
                     'renderType' => 'focusKeywordAnalysis',
                     'settings' => [
                         'focusKeywordField' => 'tx_yoastseo_focuskeyword',
-                    ]
-                ]
+                    ],
+                ],
             ],
             'tx_yoastseo_cornerstone' => [
                 'label' => '',
@@ -80,22 +80,22 @@ class TcaService
                 'config' => [
                     'type' => 'input',
                     'default' => 0,
-                    'renderType' => 'cornerstone'
-                ]
+                    'renderType' => 'cornerstone',
+                ],
             ],
             'tx_yoastseo_score_readability' => [
                 'label' => '',
                 'exclude' => false,
                 'config' => [
-                    'type' => 'passthrough'
-                ]
+                    'type' => 'passthrough',
+                ],
             ],
             'tx_yoastseo_score_seo' => [
                 'label' => '',
                 'exclude' => false,
                 'config' => [
-                    'type' => 'passthrough'
-                ]
+                    'type' => 'passthrough',
+                ],
             ],
             'tx_yoastseo_focuskeyword_related' => [
                 'label' => self::LL_PREFIX_TCA . 'pages.fields.tx_yoastseo_focuskeyword_related',
@@ -105,16 +105,15 @@ class TcaService
                     'foreign_table' => 'tx_yoastseo_related_focuskeyword',
                     'foreign_field' => 'uid_foreign',
                     'foreign_table_field' => 'tablenames',
-                    'maxitems' => 5
-                ]
+                    'maxitems' => 5,
+                ],
             ],
             'tx_yoastseo_insights' => [
-                'label' => self::LL_PREFIX_TCA . 'pages.fields.tx_yoastseo_insights',
                 'exclude' => true,
                 'config' => [
                     'type' => 'none',
-                    'renderType' => 'insights'
-                ]
+                    'renderType' => 'insights',
+                ],
             ],
             'tx_yoastseo_focuskeyword_synonyms' => [
                 'label' => self::LL_PREFIX_TCA . 'synonyms',
@@ -122,7 +121,7 @@ class TcaService
                 'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
                 'config' => [
                     'type' => 'input',
-                ]
+                ],
             ],
             'tx_yoastseo_robots_noimageindex' => [
                 'label' => self::LL_PREFIX_TCA . 'pages.fields.robots.noimageindex',
@@ -130,8 +129,8 @@ class TcaService
                 'config' => [
                     'type' => 'check',
                     'renderType' => 'checkboxToggle',
-                    'items' => $this->getInvertedCheckbox()
-                ]
+                    'items' => $this->getInvertedCheckbox(),
+                ],
             ],
             'tx_yoastseo_robots_noarchive' => [
                 'label' => self::LL_PREFIX_TCA . 'pages.fields.robots.noarchive',
@@ -139,8 +138,8 @@ class TcaService
                 'config' => [
                     'type' => 'check',
                     'renderType' => 'checkboxToggle',
-                    'items' => $this->getInvertedCheckbox()
-                ]
+                    'items' => $this->getInvertedCheckbox(),
+                ],
             ],
             'tx_yoastseo_robots_nosnippet' => [
                 'label' => self::LL_PREFIX_TCA . 'pages.fields.robots.nosnippet',
@@ -148,17 +147,17 @@ class TcaService
                 'config' => [
                     'type' => 'check',
                     'renderType' => 'checkboxToggle',
-                    'items' => $this->getInvertedCheckbox()
-                ]
-            ]
+                    'items' => $this->getInvertedCheckbox(),
+                ],
+            ],
         ];
         if ($this->table === 'pages') {
             $columns['tx_yoastseo_hide_snippet_preview'] = [
                 'label' => self::LL_PREFIX_BACKEND . 'hideSnippetPreview',
                 'exclude' => true,
                 'config' => [
-                    'type' => 'check'
-                ]
+                    'type' => 'check',
+                ],
             ];
         }
         ExtensionManagementUtility::addTCAcolumns(
@@ -266,16 +265,16 @@ class TcaService
                 [
                     1 => '',
                     'invertStateDisplay' => true,
-                    'label' => ''
-                ]
+                    'label' => '',
+                ],
             ];
         }
         return [
             [
                 0 => '',
                 1 => '',
-                'invertStateDisplay' => true
-            ]
+                'invertStateDisplay' => true,
+            ],
         ];
     }
 }

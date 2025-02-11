@@ -5,7 +5,7 @@
 
 <f:asset.css identifier="yoast-backend" href="EXT:yoast_seo/Resources/Public/CSS/yoast-seo-backend.min.css" />
 
-<f:if condition="{noPageSelected}">
+<f:if condition="!{pageInformation}">
     <f:then>
         <f:be.infobox state="-1" title="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:no_page_selected.title')}">
             <p><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:no_page_selected.message" /></p>
@@ -84,7 +84,7 @@
     <f:for each="{items}" as="item">
         <tr data-uid="{item.uid}">
             <td class="col-icon">
-                <y:recordIcon table="{params.table}" row="{item}" size="small" />
+                <core:iconForRecord table="{params.table}" row="{item}" size="small" />
             </td>
             <td>{item.title} [{item.uid}]</td>
             <td><f:if condition="{item.seo_title}"><f:then>{item.seo_title}</f:then><f:else>{item.title}</f:else></f:if></td>

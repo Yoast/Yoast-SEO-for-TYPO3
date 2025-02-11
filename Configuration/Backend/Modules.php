@@ -18,7 +18,7 @@ return [
         'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleDashboard.xlf',
         'extensionName' => 'YoastSeo',
         'controllerActions' => [
-            DashboardController::class => ['index']
+            DashboardController::class => ['index'],
         ],
     ],
     'yoast_YoastSeoOverview' => [
@@ -30,7 +30,7 @@ return [
         'navigationComponent' => '@typo3/backend/page-tree/page-tree-element',
         'extensionName' => 'YoastSeo',
         'controllerActions' => [
-            OverviewController::class => ['list']
+            OverviewController::class => ['list'],
         ],
     ],
     'yoast_YoastSeoCrawler' => [
@@ -41,7 +41,7 @@ return [
         'labels' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleCrawler.xlf',
         'extensionName' => 'YoastSeo',
         'controllerActions' => [
-            CrawlerController::class => ['index', 'resetProgress']
+            CrawlerController::class => ['index', 'resetProgress'],
         ],
-    ]
+    ],
 ];

@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import Modal from '@typo3/backend/modal.js';
 
 $('.yoast-seo-score-bar--analysis').on('click', function (e) {
     e.preventDefault();
@@ -17,12 +18,12 @@ $('.yoast-seo-score-bar--analysis').on('click', function (e) {
     styling += '.modal-body li p { margin: 0px 8px 0px 0px; flex: 1 1 auto;}';
 
     if ($(this).data('yoast-analysis-type') === 'readability') {
-        title = 'Readability';
+        title = $('.score-label-readability').text().slice(0, -1);
         content = $('#YoastPageHeaderAnalysisReadability').html();
     }
 
     if ($(this).data('yoast-analysis-type') === 'seo') {
-        title = 'SEO';
+        title = $('.score-label-seo').text().slice(0, -1);
         if (typeof YoastConfig.focusKeyphrase.keyword !== "undefined" && YoastConfig.focusKeyphrase.keyword !== null && YoastConfig.focusKeyphrase.keyword !== '') {
             title += ': ' + YoastConfig.focusKeyphrase.keyword;
         }

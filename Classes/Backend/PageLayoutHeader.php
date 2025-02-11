@@ -7,19 +7,25 @@ namespace YoastSeoForTypo3\YoastSeo\Backend;
 use TYPO3\CMS\Backend\Controller\PageLayoutController;
 use TYPO3\CMS\Backend\Template\ModuleTemplate;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Fluid\View\StandaloneView;
+use YoastSeoForTypo3\YoastSeo\Service\PageLayoutHeader\PageDataService;
+use YoastSeoForTypo3\YoastSeo\Service\PageLayoutHeader\PageLayoutHeaderRenderer;
+use YoastSeoForTypo3\YoastSeo\Service\PageLayoutHeader\VisibilityChecker;
+use YoastSeoForTypo3\YoastSeo\Service\SnippetPreview\SnippetPreviewConfigurationBuilder;
 use YoastSeoForTypo3\YoastSeo\Service\SnippetPreviewService;
 use YoastSeoForTypo3\YoastSeo\Service\UrlService;
-use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class PageLayoutHeader
 {
     public function __construct(
         protected UrlService $urlService,
-        protected SnippetPreviewService $snippetPreviewService
-    ) {
-    }
+        protected SnippetPreviewService $snippetPreviewService,
+        protected SnippetPreviewConfigurationBuilder $snippetPreviewConfigurationBuilder,
+        protected PageLayoutHeaderRenderer $pageLayoutHeaderRenderer,
+        protected VisibilityChecker $visibilityChecker,
+        protected PageDataService $pageDataService
+    ) {}
 
     /**
      * @param array<string, string>|null $params
@@ -28,88 +34,43 @@ class PageLayoutHeader
     {
         $languageId = $this->getLanguageId();
         $pageId = (int)$_GET['id'];
-        $currentPage = $this->getCurrentPage($pageId, $languageId, $parentObj);
+        $currentPage = $this->pageDataService->getCurrentPage($pageId, $languageId, $parentObj);
 
-        if (!is_array($currentPage) || !$this->shouldShowPreview($pageId, $currentPage)) {
+        if (!is_array($currentPage) || !$this->visibilityChecker->shouldShowPreview($pageId, $currentPage)) {
             return '';
         }
 
         $this->snippetPreviewService->buildSnippetPreview(
             $this->urlService->getPreviewUrl($pageId, $languageId),
             $currentPage,
-            [
-                'data' => [
-                    'table' => 'pages',
-                    'uid' => $pageId,
-                    'pid' => $currentPage['pid'],
-                    'languageId' => $languageId
-                ],
-                'fieldSelectors' => [],
-            ]
+            $this->snippetPreviewConfigurationBuilder->buildConfigurationForPage($pageId, $currentPage, $languageId)
         );
 
-        return $this->renderHtml();
-    }
-
-    protected function renderHtml(): string
-    {
-        $templateView = GeneralUtility::makeInstance(StandaloneView::class);
-        $templateView->setTemplatePathAndFilename(
-            GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Templates/PageLayout/Header.html')
-        );
-        $templateView->assignMultiple([
-            'targetElementId' => uniqid('_YoastSEO_panel_')
-        ]);
-        return $templateView->render();
-    }
-
-    /**
-     * @return array<string, string>|null
-     */
-    protected function getCurrentPage(int $pageId, int $languageId, PageLayoutController|ModuleTemplate|null $parentObj): ?array
-    {
-        if ((!$parentObj instanceof PageLayoutController && !$parentObj instanceof ModuleTemplate) || $pageId <= 0) {
-            return null;
-        }
-
-        if ($languageId === 0) {
-            return BackendUtility::getRecord(
-                'pages',
-                $pageId
-            );
-        }
-
-        if ($languageId > 0) {
-            $overlayRecords = BackendUtility::getRecordLocalization(
-                'pages',
-                $pageId,
-                $languageId
-            );
-
-            if (is_array($overlayRecords) && array_key_exists(0, $overlayRecords) && is_array($overlayRecords[0])) {
-                return $overlayRecords[0];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @param array<string, string> $pageRecord
-     */
-    protected function shouldShowPreview(int $pageId, array $pageRecord): bool
-    {
-        if (!YoastUtility::snippetPreviewEnabled($pageId, $pageRecord)) {
-            return false;
-        }
-
-        $allowedDoktypes = YoastUtility::getAllowedDoktypes();
-        return isset($pageRecord['doktype']) && in_array((int)$pageRecord['doktype'], $allowedDoktypes, true);
+        return $this->pageLayoutHeaderRenderer->render();
     }
 
     protected function getLanguageId(): int
     {
-        $moduleData = (array)BackendUtility::getModuleData(['language'], [], 'web_layout');
-        return (int)$moduleData['language'];
+        if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() === 11) {
+            $moduleData = BackendUtility::getModuleData(['language'], [], 'web_layout');
+            return (int)$moduleData['language'];
+        }
+
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if ($request === null) {
+            return 0;
+        }
+
+        $moduleData = $request->getAttribute('moduleData');
+        if ($moduleData === null) {
+            return 0;
+        }
+
+        $language = (int)$moduleData->get('language');
+        if ($language === -1) {
+            return 0;
+        }
+
+        return $language;
     }
 }
