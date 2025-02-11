@@ -36,6 +36,7 @@ We will follow [Semantic Versioning](http://semver.org/).
 - Optimized images that are used in the Dashboard module and load them directly instead of through `f:image`
   - Removed old unused images
 - Translations are now correctly loaded based on the backend locale 
+- `og_image` and `twitter_image` now have the correct `foreign_match_fields` -> `tablenames` when using the Record functionality
 
 ## 10.1.0 January 27, 2025
 ### Added
