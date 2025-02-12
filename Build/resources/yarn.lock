@@ -3693,6 +3693,23 @@
     redux "^3.7.2"
     styled-components "^5.3.6"
 
+"@yoast/social-metadata-previews@^2.0.0-alpha.0":
+  version "2.0.0-alpha.0"
+  resolved "https://registry.yarnpkg.com/@yoast/social-metadata-previews/-/social-metadata-previews-2.0.0-alpha.0.tgz#50b6d56dbb0a5fd25c05d99c4b73de86f5602b4f"
+  integrity sha512-MCrOXZwu9v/Y5SgnDzI7gJFjcvsTlTxpHq2LJwHDPMCN72Pne0YVzOXMiQLgtCveFGdmOs/oEW+PqqQ+IkInKA==
+  dependencies:
+    "@wordpress/i18n" "^1.1.0"
+    "@yoast/components" "^3.0.0-alpha.0"
+    "@yoast/replacement-variable-editor" "^2.0.0-alpha.0"
+    "@yoast/social-metadata-forms" "^2.0.0-alpha.0"
+    "@yoast/style-guide" "^0.14.0-alpha.0"
+    lodash "^4.17.11"
+    prop-types "^15.6.0"
+    react "^18.2.0"
+    react-dom "^18.2.0"
+    redux "^3.7.2"
+    styled-components "^5.3.6"
+
 "@yoast/style-guide@^0.13.0":
   version "0.13.0"
   resolved "https://registry.yarnpkg.com/@yoast/style-guide/-/style-guide-0.13.0.tgz#69e41ddacc62e378fbc98df9aebe1d63115ea047"

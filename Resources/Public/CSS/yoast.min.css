@@ -1,1 +1,203 @@
-.yoast-seo{background-color:var(--module-bg,#fff);padding:15px}#yoast-snippet-preview-container{background-color:var(--module-bg,#fff)!important}#yoast-snippet-preview-container div:first-child>div:first-child,#yoast-snippet-preview-container div:nth-child(2)>div{color:var(--module-color,#000)!important}.yoast-seo-snippet-header{background-color:var(--module-docheader-bg,#eee);border-radius:5px;color:var(--module-color,#000);padding:5px}.yoast-seo-snippet-header-premium{float:right}.yoast-seo-snippet-header-premium a{margin-left:5px;text-decoration:underline}.yoast-seo-snippet-header-premium a i{color:#a4286a;margin-right:5px}.yoast-seo-score-bar{margin-bottom:15px}.yoast-seo-score-bar--analysis{margin-right:20px}.yoast-seo-score-bar--analysis.yoast-seo-page{cursor:pointer}.yoast-seo-score-bar--analysis svg{vertical-align:middle}.yoast-seo-snippet-error{color:#dc3232;padding:10px;text-align:center}.yoast-seo-snippet-error a{color:#dc3232;text-decoration:underline}.spinner{margin:50px auto;text-align:center;width:70px}.spinner>div{animation:sk-bouncedelay 1.4s ease-in-out infinite both;background-color:#ccc;border-radius:100%;display:inline-block;height:18px;width:18px}.spinner .bounce1{animation-delay:-.32s}.spinner .bounce2{animation-delay:-.16s}@keyframes sk-bouncedelay{0%,80%,to{transform:scale(0);-webkit-transform:scale(0)}40%{transform:scale(1);-webkit-transform:scale(1)}}.yoast-seo-snippet-preview{border:1px solid #ccc;padding:15px}.yoast-seo-snippet-preview-styling{min-height:235px}.yoast-seo-snippet-preview-styling fieldset legend{border-bottom:0!important;font-size:12px!important}.yoast-seo-snippet-preview-styling fieldset label{font-size:12px!important;font-weight:400}div.yoast-analysis button{background-color:inherit!important;font-size:12px!important}div.yoast-analysis button:disabled{display:none}div.yoast-analysis div:not(.bounce){background-color:inherit!important}div.yoast-analysis a{text-decoration:underline}.yoastSeo-insights a{font-weight:700}.yoastSeo-insights a:hover{text-decoration:underline}.yoastSeo-insights .yoast-field-group__title{font-weight:600}.yoastSeo-insights .yoast-help{margin-left:5px}.yoastSeo-insights .yoast-help__icon svg{fill:#707070;height:12px;transition:all .15s ease-out;width:12px}.yoastSeo-insights .yoast-help:focus svg,.yoastSeo-insights .yoast-help:hover svg{fill:#000}.yoastSeo-insights .screen-reader-text{height:1px;left:-10000px;overflow:hidden;position:absolute;top:auto;width:1px}.yoastSeo-insights .yoast-data-model{list-style:none;padding:3px 0 0;width:300px}.yoastSeo-insights .yoast-data-model li{font-weight:600;line-height:1.8;padding:0 8px;position:relative;z-index:2}.yoastSeo-insights .yoast-data-model span{float:right;font-weight:400}.yoastSeo-insights .yoast-data-model li+li{margin-top:9px}.yoastSeo-insights .yoast-data-model li:after{background:var(--typo3-surface-container-info,#d5eef6);content:"";height:20px;left:0;position:absolute;width:var(--yoast-width);z-index:-1}.yoastSeo-insights .yoast-insights-row{display:flex;gap:40px;padding-top:15px}.yoastSeo-insights .yoast-insights-card__content{display:flex;padding-top:5px}.yoastSeo-insights .yoast-insights-card__score{flex-shrink:0;margin-right:2em}.yoastSeo-insights .yoast-insights-card__amount{display:block;font-size:3.5em;line-height:1}.yoastSeo-insights .yoast-insights-card__description{max-width:600px}
+/*!****************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[4].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[4].use[2]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[4].use[3]!./sass/yoast.scss ***!
+  \****************************************************************************************************************************************************************************************************************************************/
+.yoast-seo {
+  padding: 15px;
+  background-color: var(--module-bg, #FFF);
+}
+
+#yoast-snippet-preview-container {
+  background-color: var(--module-bg, #FFF) !important;
+}
+#yoast-snippet-preview-container div:nth-child(1) > div:first-child {
+  color: var(--module-color, #000) !important;
+}
+#yoast-snippet-preview-container div:nth-child(2) > div {
+  color: var(--module-color, #000) !important;
+}
+
+.yoast-seo-snippet-header {
+  padding: 5px;
+  background-color: var(--module-docheader-bg, #eee);
+  color: var(--module-color, #000);
+  border-radius: 5px;
+}
+.yoast-seo-snippet-header-premium {
+  float: right;
+}
+.yoast-seo-snippet-header-premium a {
+  margin-left: 5px;
+  text-decoration: underline;
+}
+.yoast-seo-snippet-header-premium a i {
+  margin-right: 5px;
+  color: #a4286a;
+}
+
+.yoast-seo-score-bar {
+  margin-bottom: 15px;
+}
+.yoast-seo-score-bar--analysis {
+  margin-right: 20px;
+}
+.yoast-seo-score-bar--analysis.yoast-seo-page {
+  cursor: pointer;
+}
+.yoast-seo-score-bar--analysis svg {
+  vertical-align: middle;
+}
+
+.yoast-seo-snippet-error {
+  color: #dc3232;
+  padding: 10px;
+  text-align: center;
+}
+.yoast-seo-snippet-error a {
+  color: #dc3232;
+  text-decoration: underline;
+}
+
+.spinner {
+  width: 70px;
+  margin: 50px auto;
+  text-align: center;
+}
+.spinner > div {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 100%;
+  background-color: #cccccc;
+  animation: sk-bouncedelay 1.4s infinite ease-in-out both;
+}
+.spinner .bounce1 {
+  animation-delay: -0.32s;
+}
+.spinner .bounce2 {
+  animation-delay: -0.16s;
+}
+@keyframes sk-bouncedelay {
+  0%, 80%, 100% {
+    transform: scale(0);
+    -webkit-transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+    -webkit-transform: scale(1);
+  }
+}
+.yoast-seo-snippet-preview {
+  padding: 15px;
+  border: 1px solid #cccccc;
+}
+
+.yoast-seo-snippet-preview-styling {
+  min-height: 235px;
+}
+.yoast-seo-snippet-preview-styling fieldset legend {
+  font-size: 12px !important;
+  border-bottom: 0 !important;
+}
+.yoast-seo-snippet-preview-styling fieldset label {
+  font-size: 12px !important;
+  font-weight: normal;
+}
+
+div.yoast-analysis button {
+  background-color: inherit !important;
+  font-size: 12px !important;
+}
+div.yoast-analysis button:disabled {
+  display: none;
+}
+div.yoast-analysis div:not(.bounce) {
+  background-color: inherit !important;
+}
+div.yoast-analysis a {
+  text-decoration: underline;
+}
+
+.yoastSeo-insights a {
+  font-weight: bold;
+}
+.yoastSeo-insights a:hover {
+  text-decoration: underline;
+}
+.yoastSeo-insights .yoast-field-group__title {
+  font-weight: 600;
+}
+.yoastSeo-insights .yoast-help {
+  margin-left: 5px;
+}
+.yoastSeo-insights .yoast-help__icon svg {
+  fill: #707070;
+  height: 12px;
+  transition: all 150ms ease-out;
+  width: 12px;
+}
+.yoastSeo-insights .yoast-help:focus svg, .yoastSeo-insights .yoast-help:hover svg {
+  fill: #000;
+}
+.yoastSeo-insights .screen-reader-text {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.yoastSeo-insights .yoast-data-model {
+  width: 300px;
+  padding: 3px 0 0 0;
+  list-style: none;
+}
+.yoastSeo-insights .yoast-data-model li {
+  line-height: 1.8;
+  padding: 0 8px;
+  position: relative;
+  z-index: 2;
+  font-weight: 600;
+}
+.yoastSeo-insights .yoast-data-model span {
+  float: right;
+  font-weight: 400;
+}
+.yoastSeo-insights .yoast-data-model li + li {
+  margin-top: 9px;
+}
+.yoastSeo-insights .yoast-data-model li:after {
+  position: absolute;
+  left: 0;
+  height: 20px;
+  background: var(--typo3-surface-container-info, #d5eef6);
+  content: "";
+  width: var(--yoast-width);
+  z-index: -1;
+}
+.yoastSeo-insights .yoast-insights-row {
+  display: flex;
+  gap: 40px;
+  padding-top: 15px;
+}
+.yoastSeo-insights .yoast-insights-card__content {
+  padding-top: 5px;
+  display: flex;
+}
+.yoastSeo-insights .yoast-insights-card__score {
+  flex-shrink: 0;
+  margin-right: 2em;
+}
+.yoastSeo-insights .yoast-insights-card__amount {
+  display: block;
+  font-size: 3.5em;
+  line-height: 1;
+}
+.yoastSeo-insights .yoast-insights-card__description {
+  max-width: 600px;
+}
+
+#facebookPreview span.screen-reader-text {
+  display: none;
+}
+
+/*# sourceMappingURL=yoast.min.css.map*/

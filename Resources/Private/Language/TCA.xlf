@@ -24,6 +24,12 @@
             <trans-unit id="pages.fields.tx_yoastseo_focuskeyword_related" resname="pages.fields.tx_yoastseo_focuskeyword_related">
                 <source>Focus keywords</source>
             </trans-unit>
+            <trans-unit id="pages.fields.tx_yoastseo_facebook_preview" resname="pages.fields.tx_yoastseo_facebook_preview">
+                <source>Facebook preview</source>
+            </trans-unit>
+            <trans-unit id="pages.fields.tx_yoastseo_twitter_preview" resname="pages.fields.tx_yoastseo_twitter_preview">
+                <source>Twitter preview</source>
+            </trans-unit>
             <trans-unit id="pages.palettes.robots" resname="pages.palettes.robots">
                 <source>Advanced robot instructions</source>
             </trans-unit>

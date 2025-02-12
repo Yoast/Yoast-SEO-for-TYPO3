@@ -43,7 +43,9 @@
     "languageteam": "Yoast Translate <translations@yoast.com>",
     "lasttranslator": "Yoast Translate Team <translations@yoast.com>"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@yoast/social-metadata-previews": "^2.0.0-alpha.0"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/YoastSeoForTypo3/t3ext-yoast-seo.git"

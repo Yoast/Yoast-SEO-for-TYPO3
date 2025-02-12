@@ -8,6 +8,9 @@ import flesch from "./flesch";
 import readingTime from "./readingTime";
 import wordCount from "./wordCount";
 import linkingSuggestions from "./linkingSuggestions";
+import facebookPreview from "./facebookPreview";
+import twitterPreview from "./twitterPreview";
+
 export default {
     content,
     focusKeyword,
@@ -18,5 +21,7 @@ export default {
     flesch,
     readingTime,
     wordCount,
-    linkingSuggestions
+    linkingSuggestions,
+    facebookPreview,
+    twitterPreview
 }

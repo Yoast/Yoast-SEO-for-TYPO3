@@ -24,6 +24,7 @@ class TcaService
         $this->descriptionField = $descriptionField;
 
         $this->addDefaultFields();
+        $this->addSocialPreviewFields();
 
         $this->addPalettes();
         $this->addToTypes();
@@ -163,6 +164,45 @@ class TcaService
         ExtensionManagementUtility::addTCAcolumns(
             $this->table,
             $columns
+        );
+    }
+
+    protected function addSocialPreviewFields(): void
+    {
+        ExtensionManagementUtility::addTCAcolumns(
+            $this->table,
+            [
+                'tx_yoastseo_facebook_preview' => [
+                    'label' => self::LL_PREFIX_TCA . 'pages.fields.tx_yoastseo_facebook_preview',
+                    'exclude' => true,
+                    'config' => [
+                        'type' => 'none',
+                        'renderType' => 'facebookPreview'
+                    ]
+                ],
+                'tx_yoastseo_twitter_preview' => [
+                    'label' => self::LL_PREFIX_TCA . 'pages.fields.tx_yoastseo_twitter_preview',
+                    'exclude' => true,
+                    'config' => [
+                        'type' => 'none',
+                        'renderType' => 'twitterPreview'
+                    ]
+                ]
+            ]
+        );
+
+        ExtensionManagementUtility::addFieldsToPalette(
+            'pages',
+            'opengraph',
+            'tx_yoastseo_facebook_preview,--linebreak--',
+            'before:og_title'
+        );
+
+        ExtensionManagementUtility::addFieldsToPalette(
+            'pages',
+            'twittercards',
+            'tx_yoastseo_twitter_preview,--linebreak--',
+            'before:twitter_title'
         );
     }
 

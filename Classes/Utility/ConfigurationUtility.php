@@ -21,6 +21,8 @@ class ConfigurationUtility
             1519937113 => ['insights', Element\Insights::class],
             1552342645 => ['cornerstone', Element\Cornerstone::class],
             1552511464 => ['internalLinkingSuggestion', Element\InternalLinkingSuggestion::class],
+            1739390685 => ['facebookPreview', Element\FacebookPreview::class],
+            1739390690 => ['twitterPreview', Element\TwitterPreview::class],
         ];
     }
 
