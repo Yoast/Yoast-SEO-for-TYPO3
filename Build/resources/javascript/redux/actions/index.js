@@ -8,6 +8,8 @@ import {getFleschReadingScore} from "./flesch";
 import {getLinkingSuggestions} from "./linkingSuggestions";
 import {getReadingTime} from "./readingTime";
 import {getWordCount} from "./wordCount";
+import {getFacebookData} from "./facebookPreview";
+import {getTwitterData} from "./twitterPreview";
 
 export default {
     getContent,
@@ -19,5 +21,7 @@ export default {
     getFleschReadingScore,
     getReadingTime,
     getWordCount,
-    getLinkingSuggestions
+    getLinkingSuggestions,
+    getFacebookData,
+    getTwitterData
 };

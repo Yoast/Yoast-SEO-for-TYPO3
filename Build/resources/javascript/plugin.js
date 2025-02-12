@@ -11,17 +11,22 @@ import DescriptionProgressBar from './Components/DescriptionProgressBar';
 import LinkingSuggestions from "./Components/LinkingSuggestions";
 import Insights from "./Components/Insights";
 import FleschReadingScore from "./Components/FleschReadingScore";
+import FacebookPreview from "./Components/FacebookPreview";
+import TwitterPreview from "./Components/TwitterPreview";
+
 import store from './redux/store';
 import {getContent, updateContent} from './redux/actions/content';
 import {setFocusKeyword} from './redux/actions/focusKeyword';
-
 import {saveRelevantWords} from './redux/actions/relevantWords';
+import {setFocusKeywordSynonyms} from "./redux/actions/focusKeywordSynonyms";
+import {getLinkingSuggestions} from "./redux/actions/linkingSuggestions";
+import {getFacebookData, updateFacebookData} from "./redux/actions/facebookPreview";
+import {getTwitterData, updateTwitterData} from "./redux/actions/twitterPreview";
+
 import createAnalysisWorker from './analysis/createAnalysisWorker';
 import refreshAnalysis from './analysis/refreshAnalysis';
-import {setFocusKeywordSynonyms} from "./redux/actions/focusKeywordSynonyms";
 import {setLocaleData} from "@wordpress/i18n";
 import {Paper} from "yoastseo";
-import {getLinkingSuggestions} from "./redux/actions/linkingSuggestions";
 import ReadingTime from "./Components/ReadingTime";
 import WordCount from "./Components/WordCount";
 
@@ -97,6 +102,7 @@ let YoastPlugin = {
         YoastPlugin.initFocusKeyword();
         YoastPlugin.initRelatedFocusKeywords();
         YoastPlugin.initSeoTitle();
+        YoastPlugin.initSocialPreviews();
     },
 
     initContentAnalysis: () => {
@@ -404,6 +410,58 @@ let YoastPlugin = {
 
                     store.dispatch(updateContent({title: value + ' '}));
                 }, 100));
+            }
+        });
+    },
+
+    initSocialPreviews: () => {
+        const socialPreviews = [{
+            socialType: 'facebook',
+            component: <FacebookPreview />,
+            socialDataRetrieve: function (imageUrl, siteBase) {
+                return getFacebookData(imageUrl, siteBase);
+            },
+            socialDataUpdate: function (payload) {
+                return updateFacebookData(payload);
+            },
+            updateFields: {
+                title: YoastConfig.fieldSelectors.ogTitle,
+                description: YoastConfig.fieldSelectors.ogDescription
+            }
+        }, {
+            socialType: 'twitter',
+            component: <TwitterPreview />,
+            socialDataRetrieve: function (imageUrl, siteBase) {
+                return getTwitterData(imageUrl, siteBase);
+            },
+            socialDataUpdate: function (payload) {
+                return updateTwitterData(payload);
+            },
+            updateFields: {
+                title: YoastConfig.fieldSelectors.twitterTitle,
+                description: YoastConfig.fieldSelectors.twitterDescription
+            }
+        }];
+
+        socialPreviews.forEach(item => {
+            let previewElement = document.querySelector('[data-yoast-social-preview-type="' + item.socialType + '"]');
+            if (previewElement) {
+                let imageUrl = previewElement.dataset.yoastSocialPreviewImage,
+                    siteBase = previewElement.dataset.yoastSocialPreviewBase;
+
+                store.dispatch(item.socialDataRetrieve(imageUrl, siteBase));
+                const socialPreviewRoot = createRoot(previewElement);
+                socialPreviewRoot.render(<Provider store={store}>{item.component}</Provider>);
+
+                for (let field in item.updateFields) {
+                    if (item.updateFields.hasOwnProperty(field)) {
+                        let fieldElement = document.querySelector('[data-formengine-input-name="' + item.updateFields[field] + '"]');
+                        fieldElement.addEventListener('input', debounce(_ => {
+                            console.log(field + ' - ' + fieldElement.value);
+                            store.dispatch(item.socialDataUpdate({[field]: fieldElement.value}));
+                        }));
+                    }
+                }
             }
         });
     },
