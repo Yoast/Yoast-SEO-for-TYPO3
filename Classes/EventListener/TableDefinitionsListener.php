@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\EventListener;
 
 use TYPO3\CMS\Core\Database\Event\AlterTableDefinitionStatementsEvent;
-use YoastSeoForTypo3\YoastSeo\Record\RecordRegistry;
 
 class TableDefinitionsListener extends AbstractListener
 {
     public function addDatabaseSchema(AlterTableDefinitionStatementsEvent $event): void
     {
-        foreach (RecordRegistry::getInstance()->getRecords() as $record) {
+        foreach ($this->getRecordsFromRegistry() as $record) {
             $this->builder
                 ->setRecord($record)
                 ->build();

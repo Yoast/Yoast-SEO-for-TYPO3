@@ -126,21 +126,6 @@
 			<trans-unit id="wrongDoktype.description" resname="wrongDoktype.description">
 				<source>The Yoast SEO analysis is not available for this type of page. Please change the type of page, or make sure your administrator adds the pagetype to the allowed pagetypes for Yoast SEO.</source>
 			</trans-unit>
-			<trans-unit id="labelReadability" resname="labelReadability">
-				<source>Readability</source>
-			</trans-unit>
-			<trans-unit id="labelSeo" resname="labelSeo">
-				<source>SEO</source>
-			</trans-unit>
-			<trans-unit id="labelOk" resname="labelOk">
-				<source>OK</source>
-			</trans-unit>
-			<trans-unit id="labelBad" resname="labelBad">
-				<source>Needs improvement</source>
-			</trans-unit>
-			<trans-unit id="labelGood" resname="labelGood">
-				<source>Good</source>
-			</trans-unit>
 			<trans-unit id="academy.basic_seo" resname="academy.basic_seo">
 				<source>Basic SEO training</source>
 			</trans-unit>

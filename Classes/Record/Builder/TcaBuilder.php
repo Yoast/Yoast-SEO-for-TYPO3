@@ -66,12 +66,12 @@ class TcaBuilder extends AbstractBuilder
                 'canonical_link' => $GLOBALS['TCA']['pages']['columns']['canonical_link'],
                 'og_title' => $GLOBALS['TCA']['pages']['columns']['og_title'],
                 'og_description' => $GLOBALS['TCA']['pages']['columns']['og_description'],
-                'og_image' => $GLOBALS['TCA']['pages']['columns']['og_image'],
+                'og_image' => $this->getFileField('og_image'),
                 'twitter_title' => $GLOBALS['TCA']['pages']['columns']['twitter_title'],
                 'twitter_description' => $GLOBALS['TCA']['pages']['columns']['twitter_description'],
-                'twitter_image' => $GLOBALS['TCA']['pages']['columns']['twitter_image'],
+                'twitter_image' => $this->getFileField('twitter_image'),
                 'twitter_card' => $GLOBALS['TCA']['pages']['columns']['twitter_card'],
-            ]
+            ],
         ];
         $GLOBALS['TCA'][$this->record->getTableName()] = array_replace_recursive(
             $GLOBALS['TCA'][$this->record->getTableName()],
@@ -111,7 +111,7 @@ class TcaBuilder extends AbstractBuilder
             'columns' => [
                 'sitemap_changefreq' => $GLOBALS['TCA']['pages']['columns']['sitemap_changefreq'],
                 'sitemap_priority' => $GLOBALS['TCA']['pages']['columns']['sitemap_priority'],
-            ]
+            ],
         ];
         $GLOBALS['TCA'][$this->record->getTableName()] = array_replace_recursive(
             $GLOBALS['TCA'][$this->record->getTableName()],
@@ -128,8 +128,20 @@ class TcaBuilder extends AbstractBuilder
     protected function addDescriptionField(): void
     {
         ExtensionManagementUtility::addTCAcolumns($this->record->getTableName(), [
-            $this->record->getDescriptionField() => $GLOBALS['TCA']['pages']['columns']['description']
+            $this->record->getDescriptionField() => $GLOBALS['TCA']['pages']['columns']['description'],
         ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function getFileField(string $tcaField): array
+    {
+        $tca = $GLOBALS['TCA']['pages']['columns'][$tcaField];
+        if (isset($tca['config']['foreign_match_fields']['tablenames'])) {
+            $tca['config']['foreign_match_fields']['tablenames'] = $this->record->getTableName();
+        }
+        return $tca;
     }
 
     public function getResult(): array

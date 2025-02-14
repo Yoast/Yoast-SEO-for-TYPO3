@@ -6,11 +6,14 @@ namespace YoastSeoForTypo3\YoastSeo\StructuredData;
 
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
+use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Http\ApplicationType;
+use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Service\DependencyOrderingService;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\TypoScript\TypoScriptService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Frontend\Cache\CacheLifetimeCalculator;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 /**
@@ -82,8 +85,7 @@ class StructuredDataProviderManager implements SingletonInterface
                     $cacheIdentifier,
                     $data,
                     ['pageId_' . ($this->getTypoScriptFrontendController()->page['uid'] ?? $this->getTypoScriptFrontendController()->id)],
-                    // TODO: Fix this call, protected method since v13
-                    //$this->getTypoScriptFrontendController()->get_cache_timeout()
+                    $this->getCacheTimeout(),
                 );
             }
 
@@ -185,5 +187,30 @@ class StructuredDataProviderManager implements SingletonInterface
     protected function getSourceComment(): string
     {
         return '<!-- This site is optimized with the Yoast SEO for TYPO3 plugin - https://yoast.com/typo3-extensions-seo/ -->';
+    }
+
+    protected function getCacheTimeout(): int
+    {
+        if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 13) {
+            return $this->getTypoScriptFrontendController()->get_cache_timeout();
+        }
+
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if ($request === null) {
+            return 0;
+        }
+
+        $pageInformation = $request->getAttribute('frontend.page.information');
+        $typoScriptConfigArray = $request->getAttribute('frontend.typoscript')->getConfigArray();
+        $context = GeneralUtility::makeInstance(Context::class);
+
+        return GeneralUtility::makeInstance(CacheLifetimeCalculator::class)
+            ->calculateLifetimeForPage(
+                $pageInformation->getId(),
+                $pageInformation->getPageRecord(),
+                $typoScriptConfigArray,
+                0,
+                $context
+            );
     }
 }

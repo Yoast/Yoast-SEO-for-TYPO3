@@ -24,15 +24,6 @@
             <trans-unit id="pages.fields.tx_yoastseo_focuskeyword_related" resname="pages.fields.tx_yoastseo_focuskeyword_related">
                 <source>Focus keywords</source>
             </trans-unit>
-            <trans-unit id="pages.fields.tx_yoastseo_insights" resname="pages.fields.tx_yoastseo_insights">
-                <source>Prominent words</source>
-            </trans-unit>
-            <trans-unit id="pages.fields.tx_yoastseo_insights.intro" resname="pages.fields.tx_yoastseo_insights.intro">
-                <source>The following words occur the most in the content. These give an indication of what your content focuses on. If the words differ a lot from your topic, you might want to rewrite your content accordingly.</source>
-            </trans-unit>
-            <trans-unit id="pages.fields.tx_yoastseo_insights.more_information" resname="pages.fields.tx_yoastseo_insights.more_information">
-                <source><![CDATA[Read our <a href="%s" target="_blank">ultimate guide to keyword research</a> to learn more about keyword research and keyword strategy.]]></source>
-            </trans-unit>
             <trans-unit id="pages.palettes.robots" resname="pages.palettes.robots">
                 <source>Advanced robot instructions</source>
             </trans-unit>

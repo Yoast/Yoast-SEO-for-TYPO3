@@ -8,7 +8,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Http\ApplicationType;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use YoastSeoForTypo3\YoastSeo\Utility\JsonConfigUtility;
+use YoastSeoForTypo3\YoastSeo\Service\Javascript\JsonConfigService;
 
 class BackendYoastConfig
 {
@@ -23,7 +23,7 @@ class BackendYoastConfig
             return;
         }
 
-        $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigUtility::class);
+        $jsonConfigUtility = GeneralUtility::makeInstance(JsonConfigService::class);
         $pObject->addJsInlineCode('yoast-json-config', $jsonConfigUtility->render(), true, false, true);
     }
 }

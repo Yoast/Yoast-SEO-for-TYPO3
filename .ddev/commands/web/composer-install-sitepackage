@@ -1,0 +1,11 @@
+#!/bin/bash
+
+valid_versions=("11" "12" "13")
+
+if [[ ! " ${valid_versions[@]} " =~ " $1 " ]]; then
+  echo "Invalid version. Please use one of the following: ${valid_versions[@]}"
+  exit 1
+fi
+
+composer config repositories.sitepackage path ../../$EXTENSION_KEY/Build/extensions/sitepackage -d /var/www/html/v$1
+composer req yoast-seo-for-typo3/sitepackage:^1.0 -n -d /var/www/html/v$1

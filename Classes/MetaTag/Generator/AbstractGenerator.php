@@ -6,23 +6,17 @@ namespace YoastSeoForTypo3\YoastSeo\MetaTag\Generator;
 
 use TYPO3\CMS\Core\Imaging\ImageManipulation\CropVariantCollection;
 use TYPO3\CMS\Core\MetaTag\MetaTagManagerRegistry;
+use TYPO3\CMS\Core\Resource\FileInterface;
 use TYPO3\CMS\Core\Resource\FileReference;
 use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Service\ImageService;
-use YoastSeoForTypo3\YoastSeo\Record\Record;
 
 abstract class AbstractGenerator implements GeneratorInterface
 {
-    protected MetaTagManagerRegistry $managerRegistry;
-
-    public function __construct(?MetaTagManagerRegistry $managerRegistry = null)
-    {
-        if ($managerRegistry === null) {
-            $managerRegistry = GeneralUtility::makeInstance(MetaTagManagerRegistry::class);
-        }
-        $this->managerRegistry = $managerRegistry;
-    }
+    public function __construct(
+        protected MetaTagManagerRegistry $managerRegistry
+    ) {}
 
     /**
      * @see \TYPO3\CMS\Seo\MetaTag\MetaTagGenerator
@@ -35,33 +29,45 @@ abstract class AbstractGenerator implements GeneratorInterface
 
         $socialImages = [];
 
-        foreach ($fileReferences as $file) {
-            $arguments = $file->getProperties();
-            $cropVariantCollection = CropVariantCollection::create((string)$arguments['crop']);
-            $cropVariant = ($arguments['cropVariant'] ?? false) ?: 'social';
-            $cropArea = $cropVariantCollection->getCropArea($cropVariant);
-            $crop = $cropArea->makeAbsoluteBasedOnFile($file);
-
-            $processingConfiguration = [
-                'crop' => $crop,
-                'maxWidth' => 2000,
-            ];
-
-            $processedImage = $file->getOriginalFile()->process(
-                ProcessedFile::CONTEXT_IMAGECROPSCALEMASK,
-                $processingConfiguration
-            );
-
-            $imageUri = $imageService->getImageUri($processedImage, true);
-
+        foreach ($fileReferences as $fileReference) {
+            $arguments = $fileReference->getProperties();
+            $image = $this->processSocialImage($fileReference);
             $socialImages[] = [
-                'url' => $imageUri,
-                'width' => floor($processedImage->getProperty('width')),
-                'height' => floor($processedImage->getProperty('height')),
+                'url' => $imageService->getImageUri($image, true),
+                'width' => floor((float)$image->getProperty('width')),
+                'height' => floor((float)$image->getProperty('height')),
                 'alternative' => $arguments['alternative'],
             ];
         }
 
         return $socialImages;
+    }
+
+    protected function processSocialImage(FileReference $fileReference): FileInterface
+    {
+        $arguments = $fileReference->getProperties();
+        $cropVariantCollection = CropVariantCollection::create((string)($arguments['crop'] ?? ''));
+        $cropVariantName = ($arguments['cropVariant'] ?? false) ?: 'social';
+        $cropArea = $cropVariantCollection->getCropArea($cropVariantName);
+        $crop = $cropArea->makeAbsoluteBasedOnFile($fileReference);
+
+        $processingConfiguration = [
+            'crop' => $crop,
+            'maxWidth' => 2000,
+        ];
+
+        // The image needs to be processed if:
+        //  - the image width is greater than the defined maximum width, or
+        //  - there is a cropping other than the full image (starts at 0,0 and has a width and height of 100%) defined
+        $needsProcessing = $fileReference->getProperty('width') > $processingConfiguration['maxWidth']
+            || !$cropArea->isEmpty();
+        if (!$needsProcessing) {
+            return $fileReference->getOriginalFile();
+        }
+
+        return $fileReference->getOriginalFile()->process(
+            ProcessedFile::CONTEXT_IMAGECROPSCALEMASK,
+            $processingConfiguration
+        );
     }
 }

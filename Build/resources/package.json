@@ -1,0 +1,61 @@
+{
+  "name": "t3ext-yoast-seo",
+  "version": "1.0.0",
+  "description": "Yoast SEO for TYPO3",
+  "main": "plugin.js",
+  "devDependencies": {
+    "@draft-js-plugins/mention": "^5.0.0",
+    "@reduxjs/toolkit": "^1.8.3",
+    "@wordpress/data": "^4.10.0",
+    "@wordpress/dependency-extraction-webpack-plugin": "^4.28.0",
+    "@wordpress/i18n": "^1.1.0",
+    "@wordpress/scripts": "^26.16.0",
+    "@yoast/analysis-report": "^1.21.0",
+    "@yoast/babel-preset": "^1.1.1",
+    "@yoast/browserslist-config": "^1.2.3",
+    "@yoast/components": "^3.0.0-alpha.0",
+    "@yoast/feature-flag": "^0.6.0-alpha.0",
+    "@yoast/grunt-plugin-tasks": "^2.4",
+    "@yoast/helpers": "^0.17.0-alpha.0",
+    "@yoast/postcss-preset": "^1.2.0",
+    "@yoast/search-metadata-previews": "^3.0.0-alpha.0",
+    "@yoast/social-metadata-forms": "^2.0.0-alpha.0",
+    "@yoast/style-guide": "^0.14.0-alpha.0",
+    "@yoast/ui-library": "^4.0.0",
+    "babel-plugin-styled-components": "^2.1.4",
+    "core-js": "^2.6.12",
+    "draft-js": "^0.11.7",
+    "react-redux": "^5.0.6",
+    "redux": "^3.7.2",
+    "redux-thunk": "^2.2.0",
+    "url": "^0.11.4",
+    "util": "^0.12.5",
+    "webpack-remove-empty-scripts": "^1.0.4",
+    "yoastseo": "^2.0.0-alpha.0"
+  },
+  "scripts": {
+    "start": "wp-scripts start",
+    "start:hot": "wp-scripts start --hot",
+    "build": "wp-scripts build"
+  },
+  "pot": {
+    "reportmsgidbugsto": "https://github.com/YoastSeoForTypo3/t3ext-yoast-seo/issues",
+    "languageteam": "Yoast Translate <translations@yoast.com>",
+    "lasttranslator": "Yoast Translate Team <translations@yoast.com>"
+  },
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YoastSeoForTypo3/t3ext-yoast-seo.git"
+  },
+  "keywords": [
+    "Yoast",
+    "TYPO3"
+  ],
+  "author": "Frank Baak <frank@maxserv.com>",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/YoastSeoForTypo3/t3ext-yoast-seo/issues"
+  },
+  "homepage": "https://github.com/YoastSeoForTypo3/t3ext-yoast-seo"
+}

@@ -35,9 +35,9 @@ class OrphanedContentDataProvider implements PageProviderInterface
                 'field',
                 $qb->createNamedParameter([
                     'l10n_parent',
-                    'db_mountpoints'
+                    'db_mountpoints',
                 ], Connection::PARAM_STR_ARRAY)
-            )
+            ),
         ];
 
         $refs = $qb->select('ref_uid')

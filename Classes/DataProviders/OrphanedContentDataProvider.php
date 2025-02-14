@@ -48,7 +48,7 @@ class OrphanedContentDataProvider extends AbstractOverviewDataProvider
 
         $constraints = [
             $qb->expr()->in('doktype', YoastUtility::getAllowedDoktypes()),
-            $qb->expr()->eq('sys_language_uid', $this->dataProviderRequest->getLanguage())
+            $qb->expr()->eq('sys_language_uid', $this->dataProviderRequest->getLanguage()),
         ];
         if (count($this->referencedPages) > 0) {
             $constraints[] = $qb->expr()->notIn('uid', $this->referencedPages);
@@ -79,9 +79,9 @@ class OrphanedContentDataProvider extends AbstractOverviewDataProvider
                 'field',
                 $qb->createNamedParameter([
                     'l10n_parent',
-                    'db_mountpoints'
+                    'db_mountpoints',
                 ], Connection::PARAM_STR_ARRAY)
-            )
+            ),
         ];
 
         $references = $qb->select('ref_uid')

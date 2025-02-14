@@ -1,0 +1,18 @@
+parameters:
+  level: 8
+  paths:
+    - ../../Classes
+    - ../../Configuration
+  excludePaths:
+    - ../../Classes/Updates
+  ignoreErrors:
+    - '#TYPO3\\CMS\\Backend\\Template\\ModuleTemplate#'
+    - '#getRecordOverlay#'
+    - '#loadRequireJsModule#'
+    - '#get_cache_timeout#'
+  typo3:
+    requestGetAttributeMapping:
+        frontend.page.information: TYPO3\CMS\Frontend\Page\PageInformation
+        handlerRequest: string
+        nonce: TYPO3\CMS\Core\Security\ContentSecurityPolicy\ConsumableNonce
+        moduleData: TYPO3\CMS\Backend\Module\ModuleData
