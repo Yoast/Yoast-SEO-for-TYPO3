@@ -9,6 +9,9 @@ return [
         'languageField' => 'sys_language_uid',
         'iconfile' => 'EXT:yoast_seo/Resources/Public/Icons/Extension.svg',
         'hideTable' => true,
+        'security' => [
+            'ignorePageTypeRestriction' => true,
+        ],
     ],
     'columns' => [
         'stem' => [
