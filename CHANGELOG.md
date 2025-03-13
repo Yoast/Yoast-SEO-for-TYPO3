@@ -5,6 +5,11 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## 11.0.1 March 13, 2025
+
+### Fixed
+- Added `ignorePageTypeRestriction` to the `tx_yoastseo_prominent_word` TCA to prevent page copy problems
+
 ## 11.0.0 February 14, 2025
 
 ### Breaking
