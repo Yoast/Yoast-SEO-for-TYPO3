@@ -7,6 +7,7 @@ namespace YoastSeoForTypo3\YoastSeo\Service\Crawler;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
 use YoastSeoForTypo3\YoastSeo\Service\Javascript\JavascriptService;
 use YoastSeoForTypo3\YoastSeo\Service\Javascript\JsonConfigService;
+use YoastSeoForTypo3\YoastSeo\Service\LocaleService;
 use YoastSeoForTypo3\YoastSeo\Utility\PathUtility;
 
 class CrawlerJavascriptConfigService
@@ -14,7 +15,8 @@ class CrawlerJavascriptConfigService
     public function __construct(
         protected JavascriptService $javascriptService,
         protected JsonConfigService $jsonConfigService,
-        protected UriBuilder $uriBuilder
+        protected UriBuilder $uriBuilder,
+        protected LocaleService $localeService
     ) {}
 
     public function addJavascriptConfig(): void
@@ -28,6 +30,8 @@ class CrawlerJavascriptConfigService
                 'indexPages' => (string)$this->uriBuilder->buildUriFromRoute('ajax_yoast_crawler_index_pages'),
                 'prominentWords' => (string)$this->uriBuilder->buildUriFromRoute('ajax_yoast_prominent_words'),
             ],
+            'translations' => [$this->localeService->getTranslations()],
+            'supportedLanguages' => $this->localeService->getSupportedLanguages(),
         ]);
     }
 }
