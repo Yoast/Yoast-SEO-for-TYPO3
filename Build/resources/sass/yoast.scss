@@ -122,7 +122,14 @@
 	//background-color: $color-white;
 }
 
+.yoast-snippet-header-label {
+    float: right;
+    padding: 10px;
+    font-weight: bold;
+}
+
 .yoast-seo-snippet-preview-styling {
+    padding: 10px;
 	min-height: 235px;
 	fieldset {
 		legend {

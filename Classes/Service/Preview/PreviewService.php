@@ -12,7 +12,7 @@ class PreviewService
         protected ContentParser $contentParser
     ) {}
 
-    public function getPreviewData(string $uriToCheck, int $pageId): string
+    public function getPreviewData(string $uriToCheck, int $pageId): array
     {
         $this->httpOptionSetter->setHttpOptions();
 
@@ -28,10 +28,6 @@ class PreviewService
             ];
         }
 
-        try {
-            return (string)json_encode($data, JSON_THROW_ON_ERROR);
-        } catch (\JsonException) {
-            return '';
-        }
+        return $data;
     }
 }

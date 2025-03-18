@@ -6,7 +6,6 @@ namespace YoastSeoForTypo3\YoastSeo\Service\Ajax;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use TYPO3\CMS\Core\Http\HtmlResponse;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use YoastSeoForTypo3\YoastSeo\Service\Preview\PreviewService;
 use YoastSeoForTypo3\YoastSeo\Service\UrlService;
@@ -40,6 +39,6 @@ class PreviewHandler extends AbstractAjaxHandler
             (int)$queryParams['pageId']
         );
 
-        return new HtmlResponse($content);
+        return new JsonResponse($content);
     }
 }

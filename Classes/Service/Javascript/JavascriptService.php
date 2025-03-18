@@ -26,9 +26,10 @@ class JavascriptService
         }
 
         if ($this->isEs6()) {
-            $this->pageRenderer->loadJavaScriptModule(
-                '@yoast/yoast-seo-for-typo3/dist/plugin.js',
-            );
+            //$this->pageRenderer->loadJavaScriptModule('@yoast/yoast-seo-for-typo3/dist/plugin.js');
+            $this->pageRenderer->loadJavaScriptModule('@yoast/yoast-seo-for-typo3/dist/webcomponents.js');
+            $this->pageRenderer->loadJavaScriptModule('@yoast/yoast-seo-for-typo3/preview-request.js');
+            $this->pageRenderer->loadJavaScriptModule('@yoast/yoast-seo-for-typo3/snippet-preview.js');
         } else {
             $this->pageRenderer->loadRequireJsModule(
                 'TYPO3/CMS/YoastSeo/dist/plugin',

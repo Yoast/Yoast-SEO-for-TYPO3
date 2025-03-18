@@ -15,9 +15,6 @@ class PageLayoutHeaderRenderer
         $templateView->setTemplatePathAndFilename(
             GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Templates/PageLayout/Header.html')
         );
-        $templateView->assignMultiple([
-            'targetElementId' => uniqid('_YoastSEO_panel_'),
-        ]);
         return $templateView->render();
     }
 
