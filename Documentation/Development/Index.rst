@@ -38,9 +38,9 @@ Instances
 The following instances will be up and running for you after you have installed
 the DDEV setup.
 
-- https://v11.yoast-seo.ddev.site
 - https://v12.yoast-seo.ddev.site
 - https://v13.yoast-seo.ddev.site
+- https://v14.yoast-seo.ddev.site
 
 Login
 -----
@@ -49,7 +49,7 @@ You will be able to login to the backend of the instances above, by using the
 following credentials:
 
 :Username: admin
-:Password: password
+:Password: Password:joh316
 
 Reset setup
 -----------
@@ -65,7 +65,7 @@ and after that:
 
 .. code-block:: bash
 
-   rm -rf .Build/v11 .Build/v12 .Build/v13
+   rm -rf .Build/v12 .Build/v13 .Build/v14
 
 If you change the code, you can directly see the changes in all the
 installations of your DDEV setup.
@@ -73,3 +73,11 @@ installations of your DDEV setup.
 Thanks to Armin Vieweg for this
 `example DDEV setup <https://github.com/a-r-m-i-n/ddev-for-typo3-extensions>`__
 for TYPO3 extensions.
+
+.. toctree::
+   :maxdepth: 5
+   :titlesonly:
+
+   TypeScript/Index
+   Resources/Index
+   WebComponents/Index

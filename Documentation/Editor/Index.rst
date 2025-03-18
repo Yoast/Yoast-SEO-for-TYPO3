@@ -13,6 +13,8 @@ Find out all about how to use Yoast SEO as an editor!
    :titlesonly:
 
    SnippetPreview/Index
+   FacebookPreview/Index
+   TwitterPreview/Index
    Analysis/Index
    Focus/Index
    Overview/Index

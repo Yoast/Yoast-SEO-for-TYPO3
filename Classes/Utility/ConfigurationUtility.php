@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Utility;
@@ -21,6 +28,8 @@ class ConfigurationUtility
             1519937113 => ['insights', Element\Insights::class],
             1552342645 => ['cornerstone', Element\Cornerstone::class],
             1552511464 => ['internalLinkingSuggestion', Element\InternalLinkingSuggestion::class],
+            1739390685 => ['facebookPreview', Element\FacebookPreview::class],
+            1739390690 => ['twitterPreview', Element\TwitterPreview::class],
         ];
     }
 
@@ -68,6 +77,7 @@ class ConfigurationUtility
                     'fr_FR',
                     'fy',
                     'gl_ES',
+                    'gu',
                     'he_IL',
                     'hi_IN',
                     'hr',
@@ -135,6 +145,7 @@ class ConfigurationUtility
                 'es',
                 'fa',
                 'fr',
+                'gu',
                 'he',
                 'hu',
                 'id',

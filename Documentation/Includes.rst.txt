@@ -50,6 +50,13 @@
 .. :name: Hide the snippetpreview globally
 
 
+.. |img-facebook-preview|            image:: /Images/facebook-preview.png
+.. :name: Facebook / OpenGraph preview
+
+.. |img-twitter-preview|             image:: /Images/twitter-preview.png
+.. :name: X/Twitter preview
+
+
 .. |img-analysis-page|              image:: /Images/analysis-page.png
 .. :name: Analysis status on top of the page
 

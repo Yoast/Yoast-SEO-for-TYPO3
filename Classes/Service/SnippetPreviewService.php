@@ -1,12 +1,20 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
+use TYPO3\CMS\Core\Page\JavaScriptModuleInstruction;
 use TYPO3\CMS\Core\Page\PageRenderer;
-use YoastSeoForTypo3\YoastSeo\Service\Javascript\JavascriptService;
-use YoastSeoForTypo3\YoastSeo\Service\Javascript\JsonConfigService;
+use YoastSeoForTypo3\YoastSeo\Dto\RequestData;
+use YoastSeoForTypo3\YoastSeo\Service\Javascript\JsonTranslationsService;
 use YoastSeoForTypo3\YoastSeo\Utility\PathUtility;
 
 class SnippetPreviewService
@@ -15,8 +23,7 @@ class SnippetPreviewService
         protected UrlService $urlService,
         protected PageRenderer $pageRenderer,
         protected LocaleService $localeService,
-        protected JavascriptService $javascriptService,
-        protected JsonConfigService $jsonConfigService
+        protected JsonTranslationsService $jsonTranslationsService
     ) {}
 
     /**
@@ -24,16 +31,16 @@ class SnippetPreviewService
      * @param array<string, mixed> $additionalConfiguration
      */
     public function buildSnippetPreview(
-        string $previewUrl,
+        RequestData $requestData,
         array $currentData,
-        array $additionalConfiguration
+        array $additionalConfiguration,
     ): void {
         $config = [
             'urls' => [
                 'workerUrl' => PathUtility::getPublicPathToResources() . '/JavaScript/dist/worker.js',
-                'previewUrl' => $previewUrl,
                 'saveScores' => $this->urlService->getSaveScoresUrl(),
                 'prominentWords' => $this->urlService->getProminentWordsUrl(),
+                'yoastCss' => PathUtility::getPublicPathToResources() . '/CSS/yoast.min.css',
             ],
             'isCornerstoneContent' => (bool)($currentData['tx_yoastseo_cornerstone'] ?? false),
             'focusKeyphrase' => [
@@ -42,13 +49,17 @@ class SnippetPreviewService
             ],
             'translations' => [$this->localeService->getTranslations()],
             'supportedLanguages' => $this->localeService->getSupportedLanguages(),
+            'requestData' => $requestData->toArray(),
         ];
 
-        $this->javascriptService->loadPluginJavascript();
-        $this->javascriptService->loadModalJavascript();
+        $this->pageRenderer->getJavaScriptRenderer()->addJavaScriptModuleInstruction(
+            JavaScriptModuleInstruction::create('@yoast/yoast-seo-for-typo3/yoast-plugin.js')->invoke(
+                'initialize',
+                array_merge($config, $additionalConfiguration)
+            )
+        );
 
-        $this->jsonConfigService->addConfig(array_merge($config, $additionalConfiguration));
-
+        $this->jsonTranslationsService->addTranslations();
         $this->pageRenderer->addCssFile('EXT:yoast_seo/Resources/Public/CSS/yoast.min.css');
     }
 }

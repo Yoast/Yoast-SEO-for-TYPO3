@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\StructuredData;
@@ -8,7 +15,7 @@ use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Exception\SiteNotFoundException;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
+use YoastSeoForTypo3\YoastSeo\Service\Frontend\FrontendServiceInterface;
 
 class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterface
 {
@@ -18,6 +25,7 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
     public function __construct(
         protected SiteFinder $siteFinder,
         protected Context $context,
+        protected FrontendServiceInterface $frontendService,
     ) {}
 
     /**
@@ -67,7 +75,7 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
 
         return [
             [
-                '@context' => 'https://www.schema.org',
+                '@context' => 'https://schema.org',
                 '@type' => 'BreadcrumbList',
                 'itemListElement' => $breadcrumbs,
             ],
@@ -90,7 +98,7 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
      */
     protected function getRootLine(): array
     {
-        $rootLine = $this->getTyposcriptFrontendController()->rootLine ?: [];
+        $rootLine = $this->frontendService->getRootLine();
         ksort($rootLine);
         return $rootLine;
     }
@@ -106,11 +114,6 @@ class BreadcrumbStructuredDataProvider implements StructuredDataProviderInterfac
         } catch (SiteNotFoundException|\InvalidArgumentException) {
             return '';
         }
-    }
-
-    protected function getTyposcriptFrontendController(): TypoScriptFrontendController
-    {
-        return $GLOBALS['TSFE'];
     }
 
     /**

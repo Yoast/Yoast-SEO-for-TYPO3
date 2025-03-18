@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Record;
@@ -9,13 +16,16 @@ use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\Exception\MissingArrayPathException;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class RecordService implements SingletonInterface
 {
     protected bool $recordsChecked = false;
-
     protected ?Record $activeRecord = null;
+
+    public function __construct(
+        protected readonly ConnectionPool $connectionPool,
+        protected readonly PageRepository $pageRepository
+    ) {}
 
     public function getActiveRecord(): ?Record
     {
@@ -55,7 +65,7 @@ class RecordService implements SingletonInterface
             foreach ($record->getGetParameters() as $getParameters) {
                 try {
                     $getValue = ArrayUtility::getValueByPath($currentGetParameters, implode('/', $getParameters));
-                } catch (MissingArrayPathException $e) {
+                } catch (MissingArrayPathException) {
                     $getValue = null;
                 }
                 if ($getValue !== null) {
@@ -73,12 +83,11 @@ class RecordService implements SingletonInterface
      */
     protected function getRecordData(Record $record): array
     {
-        $recordRow = GeneralUtility::makeInstance(ConnectionPool::class)
+        $recordRow = $this->connectionPool
             ->getConnectionForTable($record->getTableName())
             ->select(['*'], $record->getTableName(), ['uid' => $record->getRecordUid()])
             ->fetchAssociative();
 
-        return (array)GeneralUtility::makeInstance(PageRepository::class)
-            ->getLanguageOverlay($record->getTableName(), (array)$recordRow);
+        return (array)$this->pageRepository->getLanguageOverlay($record->getTableName(), (array)$recordRow);
     }
 }

@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Service\Crawler;
@@ -7,7 +14,6 @@ namespace YoastSeoForTypo3\YoastSeo\Service\Crawler;
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Registry;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\PageAccessUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
@@ -19,7 +25,8 @@ class CrawlerService
 
     public function __construct(
         protected FrontendInterface $cache,
-        protected Registry $registry
+        protected Registry $registry,
+        protected ConnectionPool $connectionPool,
     ) {}
 
     public function getAmountOfPages(int $site, int $languageId): int
@@ -86,8 +93,7 @@ class CrawlerService
             $treeList = PageAccessUtility::getPageIds($site);
             $pagesToIndex = [];
             foreach (array_chunk($treeList, 1000) as $treeChunk) {
-                $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
-                    ->getQueryBuilderForTable('pages');
+                $queryBuilder = $this->connectionPool->getQueryBuilderForTable('pages');
 
                 if ($languageId > 0) {
                     $select = 'l10n_parent';

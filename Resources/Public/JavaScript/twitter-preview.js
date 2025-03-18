@@ -1,0 +1,58 @@
+import "@yoast/yoast-seo-for-typo3/dist/webcomponents.js";
+import DocumentService from "@typo3/core/document-service.js";
+import { setAttributes } from "@yoast/yoast-seo-for-typo3/helpers/attributes.js";
+import FormEngine from "@yoast/yoast-seo-for-typo3/helpers/form-engine.js";
+import SocialPreview from "@yoast/yoast-seo-for-typo3/social-preview.js";
+import store from "@yoast/yoast-seo-for-typo3/store.js";
+class TwitterPreview extends SocialPreview {
+    async initialize(configuration) {
+        await DocumentService.ready();
+        this.registerFieldSelectors(configuration.fieldSelectors);
+        this.setSocialType("twitter");
+        this.setupListeners();
+        this.syncPreview();
+        this.isInitialized = true;
+        store.subscribe(() => {
+            if (this.isInitialized)
+                this.syncPreview();
+        });
+    }
+    setupListeners() {
+        const fields = [
+            { key: "twitterTitle", type: "input", event: "input" },
+            { key: "twitterDescription", type: "input", event: "input" },
+            { key: "twitterCard", type: "select", event: "change" },
+        ];
+        fields.forEach(({ key, type, event }) => {
+            const element = type === "select"
+                ? FormEngine.getSelectElement(key)
+                : FormEngine.getElement(key);
+            element?.addEventListener(event, () => this.syncPreview());
+        });
+    }
+    syncPreview() {
+        const previewElement = this.getElement();
+        if (!previewElement)
+            return;
+        const data = this.getData();
+        setAttributes(previewElement, {
+            title: data.displayTitle,
+            description: data.displayDescription,
+            "is-large": (data.twitterCard === "summary_large_image").toString(),
+        });
+    }
+    getData() {
+        const twitterTitle = FormEngine.getInputElementValue("twitterTitle").trim();
+        const twitterDesc = FormEngine.getInputElementValue("twitterDescription").trim();
+        const twitterCard = FormEngine.getSelectElementValue("twitterCard");
+        const seoTitle = FormEngine.getInputElementValue("title");
+        const pageTitle = FormEngine.getInputElementValue("pageTitle");
+        const seoDescription = FormEngine.getInputElementValue("description");
+        return {
+            twitterCard,
+            displayTitle: twitterTitle || seoTitle || pageTitle || "",
+            displayDescription: twitterDesc || seoDescription || "...",
+        };
+    }
+}
+export default new TwitterPreview();

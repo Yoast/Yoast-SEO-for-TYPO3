@@ -1,12 +1,18 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\ViewHelpers;
 
 use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3Fluid\Fluid\Core\Rendering\RenderingContextInterface;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractViewHelper;
 
 class RecordLinksViewHelper extends AbstractViewHelper
@@ -15,30 +21,23 @@ class RecordLinksViewHelper extends AbstractViewHelper
     {
         $this->registerArgument('uid', 'int', 'uid of record to be edited', true);
         $this->registerArgument('table', 'string', 'target database table', true);
-        $this->registerArgument('command', 'string', '', true, '');
-        $this->registerArgument('module', 'string', '', true, '');
+        $this->registerArgument('command', 'string', '', true);
+        $this->registerArgument('module', 'string', '', true);
     }
 
-    /**
-     * @param array<string, mixed> $arguments
-     */
-    public static function renderStatic(
-        array $arguments,
-        \Closure $renderChildrenClosure,
-        RenderingContextInterface $renderingContext
-    ): string {
+    public function render(): string
+    {
         $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
-
-        $returnUri = $uriBuilder->buildUriFromRoute($arguments['module'], $_GET);
+        $returnUri = $uriBuilder->buildUriFromRoute($this->arguments['module'], $_GET);
 
         $module = '';
         $urlParameters = [];
-        switch ($arguments['command']) {
+        switch ($this->arguments['command']) {
             case 'edit':
                 $urlParameters = [
                     'edit' => [
-                        $arguments['table'] => [
-                            $arguments['uid'] => $arguments['command'],
+                        $this->arguments['table'] => [
+                            $this->arguments['uid'] => $this->arguments['command'],
                         ],
                     ],
                     'returnUrl' => (string)$returnUri,
@@ -47,7 +46,7 @@ class RecordLinksViewHelper extends AbstractViewHelper
                 break;
             case 'delete':
                 $urlParameters = [
-                    'cmd[' . $arguments['table'] . '][' . $arguments['uid'] . '][delete]' => 1,
+                    'cmd[' . $this->arguments['table'] . '][' . $this->arguments['uid'] . '][delete]' => 1,
                     'redirect' => (string)$returnUri,
                 ];
                 $module = 'tce_db';

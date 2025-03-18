@@ -2,18 +2,18 @@
 # Table structure for table 'pages'
 #
 CREATE TABLE pages (
-	tx_yoastseo_focuskeyword tinytext,
-	tx_yoastseo_focuskeyword_synonyms tinytext,
+    tx_yoastseo_focuskeyword tinytext,
+    tx_yoastseo_focuskeyword_synonyms tinytext,
     tx_yoastseo_focuskeyword_related int(11) DEFAULT '0' NOT NULL,
-	tx_yoastseo_hide_snippet_preview tinyint(3) DEFAULT '0' NOT NULL,
-	tx_yoastseo_cornerstone tinyint(3) DEFAULT '0' NOT NULL,
-	tx_yoastseo_score_readability varchar(50) DEFAULT '' NOT NULL,
-	tx_yoastseo_score_seo varchar(50) DEFAULT '' NOT NULL,
+    tx_yoastseo_hide_snippet_preview tinyint(3) DEFAULT '0' NOT NULL,
+    tx_yoastseo_cornerstone tinyint(3) DEFAULT '0' NOT NULL,
+    tx_yoastseo_score_readability varchar(50) DEFAULT '' NOT NULL,
+    tx_yoastseo_score_seo varchar(50) DEFAULT '' NOT NULL,
     tx_yoastseo_robots_noimageindex tinyint(4) DEFAULT '0' NOT NULL,
     tx_yoastseo_robots_noarchive tinyint(4) DEFAULT '0' NOT NULL,
     tx_yoastseo_robots_nosnippet tinyint(4) DEFAULT '0' NOT NULL,
 
-	KEY tx_yoastseo_cornerstone (tx_yoastseo_cornerstone),
+    KEY tx_yoastseo_cornerstone (tx_yoastseo_cornerstone),
 );
 
 #
@@ -26,7 +26,7 @@ CREATE TABLE tx_yoastseo_related_focuskeyword (
     uid_foreign int(11) DEFAULT '0' NOT NULL,
     tablenames varchar(64) DEFAULT '' NOT NULL,
 
-		KEY analysis(uid_foreign, tablenames),
+    KEY analysis(uid_foreign, tablenames),
 );
 
 #
@@ -40,5 +40,5 @@ CREATE TABLE tx_yoastseo_prominent_word (
     uid_foreign int(11) DEFAULT '0' NOT NULL,
     tablenames varchar(64) DEFAULT '' NOT NULL,
 
-		KEY analysis(uid_foreign, tablenames, sys_language_uid),
+    KEY analysis(uid_foreign, tablenames, sys_language_uid),
 );

@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Controller;
@@ -8,25 +15,17 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use YoastSeoForTypo3\YoastSeo\Service\Ajax\CrawlerHandler;
 use YoastSeoForTypo3\YoastSeo\Service\Ajax\InternalLinkingSuggestionsHandler;
-use YoastSeoForTypo3\YoastSeo\Service\Ajax\PreviewHandler;
 use YoastSeoForTypo3\YoastSeo\Service\Ajax\ProminentWordsHandler;
 use YoastSeoForTypo3\YoastSeo\Service\Ajax\SaveScoresHandler;
 
-class AjaxController
+final readonly class AjaxController
 {
     public function __construct(
-        protected PreviewHandler $previewHandler,
         protected SaveScoresHandler $saveScoresHandler,
         protected ProminentWordsHandler $prominentWordsHandler,
         protected InternalLinkingSuggestionsHandler $internalLinkingSuggestionsHandler,
         protected CrawlerHandler $crawlerHandler,
     ) {}
-
-    public function previewAction(
-        ServerRequestInterface $request
-    ): ResponseInterface {
-        return $this->previewHandler->handle($request);
-    }
 
     public function saveScoresAction(
         ServerRequestInterface $request

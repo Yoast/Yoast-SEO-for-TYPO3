@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\Translations\Processor;
@@ -14,8 +21,7 @@ class TranslationProcessor
     public function __construct(
         private TranslationFetcherInterface $fetcher,
         private string $domain
-    ) {
-    }
+    ) {}
 
     public function processTranslations(): void
     {
@@ -33,8 +39,8 @@ class TranslationProcessor
     private function isTranslationValid(array $translation): bool
     {
         return isset($translation['slug'], $translation['name'], $translation['locale'], $translation['wp_locale']) &&
-            ((int) ($translation['current_count'] ?? 0) > 0) &&
-            ((int) ($translation['percent_translated'] ?? 0) >= 50) &&
+            ((int)($translation['current_count'] ?? 0) > 0) &&
+            ((int)($translation['percent_translated'] ?? 0) >= 50) &&
             !str_contains($translation['wp_locale'], 'formal');
     }
 
@@ -49,7 +55,7 @@ class TranslationProcessor
                 'domain' => $this->domain,
                 'lang' => $translation['locale'],
                 'plural_forms' => $catalog->getHeaders()['Plural-Forms'] ?? 'nplurals=2; plural=(n != 1);',
-            ]
+            ],
         ];
 
         foreach ($catalog->getEntries() as $entry) {
@@ -61,7 +67,7 @@ class TranslationProcessor
 
         $result = [
             'domain' => $this->domain,
-            'locale_data' => [$this->domain => $messages]
+            'locale_data' => [$this->domain => $messages],
         ];
 
         $filePath = __DIR__ . '/../../../../Resources/Private/Language/wordpress-seo-' . $translation['wp_locale'] . '.json';

@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
-use TYPO3\CMS\Core\Exception\SiteNotFoundException;
 use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
-use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Traits\BackendUserTrait;
 use YoastSeoForTypo3\YoastSeo\Traits\LanguageServiceTrait;
@@ -21,7 +26,7 @@ class LocaleService
 
     public function __construct(
         protected Locales $locales,
-        protected SiteFinder $siteFinder
+        protected SiteService $siteService
     ) {}
 
     /**
@@ -107,24 +112,20 @@ class LocaleService
 
     public function getLocale(int $pageId, int &$languageId): ?string
     {
-        try {
-            $site = $this->siteFinder->getSiteByPageId($pageId);
-            if ($languageId === -1) {
-                $languageId = $site->getDefaultLanguage()->getLanguageId();
-                return $this->getLanguageCode($site->getDefaultLanguage());
-            }
-            return $this->getLanguageCode($site->getLanguageById($languageId));
-        } catch (SiteNotFoundException|\InvalidArgumentException) {
+        $site = $this->siteService->getSiteByPageId($pageId);
+        if ($site === null) {
             return null;
         }
+
+        if ($languageId === -1) {
+            $languageId = $site->getDefaultLanguage()->getLanguageId();
+            return $this->getLanguageCode($site->getDefaultLanguage());
+        }
+        return $this->getLanguageCode($site->getLanguageById($languageId));
     }
 
     protected function getLanguageCode(SiteLanguage $siteLanguage): string
     {
-        // Support for v11
-        if (method_exists($siteLanguage, 'getTwoLetterIsoCode')) {
-            return $siteLanguage->getTwoLetterIsoCode();
-        }
         return $siteLanguage->getLocale()->getLanguageCode();
     }
 

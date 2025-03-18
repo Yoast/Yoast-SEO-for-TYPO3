@@ -1,7 +1,15 @@
 <?php
 
-use TYPO3\CMS\Core\Information\Typo3Version;
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+use TYPO3\CMS\Extbase\Utility\ExtensionUtility;
+use YoastSeoForTypo3\Sitepackage\Controller\RecordController;
 
 defined('TYPO3') || die();
 
@@ -13,8 +21,10 @@ ExtensionManagementUtility::addTypoScriptSetup(
     "@import 'EXT:sitepackage/Configuration/TypoScript/setup.typoscript'"
 );
 
-if ((new Typo3Version())->getMajorVersion() < 12) {
-    ExtensionManagementUtility::addPageTSConfig(
-        "@import 'EXT:sitepackage/Configuration/page.tsconfig'"
-    );
-}
+ExtensionUtility::configurePlugin(
+    'Sitepackage',
+    'Minimal',
+    [RecordController::class => 'minimalList, minimalDetail'],
+    [],
+    ExtensionUtility::PLUGIN_TYPE_CONTENT_ELEMENT
+);

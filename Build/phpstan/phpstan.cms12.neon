@@ -5,10 +5,13 @@ parameters:
     - ../../Configuration
   excludePaths:
     - ../../Classes/Updates
+    - ../../Classes/Service/Frontend/FrontendService.php
+    - ../../Classes/Service/Hmac/HmacGeneratorService.php
+    - ../../Classes/Service/StandaloneView/StandaloneViewService.php
   ignoreErrors:
     - '#TYPO3\\CMS\\Frontend\\Page\\PageInformation#'
     - '#frontend.page.information#'
-    - '#protected method getRecordOverlay#'
+    - '#BeforePageCacheIdentifierIsHashedEvent#'
   typo3:
     requestGetAttributeMapping:
         handlerRequest: string

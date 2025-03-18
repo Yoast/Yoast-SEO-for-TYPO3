@@ -1,0 +1,20 @@
+{
+	"name": "t3ext-yoast-seo",
+	"version": "1.0.0",
+	"main": "index.js",
+	"license": "MIT",
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc --watch"
+	},
+	"devDependencies": {
+		"typescript": "^5.8.2"
+	},
+	"dependencies": {
+		"@ianvs/prettier-plugin-sort-imports": "^4.4.1",
+		"lit": "^3.2.1",
+		"lit-element": "^4.1.1",
+		"lit-html": "^3.2.1",
+		"prettier": "^3.5.3"
+	}
+}

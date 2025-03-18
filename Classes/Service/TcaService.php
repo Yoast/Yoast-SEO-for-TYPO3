@@ -1,12 +1,17 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
-use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class TcaService
 {
@@ -24,6 +29,7 @@ class TcaService
         $this->descriptionField = $descriptionField;
 
         $this->addDefaultFields();
+        $this->addSocialPreviewFields();
 
         $this->addPalettes();
         $this->addToTypes();
@@ -166,6 +172,45 @@ class TcaService
         );
     }
 
+    protected function addSocialPreviewFields(): void
+    {
+        ExtensionManagementUtility::addTCAcolumns(
+            $this->table,
+            [
+                'tx_yoastseo_facebook_preview' => [
+                    'label' => self::LL_PREFIX_TCA . 'pages.fields.tx_yoastseo_facebook_preview',
+                    'exclude' => true,
+                    'config' => [
+                        'type' => 'none',
+                        'renderType' => 'facebookPreview',
+                    ],
+                ],
+                'tx_yoastseo_twitter_preview' => [
+                    'label' => self::LL_PREFIX_TCA . 'pages.fields.tx_yoastseo_twitter_preview',
+                    'exclude' => true,
+                    'config' => [
+                        'type' => 'none',
+                        'renderType' => 'twitterPreview',
+                    ],
+                ],
+            ]
+        );
+
+        ExtensionManagementUtility::addFieldsToPalette(
+            'pages',
+            'opengraph',
+            'tx_yoastseo_facebook_preview,--linebreak--',
+            'before:og_title'
+        );
+
+        ExtensionManagementUtility::addFieldsToPalette(
+            'pages',
+            'twittercards',
+            'tx_yoastseo_twitter_preview,--linebreak--',
+            'before:twitter_title'
+        );
+    }
+
     protected function addPalettes(): void
     {
         ExtensionManagementUtility::addFieldsToPalette(
@@ -260,20 +305,11 @@ class TcaService
      */
     protected function getInvertedCheckbox(): array
     {
-        if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() >= 12) {
-            return [
-                [
-                    1 => '',
-                    'invertStateDisplay' => true,
-                    'label' => '',
-                ],
-            ];
-        }
         return [
             [
-                0 => '',
                 1 => '',
                 'invertStateDisplay' => true,
+                'label' => '',
             ],
         ];
     }

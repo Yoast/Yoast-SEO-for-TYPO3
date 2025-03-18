@@ -7,9 +7,25 @@ TCEMAIN.preview {
         fieldToParameterMap {
             uid = tx_news_pi1[news_preview]
         }
+
         additionalGetParameters {
             tx_news_pi1.controller = News
             tx_news_pi1.action = detail
+        }
+    }
+
+    tx_sitepackage_domain_model_minimal {
+        # This previewPageId should probably be overridden within the installation
+        previewPageId = 5
+        useCacheHash = 1
+        useDefaultLanguageRecord = 0
+        fieldToParameterMap {
+            uid = tx_sitepackage_minimal[minimal]
+        }
+
+        additionalGetParameters {
+            tx_sitepackage_minimal.controller = Record
+            tx_sitepackage_minimal.action = minimalDetail
         }
     }
 }

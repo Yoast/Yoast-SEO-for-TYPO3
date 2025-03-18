@@ -1,12 +1,12 @@
 <html data-namespace-typo3-fluid="true" xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers">
 <f:if condition="{wrongDoktype}">
-	<f:then>
-		<div>
-			<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:wrongDoktype.description" />
-		</div>
-	</f:then>
-	<f:else>
-		<f:render partial="Analysis" arguments="{type: 'seo', subtype: subtype}" />
-	</f:else>
+    <f:then>
+        <div>
+            <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:wrongDoktype.description"/>
+        </div>
+    </f:then>
+    <f:else>
+        <f:render partial="Analysis" arguments="{type: 'seo', subtype: subtype}"/>
+    </f:else>
 </f:if>
 </html>
