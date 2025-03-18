@@ -14,4 +14,4 @@ Documentation-GENERATED-temp
 composer.json.testing
 var
 *.map
-plugin.css
+Resources/Public/JavaScript/dist/*.css
