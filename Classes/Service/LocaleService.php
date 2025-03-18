@@ -32,7 +32,8 @@ class LocaleService
         $interfaceLocale = $this->getInterfaceLocale();
 
         if ($interfaceLocale === null) {
-            return [];
+            // Fall back to English if no suitable locale could be resolved to prevent missing translations
+            $interfaceLocale = 'en_GB';
         }
 
         $translationFilePath = GeneralUtility::getFileAbsFileName(
