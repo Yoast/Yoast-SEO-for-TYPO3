@@ -8,7 +8,6 @@ use TYPO3\CMS\Backend\Form\AbstractNode;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Service\Form\NodeTemplateService;
-use YoastSeoForTypo3\YoastSeo\Service\Javascript\JavascriptService;
 use YoastSeoForTypo3\YoastSeo\Service\Javascript\JsonConfigService;
 use YoastSeoForTypo3\YoastSeo\Service\LocaleService;
 use YoastSeoForTypo3\YoastSeo\Utility\PathUtility;
@@ -19,7 +18,6 @@ class InternalLinkingSuggestion extends AbstractNode
     protected LocaleService $localeService;
     protected NodeTemplateService $templateService;
     protected JsonConfigService $jsonConfigService;
-    protected JavascriptService $javascriptService;
     protected UriBuilder $uriBuilder;
 
     protected int $languageId;
@@ -62,8 +60,6 @@ class InternalLinkingSuggestion extends AbstractNode
             'supportedLanguages' => $this->localeService->getSupportedLanguages(),
         ]);
 
-        $this->javascriptService->loadPluginJavascript();
-
         $resultArray['html'] = $this->templateService->renderView('InternalLinkingSuggestion');
 
         return $resultArray;
@@ -74,7 +70,6 @@ class InternalLinkingSuggestion extends AbstractNode
         $this->localeService = GeneralUtility::makeInstance(LocaleService::class);
         $this->templateService = GeneralUtility::makeInstance(NodeTemplateService::class);
         $this->jsonConfigService = GeneralUtility::makeInstance(JsonConfigService::class);
-        $this->javascriptService = GeneralUtility::makeInstance(JavascriptService::class);
         $this->uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
 
         $this->currentPage = $this->data['parentPageRow']['uid'];

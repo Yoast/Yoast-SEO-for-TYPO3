@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
+use TYPO3\CMS\Core\Page\JavaScriptModuleInstruction;
 use TYPO3\CMS\Core\Page\PageRenderer;
-use YoastSeoForTypo3\YoastSeo\Service\Javascript\JavascriptService;
 use YoastSeoForTypo3\YoastSeo\Service\Javascript\JsonConfigService;
 use YoastSeoForTypo3\YoastSeo\Utility\PathUtility;
 
@@ -15,7 +15,6 @@ class SnippetPreviewService
         protected UrlService $urlService,
         protected PageRenderer $pageRenderer,
         protected LocaleService $localeService,
-        protected JavascriptService $javascriptService,
         protected JsonConfigService $jsonConfigService
     ) {}
 
@@ -44,8 +43,10 @@ class SnippetPreviewService
             'supportedLanguages' => $this->localeService->getSupportedLanguages(),
         ];
 
-        $this->javascriptService->loadPluginJavascript();
-        $this->javascriptService->loadModalJavascript();
+        $this->pageRenderer->getJavaScriptRenderer()->addJavaScriptModuleInstruction(
+            JavaScriptModuleInstruction::create('@yoast/yoast-seo-for-typo3/yoast-plugin.js')
+                ->invoke('initialize', array_merge($config, $additionalConfiguration))
+        );
 
         $this->jsonConfigService->addConfig(array_merge($config, $additionalConfiguration));
 

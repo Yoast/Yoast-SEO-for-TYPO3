@@ -8,6 +8,7 @@ module.exports = [
         entry: {
             plugin: './javascript/plugin.js',
             worker: './javascript/worker.js',
+            webcomponents: './javascript/webcomponents.tsx',
         },
         output: {
             filename: outputFilename,
