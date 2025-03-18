@@ -38,7 +38,6 @@ Instances
 The following instances will be up and running for you after you have installed
 the DDEV setup.
 
-- https://v11.yoast-seo.ddev.site
 - https://v12.yoast-seo.ddev.site
 - https://v13.yoast-seo.ddev.site
 
@@ -65,7 +64,7 @@ and after that:
 
 .. code-block:: bash
 
-   rm -rf .Build/v11 .Build/v12 .Build/v13
+   rm -rf .Build/v12 .Build/v13
 
 If you change the code, you can directly see the changes in all the
 installations of your DDEV setup.

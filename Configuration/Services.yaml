@@ -7,27 +7,6 @@ services:
   YoastSeoForTypo3\YoastSeo\:
     resource: '../Classes/*'
 
-  YoastSeoForTypo3\YoastSeo\Backend\PageLayoutHeader:
-    public: true
-
-  YoastSeoForTypo3\YoastSeo\Service\LocaleService:
-    public: true
-
-  YoastSeoForTypo3\YoastSeo\Service\SnippetPreviewService:
-    public: true
-
-  YoastSeoForTypo3\YoastSeo\Service\Javascript\JavascriptService:
-    public: true
-
-  YoastSeoForTypo3\YoastSeo\Service\Preview\ContentParser:
-    public: true
-
-  YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\BaseUrlParserInterface: '@YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\BaseUrlParser'
-  YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\BodyProcessorInterface: '@YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\BodyProcessor'
-  YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\ContentMetadataExtractorInterface: '@YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\ContentMetadataExtractor'
-  YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\FaviconExtractorInterface: '@YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\FaviconExtractor'
-  YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\TitleConfigurationExtractorInterface: '@YoastSeoForTypo3\YoastSeo\Service\Preview\ContentExtractors\TitleConfigurationExtractor'
-
   YoastSeoForTypo3\YoastSeo\Controller\AjaxController:
     public: true
 
@@ -43,40 +22,10 @@ services:
     arguments:
       $cache: '@cache.pages'
 
-  YoastSeoForTypo3\YoastSeo\Service\SnippetPreview\SnippetPreviewUrlGenerator:
-    public: true
-
   YoastSeoForTypo3\YoastSeo\StructuredData\StructuredDataProviderManager:
     public: true
     arguments:
       $pageCache: '@cache.pages'
-
-  YoastSeoForTypo3\YoastSeo\EventListener\TcaBuiltListener:
-    arguments:
-      - '@YoastSeoForTypo3\YoastSeo\Record\Builder\TcaBuilder'
-    tags:
-      - name: event.listener
-        identifier: 'yoastTca'
-        event: TYPO3\CMS\Core\Configuration\Event\AfterTcaCompilationEvent
-        method: 'addRecordTca'
-
-  YoastSeoForTypo3\YoastSeo\EventListener\TableDefinitionsListener:
-    arguments:
-      - '@YoastSeoForTypo3\YoastSeo\Record\Builder\SchemaBuilder'
-    tags:
-      - name: event.listener
-        identifier: 'yoastSchema'
-        event: TYPO3\CMS\Core\Database\Event\AlterTableDefinitionStatementsEvent
-        method: 'addDatabaseSchema'
-
-  YoastSeoForTypo3\YoastSeo\EventListener\RecordCanonicalListener:
-    arguments:
-      - '@YoastSeoForTypo3\YoastSeo\Record\RecordService'
-    tags:
-      - name: event.listener
-        identifier: 'yoastRecordCanonical'
-        event: TYPO3\CMS\Seo\Event\ModifyUrlForCanonicalTagEvent
-        method: 'setCanonical'
 
   YoastSeoForTypo3\YoastSeo\PageTitle\RecordPageTitleProvider:
     public: true
@@ -87,27 +36,49 @@ services:
   YoastSeoForTypo3\YoastSeo\MetaTag\AdvancedRobots\AdvancedRobotsGenerator:
     public: true
 
-  YoastSeoForTypo3\YoastSeo\Frontend\UsePageCache:
-    public: true
+  YoastSeoForTypo3\YoastSeo\EventListener\TcaBuiltListener:
+    arguments:
+      - '@YoastSeoForTypo3\YoastSeo\Record\Builder\TcaBuilder'
+    tags:
+      - name: event.listener
+        identifier: 'yoast-seo/tca-built'
 
-  YoastSeoForTypo3\YoastSeo\Backend\ModifyPageLayoutContentListener:
+  YoastSeoForTypo3\YoastSeo\EventListener\TableDefinitionsListener:
+    arguments:
+      - '@YoastSeoForTypo3\YoastSeo\Record\Builder\SchemaBuilder'
+    tags:
+      - name: event.listener
+        identifier: 'yoast-seo/table-definitions'
+
+  YoastSeoForTypo3\YoastSeo\EventListener\RecordCanonicalListener:
+    arguments:
+      - '@YoastSeoForTypo3\YoastSeo\Record\RecordService'
+    tags:
+      - name: event.listener
+        identifier: 'yoast-seo/record-canonical'
+
+  YoastSeoForTypo3\YoastSeo\EventListener\ModifyPageLayoutContentListener:
     tags:
       - name: event.listener
         identifier: 'yoast-seo/backend/modify-page-module-content'
-        event: TYPO3\CMS\Backend\Controller\Event\ModifyPageLayoutContentEvent
 
   YoastSeoForTypo3\YoastSeo\Frontend\AfterCacheableContentIsGeneratedListener:
     tags:
       - name: event.listener
         identifier: 'yoast-seo/frontend/cacheable-content-listener'
-        event: TYPO3\CMS\Frontend\Event\AfterCacheableContentIsGeneratedEvent
 
-  YoastSeoForTypo3\YoastSeo\Widgets\Provider\PagesWithoutDescriptionDataProvider:
-    arguments:
-      $excludedDoktypes: [3, 4, 6, 7, 199, 254, 255]
-      $limit: 8
+  YoastSeoForTypo3\YoastSeo\EventListener\FrontendRequestListener:
+    tags:
+      - name: event.listener
+        identifier: 'yoast-seo/frontend-request-listener'
 
   YoastSeoForTypo3\YoastSeo\Widgets\Provider\OrphanedContentDataProvider:
     arguments:
-      $excludedDoktypes: [3, 4, 6, 7, 199, 254, 255]
+      $excludedDoktypes: [ 3, 4, 6, 7, 199, 254, 255 ]
       $limit: 8
+
+  YoastSeoForTypo3\YoastSeo\PageParser\BodyParser:
+    tags: [ 'frontend_request.page_parser' ]
+
+  YoastSeoForTypo3\YoastSeo\PageParser\TitleConfigurationParser:
+    tags: [ 'frontend_request.page_parser' ]

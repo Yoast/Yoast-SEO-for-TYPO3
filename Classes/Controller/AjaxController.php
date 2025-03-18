@@ -8,25 +8,17 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use YoastSeoForTypo3\YoastSeo\Service\Ajax\CrawlerHandler;
 use YoastSeoForTypo3\YoastSeo\Service\Ajax\InternalLinkingSuggestionsHandler;
-use YoastSeoForTypo3\YoastSeo\Service\Ajax\PreviewHandler;
 use YoastSeoForTypo3\YoastSeo\Service\Ajax\ProminentWordsHandler;
 use YoastSeoForTypo3\YoastSeo\Service\Ajax\SaveScoresHandler;
 
 class AjaxController
 {
     public function __construct(
-        protected PreviewHandler $previewHandler,
-        protected SaveScoresHandler $saveScoresHandler,
-        protected ProminentWordsHandler $prominentWordsHandler,
-        protected InternalLinkingSuggestionsHandler $internalLinkingSuggestionsHandler,
-        protected CrawlerHandler $crawlerHandler,
+        protected readonly SaveScoresHandler $saveScoresHandler,
+        protected readonly ProminentWordsHandler $prominentWordsHandler,
+        protected readonly InternalLinkingSuggestionsHandler $internalLinkingSuggestionsHandler,
+        protected readonly CrawlerHandler $crawlerHandler,
     ) {}
-
-    public function previewAction(
-        ServerRequestInterface $request
-    ): ResponseInterface {
-        return $this->previewHandler->handle($request);
-    }
 
     public function saveScoresAction(
         ServerRequestInterface $request

@@ -22,6 +22,6 @@ class JsonConfigService implements SingletonInterface
 
     public function render(): string
     {
-        return 'const YoastConfig = ' . json_encode($this->config) . ';';
+        return 'window.YoastConfig = ' . json_encode($this->config) . ';';
     }
 }

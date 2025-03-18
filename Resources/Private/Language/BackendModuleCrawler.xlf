@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <xliff version="1.0">
-    <file source-language="en" datatype="plaintext" original="messages" date="2021-09-14T21:36:15Z" product-name="yoastseo-premium">
+    <file source-language="en" datatype="plaintext" original="messages" date="2021-09-14T21:36:15Z"
+          product-name="yoast_seo">
         <header/>
         <body>
             <trans-unit id="mlang_tabs_tab">

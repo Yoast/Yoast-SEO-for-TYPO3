@@ -11,7 +11,6 @@ use YoastSeoForTypo3\YoastSeo\MetaTag\Generator\GeneratorInterface;
 use YoastSeoForTypo3\YoastSeo\StructuredData\StructuredDataProviderInterface;
 use YoastSeoForTypo3\YoastSeo\Widgets\PageOverviewWidget;
 use YoastSeoForTypo3\YoastSeo\Widgets\Provider\OrphanedContentDataProvider;
-use YoastSeoForTypo3\YoastSeo\Widgets\Provider\PagesWithoutDescriptionDataProvider;
 
 return static function (ContainerConfigurator $configurator, ContainerBuilder $containerBuilder) {
     $containerBuilder->registerForAutoconfiguration(StructuredDataProviderInterface::class)->setPublic(true);
@@ -23,45 +22,25 @@ return static function (ContainerConfigurator $configurator, ContainerBuilder $c
         return;
     }
 
-    $orphanedContentWidget = $services->set('yoast_seo.dashboard.widget.orphanedContent')
-        ->class(PageOverviewWidget::class)
-        ->arg('$dataProvider', new Reference(OrphanedContentDataProvider::class))
-        ->arg('$options', ['template' => 'Widget/OrphanedContentWidget'])
-        ->tag(
-            'dashboard.widget',
-            [
-                'identifier' => 'yoastseo-orphanedContent',
-                'groupNames' => 'seo',
-                'title' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.widget.orphanedContent.title',
-                'description' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.widget.orphanedContent.description',
-                'iconIdentifier' => 'extension-yoast',
-                'height' => 'large',
-                'width' => 'medium',
-            ]
-        );
-
-    if ($containerBuilder->hasDefinition(BackendViewFactory::class)) {
-        $orphanedContentWidget->arg('$view', new Reference(BackendViewFactory::class));
-        return;
-    }
-
-    $orphanedContentWidget->arg('$view', new Reference('dashboard.views.widget'));
-
-    $services->set('yoast_seo.dashboard.widget.pagesWithoutMetaDescription')
-        ->class(PageOverviewWidget::class)
-        ->arg('$dataProvider', new Reference(PagesWithoutDescriptionDataProvider::class))
-        ->arg('$options', ['template' => 'Widget/PageWithoutMetaDescriptionWidget'])
-        ->arg('$view', new Reference('dashboard.views.widget'))
-        ->tag(
-            'dashboard.widget',
-            [
-                'identifier' => 'yoastseo-pagesWithoutMetaDescription',
-                'groupNames' => 'seo',
-                'title' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.widget.pagesWithoutMetaDescription.title',
-                'description' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.widget.pagesWithoutMetaDescription.description',
-                'iconIdentifier' => 'extension-yoast',
-                'height' => 'large',
-                'width' => 'medium',
-            ]
-        );
+    $services->set('yoast_seo.dashboard.widget.orphanedContent')->class(PageOverviewWidget::class)->arg(
+        '$dataProvider',
+        new Reference(OrphanedContentDataProvider::class)
+    )->arg(
+        '$options',
+        ['template' => 'Widget/OrphanedContentWidget']
+    )->arg(
+        '$view',
+        new Reference(BackendViewFactory::class)
+    )->tag(
+        'dashboard.widget',
+        [
+            'identifier' => 'yoastseo-orphanedContent',
+            'groupNames' => 'seo',
+            'title' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.widget.orphanedContent.title',
+            'description' => 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:dashboard.widget.orphanedContent.description',
+            'iconIdentifier' => 'extension-yoast',
+            'height' => 'large',
+            'width' => 'medium',
+        ]
+    );
 };

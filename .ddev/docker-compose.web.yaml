@@ -1,38 +1,37 @@
 services:
-    web:
-        environment:
-            - EXTENSION_KEY=yoast_seo
-            - PACKAGE_NAME=yoast-seo-for-typo3/yoast_seo
-            - TYPO3_CONTEXT=Development
+  web:
+    environment:
+      - EXTENSION_KEY=yoast_seo
+      - PACKAGE_NAME=yoast-seo-for-typo3/yoast_seo
+      - TYPO3_CONTEXT=Development
 
-            # TYPO3 v11 and v12 configuration
-            - TYPO3_INSTALL_DB_DRIVER=mysqli
-            - TYPO3_INSTALL_DB_USER=root
-            - TYPO3_INSTALL_DB_PASSWORD=root
-            - TYPO3_INSTALL_DB_HOST=db
-            - TYPO3_INSTALL_DB_UNIX_SOCKET=
-            - TYPO3_INSTALL_DB_USE_EXISTING=0
-            - TYPO3_INSTALL_ADMIN_USER=admin
-            - TYPO3_INSTALL_ADMIN_PASSWORD=Password:joh316
-            - TYPO3_INSTALL_SITE_NAME=EXT:yoast_seo Dev Environment
-            - TYPO3_INSTALL_SITE_SETUP_TYPE=site
-            - TYPO3_INSTALL_WEB_SERVER_CONFIG=apache
+      # TYPO3 v12 configuration
+      - TYPO3_INSTALL_DB_DRIVER=mysqli
+      - TYPO3_INSTALL_DB_USER=root
+      - TYPO3_INSTALL_DB_PASSWORD=root
+      - TYPO3_INSTALL_DB_HOST=db
+      - TYPO3_INSTALL_DB_UNIX_SOCKET=
+      - TYPO3_INSTALL_DB_USE_EXISTING=0
+      - TYPO3_INSTALL_ADMIN_USER=admin
+      - TYPO3_INSTALL_ADMIN_PASSWORD=Password:joh316
+      - TYPO3_INSTALL_SITE_NAME=EXT:yoast_seo Dev Environment
+      - TYPO3_INSTALL_SITE_SETUP_TYPE=site
+      - TYPO3_INSTALL_WEB_SERVER_CONFIG=apache
 
-            - TYPO3_DB_DRIVER=mysqli
-            - TYPO3_DB_USERNAME=root
-            - TYPO3_DB_PASSWORD=root
-            - TYPO3_DB_HOST=db
-            - TYPO3_DB_PORT=3306
-            - TYPO3_SETUP_ADMIN_USERNAME=admin
-            - TYPO3_SETUP_ADMIN_EMAIL=admin@admin.com
-            - TYPO3_SETUP_ADMIN_PASSWORD=Password:joh316
-            - TYPO3_PROJECT_NAME=EXT:yoast_seo Dev Environment
-            - TYPO3_SERVER_TYPE=apache
-        volumes:
-            - type: bind
-              source: ../
-              target: /var/www/yoast_seo
-              consistency: cached
-            - ../.Build/v11:/var/www/html/v11
-            - ../.Build/v12:/var/www/html/v12
-            - ../.Build/v13:/var/www/html/v13
+      - TYPO3_DB_DRIVER=mysqli
+      - TYPO3_DB_USERNAME=root
+      - TYPO3_DB_PASSWORD=root
+      - TYPO3_DB_HOST=db
+      - TYPO3_DB_PORT=3306
+      - TYPO3_SETUP_ADMIN_USERNAME=admin
+      - TYPO3_SETUP_ADMIN_EMAIL=admin@admin.com
+      - TYPO3_SETUP_ADMIN_PASSWORD=Password:joh316
+      - TYPO3_PROJECT_NAME=EXT:yoast_seo Dev Environment
+      - TYPO3_SERVER_TYPE=apache
+    volumes:
+      - type: bind
+        source: ../
+        target: /var/www/yoast_seo
+        consistency: cached
+      - ../.Build/v12:/var/www/html/v12
+      - ../.Build/v13:/var/www/html/v13

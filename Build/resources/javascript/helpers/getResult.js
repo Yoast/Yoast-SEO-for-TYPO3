@@ -1,8 +1,8 @@
 const getResult = (analysis, resultType, resultSubtype) => {
     if (resultSubtype !== undefined) {
-        return analysis.result[resultType][resultSubtype];
+        return analysis[resultType][resultSubtype];
     } else {
-        return analysis.result[resultType];
+        return analysis[resultType];
     }
 }
 
