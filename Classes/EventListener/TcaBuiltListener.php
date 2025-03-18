@@ -6,9 +6,9 @@ namespace YoastSeoForTypo3\YoastSeo\EventListener;
 
 use TYPO3\CMS\Core\Configuration\Event\AfterTcaCompilationEvent;
 
-class TcaBuiltListener extends AbstractListener
+class TcaBuiltListener extends AbstractBuilderListener
 {
-    public function addRecordTca(AfterTcaCompilationEvent $event): void
+    public function __invoke(AfterTcaCompilationEvent $event): void
     {
         $GLOBALS['TCA'] = $event->getTca();
         foreach ($this->getRecordsFromRegistry() as $record) {

@@ -12,7 +12,7 @@ By default the extension is generating the URL to analyse based on the Site Conf
 you want to change the URL that needs to be analysed. With the `ModifyPreviewUrlEvent`, you will be able to alter the URL that will be
 used to analyse your content.
 
-First you need to create an EventListener that will :
+First you need to create an EventListener that will handle the event:
 
 .. code-block:: php
 
@@ -37,7 +37,8 @@ First you need to create an EventListener that will :
         }
     }
 
-After you created your event listener to alter the URL, you need to register it in your `Services.yaml`.
+After you created your event listener to alter the URL, you need to register it in your `Services.yaml`, or if
+you are using TYPO3 13, you can use the `AsEventListener` attribute to register the listener directly in your class.
 
 Check the TYPO3 documentation for your used TYPO3 version on how to register this correctly.
 

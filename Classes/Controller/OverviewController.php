@@ -14,16 +14,20 @@ class OverviewController extends AbstractBackendController
     public const REQUEST_ARGUMENT = 'tx_yoastseo_yoast_yoastseooverview';
 
     public function __construct(
-        protected ModuleTemplateFactory $moduleTemplateFactory,
-        protected LanguageMenuFactory $languageMenuFactory,
-        protected OverviewService $overviewService,
+        protected readonly ModuleTemplateFactory $moduleTemplateFactory,
+        protected readonly LanguageMenuFactory $languageMenuFactory,
+        protected readonly OverviewService $overviewService,
     ) {
         parent::__construct($this->moduleTemplateFactory);
     }
 
     public function listAction(int $currentPage = 1): ResponseInterface
     {
-        $overviewData = $this->overviewService->getOverviewData($this->request, $currentPage, (int)$this->settings['itemsPerPage']);
+        $overviewData = $this->overviewService->getOverviewData(
+            $this->request,
+            $currentPage,
+            (int)$this->settings['itemsPerPage']
+        );
         $moduleTemplate = $this->getModuleTemplate();
 
         $moduleTemplate->getDocHeaderComponent()->setMetaInformation($overviewData->getPageInformation());
@@ -36,6 +40,6 @@ class OverviewController extends AbstractBackendController
             $moduleTemplate->getDocHeaderComponent()->getMenuRegistry()->addMenu($languageMenu);
         }
 
-        return $this->returnResponse('Overview/List', $overviewData->toArray(), $moduleTemplate);
+        return $this->returnResponse($overviewData->toArray(), $moduleTemplate);
     }
 }

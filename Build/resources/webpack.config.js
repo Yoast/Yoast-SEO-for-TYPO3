@@ -6,8 +6,8 @@ const outputFilename = "[name].js";
 module.exports = [
     baseConfig({
         entry: {
-            plugin: './javascript/plugin.js',
             worker: './javascript/worker.js',
+            webcomponents: './javascript/webcomponents.tsx',
         },
         output: {
             filename: outputFilename,

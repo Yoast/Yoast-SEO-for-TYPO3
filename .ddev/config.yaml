@@ -8,18 +8,17 @@ router_https_port: "443"
 xdebug_enabled: false
 no_project_mount: true
 additional_hostnames:
-    - docs.yoast-seo
-    - v11.yoast-seo
-    - v12.yoast-seo
-    - v13.yoast-seo
-additional_fqdns: []
+  - docs.yoast-seo
+  - v12.yoast-seo
+  - v13.yoast-seo
+additional_fqdns: [ ]
 database:
-    type: mariadb
-    version: "10.4"
+  type: mariadb
+  version: "10.4"
 performance_mode: none
 use_dns_when_possible: true
 composer_version: "2"
-web_environment: []
+web_environment: [ ]
 corepack_enable: false
 
 # Key features of DDEV's config.yaml:

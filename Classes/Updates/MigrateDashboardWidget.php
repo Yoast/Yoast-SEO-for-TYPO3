@@ -6,7 +6,6 @@ namespace YoastSeoForTypo3\YoastSeo\Updates;
 
 use Doctrine\DBAL\Exception;
 use TYPO3\CMS\Core\Database\ConnectionPool;
-use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Install\Attribute\UpgradeWizard;
 use TYPO3\CMS\Install\Updates\UpgradeWizardInterface;
@@ -40,10 +39,9 @@ class MigrateDashboardWidget implements UpgradeWizardInterface
 
     public function executeUpdate(): bool
     {
-        $this->connectionPool->getConnectionForTable(self::DASHBOARD_TABLE)
-            ->executeQuery(
-                'UPDATE ' . self::DASHBOARD_TABLE . ' SET widgets = REPLACE(widgets, "yoastseo-pagesWithoutMetaDescription", "seo-pagesWithoutMetaDescription")'
-            );
+        $this->connectionPool->getConnectionForTable(self::DASHBOARD_TABLE)->executeQuery(
+            'UPDATE ' . self::DASHBOARD_TABLE . ' SET widgets = REPLACE(widgets, "yoastseo-pagesWithoutMetaDescription", "seo-pagesWithoutMetaDescription")'
+        );
         return true;
     }
 
@@ -64,9 +62,6 @@ class MigrateDashboardWidget implements UpgradeWizardInterface
 
     public function updateNecessary(): bool
     {
-        if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 12) {
-            return false;
-        }
         return $this->dashboardTableExists();
     }
 

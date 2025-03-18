@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <xliff version="1.0">
-    <file source-language="en" datatype="plaintext" original="messages" date="2022-12-30T12:00:00Z" product-name="yoastseo">
+    <file source-language="en" datatype="plaintext" original="messages" date="2022-12-30T12:00:00Z"
+          product-name="yoast_seo">
         <header/>
         <body>
             <trans-unit id="pages.palettes.focusKeyphrase" resname="pages.palettes.focusKeyphrase">
@@ -21,7 +22,8 @@
             <trans-unit id="pages.palettes.advanced" resname="pages.palettes.advanced">
                 <source>Advanced settings</source>
             </trans-unit>
-            <trans-unit id="pages.fields.tx_yoastseo_focuskeyword_related" resname="pages.fields.tx_yoastseo_focuskeyword_related">
+            <trans-unit id="pages.fields.tx_yoastseo_focuskeyword_related"
+                        resname="pages.fields.tx_yoastseo_focuskeyword_related">
                 <source>Focus keywords</source>
             </trans-unit>
             <trans-unit id="pages.palettes.robots" resname="pages.palettes.robots">
@@ -40,16 +42,20 @@
             <trans-unit id="tx_yoastseo_related_focuskeyword.title" resname="tx_yoastseo_related_focuskeyword.title">
                 <source>Yoast SEO Focus keywords</source>
             </trans-unit>
-            <trans-unit id="tx_yoastseo_related_focuskeyword.fields.keyword" resname="tx_yoastseo_related_focuskeyword.fields.keyword">
+            <trans-unit id="tx_yoastseo_related_focuskeyword.fields.keyword"
+                        resname="tx_yoastseo_related_focuskeyword.fields.keyword">
                 <source>SEO Focus keyword</source>
             </trans-unit>
-            <trans-unit id="tx_yoastseo_related_focuskeyword.fields.analysis" resname="tx_yoastseo_related_focuskeyword.fields.analysis">
+            <trans-unit id="tx_yoastseo_related_focuskeyword.fields.analysis"
+                        resname="tx_yoastseo_related_focuskeyword.fields.analysis">
                 <source>Analysis</source>
             </trans-unit>
-            <trans-unit id="tx_yoastseo_related_focuskeyword.fields.synonyms" resname="tx_yoastseo_related_focuskeyword.fields.synonyms">
+            <trans-unit id="tx_yoastseo_related_focuskeyword.fields.synonyms"
+                        resname="tx_yoastseo_related_focuskeyword.fields.synonyms">
                 <source>Synonyms</source>
             </trans-unit>
-            <trans-unit id="tx_yoastseo_related_focuskeyword.fields.synonyms" resname="tx_yoastseo_related_focuskeyword.fields.synonyms">
+            <trans-unit id="tx_yoastseo_related_focuskeyword.fields.synonyms"
+                        resname="tx_yoastseo_related_focuskeyword.fields.synonyms">
                 <source>Synonyms</source>
             </trans-unit>
             <trans-unit id="tx_yoastseo_prominent_word.title" resname="tx_yoastseo_prominent_word.title">
@@ -61,7 +67,8 @@
             <trans-unit id="tx_yoastseo_prominent_word.fields.table" resname="tx_yoastseo_prominent_word.fields.table">
                 <source>Table</source>
             </trans-unit>
-            <trans-unit id="tx_yoastseo_prominent_word.fields.weight" resname="tx_yoastseo_prominent_word.fields.weight">
+            <trans-unit id="tx_yoastseo_prominent_word.fields.weight"
+                        resname="tx_yoastseo_prominent_word.fields.weight">
                 <source>Weight</source>
             </trans-unit>
 

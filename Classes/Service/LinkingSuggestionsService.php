@@ -9,9 +9,6 @@ use TYPO3\CMS\Core\Context\LanguageAspect;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
-use TYPO3\CMS\Core\Exception\SiteNotFoundException;
-use TYPO3\CMS\Core\Information\Typo3Version;
-use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Traits\LanguageServiceTrait;
 
@@ -27,8 +24,10 @@ class LinkingSuggestionsService
 
     public function __construct(
         protected ConnectionPool $connectionPool,
-        protected PageRepository $pageRepository
-    ) {}
+        protected PageRepository $pageRepository,
+        protected SiteService $siteService,
+    ) {
+    }
 
     /**
      * @param array<array{_occurrences: int, _stem: string}> $words
@@ -44,7 +43,7 @@ class LinkingSuggestionsService
             return [];
         }
         $this->excludePageId = $excludePageId;
-        $this->site = $this->getSiteRootPageId($excludePageId);
+        $this->site = $this->siteService->getSiteRootPageId($excludePageId);
         $this->languageId = $languageId;
 
         $words = array_column($words, '_occurrences', '_stem');
@@ -119,20 +118,16 @@ class LinkingSuggestionsService
         }
 
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::PROMINENT_WORDS_TABLE);
-        $rawDocFrequencies = $queryBuilder->select('stem')
-            ->addSelectLiteral('COUNT(stem) AS document_frequency')
-            ->from(self::PROMINENT_WORDS_TABLE)
-            ->where(
-                $queryBuilder->expr()->in(
-                    'stem',
-                    $queryBuilder->createNamedParameter($stems, Connection::PARAM_STR_ARRAY)
-                ),
-                $queryBuilder->expr()->eq('sys_language_uid', $this->languageId),
-                $queryBuilder->expr()->eq('site', $this->site)
-            )
-            ->groupBy('stem')
-            ->executeQuery()
-            ->fetchAllAssociative();
+        $rawDocFrequencies = $queryBuilder->select('stem')->addSelectLiteral('COUNT(stem) AS document_frequency')->from(
+            self::PROMINENT_WORDS_TABLE
+        )->where(
+            $queryBuilder->expr()->in(
+                'stem',
+                $queryBuilder->createNamedParameter($stems, Connection::PARAM_STR_ARRAY)
+            ),
+            $queryBuilder->expr()->eq('sys_language_uid', $this->languageId),
+            $queryBuilder->expr()->eq('site', $this->site)
+        )->groupBy('stem')->executeQuery()->fetchAllAssociative();
 
         $stems = array_map(
             static function ($item) {
@@ -197,20 +192,16 @@ class LinkingSuggestionsService
         $prominentStems = array_column($prominentWords, 'stem');
 
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::PROMINENT_WORDS_TABLE);
-        $documentFreqs = $queryBuilder->select('stem')
-            ->addSelectLiteral('COUNT(uid) AS count')
-            ->from(self::PROMINENT_WORDS_TABLE)
-            ->where(
-                $queryBuilder->expr()->in(
-                    'stem',
-                    $queryBuilder->createNamedParameter($prominentStems, Connection::PARAM_STR_ARRAY)
-                ),
-                $queryBuilder->expr()->eq('site', $this->site),
-                $queryBuilder->expr()->eq('sys_language_uid', $this->languageId)
-            )
-            ->groupBy('stem')
-            ->executeQuery()
-            ->fetchAllAssociative();
+        $documentFreqs = $queryBuilder->select('stem')->addSelectLiteral('COUNT(uid) AS count')->from(
+            self::PROMINENT_WORDS_TABLE
+        )->where(
+            $queryBuilder->expr()->in(
+                'stem',
+                $queryBuilder->createNamedParameter($prominentStems, Connection::PARAM_STR_ARRAY)
+            ),
+            $queryBuilder->expr()->eq('site', $this->site),
+            $queryBuilder->expr()->eq('sys_language_uid', $this->languageId)
+        )->groupBy('stem')->executeQuery()->fetchAllAssociative();
 
         $stemCounts = [];
         foreach ($documentFreqs as $documentFreq) {
@@ -233,18 +224,14 @@ class LinkingSuggestionsService
     protected function findRecordsByStems(array $stems, int $batchSize, int $page): array
     {
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::PROMINENT_WORDS_TABLE);
-        $queryBuilder->select('pid', 'tablenames')
-            ->from(self::PROMINENT_WORDS_TABLE)
-            ->where(
-                $queryBuilder->expr()->in(
-                    'stem',
-                    $queryBuilder->createNamedParameter($stems, Connection::PARAM_STR_ARRAY)
-                ),
-                $queryBuilder->expr()->eq('sys_language_uid', $this->languageId),
-                $queryBuilder->expr()->eq('site', $this->site)
-            )
-            ->setMaxResults($batchSize)
-            ->setFirstResult(($page - 1) * $batchSize);
+        $queryBuilder->select('pid', 'tablenames')->from(self::PROMINENT_WORDS_TABLE)->where(
+            $queryBuilder->expr()->in(
+                'stem',
+                $queryBuilder->createNamedParameter($stems, Connection::PARAM_STR_ARRAY)
+            ),
+            $queryBuilder->expr()->eq('sys_language_uid', $this->languageId),
+            $queryBuilder->expr()->eq('site', $this->site)
+        )->setMaxResults($batchSize)->setFirstResult(($page - 1) * $batchSize);
         /** @var array<array{pid: int, tablenames: string}> $records */
         $records = $queryBuilder->executeQuery()->fetchAllAssociative();
         return $records;
@@ -268,8 +255,7 @@ class LinkingSuggestionsService
                 )
             );
         }
-        $queryBuilder->select('stem', 'weight', 'pid', 'tablenames', 'uid_foreign')
-            ->from(self::PROMINENT_WORDS_TABLE)
+        $queryBuilder->select('stem', 'weight', 'pid', 'tablenames', 'uid_foreign')->from(self::PROMINENT_WORDS_TABLE)
             ->where(
                 $queryBuilder->expr()->or(...$orStatements)
             );
@@ -357,11 +343,11 @@ class LinkingSuggestionsService
         uasort(
             $scores,
             static function ($score1, $score2) {
-                if ($score1 === $score2) {
-                    return 0;
-                }
-                return ($score1 < $score2) ? 1 : -1;
+            if ($score1 === $score2) {
+                return 0;
             }
+            return ($score1 < $score2) ? 1 : -1;
+        }
         );
 
         // Take the top $limit suggestions, while preserving their ids specified in the keys of the array elements.
@@ -386,8 +372,7 @@ class LinkingSuggestionsService
             if ($data === null) {
                 continue;
             }
-            if ($this->languageId > 0
-                && ($overlay = $this->getRecordOverlay($table, $data, $this->languageId))) {
+            if ($this->languageId > 0 && ($overlay = $this->getRecordOverlay($table, $data, $this->languageId))) {
                 $data = $overlay;
             }
 
@@ -419,12 +404,12 @@ class LinkingSuggestionsService
         usort(
             $links,
             static function ($suggestion1, $suggestion2) {
-                if ($suggestion1['score'] === $suggestion2['score']) {
-                    return 0;
-                }
-
-                return ($suggestion1['score'] < $suggestion2['score']) ? 1 : -1;
+            if ($suggestion1['score'] === $suggestion2['score']) {
+                return 0;
             }
+
+            return ($suggestion1['score'] < $suggestion2['score']) ? 1 : -1;
+        }
         );
     }
 
@@ -437,8 +422,8 @@ class LinkingSuggestionsService
         return \array_filter(
             $links,
             static function ($suggestion) use ($cornerstone) {
-                return (bool)$suggestion['cornerstone'] === $cornerstone;
-            }
+            return (bool)$suggestion['cornerstone'] === $cornerstone;
+        }
         );
     }
 
@@ -456,16 +441,6 @@ class LinkingSuggestionsService
         return $currentLinks;
     }
 
-    protected function getSiteRootPageId(int $pageUid): int
-    {
-        try {
-            $site = GeneralUtility::makeInstance(SiteFinder::class)->getSiteByPageId($pageUid);
-            return $site->getRootPageId();
-        } catch (SiteNotFoundException $e) {
-            return 0;
-        }
-    }
-
     protected function getRecordType(string $table): string
     {
         return $this->getLanguageService()->sL(
@@ -479,10 +454,6 @@ class LinkingSuggestionsService
      */
     protected function getRecordOverlay(string $table, array $data, int $languageId): array|null
     {
-        if (is_callable([$this->pageRepository, 'getRecordOverlay'])
-            && GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 12) {
-            return $this->pageRepository->getRecordOverlay($table, $data, $languageId, 'mixed');
-        }
         $languageAspect = GeneralUtility::makeInstance(LanguageAspect::class, $languageId, $languageId, 'mixed');
         return $this->pageRepository->getLanguageOverlay($table, $data, $languageAspect);
     }

@@ -10,10 +10,11 @@ final class ModifyPreviewUrlEvent
 {
     public function __construct(
         private string $url,
-        private Site $site,
-        private int $pageId,
-        private int $languageId,
-    ) {}
+        private readonly Site $site,
+        private readonly int $pageId,
+        private readonly int $languageId,
+    ) {
+    }
 
     public function getUrl(): string
     {

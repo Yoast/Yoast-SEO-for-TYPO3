@@ -1,6 +1,6 @@
 #!/bin/bash
 
-valid_versions=("11" "12" "13")
+valid_versions=("12" "13")
 
 if [[ ! " ${valid_versions[@]} " =~ " $1 " ]]; then
   echo "Invalid version. Please use one of the following: ${valid_versions[@]}"

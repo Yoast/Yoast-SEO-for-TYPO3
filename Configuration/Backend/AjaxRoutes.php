@@ -3,10 +3,6 @@
 use YoastSeoForTypo3\YoastSeo\Controller\AjaxController;
 
 return [
-    'yoast_preview' => [
-        'path' => 'yoast/preview',
-        'target' => AjaxController::class . '::previewAction',
-    ],
     'yoast_save_scores' => [
         'path' => 'yoast/savescores',
         'target' => AjaxController::class . '::saveScoresAction',

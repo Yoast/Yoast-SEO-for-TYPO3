@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
-use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class TcaService
 {
@@ -260,20 +258,11 @@ class TcaService
      */
     protected function getInvertedCheckbox(): array
     {
-        if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() >= 12) {
-            return [
-                [
-                    1 => '',
-                    'invertStateDisplay' => true,
-                    'label' => '',
-                ],
-            ];
-        }
         return [
             [
-                0 => '',
                 1 => '',
                 'invertStateDisplay' => true,
+                'label' => '',
             ],
         ];
     }

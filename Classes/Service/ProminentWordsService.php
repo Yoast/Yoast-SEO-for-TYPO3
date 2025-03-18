@@ -7,9 +7,6 @@ namespace YoastSeoForTypo3\YoastSeo\Service;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
-use TYPO3\CMS\Core\Exception\SiteNotFoundException;
-use TYPO3\CMS\Core\Site\SiteFinder;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class ProminentWordsService
 {
@@ -21,7 +18,8 @@ class ProminentWordsService
     protected int $languageId;
 
     public function __construct(
-        protected ConnectionPool $connectionPool
+        protected ConnectionPool $connectionPool,
+        protected SiteService $siteService
     ) {}
 
     /**
@@ -142,14 +140,9 @@ class ProminentWordsService
 
     protected function getSiteRootPageId(): int
     {
-        try {
-            $site = GeneralUtility::makeInstance(SiteFinder::class)->getSiteByPageId(
-                $this->table === 'pages' ? $this->uid : $this->pid
-            );
-            return $site->getRootPageId();
-        } catch (SiteNotFoundException $e) {
-            return 0;
-        }
+        return $this->siteService->getSiteRootPageId(
+            $this->table === 'pages' ? $this->uid : $this->pid
+        );
     }
 
     protected function getQueryBuilder(): QueryBuilder

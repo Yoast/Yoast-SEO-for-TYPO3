@@ -1,62 +1,67 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <xliff version="1.0">
-	<file source-language="en" datatype="plaintext" original="EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf" date="2014-05-02T12:00:00Z" product-name="yoastseo-overview">
-		<header/>
-		<body>
-			<trans-unit id="mlang_tabs_tab" resname="mlang_tabs_tab">
-				<source>Overview</source>
-			</trans-unit>
-			<trans-unit id="mlang_labels_tabdescr" resname="mlang_labels_tabdescr">
-				<source>Overview of pages</source>
-			</trans-unit>
-			<trans-unit id="mlang_labels_tablabel" resname="mlang_labels_tablabel">
-				<source>Yoast SEO Overview</source>
-			</trans-unit>
-			<trans-unit id="cornerstoneContent" resname="cornerstoneContent">
-				<source>Cornerstone content</source>
-			</trans-unit>
-			<trans-unit id="cornerstoneContent.description" resname="cornerstoneContent.description">
-				<source><![CDATA[Mark the most important pages as 'cornerstone content' to improve your site structure. <a href="%s" target="_blank">Learn more about cornerstone content.</a>]]></source>
-			</trans-unit>
-			<trans-unit id="withoutDescription" resname="withoutDescription">
-				<source>Pages without meta description</source>
-			</trans-unit>
-			<trans-unit id="withoutDescription.description" resname="withoutDescription.description">
-				<source><![CDATA[Optimizing the meta description is a very important aspect of on-page SEO. Consider adding a meta description to these pages. <a href="%s" target="_blank">Learn more about writing the right meta description.</a>]]></source>
-			</trans-unit>
-			<trans-unit id="orphanedContent">
-				<source>Orphaned content</source>
-			</trans-unit>
-			<trans-unit id="orphanedContent.description">
-				<source><![CDATA['Orphaned content' refers to pages that have no inbound links, consider adding links towards these pages. <a href="%s" target="_blank">Learn more about orphaned content.</a>]]></source>
-			</trans-unit>
-			<trans-unit id="no_pages.title" resname="no_pages.title">
-				<source>No pages found</source>
-			</trans-unit>
-			<trans-unit id="no_pages.message" resname="no_pages.message">
-				<source>No pages found with the current filter.</source>
-			</trans-unit>
-			<trans-unit id="no_page_selected.title" resname="no_page_selected.title">
-				<source>No page selected</source>
-			</trans-unit>
-			<trans-unit id="no_page_selected.message" resname="no_page_selected.message">
-				<source>Select a page from the pagetree to retrieve results.</source>
-			</trans-unit>
-			<trans-unit id="edit" resname="edit">
-				<source>Edit page</source>
-			</trans-unit>
-			<trans-unit id="page.title" resname="page.title">
-				<source>Page title</source>
-			</trans-unit>
-			<trans-unit id="page.seo_title" resname="page.seo_title">
-				<source>SEO title</source>
-			</trans-unit>
-			<trans-unit id="page.score_readability" resname="page.score_readability">
-				<source>Readability</source>
-			</trans-unit>
-			<trans-unit id="page.score_seo" resname="page.score_seo">
-				<source>SEO</source>
-			</trans-unit>
+    <file source-language="en" datatype="plaintext"
+          original="EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf" date="2014-05-02T12:00:00Z"
+          product-name="yoast_seo">
+        <header/>
+        <body>
+            <trans-unit id="mlang_tabs_tab" resname="mlang_tabs_tab">
+                <source>Overview</source>
+            </trans-unit>
+            <trans-unit id="mlang_labels_tabdescr" resname="mlang_labels_tabdescr">
+                <source>Overview of pages</source>
+            </trans-unit>
+            <trans-unit id="mlang_labels_tablabel" resname="mlang_labels_tablabel">
+                <source>Yoast SEO Overview</source>
+            </trans-unit>
+            <trans-unit id="cornerstoneContent" resname="cornerstoneContent">
+                <source>Cornerstone content</source>
+            </trans-unit>
+            <trans-unit id="cornerstoneContent.description" resname="cornerstoneContent.description">
+                <source>
+                    <![CDATA[Mark the most important pages as 'cornerstone content' to improve your site structure. <a href="%s" target="_blank">Learn more about cornerstone content.</a>]]></source>
+            </trans-unit>
+            <trans-unit id="withoutDescription" resname="withoutDescription">
+                <source>Pages without meta description</source>
+            </trans-unit>
+            <trans-unit id="withoutDescription.description" resname="withoutDescription.description">
+                <source>
+                    <![CDATA[Optimizing the meta description is a very important aspect of on-page SEO. Consider adding a meta description to these pages. <a href="%s" target="_blank">Learn more about writing the right meta description.</a>]]></source>
+            </trans-unit>
+            <trans-unit id="orphanedContent">
+                <source>Orphaned content</source>
+            </trans-unit>
+            <trans-unit id="orphanedContent.description">
+                <source>
+                    <![CDATA['Orphaned content' refers to pages that have no inbound links, consider adding links towards these pages. <a href="%s" target="_blank">Learn more about orphaned content.</a>]]></source>
+            </trans-unit>
+            <trans-unit id="no_pages.title" resname="no_pages.title">
+                <source>No pages found</source>
+            </trans-unit>
+            <trans-unit id="no_pages.message" resname="no_pages.message">
+                <source>No pages found with the current filter.</source>
+            </trans-unit>
+            <trans-unit id="no_page_selected.title" resname="no_page_selected.title">
+                <source>No page selected</source>
+            </trans-unit>
+            <trans-unit id="no_page_selected.message" resname="no_page_selected.message">
+                <source>Select a page from the pagetree to retrieve results.</source>
+            </trans-unit>
+            <trans-unit id="edit" resname="edit">
+                <source>Edit page</source>
+            </trans-unit>
+            <trans-unit id="page.title" resname="page.title">
+                <source>Page title</source>
+            </trans-unit>
+            <trans-unit id="page.seo_title" resname="page.seo_title">
+                <source>SEO title</source>
+            </trans-unit>
+            <trans-unit id="page.score_readability" resname="page.score_readability">
+                <source>Readability</source>
+            </trans-unit>
+            <trans-unit id="page.score_seo" resname="page.score_seo">
+                <source>SEO</source>
+            </trans-unit>
             <trans-unit id="score.ok" resname="score.ok">
                 <source>OK</source>
             </trans-unit>
@@ -66,7 +71,6 @@
             <trans-unit id="score.good" resname="score.good">
                 <source>Good</source>
             </trans-unit>
-
-		</body>
-	</file>
+        </body>
+    </file>
 </xliff>

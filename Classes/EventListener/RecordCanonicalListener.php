@@ -15,7 +15,7 @@ class RecordCanonicalListener
         protected RecordService $recordService
     ) {}
 
-    public function setCanonical(ModifyUrlForCanonicalTagEvent $event): void
+    public function __invoke(ModifyUrlForCanonicalTagEvent $event): void
     {
         $activeRecord = $this->recordService->getActiveRecord();
         if (!$activeRecord instanceof Record) {
