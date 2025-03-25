@@ -25,6 +25,8 @@ CREATE TABLE tx_yoastseo_related_focuskeyword (
 
     uid_foreign int(11) DEFAULT '0' NOT NULL,
     tablenames varchar(64) DEFAULT '' NOT NULL,
+
+		KEY analysis(uid_foreign, tablenames),
 );
 
 #
@@ -37,4 +39,6 @@ CREATE TABLE tx_yoastseo_prominent_word (
 
     uid_foreign int(11) DEFAULT '0' NOT NULL,
     tablenames varchar(64) DEFAULT '' NOT NULL,
+
+		KEY analysis(uid_foreign, tablenames, sys_language_uid),
 );
