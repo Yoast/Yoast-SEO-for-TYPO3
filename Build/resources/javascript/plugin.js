@@ -386,9 +386,7 @@ let YoastPlugin = {
             });
         }
 
-        window.addEventListener('load', function (event) {
-            YoastPlugin.setSeoTitlePlaceholder();
-        });
+        YoastPlugin.setSeoTitlePlaceholder();
 
         document.querySelectorAll(`li.t3js-tabmenu-item`).forEach(item => {
             if (item.innerHTML.includes('SEO')) {
