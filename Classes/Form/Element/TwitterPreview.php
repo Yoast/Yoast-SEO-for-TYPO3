@@ -17,6 +17,7 @@ class TwitterPreview extends AbstractSocialPreview
             'twitterTitle' => 'twitter_title',
             'twitterDescription' => 'twitter_description',
             'twitterImage' => 'twitter_image',
+            'twitterCard' => 'twitter_card',
         ];
     }
 

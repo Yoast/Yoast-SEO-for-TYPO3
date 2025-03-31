@@ -8,7 +8,6 @@ export function getFacebookData(imageUrl, siteBase) {
             ogTitle = getInputValue(YoastConfig.fieldSelectors.pageTitle);
         }
         let ogDescription = getInputValue(YoastConfig.fieldSelectors.ogDescription);
-        console.log(ogDescription + '?');
         if (ogDescription === '') {
             ogDescription = getInputValue(YoastConfig.fieldSelectors.description);
         }

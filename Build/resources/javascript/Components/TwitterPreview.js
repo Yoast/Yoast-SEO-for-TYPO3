@@ -12,7 +12,8 @@ function mapStateToProps(state) {
         siteUrl: state.twitterPreview.siteBase,
         title: state.twitterPreview.title,
         description: state.twitterPreview.description,
-        imageUrl: state.twitterPreview.imageUrl
+        imageUrl: state.twitterPreview.imageUrl,
+        isLarge: state.twitterPreview.isLarge,
     }
 }
 

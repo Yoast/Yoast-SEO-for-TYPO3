@@ -11,6 +11,8 @@ export function getTwitterData(imageUrl, siteBase) {
         if (twitterDescription === '') {
             twitterDescription = getInputValue(YoastConfig.fieldSelectors.description);
         }
+        console.log('twitter card: ' + getInputValue(YoastConfig.fieldSelectors.twitterCard));
+        let isLarge = getInputValue(YoastConfig.fieldSelectors.twitterCard) === 'summary_large_image';
 
         dispatch({
             type: UPDATE_TWITTER_PREVIEW,
@@ -18,7 +20,8 @@ export function getTwitterData(imageUrl, siteBase) {
                 title: twitterTitle,
                 description: twitterDescription,
                 siteBase: siteBase,
-                imageUrl: imageUrl
+                imageUrl: imageUrl,
+                isLarge: isLarge
             }
         });
     };

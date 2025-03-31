@@ -437,7 +437,8 @@ let YoastPlugin = {
             },
             updateFields: {
                 title: YoastConfig.fieldSelectors.twitterTitle,
-                description: YoastConfig.fieldSelectors.twitterDescription
+                description: YoastConfig.fieldSelectors.twitterDescription,
+                isLarge: YoastConfig.fieldSelectors.twitterCard
             }
         }];
 
@@ -454,10 +455,11 @@ let YoastPlugin = {
                 for (let field in item.updateFields) {
                     if (item.updateFields.hasOwnProperty(field)) {
                         let fieldElement = document.querySelector('[data-formengine-input-name="' + item.updateFields[field] + '"]');
-                        fieldElement.addEventListener('input', debounce(_ => {
-                            console.log(field + ' - ' + fieldElement.value);
+                        ['input', 'change'].forEach(function (e) {
+                          fieldElement.addEventListener(e, debounce(_ => {
                             store.dispatch(item.socialDataUpdate({[field]: fieldElement.value}));
-                        }));
+                          }))
+                        });
                     }
                 }
             }
