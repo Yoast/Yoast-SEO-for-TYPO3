@@ -49,6 +49,7 @@
     "phpunit/phpunit": "^10.1",
     "saschaegerer/phpstan-typo3": "^1.10",
     "typo3/coding-standards": "^0.7.1 || ^0.8.0",
+    "typo3/tailor": "^1.7",
     "typo3/testing-framework": "^7.1.0 || ^8.2.0"
   },
   "replace": {
