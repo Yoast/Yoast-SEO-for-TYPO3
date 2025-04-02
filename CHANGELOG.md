@@ -5,6 +5,14 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## 11.0.2 April 2, 2025
+
+### Fixed
+- `translations` and `supportedLanguages` are added to the `YoastConfig` variable within the Crawler module to fix the crawling process
+- Removed the `load` event listener for setting the seo title placeholder, this is now executed immediately
+- Added fallback to `en_GB` if no backend locale is found to prevent missing translations
+- Re-added `typo3/tailor` to dev dependencies to fix automatic publishing to TER
+
 ## 11.0.1 March 13, 2025
 
 ### Fixed
@@ -19,7 +27,7 @@ We will follow [Semantic Versioning](http://semver.org/).
 - Added "Flesh reading score" to the Insights
 - Added "Reading time" to the Insights
 - Added "Word count" to the Insights
-- New testing setup for unit, functional and acceptance tests 
+- New testing setup for unit, functional and acceptance tests
 - Translations script to download translations from GlotPress (wordpress)
 
 ### Changed
@@ -40,7 +48,7 @@ We will follow [Semantic Versioning](http://semver.org/).
   - All languages mode now shows the default language instead of nothing
 - Optimized images that are used in the Dashboard module and load them directly instead of through `f:image`
   - Removed old unused images
-- Translations are now correctly loaded based on the backend locale 
+- Translations are now correctly loaded based on the backend locale
 - `og_image` and `twitter_image` now have the correct `foreign_match_fields` -> `tablenames` when using the Record functionality
 
 ## 10.1.0 January 27, 2025
