@@ -5,6 +5,16 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## 11.1.0 July 1, 2025
+
+### Added
+- Extra database indexes for `tx_yoastseo_related_focuskeyword` and `tx_yoastseo_prominent_word` to speed up the queries
+  for retrieval
+
+### Fixed
+- Set fixed width and height for svg icons within the score bar on top of the page view
+- Set the color of the Yoast module svg to `currentcolor` to fix both dark and light mode in TYPO3 13
+
 ## 11.0.2 April 2, 2025
 
 ### Fixed
