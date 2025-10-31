@@ -5,6 +5,11 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+
+### Added
+- Feature toggle to completely disable cache for the page preview request to prevent edge-case caching issues
+
 ## 11.1.0 July 1, 2025
 
 ### Added
