@@ -74,6 +74,6 @@ class ModifyPageLayoutContentListener
             return 0;
         }
 
-        return $language;
+        return (int)$language;
     }
 }
