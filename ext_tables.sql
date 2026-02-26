@@ -41,4 +41,6 @@ CREATE TABLE tx_yoastseo_prominent_word (
     tablenames varchar(64) DEFAULT '' NOT NULL,
 
     KEY analysis(uid_foreign, tablenames, sys_language_uid),
+    KEY stem_lookup(site, sys_language_uid, stem),
+    KEY page_lookup(pid, tablenames, sys_language_uid),
 );

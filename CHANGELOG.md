@@ -68,6 +68,12 @@ We will follow [Semantic Versioning](http://semver.org/).
 - Updated translations to latest versions
 - Improved dark mode compatibility
 - Updated documentation for the ddev setup and typescript / javascript development
+- Optimized `tx_yoastseo_prominent_word` database performance:
+    - Added `stem_lookup` and `page_lookup` indexes to eliminate full table scans in linking suggestions queries
+    - Fixed pagination in `LinkingSuggestionsService` to operate on distinct records instead of raw rows
+    - Replaced massive OR chains in `getProminentWords()` with grouped `IN()` clauses
+    - Cached document frequency calculations to avoid redundant queries across batch iterations
+    - Replaced individual INSERT statements in `ProminentWordsService` with a single bulk insert
 
 ### Fixed
 

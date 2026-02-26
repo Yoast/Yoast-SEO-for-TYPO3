@@ -104,20 +104,31 @@ class ProminentWordsService
      */
     protected function createNewWords(array $prominentWords): void
     {
-        $site = $this->getSiteRootPageId();
-        foreach ($prominentWords as $word => $weight) {
-            $data = [
-                'pid' => $this->table === 'pages' ? $this->uid : $this->pid,
-                'sys_language_uid' => $this->languageId,
-                'uid_foreign' => $this->uid,
-                'site' => $site,
-                'tablenames' => $this->table,
-                'stem' => $word,
-                'weight' => (int)$weight,
-            ];
-            $this->connectionPool->getConnectionForTable(self::PROMINENT_WORDS_TABLE)
-                ->insert(self::PROMINENT_WORDS_TABLE, $data);
+        if ($prominentWords === []) {
+            return;
         }
+
+        $site = $this->getSiteRootPageId();
+        $pid = $this->table === 'pages' ? $this->uid : $this->pid;
+
+        $rows = [];
+        foreach ($prominentWords as $word => $weight) {
+            $rows[] = [
+                $pid,
+                $this->languageId,
+                $this->uid,
+                $site,
+                $this->table,
+                (string)$word,
+                (int)$weight,
+            ];
+        }
+
+        $this->connectionPool->getConnectionForTable(self::PROMINENT_WORDS_TABLE)->bulkInsert(
+            self::PROMINENT_WORDS_TABLE,
+            $rows,
+            ['pid', 'sys_language_uid', 'uid_foreign', 'site', 'tablenames', 'stem', 'weight']
+        );
     }
 
     /**
