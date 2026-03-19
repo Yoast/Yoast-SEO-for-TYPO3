@@ -148,7 +148,7 @@ class LinkingSuggestionsService
             )->groupBy('stem')->executeQuery()->fetchAllAssociative();
 
             foreach ($rawDocFrequencies as $rawDocFrequency) {
-                $this->documentFrequencyCache[$rawDocFrequency['stem']] = (int)$rawDocFrequency['document_frequency'];
+                $this->documentFrequencyCache[(string)$rawDocFrequency['stem']] = (int)$rawDocFrequency['document_frequency'];
             }
         }
 
