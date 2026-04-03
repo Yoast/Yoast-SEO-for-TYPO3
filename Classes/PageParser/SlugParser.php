@@ -24,7 +24,7 @@ readonly class SlugParser implements ParserInterface
     public function parse(string $html, RequestContext $context): string
     {
         $urlParts = $this->getUrlParts($context);
-        return $urlParts['path'] ?? '';
+        return (string)($urlParts['path'] ?? '');
     }
 
     /**
