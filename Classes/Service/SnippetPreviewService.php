@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
+use TYPO3\CMS\Core\Configuration\Features;
 use TYPO3\CMS\Core\Page\JavaScriptModuleInstruction;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use YoastSeoForTypo3\YoastSeo\Dto\RequestData;
@@ -23,7 +24,8 @@ class SnippetPreviewService
         protected UrlService $urlService,
         protected PageRenderer $pageRenderer,
         protected LocaleService $localeService,
-        protected JsonTranslationsService $jsonTranslationsService
+        protected JsonTranslationsService $jsonTranslationsService,
+        protected Features $features,
     ) {}
 
     /**
@@ -49,6 +51,7 @@ class SnippetPreviewService
             ],
             'translations' => [$this->localeService->getTranslations()],
             'supportedLanguages' => $this->localeService->getSupportedLanguages(),
+            'inclusiveLanguageEnabled' => $this->features->isFeatureEnabled('yoastSeoInclusiveLanguage'),
             'requestData' => $requestData->toArray(),
         ];
 

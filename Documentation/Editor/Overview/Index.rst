@@ -7,7 +7,7 @@ Overview module
 ===============
 | Yoast SEO ships with an extra backend module "Overview".
 | This module contains multiple views where you can see certain pages in one single overview.
-| For every page you can immediately see the Readability and SEO analysis.
+| For every page you can immediately see the Readability, SEO, and (when enabled) Inclusive Language analysis.
 
 Cornerstone content
 -------------------

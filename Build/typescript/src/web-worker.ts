@@ -68,6 +68,8 @@ class WebWorker {
       locale: locale,
       contentAnalysisActive: true,
       keywordAnalysisActive: true,
+      inclusiveLanguageAnalysisActive:
+        YoastConfiguration.isInclusiveLanguageEnabled(),
       useKeywordDistribution: true,
       useCornerstone: cornerstone,
       logLevel: "ERROR",

@@ -17,6 +17,7 @@ class YoastConfigurationManager {
   private data: YoastData | null = null
   private fieldSelectors: YoastFields | null = null
   private supportedLanguages: string[] | null = null
+  private inclusiveLanguageEnabled: boolean = false
   private relatedKeyphrases: Record<string, YoastKeyphrase> | null = null
 
   private constructor() {}
@@ -97,6 +98,10 @@ class YoastConfigurationManager {
     this.supportedLanguages = languages
   }
 
+  public isInclusiveLanguageEnabled(): boolean {
+    return this.inclusiveLanguageEnabled
+  }
+
   public getFocusKeyphrase(): YoastKeyphrase | null {
     return this.focusKeyphrase
   }
@@ -128,6 +133,7 @@ class YoastConfigurationManager {
       "data",
       "fieldSelectors",
       "supportedLanguages",
+      "inclusiveLanguageEnabled",
       "relatedKeyphrases",
     ]
 

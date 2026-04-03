@@ -7,7 +7,10 @@ import {
   mapResults,
 } from "@yoast/yoast-seo-for-typo3/helpers/results.js"
 import store from "@yoast/yoast-seo-for-typo3/store.js"
-import { State } from "@yoast/yoast-seo-for-typo3/types/yoast"
+import {
+  State,
+  YoastAnalysisResult,
+} from "@yoast/yoast-seo-for-typo3/types/yoast"
 import YoastConfiguration from "@yoast/yoast-seo-for-typo3/yoast-configuration.js"
 
 class StatusIcon {
@@ -32,12 +35,14 @@ class StatusIcon {
   }
 
   private initializeTCAHeaderIcons(): void {
-    const container = document.querySelector("h1")
+    const container =
+      document.querySelector("h1") ??
+      document.querySelector(".contextual-record-edit-body")
     if (!container) return
 
     let scoreBar = document.createElement("div")
     scoreBar.classList.add("yoast-seo-score-bar")
-    ;["readability", "seo"].forEach((resultType) => {
+    ;["readability", "seo", "inclusiveLanguage"].forEach((resultType) => {
       scoreBar.append(
         this.getIconElement(
           resultType,
@@ -82,25 +87,28 @@ class StatusIcon {
       if (resultSubtype === null && resultType === "seo") {
         resultSubtype = ""
       }
+      const result = getResult(state.analysis!!, resultType, resultSubtype)
       setAttributes(element, {
         "analysis-done": "true",
         score: getScoreFromResult(state.analysis!!, resultType, resultSubtype),
       })
-      if (element.getAttribute("details")) {
+      if (
+        element.getAttribute("details") &&
+        element.getAttribute("details") === "true"
+      ) {
         element.onclick = () => {
-          this.analysisDetailModal(state, resultType, resultSubtype as string)
+          this.analysisDetailModal(resultType, result)
         }
       }
     })
   }
 
   private analysisDetailModal(
-    state: State,
     resultType: string,
-    resultSubtype: string | null
+    result: YoastAnalysisResult | undefined = undefined
   ): void {
-    const result = getResult(state.analysis!!, resultType, resultSubtype)
     if (result === undefined) return
+    if (result.results.length === 0) return
 
     const analysis = mapResults(result.results)
     const $content = $("<yoast-analysis-result>").attr(
@@ -128,7 +136,9 @@ class StatusIcon {
         ? ".score-label-readability"
         : resultType === "seo"
           ? ".score-label-seo"
-          : null
+          : resultType === "inclusiveLanguage"
+            ? ".score-label-inclusiveLanguage"
+            : null
 
     if (!selector) return ""
 

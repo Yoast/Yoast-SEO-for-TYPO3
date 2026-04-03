@@ -17,5 +17,6 @@ However, a few things can still be configured using an extension that overwrites
    Permissions/Index
    SnippetPreview/Index
    StructuredData/Index
+   FeatureToggles/Index
    OtherPlugins/Index
    Events/Index

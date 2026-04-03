@@ -8,6 +8,7 @@ class YoastConfigurationManager {
         this.data = null;
         this.fieldSelectors = null;
         this.supportedLanguages = null;
+        this.inclusiveLanguageEnabled = false;
         this.relatedKeyphrases = null;
     }
     static getInstance() {
@@ -70,6 +71,9 @@ class YoastConfigurationManager {
     setSupportedLanguages(languages) {
         this.supportedLanguages = languages;
     }
+    isInclusiveLanguageEnabled() {
+        return this.inclusiveLanguageEnabled;
+    }
     getFocusKeyphrase() {
         return this.focusKeyphrase;
     }
@@ -97,6 +101,7 @@ class YoastConfigurationManager {
             "data",
             "fieldSelectors",
             "supportedLanguages",
+            "inclusiveLanguageEnabled",
             "relatedKeyphrases",
         ];
         for (const key of keys) {

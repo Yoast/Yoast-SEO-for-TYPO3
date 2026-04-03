@@ -1,10 +1,15 @@
-<html data-namespace-typo3-fluid="true">
+<html data-namespace-typo3-fluid="true" xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers">
 
 <div class="yoast-seo-score-bar">
     <yoast-status-icon class="yoast-seo-score-bar--analysis yoast-seo-page" result-type="readability" text="true"
                        details="true"></yoast-status-icon>
     <yoast-status-icon class="yoast-seo-score-bar--analysis yoast-seo-page" result-type="seo" text="true"
                        details="true"></yoast-status-icon>
+    <f:if condition="{inclusiveLanguageEnabled}">
+        <yoast-status-icon class="yoast-seo-score-bar--analysis yoast-seo-page" result-type="inclusiveLanguage"
+                           text="true"
+                           details="true"></yoast-status-icon>
+    </f:if>
 </div>
 <div class="yoast-snippet-header-label">Yoast SEO</div>
 <div class="t3-grid-cell yoast-seo yoast-seo-snippet-preview-styling">

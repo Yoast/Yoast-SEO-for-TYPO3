@@ -9,7 +9,9 @@ Manual configuration for records
 How to integrate in other plugins
 ---------------------------------
 
-By default the SEO analysis is only done on pages.
+By default the SEO and Readability analysis is only done on pages. When enabled
+via the Feature Toggle ``yoastSeoInclusiveLanguage``, the Inclusive Language
+analysis is also available (see :ref:`user-analysis`).
 If you want more type of records to use the SEO functions from Yoast SEO you
 have to add some fields to the TCA.
 

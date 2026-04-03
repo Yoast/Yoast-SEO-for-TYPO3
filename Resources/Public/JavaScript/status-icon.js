@@ -22,12 +22,13 @@ class StatusIcon {
         this.initializeAnalysisFieldIcons();
     }
     initializeTCAHeaderIcons() {
-        const container = document.querySelector("h1");
+        const container = document.querySelector("h1") ??
+            document.querySelector(".contextual-record-edit-body");
         if (!container)
             return;
         let scoreBar = document.createElement("div");
         scoreBar.classList.add("yoast-seo-score-bar");
-        ["readability", "seo"].forEach((resultType) => {
+        ["readability", "seo", "inclusiveLanguage"].forEach((resultType) => {
             scoreBar.append(this.getIconElement(resultType, "", "true", "yoast-seo-score-bar--analysis"));
         });
         container.parentNode?.insertBefore(scoreBar, container.nextSibling);
@@ -59,20 +60,23 @@ class StatusIcon {
             if (resultSubtype === null && resultType === "seo") {
                 resultSubtype = "";
             }
+            const result = getResult(state.analysis, resultType, resultSubtype);
             setAttributes(element, {
                 "analysis-done": "true",
                 score: getScoreFromResult(state.analysis, resultType, resultSubtype),
             });
-            if (element.getAttribute("details")) {
+            if (element.getAttribute("details") &&
+                element.getAttribute("details") === "true") {
                 element.onclick = () => {
-                    this.analysisDetailModal(state, resultType, resultSubtype);
+                    this.analysisDetailModal(resultType, result);
                 };
             }
         });
     }
-    analysisDetailModal(state, resultType, resultSubtype) {
-        const result = getResult(state.analysis, resultType, resultSubtype);
+    analysisDetailModal(resultType, result = undefined) {
         if (result === undefined)
+            return;
+        if (result.results.length === 0)
             return;
         const analysis = mapResults(result.results);
         const $content = $("<yoast-analysis-result>").attr("analysis", JSON.stringify(analysis));
@@ -95,7 +99,9 @@ class StatusIcon {
             ? ".score-label-readability"
             : resultType === "seo"
                 ? ".score-label-seo"
-                : null;
+                : resultType === "inclusiveLanguage"
+                    ? ".score-label-inclusiveLanguage"
+                    : null;
         if (!selector)
             return "";
         const element = document.querySelector(selector);

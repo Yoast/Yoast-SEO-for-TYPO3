@@ -12,17 +12,22 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Service\PageLayoutHeader;
 
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use TYPO3\CMS\Core\Configuration\Features;
 use YoastSeoForTypo3\YoastSeo\Service\StandaloneView\StandaloneViewServiceInterface;
 
 #[Autoconfigure(public: true)]
 class PageLayoutHeaderRenderer
 {
     public function __construct(
-        protected StandaloneViewServiceInterface $standaloneViewService
+        protected StandaloneViewServiceInterface $standaloneViewService,
+        protected Features $features,
     ) {}
 
     public function render(): string
     {
-        return $this->standaloneViewService->render('PageLayout/Header');
+        return $this->standaloneViewService->render(
+            'PageLayout/Header',
+            ['inclusiveLanguageEnabled' => $this->features->isFeatureEnabled('yoastSeoInclusiveLanguage')]
+        );
     }
 }

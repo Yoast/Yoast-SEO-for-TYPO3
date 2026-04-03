@@ -24,6 +24,7 @@ records:
       * Title and Description progress bar
       * Readability Analysis
       * SEO Analysis
+      * Inclusive Language Analysis (when enabled via Feature Toggle)
       * Focus keyword
       * Advanced robots: Image index, Archive, Snippet
 * Frontend:

@@ -46,6 +46,7 @@ export type YoastConfig = {
   data: YoastData
   fieldSelectors?: YoastFields
   supportedLanguages: string[]
+  inclusiveLanguageEnabled: boolean
   relatedKeyphrases: {
     [key: string]: YoastKeyphrase
   }
