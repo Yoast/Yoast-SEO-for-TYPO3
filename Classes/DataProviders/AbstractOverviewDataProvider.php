@@ -14,13 +14,12 @@ namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Platform\PlatformInformation;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 use YoastSeoForTypo3\YoastSeo\Service\Overview\Dto\DataProviderRequest;
 use YoastSeoForTypo3\YoastSeo\Utility\PageAccessUtility;
 
 abstract class AbstractOverviewDataProvider implements OverviewDataProviderInterface
 {
-    protected const PAGES_TABLE = 'pages';
-
     protected const PAGES_FIELDS = [
         'uid',
         'doktype',
@@ -93,7 +92,7 @@ abstract class AbstractOverviewDataProvider implements OverviewDataProviderInter
      */
     protected function getMaxBindParameters(): int
     {
-        $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(self::PAGES_TABLE);
+        $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(TableNames::PAGES);
         return max(999, PlatformInformation::getMaxBindParameters($connection->getDatabasePlatform()));
     }
 }

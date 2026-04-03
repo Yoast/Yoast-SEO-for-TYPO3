@@ -15,6 +15,7 @@ use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Page\CacheHashCalculator;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 use YoastSeoForTypo3\YoastSeo\Dto\RequestData;
 use YoastSeoForTypo3\YoastSeo\Service\UrlService;
 
@@ -102,7 +103,7 @@ class SnippetPreviewRequestDataGenerator
         }
 
         // Special case for pages
-        if ($tableName === 'pages') {
+        if ($tableName === TableNames::PAGES) {
             $previewPageId = (int)$record[$pointerField];
         }
 

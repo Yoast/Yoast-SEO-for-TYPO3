@@ -13,6 +13,7 @@ namespace YoastSeoForTypo3\YoastSeo\Record\Builder;
 
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 use YoastSeoForTypo3\YoastSeo\Service\TcaService;
 
 class TcaBuilder extends AbstractBuilder
@@ -60,24 +61,24 @@ class TcaBuilder extends AbstractBuilder
     {
         $tca = [
             'palettes' => [
-                'seo' => $GLOBALS['TCA']['pages']['palettes']['seo'],
-                'robots' => $GLOBALS['TCA']['pages']['palettes']['robots'],
-                'canonical' => $GLOBALS['TCA']['pages']['palettes']['canonical'],
-                'opengraph' => $GLOBALS['TCA']['pages']['palettes']['opengraph'],
-                'twittercards' => $GLOBALS['TCA']['pages']['palettes']['twittercards'],
+                'seo' => $GLOBALS['TCA'][TableNames::PAGES]['palettes']['seo'],
+                'robots' => $GLOBALS['TCA'][TableNames::PAGES]['palettes']['robots'],
+                'canonical' => $GLOBALS['TCA'][TableNames::PAGES]['palettes']['canonical'],
+                'opengraph' => $GLOBALS['TCA'][TableNames::PAGES]['palettes']['opengraph'],
+                'twittercards' => $GLOBALS['TCA'][TableNames::PAGES]['palettes']['twittercards'],
             ],
             'columns' => [
-                'seo_title' => $GLOBALS['TCA']['pages']['columns']['seo_title'],
-                'no_index' => $GLOBALS['TCA']['pages']['columns']['no_index'],
-                'no_follow' => $GLOBALS['TCA']['pages']['columns']['no_follow'],
-                'canonical_link' => $GLOBALS['TCA']['pages']['columns']['canonical_link'],
-                'og_title' => $GLOBALS['TCA']['pages']['columns']['og_title'],
-                'og_description' => $GLOBALS['TCA']['pages']['columns']['og_description'],
+                'seo_title' => $GLOBALS['TCA'][TableNames::PAGES]['columns']['seo_title'],
+                'no_index' => $GLOBALS['TCA'][TableNames::PAGES]['columns']['no_index'],
+                'no_follow' => $GLOBALS['TCA'][TableNames::PAGES]['columns']['no_follow'],
+                'canonical_link' => $GLOBALS['TCA'][TableNames::PAGES]['columns']['canonical_link'],
+                'og_title' => $GLOBALS['TCA'][TableNames::PAGES]['columns']['og_title'],
+                'og_description' => $GLOBALS['TCA'][TableNames::PAGES]['columns']['og_description'],
                 'og_image' => $this->getFileField('og_image'),
-                'twitter_title' => $GLOBALS['TCA']['pages']['columns']['twitter_title'],
-                'twitter_description' => $GLOBALS['TCA']['pages']['columns']['twitter_description'],
+                'twitter_title' => $GLOBALS['TCA'][TableNames::PAGES]['columns']['twitter_title'],
+                'twitter_description' => $GLOBALS['TCA'][TableNames::PAGES]['columns']['twitter_description'],
                 'twitter_image' => $this->getFileField('twitter_image'),
-                'twitter_card' => $GLOBALS['TCA']['pages']['columns']['twitter_card'],
+                'twitter_card' => $GLOBALS['TCA'][TableNames::PAGES]['columns']['twitter_card'],
             ],
         ];
         $GLOBALS['TCA'][$this->record->getTableName()] = array_replace_recursive(
@@ -113,11 +114,11 @@ class TcaBuilder extends AbstractBuilder
     {
         $tca = [
             'palettes' => [
-                'sitemap' => $GLOBALS['TCA']['pages']['palettes']['sitemap'],
+                'sitemap' => $GLOBALS['TCA'][TableNames::PAGES]['palettes']['sitemap'],
             ],
             'columns' => [
-                'sitemap_changefreq' => $GLOBALS['TCA']['pages']['columns']['sitemap_changefreq'],
-                'sitemap_priority' => $GLOBALS['TCA']['pages']['columns']['sitemap_priority'],
+                'sitemap_changefreq' => $GLOBALS['TCA'][TableNames::PAGES]['columns']['sitemap_changefreq'],
+                'sitemap_priority' => $GLOBALS['TCA'][TableNames::PAGES]['columns']['sitemap_priority'],
             ],
         ];
         $GLOBALS['TCA'][$this->record->getTableName()] = array_replace_recursive(
@@ -135,7 +136,7 @@ class TcaBuilder extends AbstractBuilder
     protected function addDescriptionField(): void
     {
         ExtensionManagementUtility::addTCAcolumns($this->record->getTableName(), [
-            $this->record->getDescriptionField() => $GLOBALS['TCA']['pages']['columns']['description'],
+            $this->record->getDescriptionField() => $GLOBALS['TCA'][TableNames::PAGES]['columns']['description'],
         ]);
     }
 
@@ -144,7 +145,7 @@ class TcaBuilder extends AbstractBuilder
      */
     protected function getFileField(string $tcaField): array
     {
-        $tca = $GLOBALS['TCA']['pages']['columns'][$tcaField];
+        $tca = $GLOBALS['TCA'][TableNames::PAGES]['columns'][$tcaField];
         if (isset($tca['config']['foreign_match_fields']['tablenames'])) {
             $tca['config']['foreign_match_fields']['tablenames'] = $this->record->getTableName();
         }

@@ -18,6 +18,7 @@ use TYPO3\CMS\Core\Database\Query\QueryHelper;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 
 class PageAccessUtility
 {
@@ -55,10 +56,10 @@ class PageAccessUtility
             return (string)$theList;
         }
 
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('pages');
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(TableNames::PAGES);
         $queryBuilder->getRestrictions()->removeAll()->add(GeneralUtility::makeInstance(DeletedRestriction::class));
         $queryBuilder->select('uid')
-            ->from('pages')
+            ->from(TableNames::PAGES)
             ->where(
                 $queryBuilder->expr()->eq('pid', $queryBuilder->createNamedParameter($id, Connection::PARAM_INT)),
                 $queryBuilder->expr()->eq('sys_language_uid', 0)

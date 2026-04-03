@@ -15,6 +15,7 @@ use Doctrine\DBAL\Exception;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 
 class SaveScoresService
 {
@@ -51,7 +52,7 @@ class SaveScoresService
      */
     protected function getRecord(array $data): ?array
     {
-        if ($data['table'] === 'pages') {
+        if ($data['table'] === TableNames::PAGES) {
             return $this->getPageRecord((int)$data['uid'], (int)($data['languageId'] ?? 0));
         }
 
@@ -70,18 +71,18 @@ class SaveScoresService
      */
     protected function getPageRecord(int $pageUid, int $languageId): ?array
     {
-        $queryBuilder = $this->connectionPool->getQueryBuilderForTable('pages');
+        $queryBuilder = $this->connectionPool->getQueryBuilderForTable(TableNames::PAGES);
         $queryBuilder->getRestrictions()->removeAll()->add(new DeletedRestriction());
-        $queryBuilder->select('uid')->from('pages');
+        $queryBuilder->select('uid')->from(TableNames::PAGES);
         if ($languageId > 0) {
             $queryBuilder->where(
                 $queryBuilder->expr()->and(
                     $queryBuilder->expr()->eq(
-                        $GLOBALS['TCA']['pages']['ctrl']['transOrigPointerField'],
+                        $GLOBALS['TCA'][TableNames::PAGES]['ctrl']['transOrigPointerField'],
                         $queryBuilder->createNamedParameter($pageUid, Connection::PARAM_INT)
                     ),
                     $queryBuilder->expr()->eq(
-                        $GLOBALS['TCA']['pages']['ctrl']['languageField'],
+                        $GLOBALS['TCA'][TableNames::PAGES]['ctrl']['languageField'],
                         $queryBuilder->createNamedParameter($languageId, Connection::PARAM_INT)
                     )
                 )

@@ -15,6 +15,7 @@ use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 use YoastSeoForTypo3\YoastSeo\Traits\BackendUserTrait;
 
 class OrphanedContentDataProvider implements PageProviderInterface
@@ -34,10 +35,10 @@ class OrphanedContentDataProvider implements PageProviderInterface
      */
     public function getPages(): array
     {
-        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_refindex');
+        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(TableNames::SYS_REFINDEX);
 
         $constraints = [
-            $qb->expr()->eq('ref_table', $qb->createNamedParameter('pages')),
+            $qb->expr()->eq('ref_table', $qb->createNamedParameter(TableNames::PAGES)),
             $qb->expr()->notIn(
                 'field',
                 $qb->createNamedParameter([
@@ -48,7 +49,7 @@ class OrphanedContentDataProvider implements PageProviderInterface
         ];
 
         $refs = $qb->select('ref_uid')
-            ->from('sys_refindex')
+            ->from(TableNames::SYS_REFINDEX)
             ->where(...$constraints)
             ->groupBy('ref_uid')
             ->executeQuery()
@@ -71,10 +72,10 @@ class OrphanedContentDataProvider implements PageProviderInterface
             ];
         }
 
-        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('pages');
+        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(TableNames::PAGES);
         while ($counter < $this->limit) {
             $row = $qb->select('p.*')
-                ->from('pages', 'p')
+                ->from(TableNames::PAGES, 'p')
                 ->where(...$constraints)
                 ->orderBy('tstamp', 'DESC')
                 ->setFirstResult($iterator)

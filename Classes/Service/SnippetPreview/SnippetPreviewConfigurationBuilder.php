@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Service\SnippetPreview;
 
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 use YoastSeoForTypo3\YoastSeo\Service\SiteService;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
@@ -44,7 +45,7 @@ class SnippetPreviewConfigurationBuilder
                 'pid' => (int)$data['databaseRow']['pid'],
                 'languageId' => $languageId,
                 'websiteTitle' => $this->siteService->getWebsiteTitle(
-                    (int)($data['tableName'] === 'pages' ? $data['databaseRow']['uid'] : $data['databaseRow']['pid']),
+                    (int)($data['tableName'] === TableNames::PAGES ? $data['databaseRow']['uid'] : $data['databaseRow']['pid']),
                     $languageId
                 ),
             ],
@@ -64,7 +65,7 @@ class SnippetPreviewConfigurationBuilder
     {
         return [
             'data' => [
-                'table' => 'pages',
+                'table' => TableNames::PAGES,
                 'uid' => $pageId,
                 'pid' => $currentPage['pid'],
                 'languageId' => $languageId,

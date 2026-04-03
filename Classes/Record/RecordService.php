@@ -55,7 +55,7 @@ class RecordService implements SingletonInterface
      */
     protected function findRecord(array $records): ?Record
     {
-        $currentGetParameters = $_GET;
+        $currentGetParameters = ($GLOBALS['TYPO3_REQUEST'] ?? null)?->getQueryParams() ?? [];
 
         foreach ($records as $record) {
             if (empty($record->getGetParameters())) {

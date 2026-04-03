@@ -14,6 +14,7 @@ namespace YoastSeoForTypo3\YoastSeo\Service\Ajax;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Http\JsonResponse;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 use YoastSeoForTypo3\YoastSeo\Service\ProminentWordsService;
 
 class ProminentWordsHandler extends AbstractAjaxHandler
@@ -30,7 +31,7 @@ class ProminentWordsHandler extends AbstractAjaxHandler
             $this->prominentWordsService->saveProminentWords(
                 (int)$data['uid'],
                 isset($data['pid']) ? (int)$data['pid'] : null,
-                $data['table'] ?? 'pages',
+                $data['table'] ?? TableNames::PAGES,
                 (int)($data['languageId'] ?? 0),
                 (array)$data['words']
             );

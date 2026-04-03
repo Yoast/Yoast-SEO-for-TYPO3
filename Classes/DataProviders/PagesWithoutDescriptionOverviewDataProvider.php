@@ -14,6 +14,7 @@ namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 use Doctrine\DBAL\Result;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataProvider
@@ -38,11 +39,9 @@ class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataPr
         return 'https://yoa.st/typo3-meta-description';
     }
 
-    protected const PAGES_TABLE = 'pages';
-
     public function getResults(array $pageIds = []): ?Result
     {
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(self::PAGES_TABLE);
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(TableNames::PAGES);
 
         $constraints = [
             $queryBuilder->expr()->or(
@@ -56,13 +55,13 @@ class PagesWithoutDescriptionOverviewDataProvider extends AbstractOverviewDataPr
 
         if (count($pageIds) > 0) {
             $constraints[] = $queryBuilder->expr()->in(
-                $this->dataProviderRequest->getLanguage() > 0 ? $GLOBALS['TCA']['pages']['ctrl']['transOrigPointerField'] : 'uid',
+                $this->dataProviderRequest->getLanguage() > 0 ? $GLOBALS['TCA'][TableNames::PAGES]['ctrl']['transOrigPointerField'] : 'uid',
                 $pageIds
             );
         }
 
         return $queryBuilder->select(...self::PAGES_FIELDS)
-            ->from(self::PAGES_TABLE)
+            ->from(TableNames::PAGES)
             ->where(...$constraints)
             ->executeQuery();
     }

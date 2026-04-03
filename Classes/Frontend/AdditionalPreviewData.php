@@ -34,8 +34,8 @@ class AdditionalPreviewData implements SingletonInterface
      */
     public function render(array &$params, object $pObj): void
     {
-        $serverParams = $GLOBALS['TYPO3_REQUEST'] ? $GLOBALS['TYPO3_REQUEST']->getServerParams() : $_SERVER;
-        if (!$this->yoastRequestService->isValidRequest($serverParams)) {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if ($request === null || !$this->yoastRequestService->isValidRequest($request->getServerParams())) {
             return;
         }
 

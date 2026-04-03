@@ -13,6 +13,7 @@ namespace YoastSeoForTypo3\YoastSeo\Utility;
 
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 
 class YoastUtility
 {
@@ -51,10 +52,10 @@ class YoastUtility
     public static function getRelatedKeyphrases(string $parentTable, int $parentId): array
     {
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(
-            'tx_yoastseo_related_focuskeyword'
+            TableNames::RELATED_FOCUSKEYWORD
         );
         $relatedKeyphrases = $queryBuilder->select('*')
-            ->from('tx_yoastseo_related_focuskeyword')
+            ->from(TableNames::RELATED_FOCUSKEYWORD)
             ->where(
                 $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($parentTable)),
                 $queryBuilder->expr()->eq('uid_foreign', $parentId)

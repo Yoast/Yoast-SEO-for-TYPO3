@@ -15,6 +15,7 @@ use Doctrine\DBAL\Result;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class OrphanedContentDataProvider extends AbstractOverviewDataProvider
@@ -51,7 +52,7 @@ class OrphanedContentDataProvider extends AbstractOverviewDataProvider
             $this->referencedPages = $this->getReferencedPages();
         }
 
-        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('pages');
+        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(TableNames::PAGES);
 
         $constraints = [
             $qb->expr()->in('doktype', YoastUtility::getAllowedDoktypes()),
@@ -62,13 +63,13 @@ class OrphanedContentDataProvider extends AbstractOverviewDataProvider
         }
         if (count($pageIds) > 0) {
             $constraints[] = $qb->expr()->in(
-                $this->dataProviderRequest->getLanguage() > 0 ? $GLOBALS['TCA']['pages']['ctrl']['transOrigPointerField'] : 'uid',
+                $this->dataProviderRequest->getLanguage() > 0 ? $GLOBALS['TCA'][TableNames::PAGES]['ctrl']['transOrigPointerField'] : 'uid',
                 $pageIds
             );
         }
 
         return $qb->select('*')
-            ->from('pages')
+            ->from(TableNames::PAGES)
             ->where(...$constraints)
             ->executeQuery();
     }
@@ -78,10 +79,10 @@ class OrphanedContentDataProvider extends AbstractOverviewDataProvider
      */
     protected function getReferencedPages(): array
     {
-        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_refindex');
+        $qb = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(TableNames::SYS_REFINDEX);
 
         $constraints = [
-            $qb->expr()->eq('ref_table', $qb->createNamedParameter('pages')),
+            $qb->expr()->eq('ref_table', $qb->createNamedParameter(TableNames::PAGES)),
             $qb->expr()->notIn(
                 'field',
                 $qb->createNamedParameter([
@@ -92,7 +93,7 @@ class OrphanedContentDataProvider extends AbstractOverviewDataProvider
         ];
 
         $references = $qb->select('ref_uid')
-            ->from('sys_refindex')
+            ->from(TableNames::SYS_REFINDEX)
             ->where(...$constraints)
             ->groupBy('ref_uid')
             ->executeQuery()

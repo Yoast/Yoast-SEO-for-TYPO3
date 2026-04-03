@@ -1,27 +1,40 @@
 <html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
       xmlns:core="http://typo3.org/ns/TYPO3/CMS/Core/ViewHelpers"
-      xmlns:y="http://typo3.org/ns/YoastSeoForTypo3/YoastSeo/ViewHelpers"
-	  data-namespace-typo3-fluid="true">
+      xmlns:be="http://typo3.org/ns/TYPO3/CMS/Backend/ViewHelpers"
+      data-namespace-typo3-fluid="true">
 
-<f:asset.css identifier="yoast-backend" href="EXT:yoast_seo/Resources/Public/CSS/yoast-seo-backend.min.css" />
+<f:asset.css identifier="yoast-backend" href="EXT:yoast_seo/Resources/Public/CSS/yoast-seo-backend.min.css"/>
 
 <f:if condition="!{pageInformation}">
     <f:then>
-        <f:be.infobox state="-1" title="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:no_page_selected.title')}">
-            <p><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:no_page_selected.message" /></p>
+        <f:be.infobox state="-1"
+                      title="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:no_page_selected.title')}">
+            <p>
+                <f:translate
+                        key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:no_page_selected.message"/>
+            </p>
         </f:be.infobox>
     </f:then>
     <f:else>
         <div class="yoast">
-            <h1><span><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:mlang_tabs_tab" /></span> - <f:translate key="{activeFilter.label}" /></h1>
+            <h1><span><f:translate
+                    key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:mlang_tabs_tab"/></span>
+                -
+                <f:translate key="{activeFilter.label}"/>
+            </h1>
 
             <div class="yoast-overview-filters">
                 <f:for each="{filters}" as="filter">
-                    <f:link.action class="btn btn-sm {f:if(condition: '{activeFilter.key} == {filter.key}', then: 'btn-primary', else: 'btn-default')}" arguments="{filter: filter.key}" addQueryString="true"><f:translate key="{filter.label}" /> ({filter.numberOfItems})</f:link.action>
+                    <f:link.action
+                            class="btn btn-sm {f:if(condition: '{activeFilter.key} == {filter.key}', then: 'btn-primary', else: 'btn-default')}"
+                            arguments="{filter: filter.key}" addQueryString="true">
+                        <f:translate key="{filter.label}"/>
+                        ({filter.numberOfItems})
+                    </f:link.action>
                 </f:for>
             </div>
 
-            <f:render section="overview" arguments="{_all}" />
+            <f:render section="overview" arguments="{_all}"/>
         </div>
     </f:else>
 </f:if>
@@ -29,13 +42,17 @@
 <f:section name="overview">
     <f:if condition="{activeFilter.description}">
         <f:be.infobox state="-1" title="{f:translate(key: activeFilter.label)}">
-            <p><f:format.raw><f:translate key="{activeFilter.description}" arguments="{0: activeFilter.link}" /></f:format.raw></p>
+            <p>
+                <f:format.raw>
+                    <f:translate key="{activeFilter.description}" arguments="{0: activeFilter.link}"/>
+                </f:format.raw>
+            </p>
         </f:be.infobox>
     </f:if>
 
     <f:if condition="{items -> f:count()}">
         <f:then>
-            <f:render section="table" arguments="{_all}" />
+            <f:render section="table" arguments="{_all}"/>
         </f:then>
         <f:else>
             <f:render section="no_items_found_infobox"/>
@@ -50,16 +67,20 @@
             <tr>
                 <th></th>
                 <th width="30%">
-                    <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:page.title"/>
+                    <f:translate
+                            key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:page.title"/>
                 </th>
                 <th width="30%">
-                    <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:page.seo_title"/>
+                    <f:translate
+                            key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:page.seo_title"/>
                 </th>
                 <th width="15%">
-                    <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:page.score_readability"/>
+                    <f:translate
+                            key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:page.score_readability"/>
                 </th>
                 <th width="15%">
-                    <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:page.score_seo"/>
+                    <f:translate
+                            key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:page.score_seo"/>
                 </th>
                 <th></th>
             </tr>
@@ -67,12 +88,14 @@
             <tbody>
             <f:if condition="{items -> f:count()} > {settings.itemsPerPage}">
                 <f:then>
-                    <f:render partial="Overview/Pagination" arguments="{pagination: pagination, paginator: paginator, action: action}" />
-                    <f:render section="itemsOverview" arguments="{items: paginator.paginatedItems, params: params}" />
-                    <f:render partial="Overview/Pagination" arguments="{pagination: pagination, paginator: paginator, action: action}" />
+                    <f:render partial="Overview/Pagination"
+                              arguments="{pagination: pagination, paginator: paginator, action: action}"/>
+                    <f:render section="itemsOverview" arguments="{items: paginator.paginatedItems, params: params}"/>
+                    <f:render partial="Overview/Pagination"
+                              arguments="{pagination: pagination, paginator: paginator, action: action}"/>
                 </f:then>
                 <f:else>
-                    <f:render section="itemsOverview" arguments="{items: paginator.paginatedItems, params: params}" />
+                    <f:render section="itemsOverview" arguments="{items: paginator.paginatedItems, params: params}"/>
                 </f:else>
             </f:if>
             </tbody>
@@ -84,27 +107,31 @@
     <f:for each="{items}" as="item">
         <tr data-uid="{item.uid}">
             <td class="col-icon">
-                <core:iconForRecord table="{params.table}" row="{item}" size="small" />
+                <core:iconForRecord table="{params.table}" row="{item}" size="small"/>
             </td>
             <td>{item.title} [{item.uid}]</td>
-            <td><f:if condition="{item.seo_title}"><f:then>{item.seo_title}</f:then><f:else>{item.title}</f:else></f:if></td>
+            <td>
+                <f:if condition="{item.seo_title}">
+                    <f:then>{item.seo_title}</f:then>
+                    <f:else>{item.title}</f:else>
+                </f:if>
+            </td>
             <td>
                 <span class="wpseo-score-icon {item.tx_yoastseo_score_readability}"></span>
-                <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:score.{item.tx_yoastseo_score_readability}" />
+                <f:translate
+                        key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:score.{item.tx_yoastseo_score_readability}"/>
             </td>
             <td>
                 <span class="wpseo-score-icon {item.tx_yoastseo_score_seo}"></span>
-                <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:score.{item.tx_yoastseo_score_seo}" />
+                <f:translate
+                        key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:score.{item.tx_yoastseo_score_seo}"/>
             </td>
             <td class="col-control">
                 <div class="btn-group">
-                    <a
-                            class="btn btn-default"
-                            title="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:edit')}"
-                            href="{y:recordLinks(table: params.table, module: 'yoast_YoastSeoOverview', command: 'edit', uid: item.uid)}"
-                    >
+                    <be:link.editRecord uid="{item.uid}" table="{params.table}" class="btn btn-default"
+                                        title="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:edit')}">
                         <core:icon identifier="actions-open"/>
-                    </a>
+                    </be:link.editRecord>
                 </div>
             </td>
         </tr>
@@ -112,7 +139,8 @@
 </f:section>
 
 <f:section name="no_items_found_infobox">
-    <f:be.infobox state="-1" title="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:no_pages.title')}">
+    <f:be.infobox state="-1"
+                  title="{f:translate(key: 'LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:no_pages.title')}">
         <p>
             <f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModuleOverview.xlf:no_pages.message"/>
         </p>

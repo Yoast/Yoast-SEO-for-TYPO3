@@ -22,6 +22,8 @@ We will follow [Semantic Versioning](http://semver.org/).
 - Removed `BackendYoastConfig` hook - replaced by `BackendYoastTranslations`
 - Removed `UsePageCache` and `AfterCacheableContentIsGeneratedListener` - replaced by new event listeners
 - Removed `PagesWithoutDescriptionDataProvider` dashboard widget (use core TYPO3 widget instead)
+- Removed `RecordLinksViewHelper` - replaced by core viewhelper `be:link.editRecord`
+- Removed `Pagination` and `PaginationService` - replaced by core `SlidingWindowPagination`
 
 ### Added
 
@@ -46,6 +48,7 @@ We will follow [Semantic Versioning](http://semver.org/).
 - New `RequestData` DTO for structured request data handling
 - New `PageParser/BodyParser` and `TitleConfigurationParser` for parsing page content
 - New `ModifyPageLayoutContentListener` event listener (replacing the removed backend class)
+- New `TableNames` class for centralizing database table name definitions
 - Various new functional and unit tests for the new architecture and features
 
 ### Changed

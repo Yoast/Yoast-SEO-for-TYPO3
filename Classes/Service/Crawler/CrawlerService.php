@@ -14,6 +14,7 @@ namespace YoastSeoForTypo3\YoastSeo\Service\Crawler;
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Registry;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 use YoastSeoForTypo3\YoastSeo\Utility\PageAccessUtility;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
@@ -93,7 +94,7 @@ class CrawlerService
             $treeList = PageAccessUtility::getPageIds($site);
             $pagesToIndex = [];
             foreach (array_chunk($treeList, 1000) as $treeChunk) {
-                $queryBuilder = $this->connectionPool->getQueryBuilderForTable('pages');
+                $queryBuilder = $this->connectionPool->getQueryBuilderForTable(TableNames::PAGES);
 
                 if ($languageId > 0) {
                     $select = 'l10n_parent';
@@ -115,7 +116,7 @@ class CrawlerService
                 }
 
                 $pages = $queryBuilder->select($select)
-                    ->from('pages')
+                    ->from(TableNames::PAGES)
                     ->where(
                         $queryBuilder->expr()->in(
                             'doktype',
@@ -124,6 +125,9 @@ class CrawlerService
                         ...$constraints
                     )->executeQuery()->fetchAllAssociative();
                 $pagesToIndex = array_merge($pagesToIndex, array_column($pages, $select));
+            }
+            if (count($pagesToIndex) > 0) {
+                $this->cache->set($cacheIdentifier, $pagesToIndex);
             }
         }
         return $pagesToIndex;

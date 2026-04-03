@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Form\Element;
 
 use TYPO3\CMS\Backend\Form\AbstractNode;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 use YoastSeoForTypo3\YoastSeo\Service\Form\NodeTemplateService;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
@@ -36,7 +37,7 @@ class FocusKeywordAnalysis extends AbstractNode
     {
         $resultArray = $this->initializeResultArray();
 
-        if ($this->data['tableName'] === 'pages' && !in_array(
+        if ($this->data['tableName'] === TableNames::PAGES && !in_array(
             (int)($this->data['databaseRow']['doktype'][0] ?? 0),
             YoastUtility::getAllowedDoktypes()
         )) {
@@ -49,7 +50,7 @@ class FocusKeywordAnalysis extends AbstractNode
         }
 
         $subtype = '';
-        if ($this->data['tableName'] === 'tx_yoastseo_related_focuskeyword') {
+        if ($this->data['tableName'] === TableNames::RELATED_FOCUSKEYWORD) {
             $subtype = 'rk' . $this->data['vanillaUid'];
         }
 

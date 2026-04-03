@@ -32,7 +32,7 @@ class ModifyPageLayoutContentListener
     public function __invoke(ModifyPageLayoutContentEvent $event): void
     {
         $languageId = $this->getLanguageId();
-        $pageId = (int)$_GET['id'];
+        $pageId = (int)($event->getRequest()->getQueryParams()['id'] ?? 0);
         $currentPage = $this->pageDataService->getCurrentPage($pageId, $languageId, $event->getModuleTemplate());
 
         if (!is_array($currentPage) || !$this->visibilityChecker->shouldShowPreview($pageId, $currentPage)) {

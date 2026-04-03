@@ -18,12 +18,13 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Install\Attribute\UpgradeWizard;
 use TYPO3\CMS\Install\Updates\DatabaseUpdatedPrerequisite;
 use TYPO3\CMS\Install\Updates\UpgradeWizardInterface;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 
 #[UpgradeWizard('yoastPremiumFocusKeywordsMigrate')]
 class MigratePremiumFocusKeywords implements UpgradeWizardInterface
 {
     protected const PREMIUM_TABLE = 'tx_yoast_seo_premium_focus_keywords';
-    protected const NEW_TABLE = 'tx_yoastseo_related_focuskeyword';
+    protected const NEW_TABLE = TableNames::RELATED_FOCUSKEYWORD;
     protected ConnectionPool $connectionPool;
 
     public function __construct()
@@ -65,7 +66,7 @@ class MigratePremiumFocusKeywords implements UpgradeWizardInterface
                 );
         }
 
-        $this->connectionPool->getConnectionForTable('pages')
+        $this->connectionPool->getConnectionForTable(TableNames::PAGES)
             ->executeQuery(
                 'UPDATE pages SET tx_yoastseo_focuskeyword_related = tx_yoastseo_focuskeyword_premium'
             );

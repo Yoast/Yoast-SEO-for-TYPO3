@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 
 class TcaService
 {
@@ -108,7 +109,7 @@ class TcaService
                 'exclude' => true,
                 'config' => [
                     'type' => 'inline',
-                    'foreign_table' => 'tx_yoastseo_related_focuskeyword',
+                    'foreign_table' => TableNames::RELATED_FOCUSKEYWORD,
                     'foreign_field' => 'uid_foreign',
                     'foreign_table_field' => 'tablenames',
                     'maxitems' => 5,
@@ -157,7 +158,7 @@ class TcaService
                 ],
             ],
         ];
-        if ($this->table === 'pages') {
+        if ($this->table === TableNames::PAGES) {
             $columns['tx_yoastseo_hide_snippet_preview'] = [
                 'label' => self::LL_PREFIX_BACKEND . 'hideSnippetPreview',
                 'exclude' => true,
@@ -197,14 +198,14 @@ class TcaService
         );
 
         ExtensionManagementUtility::addFieldsToPalette(
-            'pages',
+            TableNames::PAGES,
             'opengraph',
             'tx_yoastseo_facebook_preview,--linebreak--',
             'before:og_title'
         );
 
         ExtensionManagementUtility::addFieldsToPalette(
-            'pages',
+            TableNames::PAGES,
             'twittercards',
             'tx_yoastseo_twitter_preview,--linebreak--',
             'before:twitter_title'

@@ -17,13 +17,12 @@ use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 use YoastSeoForTypo3\YoastSeo\Traits\LanguageServiceTrait;
 
 class LinkingSuggestionsService
 {
     use LanguageServiceTrait;
-
-    protected const PROMINENT_WORDS_TABLE = 'tx_yoastseo_prominent_word';
 
     protected int $excludePageId;
     protected int $site;
@@ -135,9 +134,9 @@ class LinkingSuggestionsService
         ));
 
         if ($uncachedStems !== []) {
-            $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::PROMINENT_WORDS_TABLE);
+            $queryBuilder = $this->connectionPool->getQueryBuilderForTable(TableNames::PROMINENT_WORD);
             $rawDocFrequencies = $queryBuilder->select('stem')->addSelectLiteral('COUNT(stem) AS document_frequency')->from(
-                self::PROMINENT_WORDS_TABLE
+                TableNames::PROMINENT_WORD
             )->where(
                 $queryBuilder->expr()->in(
                     'stem',
@@ -226,8 +225,8 @@ class LinkingSuggestionsService
      */
     protected function findRecordsByStems(array $stems, int $batchSize, int $page): array
     {
-        $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::PROMINENT_WORDS_TABLE);
-        $queryBuilder->select('pid', 'tablenames')->from(self::PROMINENT_WORDS_TABLE)->where(
+        $queryBuilder = $this->connectionPool->getQueryBuilderForTable(TableNames::PROMINENT_WORD);
+        $queryBuilder->select('pid', 'tablenames')->from(TableNames::PROMINENT_WORD)->where(
             $queryBuilder->expr()->in(
                 'stem',
                 $queryBuilder->createNamedParameter($stems, Connection::PARAM_STR_ARRAY)
@@ -254,7 +253,7 @@ class LinkingSuggestionsService
             $pidsByTable[$record['tablenames']][] = (int)$record['pid'];
         }
 
-        $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::PROMINENT_WORDS_TABLE);
+        $queryBuilder = $this->connectionPool->getQueryBuilderForTable(TableNames::PROMINENT_WORD);
         $tableConditions = [];
         foreach ($pidsByTable as $tablename => $pids) {
             $tableConditions[] = $queryBuilder->expr()->and(
@@ -263,7 +262,7 @@ class LinkingSuggestionsService
             );
         }
 
-        $queryBuilder->select('stem', 'weight', 'pid', 'tablenames', 'uid_foreign')->from(self::PROMINENT_WORDS_TABLE)
+        $queryBuilder->select('stem', 'weight', 'pid', 'tablenames', 'uid_foreign')->from(TableNames::PROMINENT_WORD)
             ->where(
                 $queryBuilder->expr()->eq('sys_language_uid', $this->languageId),
                 $queryBuilder->expr()->or(...$tableConditions)
@@ -373,7 +372,7 @@ class LinkingSuggestionsService
         $links = [];
         foreach ($scores as $record => $score) {
             [$uid, $table] = explode('-', $record);
-            if ($table === 'pages' && (int)$uid === $this->excludePageId) {
+            if ($table === TableNames::PAGES && (int)$uid === $this->excludePageId) {
                 continue;
             }
 
@@ -444,7 +443,7 @@ class LinkingSuggestionsService
         $currentLinks = [];
         preg_match_all('/<a href="t3:\/\/(.*)\?uid=([\d]+)/', $content, $matches, PREG_SET_ORDER);
         foreach ($matches as $match) {
-            $key = (int)$match[2] . '-' . str_replace('page', 'pages', $match[1]);
+            $key = (int)$match[2] . '-' . str_replace('page', TableNames::PAGES, $match[1]);
             $currentLinks[$key] = true;
         }
         return $currentLinks;

@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Form\Element;
 
 use TYPO3\CMS\Core\Page\JavaScriptModuleInstruction;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 use YoastSeoForTypo3\YoastSeo\Service\Form\NodeTemplateService;
 use YoastSeoForTypo3\YoastSeo\Service\LocaleService;
 use YoastSeoForTypo3\YoastSeo\Service\SnippetPreview\SnippetPreviewConfigurationBuilder;
@@ -49,7 +50,7 @@ class SnippetPreview extends AbstractLabeledFormElement
         $resultArray = $this->initializeResultArray();
         $resultArray['stylesheetFiles'][] = 'EXT:yoast_seo/Resources/Public/CSS/yoast.min.css';
 
-        if ($this->data['tableName'] === 'pages' && !in_array(
+        if ($this->data['tableName'] === TableNames::PAGES && !in_array(
             (int)($this->data['databaseRow']['doktype'][0] ?? 0),
             YoastUtility::getAllowedDoktypes(),
             true
