@@ -11,7 +11,7 @@ export function saveProminentWords(url, table, pageId, language, result) {
     new AjaxRequest(url).post({
         table: table,
         uid: pageId,
-        language: language,
+        languageId: language,
         words: compressedWords,
     }, {
         headers: { "Content-Type": "application/json" },
