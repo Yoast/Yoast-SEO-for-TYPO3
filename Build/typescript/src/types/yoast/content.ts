@@ -11,4 +11,5 @@ export type YoastContent = {
   }
   locale: string
   favicon: string
+  slug: string
 }

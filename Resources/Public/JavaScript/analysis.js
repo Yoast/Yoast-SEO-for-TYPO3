@@ -67,6 +67,7 @@ class Analysis {
             },
             locale: content.locale || "en_US",
             favicon: content.favicon || "",
+            slug: content.slug || "",
         };
     }
     createSerializedPaper(content, focusKeyphrase) {
@@ -77,6 +78,7 @@ class Analysis {
             description: content.metadata.description ?? "",
             locale: content.locale,
             titleWidth: measureTextWidth(content.title),
+            slug: content.slug,
         });
         return paper.serialize();
     }
