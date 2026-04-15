@@ -1,17 +1,14 @@
 import Modal from "@typo3/backend/modal.js";
-import $ from "jquery";
 import { setAttributes } from "@yoast/yoast-seo-for-typo3/helpers/attributes.js";
 import { getResult, getScoreFromResult, mapResults, } from "@yoast/yoast-seo-for-typo3/helpers/results.js";
 import store from "@yoast/yoast-seo-for-typo3/store.js";
 import YoastConfiguration from "@yoast/yoast-seo-for-typo3/yoast-configuration.js";
-class StatusIcon {
+export default class StatusIcon {
     constructor() {
-        this.initialized = false;
+        this.initializeAnalysisElements();
+    }
+    init() {
         store.subscribe((state) => {
-            if (!this.initialized) {
-                this.initializeAnalysisElements();
-                this.initialized = true;
-            }
             state.analysis && this.updateAnalysisElements(state);
         });
     }
@@ -34,7 +31,9 @@ class StatusIcon {
         container.parentNode?.insertBefore(scoreBar, container.nextSibling);
     }
     initializeAnalysisFieldIcons() {
-        document.querySelectorAll("yoast-analysis-result").forEach((container) => {
+        document
+            .querySelectorAll("yoast-analysis-result")
+            .forEach((container) => {
             const formSection = container.closest(".form-section");
             if (formSection === null)
                 return;
@@ -46,16 +45,19 @@ class StatusIcon {
                 heading.prepend(icon);
                 return;
             }
-            const panelIcon = container.closest(".panel")?.querySelector(".t3js-icon");
+            const panelIcon = container
+                .closest(".panel")
+                ?.querySelector(".t3js-icon");
             if (panelIcon) {
                 panelIcon.replaceWith(icon);
             }
         });
     }
     updateAnalysisElements(state) {
-        ;
-        document.querySelectorAll("yoast-status-icon").forEach((element) => {
-            const resultType = (element.getAttribute("result-type") ?? "").toString();
+        document
+            .querySelectorAll("yoast-status-icon")
+            .forEach((element) => {
+            const resultType = element.getAttribute("result-type") ?? "";
             let resultSubtype = element.getAttribute("result-sub-type");
             if (resultSubtype === null && resultType === "seo") {
                 resultSubtype = "";
@@ -79,10 +81,11 @@ class StatusIcon {
         if (result.results.length === 0)
             return;
         const analysis = mapResults(result.results);
-        const $content = $("<yoast-analysis-result>").attr("analysis", JSON.stringify(analysis));
+        const content = document.createElement("yoast-analysis-result");
+        content.setAttribute("analysis", JSON.stringify(analysis));
         Modal.advanced({
             title: this.getModalTitle(resultType),
-            content: $content,
+            content: content,
             additionalCssClasses: ["yoast-modal"],
             callback: (modal) => {
                 const styleLink = document.createElement("link");
@@ -95,13 +98,12 @@ class StatusIcon {
         });
     }
     getModalTitle(resultType) {
-        const selector = resultType === "readability"
-            ? ".score-label-readability"
-            : resultType === "seo"
-                ? ".score-label-seo"
-                : resultType === "inclusiveLanguage"
-                    ? ".score-label-inclusiveLanguage"
-                    : null;
+        const selectorMap = {
+            readability: ".score-label-readability",
+            seo: ".score-label-seo",
+            inclusiveLanguage: ".score-label-inclusiveLanguage",
+        };
+        const selector = selectorMap[resultType] || null;
         if (!selector)
             return "";
         const element = document.querySelector(selector);
@@ -128,4 +130,3 @@ class StatusIcon {
         return iconElement;
     }
 }
-export default new StatusIcon();

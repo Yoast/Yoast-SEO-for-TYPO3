@@ -31,8 +31,9 @@ class FacebookPreview extends SocialPreview {
     const fields: (keyof YoastFields)[] = ["ogTitle", "ogDescription"]
 
     fields.forEach((fieldName) => {
-      FormEngine.getElement(fieldName)?.addEventListener("input", () =>
-        this.syncPreview()
+      FormEngine.getElement<HTMLInputElement>(fieldName)?.addEventListener(
+        "input",
+        () => this.syncPreview()
       )
     })
   }

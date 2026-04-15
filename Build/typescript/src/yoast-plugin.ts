@@ -5,18 +5,20 @@ import analysis from "@yoast/yoast-seo-for-typo3/analysis.js"
 import store from "@yoast/yoast-seo-for-typo3/store.js"
 import YoastConfiguration from "@yoast/yoast-seo-for-typo3/yoast-configuration.js"
 
+// Importing web components to ensure they are registered and can be used in the DOM.
+// @ts-ignore
 import "@yoast/yoast-seo-for-typo3/dist/webcomponents.js"
-import "@yoast/yoast-seo-for-typo3/snippet-preview.js"
-import "@yoast/yoast-seo-for-typo3/status-icon.js"
-import "@yoast/yoast-seo-for-typo3/analysis-result.js"
-import "@yoast/yoast-seo-for-typo3/focus-keyphrase.js"
 
+import AnalysisResult from "@yoast/yoast-seo-for-typo3/analysis-result.js"
+import FocusKeyphrase from "@yoast/yoast-seo-for-typo3/focus-keyphrase.js"
 import { AjaxResponse } from "@yoast/yoast-seo-for-typo3/helpers/ajax-response.js"
 import { saveProminentWords } from "@yoast/yoast-seo-for-typo3/helpers/prominent-words.js"
 import {
   getScoreFromResult,
   scoreToRating,
 } from "@yoast/yoast-seo-for-typo3/helpers/results.js"
+import SnippetPreview from "@yoast/yoast-seo-for-typo3/snippet-preview.js"
+import StatusIcon from "@yoast/yoast-seo-for-typo3/status-icon.js"
 import {
   RequestError,
   State,
@@ -30,8 +32,12 @@ import {
 class YoastPlugin {
   public initialize(configuration: YoastConfig): void {
     YoastConfiguration.setFromInitialization(configuration)
-
     this.initializeState()
+
+    new FocusKeyphrase().init()
+    new SnippetPreview().init()
+    new StatusIcon().init()
+    new AnalysisResult().init()
 
     DocumentService.ready().then(() => {
       this.previewRequest(configuration.requestData)

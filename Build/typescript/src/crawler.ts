@@ -34,13 +34,12 @@ class Crawler {
   }
 
   private attachIndexButtonHandlers() {
-    const indexButtons = document.querySelectorAll(
-      ".js-crawler-index"
-    ) as NodeListOf<HTMLButtonElement>
+    const indexButtons =
+      document.querySelectorAll<HTMLButtonElement>(".js-crawler-index")
     indexButtons.forEach((button) => {
       button.addEventListener("click", () => {
-        const site = button.dataset.site || ""
-        const language = button.dataset.language || ""
+        const site = button.dataset["site"] || ""
+        const language = button.dataset["language"] || ""
         this.handleStartIndex(site, language)
       })
     })
@@ -52,12 +51,12 @@ class Crawler {
     const progressDiv = this.getProgressContainer(site, language)
     if (!progressDiv) return
 
-    const progressInfo = progressDiv.querySelector(
+    const progressInfo = progressDiv.querySelector<HTMLElement>(
       ".js-crawler-pages-progress"
-    ) as HTMLElement | null
-    const progressSuccess = progressDiv.querySelector(
+    )
+    const progressSuccess = progressDiv.querySelector<HTMLElement>(
       ".js-crawler-pages-success"
-    ) as HTMLElement | null
+    )
     if (!progressInfo || !progressSuccess) return
 
     progressDiv.classList.remove("hide")
@@ -83,9 +82,9 @@ class Crawler {
 
   private runIndex(site: string, language: string) {
     const progressDiv = this.getProgressContainer(site, language)
-    const progressBar = progressDiv?.querySelector(
+    const progressBar = progressDiv?.querySelector<HTMLDivElement>(
       ".js-crawler-progress-bar"
-    ) as HTMLDivElement | null
+    )
     if (!progressBar) return
 
     const offsetKey = `${site}-${language}`
@@ -115,7 +114,7 @@ class Crawler {
 
   private async process(
     language: string,
-    result: any,
+    result: { current: number; total: number; pages: Record<string, string> },
     progressBar: HTMLDivElement
   ): Promise<void> {
     let current = result.current
@@ -123,9 +122,8 @@ class Crawler {
     let percentage = Math.round((current / total) * 100)
 
     this.updateProgressBar(progressBar, current, total, percentage)
-    for (let page in result.pages) {
-      if (result.pages.hasOwnProperty(page)) {
-        let pageId = result.pages[page]
+    for (const pageId of Object.values(result.pages)) {
+      if (result.pages.hasOwnProperty(pageId)) {
         const response: AjaxResponse = await FrontendRequest.request({
           pageId: pageId,
           languageId: language,
@@ -175,7 +173,7 @@ class Crawler {
   }
 
   private showError(container: HTMLElement, message: string): void {
-    container.innerHTML = message
+    container.innerText = message
     container.classList.remove("alert-info")
     container.classList.add("alert-danger")
   }
@@ -187,7 +185,7 @@ class Crawler {
   ): void {
     progressInfo.classList.add("hide")
     successContainer.classList.remove("hide")
-    successContainer.innerHTML = successContainer.innerHTML.replace(
+    successContainer.innerText = successContainer.innerText.replace(
       "%d",
       String(amount)
     )
@@ -197,29 +195,28 @@ class Crawler {
     progressBar.classList.remove("progress-bar-info")
     progressBar.classList.add("progress-bar-success")
     progressBar.style.width = "100%"
-    progressBar.innerHTML = `${total} pages have been indexed.`
+    progressBar.innerText = `${total} pages have been indexed.`
   }
 
   private toggleButtons(disabled: boolean) {
-    let buttons = document.querySelectorAll(
-      ".js-crawler-button"
-    ) as NodeListOf<HTMLButtonElement>
+    let buttons =
+      document.querySelectorAll<HTMLButtonElement>(".js-crawler-button")
     buttons.forEach((button) => {
       button.disabled = disabled
     })
   }
 
   private removeSavedProgress(site: string, language: string): void {
-    document.querySelector(`#saved-progress-${site}-${language}`)?.remove()
+    document
+      .querySelector<HTMLElement>(`#saved-progress-${site}-${language}`)
+      ?.remove()
   }
 
   private getProgressContainer(
     site: string,
     language: string
   ): HTMLElement | null {
-    return document.querySelector(
-      `#progress-${site}-${language}`
-    ) as HTMLElement | null
+    return document.querySelector<HTMLElement>(`#progress-${site}-${language}`)
   }
 
   private postRequest(

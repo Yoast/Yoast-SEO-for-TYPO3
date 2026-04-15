@@ -1,8 +1,8 @@
 import { PaperAttributes } from "@yoast/yoast-seo-for-typo3/types/yoast"
 
 export default class Paper {
-  public _text: string
-  public _attributes: PaperAttributes
+  private _text: string
+  private _attributes: PaperAttributes
   constructor(text: string, attributes: PaperAttributes) {
     this._text = text || ""
     this._attributes = attributes

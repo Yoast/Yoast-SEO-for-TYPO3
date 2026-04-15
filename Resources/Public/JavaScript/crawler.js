@@ -19,8 +19,8 @@ class Crawler {
         const indexButtons = document.querySelectorAll(".js-crawler-index");
         indexButtons.forEach((button) => {
             button.addEventListener("click", () => {
-                const site = button.dataset.site || "";
-                const language = button.dataset.language || "";
+                const site = button.dataset["site"] || "";
+                const language = button.dataset["language"] || "";
                 this.handleStartIndex(site, language);
             });
         });
@@ -78,9 +78,8 @@ class Crawler {
         let total = result.total;
         let percentage = Math.round((current / total) * 100);
         this.updateProgressBar(progressBar, current, total, percentage);
-        for (let page in result.pages) {
-            if (result.pages.hasOwnProperty(page)) {
-                let pageId = result.pages[page];
+        for (const pageId of Object.values(result.pages)) {
+            if (result.pages.hasOwnProperty(pageId)) {
                 const response = await FrontendRequest.request({
                     pageId: pageId,
                     languageId: language,
@@ -109,20 +108,20 @@ class Crawler {
         progressBar.style.width = percentage + "%";
     }
     showError(container, message) {
-        container.innerHTML = message;
+        container.innerText = message;
         container.classList.remove("alert-info");
         container.classList.add("alert-danger");
     }
     showPageAmount(progressInfo, successContainer, amount) {
         progressInfo.classList.add("hide");
         successContainer.classList.remove("hide");
-        successContainer.innerHTML = successContainer.innerHTML.replace("%d", String(amount));
+        successContainer.innerText = successContainer.innerText.replace("%d", String(amount));
     }
     showSuccess(progressBar, total) {
         progressBar.classList.remove("progress-bar-info");
         progressBar.classList.add("progress-bar-success");
         progressBar.style.width = "100%";
-        progressBar.innerHTML = `${total} pages have been indexed.`;
+        progressBar.innerText = `${total} pages have been indexed.`;
     }
     toggleButtons(disabled) {
         let buttons = document.querySelectorAll(".js-crawler-button");
@@ -131,7 +130,9 @@ class Crawler {
         });
     }
     removeSavedProgress(site, language) {
-        document.querySelector(`#saved-progress-${site}-${language}`)?.remove();
+        document
+            .querySelector(`#saved-progress-${site}-${language}`)
+            ?.remove();
     }
     getProgressContainer(site, language) {
         return document.querySelector(`#progress-${site}-${language}`);

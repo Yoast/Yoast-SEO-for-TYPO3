@@ -8,7 +8,7 @@ class Store {
   private state: State = {
     siteName: "",
     focusKeyphrase: null,
-    error: false,
+    error: null,
   }
   private listeners: Set<Listener> = new Set()
 
@@ -39,14 +39,19 @@ class Store {
       titleConfiguration: { prepend: "", append: "" },
       locale: "",
       favicon: "",
+      slug: "",
       ...this.state.content,
     }
-    this.state.content = { ...defaultContent, ...content }
-    this.state.content.title = Strings.stripHtmlTags(this.state.content.title)
-    this.state.content.metadata.description = Strings.stripHtmlTags(
-      this.state.content.metadata.description || ""
-    )
-    this.notify()
+    const updatedContent = { ...defaultContent, ...content }
+    updatedContent.title = Strings.stripHtmlTags(updatedContent.title)
+    updatedContent.metadata = {
+      ...updatedContent.metadata,
+      description: Strings.stripHtmlTags(
+        updatedContent.metadata.description ?? ""
+      ),
+    }
+
+    this.setState({ content: updatedContent })
   }
 
   public subscribe(callback: Listener): () => void {

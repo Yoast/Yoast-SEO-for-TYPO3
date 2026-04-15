@@ -7,6 +7,8 @@ class TitleDescription {
     constructor() {
         this.seoTitleInitialized = false;
         this.progressBarsInitialized = false;
+    }
+    init() {
         store.subscribe(() => {
             this.initializeSeoTitle();
             this.initializeProgressBars();
@@ -99,7 +101,7 @@ class TitleDescription {
             if (!item.innerHTML.includes("SEO")) {
                 return;
             }
-            new DebounceEvent("click", (e) => {
+            new DebounceEvent("click", () => {
                 this.initializeProgressBars();
                 let value = FormEngine.getInputElementValue("title");
                 let pageTitleValue = FormEngine.getInputElementValue("pageTitle");
@@ -125,4 +127,4 @@ class TitleDescription {
         return value;
     }
 }
-export default new TitleDescription();
+new TitleDescription().init();

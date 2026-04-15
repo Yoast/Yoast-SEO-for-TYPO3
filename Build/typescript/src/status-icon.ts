@@ -1,5 +1,4 @@
 import Modal from "@typo3/backend/modal.js"
-import $ from "jquery"
 import { setAttributes } from "@yoast/yoast-seo-for-typo3/helpers/attributes.js"
 import {
   getResult,
@@ -13,16 +12,13 @@ import {
 } from "@yoast/yoast-seo-for-typo3/types/yoast"
 import YoastConfiguration from "@yoast/yoast-seo-for-typo3/yoast-configuration.js"
 
-class StatusIcon {
-  private initialized: boolean = false
-
+export default class StatusIcon {
   constructor() {
-    store.subscribe((state) => {
-      if (!this.initialized) {
-        this.initializeAnalysisElements()
-        this.initialized = true
-      }
+    this.initializeAnalysisElements()
+  }
 
+  init(): void {
+    store.subscribe((state) => {
       state.analysis && this.updateAnalysisElements(state)
     })
   }
@@ -57,50 +53,54 @@ class StatusIcon {
   }
 
   private initializeAnalysisFieldIcons(): void {
-    document.querySelectorAll("yoast-analysis-result").forEach((container) => {
-      const formSection = container.closest(".form-section")
-      if (formSection === null) return
+    document
+      .querySelectorAll<HTMLElement>("yoast-analysis-result")
+      .forEach((container) => {
+        const formSection = container.closest(".form-section")
+        if (formSection === null) return
 
-      const resultType = container.getAttribute("result-type") || ""
-      const resultSubType = container.getAttribute("result-sub-type") || ""
-      const icon = this.getIconElement(resultType, resultSubType)
+        const resultType = container.getAttribute("result-type") || ""
+        const resultSubType = container.getAttribute("result-sub-type") || ""
+        const icon = this.getIconElement(resultType, resultSubType)
 
-      const heading = formSection.querySelector("h3")
-      if (heading) {
-        heading.prepend(icon)
-        return
-      }
+        const heading = formSection.querySelector("h3")
+        if (heading) {
+          heading.prepend(icon)
+          return
+        }
 
-      const panelIcon = container.closest(".panel")?.querySelector(".t3js-icon")
-      if (panelIcon) {
-        panelIcon.replaceWith(icon)
-      }
-    })
+        const panelIcon = container
+          .closest(".panel")
+          ?.querySelector(".t3js-icon")
+        if (panelIcon) {
+          panelIcon.replaceWith(icon)
+        }
+      })
   }
 
   private updateAnalysisElements(state: State): void {
-    ;(
-      document.querySelectorAll("yoast-status-icon") as unknown as HTMLElement[]
-    ).forEach((element) => {
-      const resultType = (element.getAttribute("result-type") ?? "").toString()
-      let resultSubtype = element.getAttribute("result-sub-type")
-      if (resultSubtype === null && resultType === "seo") {
-        resultSubtype = ""
-      }
-      const result = getResult(state.analysis!!, resultType, resultSubtype)
-      setAttributes(element, {
-        "analysis-done": "true",
-        score: getScoreFromResult(state.analysis!!, resultType, resultSubtype),
-      })
-      if (
-        element.getAttribute("details") &&
-        element.getAttribute("details") === "true"
-      ) {
-        element.onclick = () => {
-          this.analysisDetailModal(resultType, result)
+    document
+      .querySelectorAll<HTMLElement>("yoast-status-icon")
+      .forEach((element) => {
+        const resultType = element.getAttribute("result-type") ?? ""
+        let resultSubtype = element.getAttribute("result-sub-type")
+        if (resultSubtype === null && resultType === "seo") {
+          resultSubtype = ""
         }
-      }
-    })
+        const result = getResult(state.analysis!, resultType, resultSubtype)
+        setAttributes(element, {
+          "analysis-done": "true",
+          score: getScoreFromResult(state.analysis!, resultType, resultSubtype),
+        })
+        if (
+          element.getAttribute("details") &&
+          element.getAttribute("details") === "true"
+        ) {
+          element.onclick = () => {
+            this.analysisDetailModal(resultType, result)
+          }
+        }
+      })
   }
 
   private analysisDetailModal(
@@ -111,13 +111,11 @@ class StatusIcon {
     if (result.results.length === 0) return
 
     const analysis = mapResults(result.results)
-    const $content = $("<yoast-analysis-result>").attr(
-      "analysis",
-      JSON.stringify(analysis)
-    )
+    const content = document.createElement("yoast-analysis-result")
+    content.setAttribute("analysis", JSON.stringify(analysis))
     Modal.advanced({
       title: this.getModalTitle(resultType),
-      content: $content,
+      content: content,
       additionalCssClasses: ["yoast-modal"],
       callback: (modal: HTMLElement) => {
         const styleLink = document.createElement("link")
@@ -131,15 +129,13 @@ class StatusIcon {
   }
 
   private getModalTitle(resultType: string): string {
-    const selector =
-      resultType === "readability"
-        ? ".score-label-readability"
-        : resultType === "seo"
-          ? ".score-label-seo"
-          : resultType === "inclusiveLanguage"
-            ? ".score-label-inclusiveLanguage"
-            : null
+    const selectorMap: Record<string, string> = {
+      readability: ".score-label-readability",
+      seo: ".score-label-seo",
+      inclusiveLanguage: ".score-label-inclusiveLanguage",
+    }
 
+    const selector = selectorMap[resultType] || null
     if (!selector) return ""
 
     const element = document.querySelector<HTMLElement>(selector)
@@ -173,5 +169,3 @@ class StatusIcon {
     return iconElement
   }
 }
-
-export default new StatusIcon()

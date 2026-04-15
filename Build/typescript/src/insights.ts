@@ -2,6 +2,7 @@ import analysis from "@yoast/yoast-seo-for-typo3/analysis.js"
 import { setAttributes } from "@yoast/yoast-seo-for-typo3/helpers/attributes.js"
 import store from "@yoast/yoast-seo-for-typo3/store.js"
 import {
+  State,
   YoastFleschReadingScore,
   YoastInsights,
   YoastReadingTime,
@@ -9,13 +10,12 @@ import {
 } from "@yoast/yoast-seo-for-typo3/types/yoast"
 
 class Insights {
-  private cachedAnalysis: string | null = null
-  constructor() {
+  private cachedAnalysis: State["analysis"] | null = null
+  init(): void {
     store.subscribe((state) => {
       if (!state.content || !state.analysis) return
-      const analysis = JSON.stringify(state.analysis)
-      if (this.cachedAnalysis !== analysis) {
-        this.cachedAnalysis = analysis
+      if (this.cachedAnalysis !== state.analysis) {
+        this.cachedAnalysis = state.analysis
         this.updateInsights()
         this.updateFleschReadingScore()
         this.updateReadingTime()
@@ -51,9 +51,9 @@ class Insights {
   }
 
   private async updateFleschReadingScore(): Promise<void> {
-    const fleschComponent = document.querySelector(
+    const fleschComponent = document.querySelector<HTMLElement>(
       "yoast-flesch-reading-score"
-    ) as HTMLElement
+    )
     if (!fleschComponent) return
 
     try {
@@ -88,9 +88,8 @@ class Insights {
   }
 
   private async updateWordCount(): Promise<void> {
-    const wordCountComponent = document.querySelector(
-      "yoast-word-count"
-    ) as HTMLElement
+    const wordCountComponent =
+      document.querySelector<HTMLElement>("yoast-word-count")
     if (!wordCountComponent) return
 
     try {
@@ -106,4 +105,4 @@ class Insights {
   }
 }
 
-export default new Insights()
+new Insights().init()

@@ -6,13 +6,13 @@ import {
   YoastContent,
 } from "@yoast/yoast-seo-for-typo3/types/yoast"
 
-class SnippetPreview {
+export default class SnippetPreview {
   private previewElement: HTMLElement | null = null
   private contentState: YoastContent | null = null
 
-  constructor() {
+  init(): void {
     store.subscribe((state) => {
-      if (typeof state.error !== "undefined" && state.error !== false) {
+      if (typeof state.error !== "undefined" && state.error !== null) {
         this.setAttributesToErrorState(state.error)
         return
       }
@@ -64,5 +64,3 @@ class SnippetPreview {
     })
   }
 }
-
-export default new SnippetPreview()

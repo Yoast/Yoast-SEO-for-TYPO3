@@ -1,50 +1,37 @@
 import DebounceEvent from "@typo3/core/event/debounce-event.js"
 import analysis from "@yoast/yoast-seo-for-typo3/analysis.js"
 import FormEngine from "@yoast/yoast-seo-for-typo3/helpers/form-engine.js"
-import store from "@yoast/yoast-seo-for-typo3/store.js"
+import { YoastFields } from "@yoast/yoast-seo-for-typo3/types/yoast"
 import YoastConfiguration from "@yoast/yoast-seo-for-typo3/yoast-configuration.js"
 
-class FocusKeyphrase {
-  private initialized: boolean = false
-  constructor() {
-    store.subscribe((state) => {
-      if (!state.analysis) return
-      if (this.initialized) return
-      this.initialized = true
-      this.initializeFocusKeywordField()
-      this.initializeSynonymsField()
-    })
+export default class FocusKeyphrase {
+  init(): void {
+    this.initializeFocusKeywordField()
+    this.initializeSynonymsField()
   }
 
   private initializeFocusKeywordField(): void {
-    ;(
-      FormEngine.getElements("focusKeyword") as NodeListOf<HTMLInputElement>
-    )?.forEach((element) => {
-      element.addEventListener(
-        "input",
-        new DebounceEvent(
-          "input",
-          () => {
-            YoastConfiguration.setFocusKeyword(element.value)
-            analysis.refresh()
-          },
-          500
-        ).bindTo(element)
-      )
+    this.initializeEventListenerOnField("focusKeyword", (value) => {
+      YoastConfiguration.setFocusKeyword(value)
     })
   }
   private initializeSynonymsField(): void {
-    ;(
-      FormEngine.getElements(
-        "focusKeywordSynonyms"
-      ) as NodeListOf<HTMLInputElement>
-    )?.forEach((element) => {
+    this.initializeEventListenerOnField("focusKeywordSynonyms", (value) => {
+      YoastConfiguration.setFocusKeywordSynonyms(value)
+    })
+  }
+
+  private initializeEventListenerOnField(
+    fieldName: keyof YoastFields,
+    callback: (value: string) => void
+  ): void {
+    FormEngine.getElements<HTMLInputElement>(fieldName)?.forEach((element) => {
       element.addEventListener(
         "input",
         new DebounceEvent(
           "input",
           () => {
-            YoastConfiguration.setFocusKeywordSynonyms(element.value)
+            callback(element.value)
             analysis.refresh()
           },
           500
@@ -53,5 +40,3 @@ class FocusKeyphrase {
     })
   }
 }
-
-export default new FocusKeyphrase()

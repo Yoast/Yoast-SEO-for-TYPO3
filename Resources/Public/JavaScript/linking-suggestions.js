@@ -60,11 +60,10 @@ class LinkingSuggestions {
             const editableElements = document.querySelectorAll(".ck-editor__editable");
             let content = "";
             let ckeditorLoaded = false;
-            for (let editorElement in editableElements) {
-                if (typeof editableElements[editorElement].ckeditorInstance !==
-                    "undefined") {
+            for (const element of editableElements) {
+                if (element && typeof element.ckeditorInstance !== "undefined") {
                     ckeditorLoaded = true;
-                    content += editableElements[editorElement].ckeditorInstance.getData();
+                    content += element.ckeditorInstance.getData();
                 }
             }
             if (ckeditorLoaded === false) {

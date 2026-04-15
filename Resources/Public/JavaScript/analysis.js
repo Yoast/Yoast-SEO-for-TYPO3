@@ -21,7 +21,10 @@ class Analysis {
             const response = await this.analyzePaper(paper);
             if (this.hasRelatedKeyphrases()) {
                 const related = await this.analyzeRelatedKeyphrases(paper);
-                response.result.seo = { ...response.result.seo, ...related.result.seo };
+                response.result["seo"] = {
+                    ...response.result["seo"],
+                    ...related.result["seo"],
+                };
             }
             store.setState({ analysis: response.result });
         }

@@ -2,22 +2,24 @@ import { YoastFields } from "@yoast/yoast-seo-for-typo3/types/yoast"
 import YoastConfiguration from "@yoast/yoast-seo-for-typo3/yoast-configuration.js"
 
 class FormEngine {
-  public static getElements(
+  public static getElements<T extends HTMLElement>(
     fieldName: keyof YoastFields
-  ): NodeListOf<HTMLElement> | null {
+  ): NodeListOf<T> | null {
     const selector = YoastConfiguration.getFieldSelector(fieldName)
     if (selector) {
-      return document.querySelectorAll(
+      return document.querySelectorAll<T>(
         `[data-formengine-input-name="${selector}"]`
       )
     }
     return null
   }
 
-  public static getElement(fieldName: keyof YoastFields): HTMLElement | null {
+  public static getElement<T extends HTMLElement>(
+    fieldName: keyof YoastFields
+  ): T | null {
     const selector = YoastConfiguration.getFieldSelector(fieldName)
     if (selector) {
-      return document.querySelector(
+      return document.querySelector<T>(
         `[data-formengine-input-name="${selector}"]`
       )
     }
@@ -29,13 +31,13 @@ class FormEngine {
   ): HTMLSelectElement | null {
     const selector = YoastConfiguration.getFieldSelector(fieldName)
     if (selector) {
-      return document.querySelector(`[name="${selector}"]`) as HTMLSelectElement
+      return document.querySelector<HTMLSelectElement>(`[name="${selector}"]`)
     }
     return null
   }
 
   public static getInputElementValue(fieldName: keyof YoastFields): string {
-    const element = this.getElement(fieldName) as HTMLInputElement
+    const element = this.getElement<HTMLInputElement>(fieldName)
     return element?.value ?? ""
   }
 

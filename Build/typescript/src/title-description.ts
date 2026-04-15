@@ -14,7 +14,7 @@ class TitleDescription {
   private seoTitleInitialized = false
   private progressBarsInitialized = false
 
-  constructor() {
+  init(): void {
     store.subscribe(() => {
       this.initializeSeoTitle()
       this.initializeProgressBars()
@@ -29,7 +29,8 @@ class TitleDescription {
     const pageTitleField = YoastConfiguration.getFieldSelector("pageTitle")
     if (!titleField || !pageTitleField) return
 
-    const pageTitleElement = FormEngine.getElement("pageTitle")
+    const pageTitleElement =
+      FormEngine.getElement<HTMLInputElement>("pageTitle")
     if (pageTitleElement) {
       pageTitleElement.addEventListener("change", () => {
         this.setSeoTitlePlaceholder()
@@ -41,20 +42,21 @@ class TitleDescription {
 
   initializeProgressBars(): void {
     if (this.progressBarsInitialized || !store.getState().content) return
-    const titleField = FormEngine.getElement("title")
-    const descriptionField = FormEngine.getElement("description")
+    const titleField = FormEngine.getElement<HTMLInputElement>("title")
+    const descriptionField =
+      FormEngine.getElement<HTMLInputElement>("description")
 
     if (!titleField || !descriptionField) return
     this.progressBarsInitialized = true
 
     const progressBarItems: ProgressBarItem[] = [
       {
-        input: titleField as HTMLInputElement,
+        input: titleField,
         storeKey: "title",
         defaultValue: store.getState().content?.title || "",
       },
       {
-        input: descriptionField as HTMLInputElement,
+        input: descriptionField,
         storeKey: "description",
         defaultValue: store.getState().content?.metadata.description || "",
       },
@@ -103,20 +105,21 @@ class TitleDescription {
     container.insertAdjacentElement("afterbegin", progressBar)
 
     container.style.gridArea = "bottom"
-    let formControls = input.closest(".form-control-wrap") as HTMLElement
+    let formControls = input.closest<HTMLElement>(
+      ".form-control-wrap"
+    ) as HTMLElement
     if (formControls.style.maxWidth) {
       container.style.maxWidth = formControls.style.maxWidth
     }
-    input.closest(".form-control-wrap")?.after(container)
+    input.closest<HTMLElement>(".form-control-wrap")?.after(container)
 
     return progressBar
   }
 
   setSeoTitlePlaceholder(): void {
-    const seoTitleElement = FormEngine.getElement("title")
-    const pageTitleElement = FormEngine.getElement(
-      "pageTitle"
-    ) as HTMLInputElement
+    const seoTitleElement = FormEngine.getElement<HTMLInputElement>("title")
+    const pageTitleElement =
+      FormEngine.getElement<HTMLInputElement>("pageTitle")
     if (seoTitleElement && pageTitleElement) {
       const titleValue = pageTitleElement.value
       seoTitleElement.setAttribute("placeholder", titleValue)
@@ -130,13 +133,13 @@ class TitleDescription {
       }
       new DebounceEvent(
         "click",
-        (e: MouseEvent) => {
+        () => {
           this.initializeProgressBars()
 
           let value = FormEngine.getInputElementValue("title")
           let pageTitleValue = FormEngine.getInputElementValue("pageTitle")
 
-          FormEngine.getElement("title")?.setAttribute(
+          FormEngine.getElement<HTMLInputElement>("title")?.setAttribute(
             "placeholder",
             pageTitleValue
           )
@@ -166,4 +169,4 @@ class TitleDescription {
   }
 }
 
-export default new TitleDescription()
+new TitleDescription().init()

@@ -5,7 +5,7 @@ import YoastConfiguration from "@yoast/yoast-seo-for-typo3/yoast-configuration.j
 
 class Cornerstone {
   private initialized = false
-  constructor() {
+  init(): void {
     store.subscribe(() => {
       this.initializeCornerstoneEvent()
     })
@@ -15,7 +15,8 @@ class Cornerstone {
     if (this.initialized) return
     this.initialized = true
 
-    const cornerstoneField = FormEngine.getElement("cornerstone")
+    const cornerstoneField =
+      FormEngine.getElement<HTMLInputElement>("cornerstone")
     if (!cornerstoneField) return
 
     cornerstoneField.addEventListener("change", (event: Event) => {
@@ -27,4 +28,4 @@ class Cornerstone {
   }
 }
 
-export default new Cornerstone()
+new Cornerstone().init()

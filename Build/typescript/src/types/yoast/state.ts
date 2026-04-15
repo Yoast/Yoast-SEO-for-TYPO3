@@ -6,5 +6,5 @@ export type State = {
   focusKeyphrase: YoastKeyphrase | null
   content?: YoastContent
   analysis?: YoastAnalysis
-  error?: RequestError["error"] | false
+  error?: RequestError["error"] | null
 }

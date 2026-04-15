@@ -23,8 +23,3 @@ declare module "@typo3/core/event/debounce-event.js" {
   let TYPO3: any
   export default TYPO3
 }
-
-declare module "jquery" {
-  let $: any
-  export default $
-}

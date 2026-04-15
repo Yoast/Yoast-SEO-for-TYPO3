@@ -1,11 +1,13 @@
 import { setAttributes } from "@yoast/yoast-seo-for-typo3/helpers/attributes.js";
 import store from "@yoast/yoast-seo-for-typo3/store.js";
-class SnippetPreview {
+export default class SnippetPreview {
     constructor() {
         this.previewElement = null;
         this.contentState = null;
+    }
+    init() {
         store.subscribe((state) => {
-            if (typeof state.error !== "undefined" && state.error !== false) {
+            if (typeof state.error !== "undefined" && state.error !== null) {
                 this.setAttributesToErrorState(state.error);
                 return;
             }
@@ -48,4 +50,3 @@ class SnippetPreview {
         });
     }
 }
-export default new SnippetPreview();

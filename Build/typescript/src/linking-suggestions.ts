@@ -59,9 +59,9 @@ class LinkingSuggestions {
   }
 
   private async getLinkingSuggestions(ckeditorContent: string): Promise<void> {
-    const suggestionsElement = document.querySelector(
+    const suggestionsElement = document.querySelector<HTMLElement>(
       "yoast-linking-suggestions"
-    ) as HTMLElement | null
+    )
     if (!suggestionsElement) return
 
     const content = analysis.createContent({
@@ -98,18 +98,15 @@ class LinkingSuggestions {
       "typo3-rte-ckeditor-ckeditor5"
     )
     if (ckeditor5elements.length > 0) {
-      const editableElements = document.querySelectorAll(
+      const editableElements = document.querySelectorAll<CkeditorElement>(
         ".ck-editor__editable"
-      ) as NodeListOf<CkeditorElement>
+      )
       let content = ""
       let ckeditorLoaded = false
-      for (let editorElement in editableElements) {
-        if (
-          typeof editableElements[editorElement].ckeditorInstance !==
-          "undefined"
-        ) {
+      for (const element of editableElements) {
+        if (element && typeof element.ckeditorInstance !== "undefined") {
           ckeditorLoaded = true
-          content += editableElements[editorElement].ckeditorInstance.getData()
+          content += element.ckeditorInstance.getData()
         }
       }
       if (ckeditorLoaded === false) {

@@ -7,26 +7,23 @@ import store from "@yoast/yoast-seo-for-typo3/store.js"
 import { State } from "@yoast/yoast-seo-for-typo3/types/yoast"
 import YoastConfiguration from "@yoast/yoast-seo-for-typo3/yoast-configuration.js"
 
-class AnalysisResult {
-  private panelsInitialized: boolean = false
+export default class AnalysisResult {
   constructor() {
+    this.initializePanels()
+  }
+
+  init(): void {
     store.subscribe((state) => {
       state.analysis && this.updateAnalysisElements(state)
-      if (!this.panelsInitialized) {
-        this.initializePanels()
-        this.panelsInitialized = true
-      }
     })
   }
 
   private updateAnalysisElements(state: State): void {
-    ;(
-      document.querySelectorAll(
-        "yoast-analysis-result"
-      ) as NodeListOf<HTMLElement>
-    ).forEach((element: HTMLElement) => {
-      this.updateElementWithResult(element, state)
-    })
+    document
+      .querySelectorAll<HTMLElement>("yoast-analysis-result")
+      .forEach((element: HTMLElement) => {
+        this.updateElementWithResult(element, state)
+      })
   }
 
   private initializePanels(): void {
@@ -34,26 +31,26 @@ class AnalysisResult {
       YoastConfiguration.getFieldSelector("relatedKeyword")
     if (!relatedKeywordFieldSelector) return
 
-    const relatedKeywordField = document.querySelector(
+    const relatedKeywordField = document.querySelector<HTMLElement>(
       "#" + relatedKeywordFieldSelector
-    ) as HTMLElement | null
+    )
     if (!relatedKeywordField) return
 
-    relatedKeywordField.querySelectorAll(`.panel-heading`).forEach((item) => {
-      new DebounceEvent(
-        "click",
-        (e: MouseEvent) => {
-          ;(
-            document.querySelectorAll(
-              "yoast-analysis-result"
-            ) as NodeListOf<HTMLElement>
-          ).forEach((element: HTMLElement) => {
-            this.updateElementWithResult(element, store.getState())
-          })
-        },
-        100
-      ).bindTo(item)
-    })
+    relatedKeywordField
+      .querySelectorAll<HTMLElement>(`.panel-heading`)
+      .forEach((item) => {
+        new DebounceEvent(
+          "click",
+          () => {
+            document
+              .querySelectorAll<HTMLElement>("yoast-analysis-result")
+              .forEach((element: HTMLElement) => {
+                this.updateElementWithResult(element, store.getState())
+              })
+          },
+          100
+        ).bindTo(item)
+      })
   }
 
   private updateElementWithResult(element: HTMLElement, state: State): void {
@@ -62,12 +59,10 @@ class AnalysisResult {
     if (resultSubtype === null && resultType === "seo") {
       resultSubtype = ""
     }
-    const result = getResult(state.analysis!!, resultType, resultSubtype)
+    const result = getResult(state.analysis!, resultType, resultSubtype)
     if (result === undefined) return
 
     const analysis = mapResults(result.results)
     element.setAttribute("analysis", JSON.stringify(analysis))
   }
 }
-
-export default new AnalysisResult()

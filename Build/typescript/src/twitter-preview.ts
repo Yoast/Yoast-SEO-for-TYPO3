@@ -6,7 +6,6 @@ import FormEngine from "@yoast/yoast-seo-for-typo3/helpers/form-engine.js"
 import SocialPreview from "@yoast/yoast-seo-for-typo3/social-preview.js"
 import store from "@yoast/yoast-seo-for-typo3/store.js"
 import { YoastFields } from "@yoast/yoast-seo-for-typo3/types/yoast"
-import YoastConfiguration from "@yoast/yoast-seo-for-typo3/yoast-configuration.js"
 
 type TwitterPreviewConfig = {
   fieldSelectors: Partial<Record<keyof YoastFields, string>>

@@ -5,6 +5,8 @@ import YoastConfiguration from "@yoast/yoast-seo-for-typo3/yoast-configuration.j
 class Cornerstone {
     constructor() {
         this.initialized = false;
+    }
+    init() {
         store.subscribe(() => {
             this.initializeCornerstoneEvent();
         });
@@ -24,4 +26,4 @@ class Cornerstone {
         });
     }
 }
-export default new Cornerstone();
+new Cornerstone().init();

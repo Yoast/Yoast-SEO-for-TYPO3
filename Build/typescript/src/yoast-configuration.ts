@@ -24,7 +24,7 @@ class YoastConfigurationManager {
 
   public static getInstance() {
     if (!YoastConfigurationManager.instance) {
-      this.instance = new YoastConfigurationManager()
+      YoastConfigurationManager.instance = new YoastConfigurationManager()
     }
     return YoastConfigurationManager.instance
   }

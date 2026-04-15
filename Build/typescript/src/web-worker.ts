@@ -11,14 +11,14 @@ type WebworkerData = {
 class WebWorker {
   private static instance: WebWorker
   private requestId: number = 0
-  private requests: Record<number, Request> = {}
+  private requests: Map<number, Request> = new Map()
   private worker: Worker | null = null
 
   private constructor() {}
 
   public static getInstance() {
     if (!WebWorker.instance) {
-      this.instance = new WebWorker()
+      WebWorker.instance = new WebWorker()
     }
     return WebWorker.instance
   }
@@ -79,7 +79,7 @@ class WebWorker {
   }
 
   handleMessage({ data: { type, id, payload } }: { data: WebworkerData }) {
-    const request = this.requests.hasOwnProperty(id) ? this.requests[id] : null
+    const request = this.requests.get(id) ?? null
     if (!request) {
       console.warn("yoast-seo unknown webworker request:", payload)
       return
@@ -93,7 +93,7 @@ class WebWorker {
       console.warn("yoast-seo unknown webworker action:", payload)
     }
 
-    delete this.requests[id]
+    this.requests.delete(id)
   }
 
   private createRequestId(): number {
@@ -101,9 +101,9 @@ class WebWorker {
     return this.requestId
   }
 
-  private createRequestPromise(id: number, data = {}): Promise<any> {
+  private createRequestPromise(id: number, data = {}): Promise<Result<any>> {
     return new Promise((resolve, reject) => {
-      this.requests[id] = new Request(resolve, reject, data)
+      this.requests.set(id, new Request(resolve, reject, data))
     })
   }
 }

@@ -4,12 +4,13 @@ import store from "@yoast/yoast-seo-for-typo3/store.js";
 class Insights {
     constructor() {
         this.cachedAnalysis = null;
+    }
+    init() {
         store.subscribe((state) => {
             if (!state.content || !state.analysis)
                 return;
-            const analysis = JSON.stringify(state.analysis);
-            if (this.cachedAnalysis !== analysis) {
-                this.cachedAnalysis = analysis;
+            if (this.cachedAnalysis !== state.analysis) {
+                this.cachedAnalysis = state.analysis;
                 this.updateInsights();
                 this.updateFleschReadingScore();
                 this.updateReadingTime();
@@ -84,4 +85,4 @@ class Insights {
         }
     }
 }
-export default new Insights();
+new Insights().init();
