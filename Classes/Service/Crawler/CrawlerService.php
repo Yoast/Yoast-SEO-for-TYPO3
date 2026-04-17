@@ -104,6 +104,7 @@ class CrawlerService
                             'l10n_parent',
                             $treeChunk
                         ),
+                        $queryBuilder->expr()->eq('tx_yoastseo_disable_analysis', 0),
                     ];
                 } else {
                     $select = 'uid';
@@ -112,6 +113,7 @@ class CrawlerService
                             'uid',
                             $treeChunk
                         ),
+                        $queryBuilder->expr()->eq('tx_yoastseo_disable_analysis', 0),
                     ];
                 }
 

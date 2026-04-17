@@ -65,6 +65,10 @@ We will follow [Semantic Versioning](http://semver.org/).
     - Removed TYPO3 v11 installation command
     - Added TYPO3 v14 installation command
     - Updated PHP version and configuration
+- Split `tx_yoastseo_hide_snippet_preview` into two independent options: `tx_yoastseo_disable_analysis` (disables
+  readability and focus-keyword scoring, clears existing scores and prominent words, prevents the crawler from indexing
+  the page) and `tx_yoastseo_hide_snippet_preview` (hides only the SERP snippet preview). Upgrade wizard copies existing
+  values to the new field so current behavior is preserved.
 - Restructured form elements with better separation of concerns
 - Simplified `ext_localconf.php` - removed IIFE wrapper, modernized hook registration
 - Updated GitHub Actions workflow for new TYPO3 version matrix

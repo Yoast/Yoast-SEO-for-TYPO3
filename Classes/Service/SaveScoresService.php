@@ -73,7 +73,7 @@ class SaveScoresService
     {
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable(TableNames::PAGES);
         $queryBuilder->getRestrictions()->removeAll()->add(new DeletedRestriction());
-        $queryBuilder->select('uid')->from(TableNames::PAGES);
+        $queryBuilder->select('uid', 'tx_yoastseo_disable_analysis')->from(TableNames::PAGES);
         if ($languageId > 0) {
             $queryBuilder->where(
                 $queryBuilder->expr()->and(
@@ -84,12 +84,14 @@ class SaveScoresService
                     $queryBuilder->expr()->eq(
                         $GLOBALS['TCA'][TableNames::PAGES]['ctrl']['languageField'],
                         $queryBuilder->createNamedParameter($languageId, Connection::PARAM_INT)
-                    )
+                    ),
+                    $queryBuilder->expr()->eq('tx_yoastseo_disable_analysis', 0),
                 )
             );
         } else {
             $queryBuilder->where(
-                $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter($pageUid, Connection::PARAM_INT))
+                $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter($pageUid, Connection::PARAM_INT)),
+                $queryBuilder->expr()->eq('tx_yoastseo_disable_analysis', 0),
             );
         }
         $record = $queryBuilder->executeQuery()->fetchAssociative();

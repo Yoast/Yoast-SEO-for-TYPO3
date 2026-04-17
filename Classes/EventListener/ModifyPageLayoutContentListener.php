@@ -35,9 +35,12 @@ class ModifyPageLayoutContentListener
         $pageId = (int)($event->getRequest()->getQueryParams()['id'] ?? 0);
         $currentPage = $this->pageDataService->getCurrentPage($pageId, $languageId, $event->getModuleTemplate());
 
-        if (!is_array($currentPage) || !$this->visibilityChecker->shouldShowPreview($pageId, $currentPage)) {
+        if (!is_array($currentPage) || !$this->visibilityChecker->shouldShowHeader($pageId, $currentPage)) {
             return;
         }
+
+        $snippetPreviewEnabled = $this->visibilityChecker->isSnippetPreviewEnabled($pageId, $currentPage);
+        $analysisEnabled = $this->visibilityChecker->isAnalysisEnabled($currentPage);
 
         $this->snippetPreviewService->buildSnippetPreview(
             new RequestData($pageId, $languageId),
@@ -45,7 +48,7 @@ class ModifyPageLayoutContentListener
             $this->snippetPreviewConfigurationBuilder->buildConfigurationForPage($pageId, $currentPage, $languageId)
         );
 
-        $event->addHeaderContent($this->pageLayoutHeaderRenderer->render());
+        $event->addHeaderContent($this->pageLayoutHeaderRenderer->render($snippetPreviewEnabled, $analysisEnabled));
     }
 
     protected function getLanguageId(): int

@@ -23,11 +23,15 @@ class PageLayoutHeaderRenderer
         protected Features $features,
     ) {}
 
-    public function render(): string
+    public function render(bool $snippetPreviewEnabled, bool $analysisEnabled): string
     {
         return $this->standaloneViewService->render(
             'PageLayout/Header',
-            ['inclusiveLanguageEnabled' => $this->features->isFeatureEnabled('yoastSeoInclusiveLanguage')]
+            [
+                'inclusiveLanguageEnabled' => $this->features->isFeatureEnabled('yoastSeoInclusiveLanguage'),
+                'snippetPreviewEnabled' => $snippetPreviewEnabled,
+                'analysisEnabled' => $analysisEnabled,
+            ]
         );
     }
 }

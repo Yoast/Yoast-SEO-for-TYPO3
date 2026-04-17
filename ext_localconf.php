@@ -10,6 +10,7 @@
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use YoastSeoForTypo3\YoastSeo\Frontend\AdditionalPreviewData;
+use YoastSeoForTypo3\YoastSeo\Hooks\DisableAnalysisCleanupHook;
 use YoastSeoForTypo3\YoastSeo\MetaTag\AdvancedRobots\AdvancedRobotsGenerator;
 use YoastSeoForTypo3\YoastSeo\MetaTag\RecordMetaTagGenerator;
 use YoastSeoForTypo3\YoastSeo\StructuredData\StructuredDataProviderManager;
@@ -21,6 +22,7 @@ $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php'][
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_pagerenderer.php']['render-postProcess'][] = AdditionalPreviewData::class . '->render';
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['TYPO3\CMS\Frontend\Page\PageGenerator']['generateMetaTags']['yoastRecord'] = RecordMetaTagGenerator::class . '->generate';
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['TYPO3\CMS\Frontend\Page\PageGenerator']['generateMetaTags']['advancedrobots'] = AdvancedRobotsGenerator::class . '->generate';
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processDatamapClass'][] = DisableAnalysisCleanupHook::class;
 
 ExtensionManagementUtility::addTypoScript(
     'yoast_seo',

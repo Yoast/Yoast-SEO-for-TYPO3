@@ -49,7 +49,7 @@ Dev (watch mode)
 
 This watches for changes and recompiles automatically.
 
-Typoscript configuration
+TypeScript configuration
 ========================
 
 The ``tsconfig.json`` maps ``@yoast/yoast-seo-for-typo3/*`` to ``./src/*`` via path

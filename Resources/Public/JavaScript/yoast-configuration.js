@@ -5,6 +5,7 @@ class YoastConfigurationManager {
         this.cornerstone = false;
         this.focusKeyphrase = null;
         this.TCA = false;
+        this.analysisEnabled = true;
         this.data = null;
         this.fieldSelectors = null;
         this.supportedLanguages = null;
@@ -46,6 +47,9 @@ class YoastConfigurationManager {
     }
     isTCA() {
         return this.TCA;
+    }
+    isAnalysisEnabled() {
+        return this.analysisEnabled;
     }
     isCornerstone() {
         return this.cornerstone;
@@ -95,6 +99,7 @@ class YoastConfigurationManager {
     setFromInitialization(configuration) {
         const keys = [
             "urls",
+            "analysisEnabled",
             "isCornerstoneContent",
             "focusKeyphrase",
             "TCA",
@@ -107,6 +112,9 @@ class YoastConfigurationManager {
         for (const key of keys) {
             if (configuration[key] !== undefined) {
                 switch (key) {
+                    case "analysisEnabled":
+                        this.analysisEnabled = configuration.analysisEnabled ?? true;
+                        break;
                     case "isCornerstoneContent":
                         this.cornerstone = configuration.isCornerstoneContent;
                         break;

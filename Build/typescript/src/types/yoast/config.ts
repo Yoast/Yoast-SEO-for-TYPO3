@@ -40,6 +40,7 @@ export type YoastFields = {
 
 export type YoastConfig = {
   urls: YoastUrls
+  analysisEnabled?: boolean
   isCornerstoneContent: boolean
   focusKeyphrase: YoastKeyphrase
   TCA?: boolean

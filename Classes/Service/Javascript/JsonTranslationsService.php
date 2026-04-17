@@ -30,6 +30,9 @@ class JsonTranslationsService implements SingletonInterface
 
     public function render(): string
     {
-        return 'window.YoastTranslations = ' . json_encode([$this->translations]) . ';';
+        if (!empty($this->translations)) {
+            return 'window.YoastTranslations = ' . json_encode([$this->translations]) . ';';
+        }
+        return '';
     }
 }

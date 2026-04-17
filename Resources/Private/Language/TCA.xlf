@@ -20,7 +20,14 @@
                 <source>Readability analysis</source>
             </trans-unit>
             <trans-unit id="pages.palettes.advanced" resname="pages.palettes.advanced">
-                <source>Advanced settings</source>
+                <source>Yoast SEO settings</source>
+            </trans-unit>
+            <trans-unit id="pages.palettes.advanced.description" resname="pages.palettes.advanced.description">
+                <source>Configure how Yoast SEO behaves for this page. Disable the analysis to exclude this page from
+                    all analysis (this will also remove the page from internal linking suggestions); hide the snippet
+                    preview to remove the SERP preview from the page module and the
+                    editing form.
+                </source>
             </trans-unit>
             <trans-unit id="pages.fields.tx_yoastseo_focuskeyword_related"
                         resname="pages.fields.tx_yoastseo_focuskeyword_related">

@@ -23,20 +23,21 @@ class VisibilityChecker
     /**
      * @param array<string, string> $pageRecord
      */
-    public function shouldShowPreview(int $pageId, array $pageRecord): bool
+    public function shouldShowHeader(int $pageId, array $pageRecord): bool
     {
-        if (!$this->isSnippetPreviewEnabled($pageId, $pageRecord)) {
+        $allowedDoktypes = YoastUtility::getAllowedDoktypes();
+        if (!isset($pageRecord['doktype']) || !in_array((int)$pageRecord['doktype'], $allowedDoktypes, true)) {
             return false;
         }
 
-        $allowedDoktypes = YoastUtility::getAllowedDoktypes();
-        return isset($pageRecord['doktype']) && in_array((int)$pageRecord['doktype'], $allowedDoktypes, true);
+        return $this->isSnippetPreviewEnabled($pageId, $pageRecord)
+            || $this->isAnalysisEnabled($pageRecord);
     }
 
     /**
      * @param array<string, string> $pageRecord
      */
-    protected function isSnippetPreviewEnabled(int $pageId, array $pageRecord): bool
+    public function isSnippetPreviewEnabled(int $pageId, array $pageRecord): bool
     {
         $backendUser = $this->getBackendUser();
         if (!$backendUser->check('non_exclude_fields', 'pages:tx_yoastseo_snippetpreview')) {
@@ -53,6 +54,14 @@ class VisibilityChecker
         }
 
         return !((bool)($pageRecord['tx_yoastseo_hide_snippet_preview'] ?? false));
+    }
+
+    /**
+     * @param array<string, string> $pageRecord
+     */
+    public function isAnalysisEnabled(array $pageRecord): bool
+    {
+        return !((bool)($pageRecord['tx_yoastseo_disable_analysis'] ?? false));
     }
 
     protected function hideFromUserSettings(BackendUserAuthentication $backendUser): bool

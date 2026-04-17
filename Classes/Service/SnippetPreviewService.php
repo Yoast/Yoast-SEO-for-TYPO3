@@ -44,12 +44,12 @@ class SnippetPreviewService
                 'prominentWords' => $this->urlService->getProminentWordsUrl(),
                 'yoastCss' => PathUtility::getPublicPathToResources() . '/CSS/yoast.min.css',
             ],
+            'analysisEnabled' => !((bool)($currentData['tx_yoastseo_disable_analysis'] ?? false)),
             'isCornerstoneContent' => (bool)($currentData['tx_yoastseo_cornerstone'] ?? false),
             'focusKeyphrase' => [
                 'keyword' => (string)($currentData['tx_yoastseo_focuskeyword'] ?? ''),
                 'synonyms' => (string)($currentData['tx_yoastseo_focuskeyword_synonyms'] ?? ''),
             ],
-            'translations' => [$this->localeService->getTranslations()],
             'supportedLanguages' => $this->localeService->getSupportedLanguages(),
             'inclusiveLanguageEnabled' => $this->features->isFeatureEnabled('yoastSeoInclusiveLanguage'),
             'requestData' => $requestData->toArray(),

@@ -36,8 +36,10 @@ class YoastPlugin {
 
     new FocusKeyphrase().init()
     new SnippetPreview().init()
-    new StatusIcon().init()
-    new AnalysisResult().init()
+    if (YoastConfiguration.isAnalysisEnabled()) {
+      new StatusIcon().init()
+      new AnalysisResult().init()
+    }
 
     DocumentService.ready().then(() => {
       this.previewRequest(configuration.requestData)
@@ -66,6 +68,9 @@ class YoastPlugin {
           return
         }
         store.setState({ content: data })
+        if (!YoastConfiguration.isAnalysisEnabled()) {
+          return
+        }
         await analysis.refresh()
         this.saveScores()
         this.saveProminentWords()

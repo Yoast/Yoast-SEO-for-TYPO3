@@ -126,4 +126,39 @@ class VisibilityCheckerTest extends UnitTestCase
             ],
         ];
     }
+
+    #[DataProvider('isAnalysisEnabledCorrectlyBasedOnPageRecordDataProvider')]
+    #[Test]
+    public function isAnalysisEnabledCorrectlyBasedOnPageRecord(array $pageRecord, bool $expected): void
+    {
+        $actual = $this->subject->isAnalysisEnabled($pageRecord);
+
+        self::assertEquals($expected, $actual);
+    }
+
+    public static function isAnalysisEnabledCorrectlyBasedOnPageRecordDataProvider(): array
+    {
+        return [
+            'page record without tx_yoastseo_disable_analysis should enable analysis' => [
+                [],
+                true,
+            ],
+            'tx_yoastseo_disable_analysis set to 0 should enable analysis' => [
+                ['tx_yoastseo_disable_analysis' => '0'],
+                true,
+            ],
+            'tx_yoastseo_disable_analysis set to false should enable analysis' => [
+                ['tx_yoastseo_disable_analysis' => false],
+                true,
+            ],
+            'tx_yoastseo_disable_analysis set to 1 should disable analysis' => [
+                ['tx_yoastseo_disable_analysis' => '1'],
+                false,
+            ],
+            'tx_yoastseo_disable_analysis set to true should disable analysis' => [
+                ['tx_yoastseo_disable_analysis' => true],
+                false,
+            ],
+        ];
+    }
 }

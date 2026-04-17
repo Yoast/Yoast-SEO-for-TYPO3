@@ -125,7 +125,10 @@
                 <source>Don't render metatags in frontend by Yoast SEO for this page</source>
             </trans-unit>
             <trans-unit id="hideSnippetPreview" resname="hideSnippetPreview">
-                <source>Hide Yoast SEO snippet preview in page module for this page</source>
+                <source>Hide snippet preview</source>
+            </trans-unit>
+            <trans-unit id="disableAnalysis" resname="disableAnalysis">
+                <source>Disable analysis</source>
             </trans-unit>
             <trans-unit id="snippetPreview" resname="snippetPreview">
                 <source>Yoast SEO Snippet preview</source>

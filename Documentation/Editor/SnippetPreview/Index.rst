@@ -38,8 +38,8 @@ Can I disable the snippet preview?
 There are two ways to disable the snippet preview within the page module:
 
 | **On a specific page**
-| If you want to disable the snippet preview for a specific page, you can set the property
-  "Hide Yoast SEO snippet preview in page module for this page" under the "Social media" tab:
+| If you want to hide the snippet preview for a specific page, you can check
+  "Hide snippet preview" in the Advanced settings of the SEO tab.
 
 |img-snippetpreview-hide-page|
 
@@ -48,3 +48,18 @@ There are two ways to disable the snippet preview within the page module:
   you can set this within your user settings:
 
 |img-snippetpreview-hide-global|
+
+Can I disable the analysis?
+---------------------------
+You can disable the Yoast SEO analysis (readability, SEO and inclusive language scoring)
+independently from the snippet preview.
+
+| **On a specific page**
+| Check "Disable analysis" in the Advanced settings of the SEO tab.
+  When analysis is disabled:
+
+- The readability and SEO score indicators are hidden
+- No analysis is calculated or saved
+- Existing scores and prominent words for the page are removed
+- The snippet preview can remain visible independently
+

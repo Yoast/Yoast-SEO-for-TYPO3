@@ -49,7 +49,7 @@ class VisibilityCheckerTest extends AbstractFunctionalTestCase
     public function isSnippetPreviewEnabledCorrectlyBasedOnPageDoktype(int $doktype, bool $expected): void
     {
         $visibilityChecker = new VisibilityChecker();
-        self::assertEquals($expected, $visibilityChecker->shouldShowPreview(1, ['doktype' => $doktype]));
+        self::assertEquals($expected, $visibilityChecker->shouldShowHeader(1, ['doktype' => $doktype]));
     }
 
     public static function isSnippetPreviewEnabledCorrectlyBasedOnPageDoktypeDataProvider(): array

@@ -30,6 +30,16 @@ class SnippetPreview extends AbstractLabeledFormElement
         protected LocaleService $localeService,
     ) {}
 
+    protected function isSnippetPreviewHidden(): bool
+    {
+        $value = $this->data['databaseRow']['tx_yoastseo_hide_snippet_preview'] ?? false;
+        if (is_array($value)) {
+            $value = $value[0] ?? false;
+        }
+
+        return (bool)$value;
+    }
+
     /**
      * @param array<string, mixed> $data
      */
@@ -73,6 +83,10 @@ class SnippetPreview extends AbstractLabeledFormElement
         // Also load the javascript for cornerstone and progress bars
         $resultArray['javaScriptModules'][] = JavaScriptModuleInstruction::create('@yoast/yoast-seo-for-typo3/cornerstone.js');
         $resultArray['javaScriptModules'][] = JavaScriptModuleInstruction::create('@yoast/yoast-seo-for-typo3/title-description.js');
+
+        if ($this->isSnippetPreviewHidden()) {
+            return $resultArray;
+        }
 
         $resultArray['html'] = $this->getLabel() . $this->templateService->renderView('SnippetPreview');
 

@@ -47,6 +47,16 @@ non-Composer setups):
 Once enabled, the Inclusive Language analysis will appear alongside the Readability and SEO
 analysis in the page module and page properties.
 
+Disabling the analysis
+----------------------
+
+You can disable the analysis for specific pages. When analysis is disabled, the readability and
+SEO score indicators are hidden, no analysis is calculated, and existing scores and prominent
+words are removed. The snippet preview can remain visible independently.
+
+To disable the analysis on a specific page, check "Disable analysis" in the Advanced settings
+of the SEO tab in the page properties.
+
 Insights
 --------
 
