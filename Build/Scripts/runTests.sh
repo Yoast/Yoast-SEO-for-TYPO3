@@ -225,8 +225,8 @@ Options:
     -t <12|13|14>
         Only with -s composerInstall|composerInstallLowest|composerInstallHighest
         Specifies the TYPO3 CORE Version to be used
-            - 12: use TYPO3 v12 (default)
-            - 13: use TYPO3 v13
+            - 12: use TYPO3 v12
+            - 13: use TYPO3 v13 (default)
             - 14: use TYPO3 v14
 
     -p <8.2|8.3|8.4|8.5>
@@ -505,7 +505,7 @@ case ${TEST_SUITE} in
             fi
             if [ ${TYPO3_VERSION} -eq 14 ]; then
               composer require --no-ansi --no-interaction --no-progress --no-install \
-                typo3/cms-core:^14.1 typo3/cms-dashboard:^14.1 || exit 1
+                typo3/cms-core:^14.2 typo3/cms-dashboard:^14.2 || exit 1
             fi
             composer update --no-progress --no-interaction  || exit 1
             composer show || exit 1
@@ -527,7 +527,7 @@ case ${TEST_SUITE} in
             fi
             if [ ${TYPO3_VERSION} -eq 14 ]; then
               composer require --no-ansi --no-interaction --no-progress --no-install \
-                typo3/cms-core:^14.1 typo3/cms-dashboard:^14.1 || exit 1
+                typo3/cms-core:^14.2 typo3/cms-dashboard:^14.2 || exit 1
             fi
             composer update --no-ansi --no-interaction --no-progress --with-dependencies --prefer-lowest || exit 1
             composer show || exit 1
