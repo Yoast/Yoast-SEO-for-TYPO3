@@ -1,6 +1,9 @@
 import AjaxRequest from "@typo3/core/ajax/ajax-request.js"
 import analysis from "@yoast/yoast-seo-for-typo3/analysis.js"
-import { YoastLinkingSuggestions } from "@yoast/yoast-seo-for-typo3/types/yoast"
+import {
+  YoastLinkingSuggestionResult,
+  YoastLinkingSuggestions,
+} from "@yoast/yoast-seo-for-typo3/types/yoast"
 import worker from "@yoast/yoast-seo-for-typo3/web-worker.js"
 import YoastConfiguration from "@yoast/yoast-seo-for-typo3/yoast-configuration.js"
 
@@ -83,12 +86,10 @@ class LinkingSuggestions {
         { headers: { "Content-Type": "application/json" } }
       )
       .then(async (response: AjaxResponse) => {
-        const result = await response.resolve<{
-          links: YoastLinkingSuggestions[]
-        }>()
+        const result = await response.resolve<YoastLinkingSuggestionResult>()
         setAttributes(suggestionsElement, {
           "is-checking": "false",
-          links: JSON.stringify(result.links),
+          links: JSON.stringify(Object.values(result.links)),
         })
       })
   }

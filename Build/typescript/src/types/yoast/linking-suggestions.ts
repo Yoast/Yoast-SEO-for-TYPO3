@@ -7,3 +7,19 @@ export type YoastLinkingSuggestions = {
     occurrences: number
   }>
 }
+
+export type YoastLinkingSuggestionResult = {
+  excludedPage: number
+  languageId: number
+  links: {
+    [key: string]: {
+      active: boolean
+      cornerstone: number
+      id: number
+      label: string
+      recordType: string
+      score: number
+      table: string
+    }
+  }
+}

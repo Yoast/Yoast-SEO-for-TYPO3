@@ -50,7 +50,7 @@ class LinkingSuggestions {
             const result = await response.resolve();
             setAttributes(suggestionsElement, {
                 "is-checking": "false",
-                links: JSON.stringify(result.links),
+                links: JSON.stringify(Object.values(result.links)),
             });
         });
     }
