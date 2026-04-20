@@ -62,12 +62,10 @@ class StructuredDataProviderManager implements SingletonInterface
         $structuredData = [];
         foreach ($this->getOrderedStructuredDataProviders() as $provider => $configuration) {
             $cacheIdentifier = $this->frontendService->getCacheIdentifier('-structured-data-' . $provider);
-            if ($this->pageCache instanceof FrontendInterface) {
-                $data = $this->pageCache->get($cacheIdentifier);
-                if ($data !== false) {
-                    $structuredData[$provider] = $data;
-                    continue;
-                }
+            $data = $this->pageCache->get($cacheIdentifier);
+            if ($data !== false) {
+                $structuredData[$provider] = $data;
+                continue;
             }
             $structuredDataProviderObject = $this->getStructuredDataProviderObject($configuration);
             if ($structuredDataProviderObject === null) {

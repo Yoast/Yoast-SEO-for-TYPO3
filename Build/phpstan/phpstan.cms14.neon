@@ -1,5 +1,7 @@
 parameters:
   level: 8
+  treatPhpDocTypesAsCertain: false
+  reportUnmatchedIgnoredErrors: false
   paths:
     - ../../Classes
     - ../../Configuration
@@ -10,6 +12,7 @@ parameters:
     - ../../Classes/Service/StandaloneView/LegacyStandaloneViewService.php
   ignoreErrors:
     - '#defaultCacheTimoutInSeconds#'
+    - '#TYPO3\\CMS\\Fluid\\View\\StandaloneView#'
   typo3:
     requestGetAttributeMapping:
         frontend.page.information: TYPO3\CMS\Frontend\Page\PageInformation

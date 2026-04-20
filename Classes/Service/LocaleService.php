@@ -83,19 +83,17 @@ class LocaleService
 
         // try to find a matching locale available for this plugins UI
         // take configured locale dependencies into account
-        if ($languageChain !== null) {
-            $suitableLocales = array_intersect(
-                $languageChain,
-                $translationConfiguration['availableLocales']
-            );
-            if (count($suitableLocales) > 0) {
-                $locale = array_shift($suitableLocales);
-            }
+        $suitableLocales = array_intersect(
+            $languageChain,
+            $translationConfiguration['availableLocales']
+        );
+        if (count($suitableLocales) > 0) {
+            $locale = array_shift($suitableLocales);
         }
 
         // if a locale couldn't be resolved try if an entry of the
         // language dependency chain matches legacy mapping
-        if ($locale === null && $languageChain !== null) {
+        if ($locale === null) {
             $suitableLanguageKeys = array_intersect(
                 $languageChain,
                 array_flip(

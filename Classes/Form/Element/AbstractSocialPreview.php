@@ -94,10 +94,7 @@ abstract class AbstractSocialPreview extends AbstractNode
     protected function getImage(): ?FileReference
     {
         $fileReferences = $this->fileRepository->findByRelation($this->data['tableName'], $this->getImageField(), $this->data['vanillaUid']);
-        if (isset($fileReferences[0]) && $fileReferences[0] instanceof FileReference) {
-            return $fileReferences[0];
-        }
-        return null;
+        return $fileReferences[0] ?? null;
     }
 
     protected function getImageContainerSelector(string $imageField): string

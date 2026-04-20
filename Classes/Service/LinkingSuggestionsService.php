@@ -161,7 +161,7 @@ class LinkingSuggestionsService
     }
 
     /**
-     * @param array<string, array{weight: int, df: int}> $prominentWords
+     * @param array<string, array{weight: int, df?: int}> $prominentWords
      */
     protected function computeVectorLength(array $prominentWords): float
     {
@@ -389,7 +389,7 @@ class LinkingSuggestionsService
             $links[$record] = [
                 'label' => $data[$labelField],
                 'recordType' => $this->getRecordType($table),
-                'id' => $uid,
+                'id' => (int)$uid,
                 'table' => $table,
                 'cornerstone' => (int)($data['tx_yoastseo_cornerstone'] ?? 0),
                 'score' => $score,
@@ -409,7 +409,7 @@ class LinkingSuggestionsService
      */
     protected function sortSuggestions(array &$links): void
     {
-        usort(
+        uasort(
             $links,
             static function ($suggestion1, $suggestion2) {
                 if ($suggestion1['score'] === $suggestion2['score']) {

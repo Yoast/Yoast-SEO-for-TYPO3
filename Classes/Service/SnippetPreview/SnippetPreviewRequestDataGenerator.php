@@ -136,7 +136,7 @@ class SnippetPreviewRequestDataGenerator
     }
 
     /**
-     * @param array<string, mixed> $params
+     * @param array<int|string, mixed> $params
      */
     protected function addCacheHash(array &$params, int $previewPageId): void
     {

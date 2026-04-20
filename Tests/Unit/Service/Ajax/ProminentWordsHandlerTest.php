@@ -17,10 +17,13 @@ use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Expression\ExpressionBuilder;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
+use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 use TYPO3\CMS\Core\Database\Query\Restriction\QueryRestrictionContainerInterface;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Http\Stream;
+use TYPO3\CMS\Core\Schema\TcaSchemaFactory;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 use YoastSeoForTypo3\YoastSeo\Service\Ajax\ProminentWordsHandler;
 use YoastSeoForTypo3\YoastSeo\Service\ProminentWordsService;
@@ -38,6 +41,23 @@ class ProminentWordsHandlerTest extends UnitTestCase
         $this->prominentWordsService = $this->createMock(ProminentWordsService::class);
         $connectionPool = $this->createConnectionPoolMock(['tx_yoastseo_disable_analysis' => 0]);
         $this->subject = new ProminentWordsHandler($this->prominentWordsService, $connectionPool);
+    }
+
+    protected function registerTcaSchemaFactoryMock(): void
+    {
+        if (!class_exists(TcaSchemaFactory::class)) {
+            return;
+        }
+
+        $constructor = (new \ReflectionClass(DeletedRestriction::class))->getConstructor();
+        if ($constructor?->getDeclaringClass()->getName() !== DeletedRestriction::class) {
+            return;
+        }
+
+        GeneralUtility::addInstance(
+            TcaSchemaFactory::class,
+            $this->createMock(TcaSchemaFactory::class)
+        );
     }
 
     protected function createConnectionPoolMock(array|false $fetchResult): ConnectionPool
@@ -90,6 +110,7 @@ class ProminentWordsHandlerTest extends UnitTestCase
             ->method('saveProminentWords')
             ->with(1, 0, 'pages', 0, $words);
 
+        $this->registerTcaSchemaFactoryMock();
         $response = $this->subject->handle($request);
 
         self::assertInstanceOf(JsonResponse::class, $response);
@@ -108,6 +129,7 @@ class ProminentWordsHandlerTest extends UnitTestCase
             ->method('saveProminentWords')
             ->with(5, null, 'pages', 0, $words);
 
+        $this->registerTcaSchemaFactoryMock();
         $this->subject->handle($request);
     }
 

@@ -36,7 +36,7 @@ class RecordRegistry implements SingletonInterface
     public function removeRecord(string $tableName): void
     {
         if (isset($this->records[$tableName])) {
-            unset($this->records);
+            unset($this->records[$tableName]);
         }
     }
 
