@@ -122,10 +122,11 @@ class YoastConfigurationManager {
                         this.TCA = configuration.TCA;
                         break;
                     case "fieldSelectors":
-                        configuration.fieldSelectors &&
+                        if (configuration.fieldSelectors) {
                             Object.entries(configuration.fieldSelectors).forEach(([fieldName, selector]) => {
                                 this.setFieldSelector(fieldName, selector);
                             });
+                        }
                         break;
                     default:
                         // @ts-ignore

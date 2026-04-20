@@ -19,7 +19,9 @@ export default class StatusIcon {
 
   init(): void {
     store.subscribe((state) => {
-      state.analysis && this.updateAnalysisElements(state)
+      if (state.analysis) {
+        this.updateAnalysisElements(state)
+      }
     })
   }
 

@@ -156,7 +156,7 @@ class YoastConfigurationManager {
             this.TCA = configuration.TCA!
             break
           case "fieldSelectors":
-            configuration.fieldSelectors &&
+            if (configuration.fieldSelectors) {
               Object.entries(configuration.fieldSelectors).forEach(
                 ([fieldName, selector]) => {
                   this.setFieldSelector(
@@ -165,6 +165,7 @@ class YoastConfigurationManager {
                   )
                 }
               )
+            }
             break
           default:
             // @ts-ignore

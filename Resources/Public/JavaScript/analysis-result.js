@@ -8,7 +8,9 @@ export default class AnalysisResult {
     }
     init() {
         store.subscribe((state) => {
-            state.analysis && this.updateAnalysisElements(state);
+            if (state.analysis) {
+                this.updateAnalysisElements(state);
+            }
         });
     }
     updateAnalysisElements(state) {

@@ -65,3 +65,26 @@ jobs:
           composer global require php-coveralls/php-coveralls
           export PATH="$(composer config -g home)/vendor/bin:$PATH"
           php-coveralls --coverage_clover=build/logs/clover.xml -v
+
+  lint-typescript:
+    name: Lint TypeScript
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Build/typescript
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: Build/typescript/.nvmrc
+          cache: yarn
+          cache-dependency-path: Build/typescript/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run oxlint
+        run: yarn lint:ci

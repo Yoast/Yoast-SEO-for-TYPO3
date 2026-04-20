@@ -9,7 +9,9 @@ export default class StatusIcon {
     }
     init() {
         store.subscribe((state) => {
-            state.analysis && this.updateAnalysisElements(state);
+            if (state.analysis) {
+                this.updateAnalysisElements(state);
+            }
         });
     }
     initializeAnalysisElements() {

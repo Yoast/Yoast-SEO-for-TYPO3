@@ -5,10 +5,14 @@
 	"license": "MIT",
 	"scripts": {
 		"build": "tsc",
-		"dev": "tsc --watch"
+		"dev": "tsc --watch",
+		"lint": "oxlint",
+		"lint:fix": "oxlint --fix",
+		"lint:ci": "oxlint --format=github"
 	},
 	"devDependencies": {
 		"@ianvs/prettier-plugin-sort-imports": "^4.4.1",
+		"oxlint": "^1.60.0",
 		"prettier": "^3.5.3",
 		"typescript": "^5.8.2"
 	}
