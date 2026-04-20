@@ -30,3 +30,25 @@ To enable, add the following to your :file:`config/system/additional.php`
 .. code-block:: php
 
    $GLOBALS['TYPO3_CONF_VARS']['SYS']['features']['yoastSeoInclusiveLanguage'] = true;
+
+Disable all caches on Yoast preview requests
+--------------------------------------------
+
+:Feature Toggle:
+   ``yoastSeoDisableAllCachesOnPreviewRequest``
+
+:Default:
+   ``false``
+
+:Description:
+   Disables all TYPO3 caches for frontend requests that originate from Yoast.
+   When enabled, the ``noCache`` request attribute is set on every validated
+   Yoast request. This should only be necessary for edge cases where hidden
+   pages could end up in certain caches (f.e. a custom menu cache).
+
+To enable, add the following to your :file:`config/system/additional.php`
+(or :file:`typo3conf/system/additional.php` for non-Composer setups):
+
+.. code-block:: php
+
+   $GLOBALS['TYPO3_CONF_VARS']['SYS']['features']['yoastSeoDisableAllCachesOnPreviewRequest'] = true;

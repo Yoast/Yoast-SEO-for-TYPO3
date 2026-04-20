@@ -49,6 +49,9 @@ We will follow [Semantic Versioning](http://semver.org/).
 - New `PageParser/BodyParser` and `TitleConfigurationParser` for parsing page content
 - New `ModifyPageLayoutContentListener` event listener (replacing the removed backend class)
 - New `TableNames` class for centralizing database table name definitions
+- New `yoastSeoDisableAllCachesOnPreviewRequest` feature toggle that disables all TYPO3 caches for validated Yoast
+  frontend requests (snippet preview, analysis, crawler) by setting the `noCache` request attribute, ensuring the
+  analysis always reflects the current page content. Disabled by default; only Yoast requests are affected.
 - Various new functional and unit tests for the new architecture and features
 
 ### Changed

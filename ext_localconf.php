@@ -49,3 +49,4 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['yoastseo_r
 $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['yoastseo_recordcache']['groups'] ??= ['system'];
 
 $GLOBALS['TYPO3_CONF_VARS']['SYS']['features']['yoastSeoInclusiveLanguage'] ??= false;
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['features']['yoastSeoDisableAllCachesOnPreviewRequest'] ??= false;
