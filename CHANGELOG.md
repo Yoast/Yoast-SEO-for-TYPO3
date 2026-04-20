@@ -52,6 +52,7 @@ We will follow [Semantic Versioning](http://semver.org/).
 - New `yoastSeoDisableAllCachesOnPreviewRequest` feature toggle that disables all TYPO3 caches for validated Yoast
   frontend requests (snippet preview, analysis, crawler) by setting the `noCache` request attribute, ensuring the
   analysis always reflects the current page content. Disabled by default; only Yoast requests are affected.
+- New `inclusiveLanguage` feature toggle to add an inclusive language check to the analysis, disabled by default.
 - Various new functional and unit tests for the new architecture and features
 
 ### Changed
