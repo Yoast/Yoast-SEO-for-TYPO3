@@ -6,7 +6,7 @@ import store from "@yoast/yoast-seo-for-typo3/store.js"
 import YoastConfiguration from "@yoast/yoast-seo-for-typo3/yoast-configuration.js"
 
 // Importing web components to ensure they are registered and can be used in the DOM.
-// @ts-ignore
+// @ts-ignore-next-line
 import "@yoast/yoast-seo-for-typo3/dist/webcomponents.js"
 
 import AnalysisResult from "@yoast/yoast-seo-for-typo3/analysis-result.js"

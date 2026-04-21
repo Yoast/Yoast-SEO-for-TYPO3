@@ -2,6 +2,7 @@ import AjaxRequest from "@typo3/core/ajax/ajax-request.js";
 import analysis from "@yoast/yoast-seo-for-typo3/analysis.js";
 import worker from "@yoast/yoast-seo-for-typo3/web-worker.js";
 import YoastConfiguration from "@yoast/yoast-seo-for-typo3/yoast-configuration.js";
+// @ts-ignore-next-line
 import "@yoast/yoast-seo-for-typo3/dist/webcomponents.js";
 import { setAttributes } from "@yoast/yoast-seo-for-typo3/helpers/attributes.js";
 class LinkingSuggestions {

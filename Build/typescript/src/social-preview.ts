@@ -85,10 +85,17 @@ export default abstract class SocialPreview {
   }
 
   protected triggerFileBrowser(): void {
-    const { fieldKey } = SOCIAL_CONFIG[this.socialType]
-    const button = document.querySelector<HTMLButtonElement>(
+    const { fieldKey, containerKey } = SOCIAL_CONFIG[this.socialType]
+    let button = document.querySelector<HTMLButtonElement>(
       `[data-local-field="${fieldKey}"] button`
     )
+    if (button === null) {
+      const containerFieldSelector =
+        YoastConfiguration.getFieldSelector(containerKey)
+      button = document.querySelector<HTMLButtonElement>(
+        `#${containerFieldSelector} button`
+      )
+    }
     button?.click()
   }
 

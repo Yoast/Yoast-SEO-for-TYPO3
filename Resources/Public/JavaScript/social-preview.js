@@ -60,8 +60,12 @@ export default class SocialPreview {
         this.observer.observe(container, { childList: true, subtree: true });
     }
     triggerFileBrowser() {
-        const { fieldKey } = SOCIAL_CONFIG[this.socialType];
-        const button = document.querySelector(`[data-local-field="${fieldKey}"] button`);
+        const { fieldKey, containerKey } = SOCIAL_CONFIG[this.socialType];
+        let button = document.querySelector(`[data-local-field="${fieldKey}"] button`);
+        if (button === null) {
+            const containerFieldSelector = YoastConfiguration.getFieldSelector(containerKey);
+            button = document.querySelector(`#${containerFieldSelector} button`);
+        }
         button?.click();
     }
     debouncedSyncImage() {

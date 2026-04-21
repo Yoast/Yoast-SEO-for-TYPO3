@@ -1,11 +1,12 @@
-import "@yoast/yoast-seo-for-typo3/dist/webcomponents.js"
-
 import DocumentService from "@typo3/core/document-service.js"
 import { setAttributes } from "@yoast/yoast-seo-for-typo3/helpers/attributes.js"
 import FormEngine from "@yoast/yoast-seo-for-typo3/helpers/form-engine.js"
 import SocialPreview from "@yoast/yoast-seo-for-typo3/social-preview.js"
 import store from "@yoast/yoast-seo-for-typo3/store.js"
 import { YoastFields } from "@yoast/yoast-seo-for-typo3/types/yoast"
+
+// @ts-ignore-next-line
+import "@yoast/yoast-seo-for-typo3/dist/webcomponents.js"
 
 type FacebookPreviewConfig = {
   fieldSelectors: Partial<Record<keyof YoastFields, string>>

@@ -7,6 +7,7 @@ import {
 import worker from "@yoast/yoast-seo-for-typo3/web-worker.js"
 import YoastConfiguration from "@yoast/yoast-seo-for-typo3/yoast-configuration.js"
 
+// @ts-ignore-next-line
 import "@yoast/yoast-seo-for-typo3/dist/webcomponents.js"
 
 import { AjaxResponse } from "@yoast/yoast-seo-for-typo3/helpers/ajax-response.js"
