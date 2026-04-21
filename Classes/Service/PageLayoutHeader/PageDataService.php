@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Service\PageLayoutHeader;
@@ -7,6 +14,7 @@ namespace YoastSeoForTypo3\YoastSeo\Service\PageLayoutHeader;
 use TYPO3\CMS\Backend\Controller\PageLayoutController;
 use TYPO3\CMS\Backend\Template\ModuleTemplate;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 
 class PageDataService
 {
@@ -23,12 +31,14 @@ class PageDataService
             return $this->getPageRecord($pageId);
         }
 
-        if ($languageId > 0) {
-            $overlayRecords = $this->getOverlayRecords($pageId, $languageId);
+        if ($languageId < 0) {
+            return null;
+        }
 
-            if (is_array($overlayRecords[0] ?? false)) {
-                return $overlayRecords[0];
-            }
+        $overlayRecords = $this->getOverlayRecords($pageId, $languageId);
+
+        if (is_array($overlayRecords[0] ?? false)) {
+            return $overlayRecords[0];
         }
 
         return null;
@@ -40,20 +50,24 @@ class PageDataService
     protected function getPageRecord(int $pageId): array
     {
         return BackendUtility::getRecord(
-            'pages',
+            TableNames::PAGES,
             $pageId
         ) ?? [];
     }
 
     /**
-     * @return array<string, string>|bool
+     * @return array<int, array<string, mixed>>|null
      */
-    protected function getOverlayRecords(int $pageId, int $languageId): array|bool
+    protected function getOverlayRecords(int $pageId, int $languageId): ?array
     {
-        return BackendUtility::getRecordLocalization(
-            'pages',
+        $recordLocalization = BackendUtility::getRecordLocalization(
+            TableNames::PAGES,
             $pageId,
             $languageId
         );
+        if (is_array($recordLocalization)) {
+            return $recordLocalization;
+        }
+        return null;
     }
 }

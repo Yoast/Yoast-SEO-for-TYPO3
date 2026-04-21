@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Service;
@@ -7,21 +14,18 @@ namespace YoastSeoForTypo3\YoastSeo\Service;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
-use TYPO3\CMS\Core\Exception\SiteNotFoundException;
-use TYPO3\CMS\Core\Site\SiteFinder;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 
 class ProminentWordsService
 {
-    protected const PROMINENT_WORDS_TABLE = 'tx_yoastseo_prominent_word';
-
     protected int $uid;
     protected int $pid;
     protected string $table;
     protected int $languageId;
 
     public function __construct(
-        protected ConnectionPool $connectionPool
+        protected ConnectionPool $connectionPool,
+        protected SiteService $siteService
     ) {}
 
     /**
@@ -65,7 +69,7 @@ class ProminentWordsService
             return;
         }
         $queryBuilder = $this->getQueryBuilder();
-        $queryBuilder->update(self::PROMINENT_WORDS_TABLE)
+        $queryBuilder->update(TableNames::PROMINENT_WORD)
             ->set('weight', $weight)
             ->where(
                 $queryBuilder->expr()->eq('uid', $oldWord['uid'])
@@ -84,7 +88,7 @@ class ProminentWordsService
         }
 
         $queryBuilder = $this->getQueryBuilder();
-        $queryBuilder->delete(self::PROMINENT_WORDS_TABLE)
+        $queryBuilder->delete(TableNames::PROMINENT_WORD)
             ->where(
                 $queryBuilder->expr()->in(
                     'uid',
@@ -99,20 +103,31 @@ class ProminentWordsService
      */
     protected function createNewWords(array $prominentWords): void
     {
-        $site = $this->getSiteRootPageId();
-        foreach ($prominentWords as $word => $weight) {
-            $data = [
-                'pid' => $this->table === 'pages' ? $this->uid : $this->pid,
-                'sys_language_uid' => $this->languageId,
-                'uid_foreign' => $this->uid,
-                'site' => $site,
-                'tablenames' => $this->table,
-                'stem' => $word,
-                'weight' => (int)$weight,
-            ];
-            $this->connectionPool->getConnectionForTable(self::PROMINENT_WORDS_TABLE)
-                ->insert(self::PROMINENT_WORDS_TABLE, $data);
+        if ($prominentWords === []) {
+            return;
         }
+
+        $site = $this->getSiteRootPageId();
+        $pid = $this->table === TableNames::PAGES ? $this->uid : $this->pid;
+
+        $rows = [];
+        foreach ($prominentWords as $word => $weight) {
+            $rows[] = [
+                $pid,
+                $this->languageId,
+                $this->uid,
+                $site,
+                $this->table,
+                (string)$word,
+                (int)$weight,
+            ];
+        }
+
+        $this->connectionPool->getConnectionForTable(TableNames::PROMINENT_WORD)->bulkInsert(
+            TableNames::PROMINENT_WORD,
+            $rows,
+            ['pid', 'sys_language_uid', 'uid_foreign', 'site', 'tablenames', 'stem', 'weight']
+        );
     }
 
     /**
@@ -122,7 +137,7 @@ class ProminentWordsService
     {
         $queryBuilder = $this->getQueryBuilder();
         $queryBuilder->select('uid', 'stem', 'weight')
-            ->from(self::PROMINENT_WORDS_TABLE)
+            ->from(TableNames::PROMINENT_WORD)
             ->where(
                 $queryBuilder->expr()->eq('uid_foreign', $this->uid),
                 $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($this->table)),
@@ -142,18 +157,13 @@ class ProminentWordsService
 
     protected function getSiteRootPageId(): int
     {
-        try {
-            $site = GeneralUtility::makeInstance(SiteFinder::class)->getSiteByPageId(
-                $this->table === 'pages' ? $this->uid : $this->pid
-            );
-            return $site->getRootPageId();
-        } catch (SiteNotFoundException $e) {
-            return 0;
-        }
+        return $this->siteService->getSiteRootPageId(
+            $this->table === TableNames::PAGES ? $this->uid : $this->pid
+        );
     }
 
     protected function getQueryBuilder(): QueryBuilder
     {
-        return $this->connectionPool->getQueryBuilderForTable(self::PROMINENT_WORDS_TABLE);
+        return $this->connectionPool->getQueryBuilderForTable(TableNames::PROMINENT_WORD);
     }
 }

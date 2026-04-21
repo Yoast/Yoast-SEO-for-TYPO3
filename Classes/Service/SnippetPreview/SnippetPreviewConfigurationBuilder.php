@@ -1,9 +1,18 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Service\SnippetPreview;
 
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
+use YoastSeoForTypo3\YoastSeo\Service\SiteService;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
 
 class SnippetPreviewConfigurationBuilder
@@ -15,6 +24,10 @@ class SnippetPreviewConfigurationBuilder
     protected string $focusKeywordSynonymsField = 'tx_yoastseo_focuskeyword_synonyms';
     protected string $cornerstoneField = 'tx_yoastseo_cornerstone';
     protected string $relatedKeyphrases = 'tx_yoastseo_focuskeyword_related';
+
+    public function __construct(
+        protected SiteService $siteService
+    ) {}
 
     /**
      * @param array<string, mixed> $data
@@ -31,9 +44,16 @@ class SnippetPreviewConfigurationBuilder
                 'uid' => (int)($data['defaultLanguagePageRow']['uid'] ?? $data['databaseRow']['uid']),
                 'pid' => (int)$data['databaseRow']['pid'],
                 'languageId' => $languageId,
+                'websiteTitle' => $this->siteService->getWebsiteTitle(
+                    (int)($data['tableName'] === TableNames::PAGES ? $data['databaseRow']['uid'] : $data['databaseRow']['pid']),
+                    $languageId
+                ),
             ],
             'fieldSelectors' => $this->buildFieldSelectors($data),
-            'relatedKeyphrases' => YoastUtility::getRelatedKeyphrases($data['tableName'], (int)$data['databaseRow']['uid']),
+            'relatedKeyphrases' => YoastUtility::getRelatedKeyphrases(
+                $data['tableName'],
+                (int)$data['databaseRow']['uid']
+            ),
         ];
     }
 
@@ -45,10 +65,11 @@ class SnippetPreviewConfigurationBuilder
     {
         return [
             'data' => [
-                'table' => 'pages',
+                'table' => TableNames::PAGES,
                 'uid' => $pageId,
                 'pid' => $currentPage['pid'],
                 'languageId' => $languageId,
+                'websiteTitle' => $this->siteService->getWebsiteTitle($pageId, $languageId),
             ],
             'fieldSelectors' => [],
         ];

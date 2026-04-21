@@ -29,6 +29,7 @@ The latest release for Yoast SEO For TYPO3 brings these features:
 - Add related keyphrases with their own synonyms and analysis results
 - Get internal linking suggestions within your content elements so you're sure that your content is properly linked together
 - Get insights of your page so you know what the prominent words on your page are
+- Enable optional Inclusive Language analysis to check content for non-inclusive language (via Feature Toggle)
 - Set advanced robot instructions for "Image index", "Archive" and "Snippet"
 - Find "Orphaned content", pages which have no internal links to them (within the Overview module)
 - Add widgets to your Dashboard: Pages without meta description, Orphaned content

@@ -1,12 +1,19 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Service\Overview\Dto;
 
 use TYPO3\CMS\Core\Pagination\ArrayPaginator;
+use TYPO3\CMS\Core\Pagination\SlidingWindowPagination;
 use YoastSeoForTypo3\YoastSeo\DataProviders\OverviewDataProviderInterface;
-use YoastSeoForTypo3\YoastSeo\Service\Overview\Pagination\Pagination;
 
 class OverviewData
 {
@@ -16,7 +23,7 @@ class OverviewData
         /** @var array<int, array<string, mixed>> */
         protected array $items = [],
         protected ArrayPaginator|null $paginator = null,
-        protected Pagination|null $pagination = null,
+        protected SlidingWindowPagination|null $pagination = null,
         /** @var array<string, OverviewDataProviderInterface> */
         protected array $filters = [],
         protected OverviewDataProviderInterface|null $activeFilter = null,
@@ -68,12 +75,12 @@ class OverviewData
         return $this;
     }
 
-    public function getPagination(): ?Pagination
+    public function getPagination(): ?SlidingWindowPagination
     {
         return $this->pagination;
     }
 
-    public function setPagination(?Pagination $pagination): OverviewData
+    public function setPagination(?SlidingWindowPagination $pagination): OverviewData
     {
         $this->pagination = $pagination;
         return $this;

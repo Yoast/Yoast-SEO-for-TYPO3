@@ -19,11 +19,11 @@ array in the :file:`ext_localconf.php` of your own extension.
 The key can be any unique string. It is only used to identify the doktype as a developer. The value contains the numeric
 value of the doktype.
 
-Disable snippet preview with PageTs
------------------------------------
+Disable snippet preview with PageTSConfig
+------------------------------------------
 Sometimes only a check on doktype isn't enough for disabling the snippet preview. For example if you want to hide the
 snippet preview on detail pages of for example a news item, you need more than a check on a doktype. That is why you can
-also disable the snippet preview based on PageTs. Below is an example of how to how the snippet preview if the page is a subpage of page with id 4.
+also disable the snippet preview based on PageTSConfig. Below is an example of how to hide the snippet preview if the page is a subpage of page with id 4.
 
 .. code-block:: typoscript
 
@@ -32,6 +32,7 @@ also disable the snippet preview based on PageTs. Below is an example of how to 
             disableSnippetPreview = 1
         }
     [global]
+
 
 Basic auth configuration
 ------------------------

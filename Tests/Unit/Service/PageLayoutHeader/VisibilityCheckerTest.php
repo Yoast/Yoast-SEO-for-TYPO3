@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Tests\Unit\Service\PageLayoutHeader;
@@ -115,6 +122,41 @@ class VisibilityCheckerTest extends UnitTestCase
             'tx_yoastseo_hide_snippet_preview set to true should not show snippet preview' => [
                 1,
                 ['tx_yoastseo_hide_snippet_preview' => true],
+                false,
+            ],
+        ];
+    }
+
+    #[DataProvider('isAnalysisEnabledCorrectlyBasedOnPageRecordDataProvider')]
+    #[Test]
+    public function isAnalysisEnabledCorrectlyBasedOnPageRecord(array $pageRecord, bool $expected): void
+    {
+        $actual = $this->subject->isAnalysisEnabled($pageRecord);
+
+        self::assertEquals($expected, $actual);
+    }
+
+    public static function isAnalysisEnabledCorrectlyBasedOnPageRecordDataProvider(): array
+    {
+        return [
+            'page record without tx_yoastseo_disable_analysis should enable analysis' => [
+                [],
+                true,
+            ],
+            'tx_yoastseo_disable_analysis set to 0 should enable analysis' => [
+                ['tx_yoastseo_disable_analysis' => '0'],
+                true,
+            ],
+            'tx_yoastseo_disable_analysis set to false should enable analysis' => [
+                ['tx_yoastseo_disable_analysis' => false],
+                true,
+            ],
+            'tx_yoastseo_disable_analysis set to 1 should disable analysis' => [
+                ['tx_yoastseo_disable_analysis' => '1'],
+                false,
+            ],
+            'tx_yoastseo_disable_analysis set to true should disable analysis' => [
+                ['tx_yoastseo_disable_analysis' => true],
                 false,
             ],
         ];

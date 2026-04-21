@@ -1,28 +1,37 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Service\PageLayoutHeader;
 
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Fluid\View\StandaloneView;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use TYPO3\CMS\Core\Configuration\Features;
+use YoastSeoForTypo3\YoastSeo\Service\StandaloneView\StandaloneViewServiceInterface;
 
+#[Autoconfigure(public: true)]
 class PageLayoutHeaderRenderer
 {
-    public function render(): string
-    {
-        $templateView = $this->getStandaloneView();
-        $templateView->setTemplatePathAndFilename(
-            GeneralUtility::getFileAbsFileName('EXT:yoast_seo/Resources/Private/Templates/PageLayout/Header.html')
-        );
-        $templateView->assignMultiple([
-            'targetElementId' => uniqid('_YoastSEO_panel_'),
-        ]);
-        return $templateView->render();
-    }
+    public function __construct(
+        protected StandaloneViewServiceInterface $standaloneViewService,
+        protected Features $features,
+    ) {}
 
-    protected function getStandaloneView(): StandaloneView
+    public function render(bool $snippetPreviewEnabled, bool $analysisEnabled): string
     {
-        return GeneralUtility::makeInstance(StandaloneView::class);
+        return $this->standaloneViewService->render(
+            'PageLayout/Header',
+            [
+                'inclusiveLanguageEnabled' => $this->features->isFeatureEnabled('yoastSeoInclusiveLanguage'),
+                'snippetPreviewEnabled' => $snippetPreviewEnabled,
+                'analysisEnabled' => $analysisEnabled,
+            ]
+        );
     }
 }

@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Record;
@@ -29,7 +36,7 @@ class RecordRegistry implements SingletonInterface
     public function removeRecord(string $tableName): void
     {
         if (isset($this->records[$tableName])) {
-            unset($this->records);
+            unset($this->records[$tableName]);
         }
     }
 

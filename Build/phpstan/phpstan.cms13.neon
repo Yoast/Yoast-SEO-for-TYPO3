@@ -1,15 +1,16 @@
 parameters:
   level: 8
+  reportUnmatchedIgnoredErrors: false
   paths:
     - ../../Classes
     - ../../Configuration
   excludePaths:
     - ../../Classes/Updates
+    - ../../Classes/Service/Frontend/LegacyFrontendService.php
+    - ../../Classes/Service/Hmac/LegacyHmacGeneratorService.php
+    - ../../Classes/Service/StandaloneView/LegacyStandaloneViewService.php
   ignoreErrors:
-    - '#TYPO3\\CMS\\Backend\\Template\\ModuleTemplate#'
-    - '#getRecordOverlay#'
-    - '#loadRequireJsModule#'
-    - '#get_cache_timeout#'
+    - '#defaultCacheTimoutInSeconds#'
   typo3:
     requestGetAttributeMapping:
         frontend.page.information: TYPO3\CMS\Frontend\Page\PageInformation

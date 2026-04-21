@@ -1,0 +1,15 @@
+<html data-namespace-typo3-fluid="true" xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers">
+<f:if condition="{image}">
+    <f:then>
+        <f:variable name="imageUrl" value="{f:uri.image(image: image, cropVariant: 'social', maxHeight: 150)}"/>
+    </f:then>
+    <f:else>
+        <f:variable name="imageUrl" value=""/>
+    </f:else>
+</f:if>
+<div class="yoast-social-preview">
+    <yoast-twitter-preview site-base="{siteBase}" title="" description=""
+                           image-url="{imageUrl}"></yoast-twitter-preview>
+</div>
+
+</html>

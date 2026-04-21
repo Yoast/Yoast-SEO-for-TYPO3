@@ -222,19 +222,19 @@ Options:
             - 15    maintained until 2027-11-11
             - 16    maintained until 2028-11-09
 
-    -t <11|12|13>
+    -t <12|13|14>
         Only with -s composerInstall|composerInstallLowest|composerInstallHighest
         Specifies the TYPO3 CORE Version to be used
-            - 11.5: use TYPO3 v11 (default)
-            - 12.4: use TYPO3 v12
-            - 13.3: use TYPO3 v13
+            - 12: use TYPO3 v12
+            - 13: use TYPO3 v13 (default)
+            - 14: use TYPO3 v14
 
-    -p <8.0|8.2|8.3|8.4>
+    -p <8.2|8.3|8.4|8.5>
         Specifies the PHP minor version to be used
-            - 8.0: use PHP 8.0
             - 8.2: (default) use PHP 8.2
             - 8.3: use PHP 8.3
             - 8.4: use PHP 8.4
+            - 8.5: use PHP 8.5
 
     -x
         Only with -s functional|unit
@@ -278,7 +278,7 @@ fi
 
 # Option defaults
 TEST_SUITE="help"
-TYPO3_VERSION="11"
+TYPO3_VERSION="13"
 EXTRA_TEST_OPTIONS=""
 DATABASE_DRIVER=""
 DBMS="sqlite"
@@ -320,7 +320,7 @@ while getopts "a:b:d:i:s:p:e:t:xy:nhu" OPT; do
             ;;
         p)
             PHP_VERSION=${OPTARG}
-            if ! [[ ${PHP_VERSION} =~ ^(8.0|8.1|8.2|8.3|8.4)$ ]]; then
+            if ! [[ ${PHP_VERSION} =~ ^(8.2|8.3|8.4|8.5)$ ]]; then
                 INVALID_OPTIONS+=("p ${OPTARG}")
             fi
             ;;
@@ -329,7 +329,7 @@ while getopts "a:b:d:i:s:p:e:t:xy:nhu" OPT; do
             ;;
         t)
             TYPO3_VERSION=${OPTARG}
-            if ! [[ ${TYPO3_VERSION} =~ ^(11|12|13)$ ]]; then
+            if ! [[ ${TYPO3_VERSION} =~ ^(12|13|14)$ ]]; then
                 INVALID_OPTIONS+=("-t ${OPTARG}")
             fi
             ;;
@@ -495,17 +495,17 @@ case ${TEST_SUITE} in
         cleanComposer
         stashComposerFiles
         ${CONTAINER_BIN} run ${CONTAINER_COMMON_PARAMS} --name composer-install-highest-${SUFFIX} -e COMPOSER_CACHE_DIR=.cache/composer -e COMPOSER_ROOT_VERSION=${COMPOSER_ROOT_VERSION} ${IMAGE_PHP} /bin/bash -c "
-            if [ ${TYPO3_VERSION} -eq 11 ]; then
-              composer require --no-ansi --no-interaction --no-progress --no-install \
-                typo3/cms-core:^11.5 typo3/cms-dashboard:^11.5 || exit 1
-            fi
             if [ ${TYPO3_VERSION} -eq 12 ]; then
               composer require --no-ansi --no-interaction --no-progress --no-install \
                 typo3/cms-core:^12.4 typo3/cms-dashboard:^12.4 || exit 1
             fi
             if [ ${TYPO3_VERSION} -eq 13 ]; then
               composer require --no-ansi --no-interaction --no-progress --no-install \
-                typo3/cms-core:^13.3 typo3/cms-dashboard:^13.3 || exit 1
+                typo3/cms-core:^13.4 typo3/cms-dashboard:^13.4 || exit 1
+            fi
+            if [ ${TYPO3_VERSION} -eq 14 ]; then
+              composer require --no-ansi --no-interaction --no-progress --no-install \
+                typo3/cms-core:^14.2 typo3/cms-dashboard:^14.2 || exit 1
             fi
             composer update --no-progress --no-interaction  || exit 1
             composer show || exit 1
@@ -517,17 +517,17 @@ case ${TEST_SUITE} in
         cleanComposer
         stashComposerFiles
         ${CONTAINER_BIN} run ${CONTAINER_COMMON_PARAMS} --name composer-install-lowest-${SUFFIX} -e COMPOSER_CACHE_DIR=.cache/composer -e COMPOSER_ROOT_VERSION=${COMPOSER_ROOT_VERSION} ${IMAGE_PHP} /bin/bash -c "
-            if [ ${TYPO3_VERSION} -eq 11 ]; then
-              composer require --no-ansi --no-interaction --no-progress --no-install \
-                typo3/cms-core:^11.5 typo3/cms-dashboard:^11.5 || exit 1
-            fi
             if [ ${TYPO3_VERSION} -eq 12 ]; then
               composer require --no-ansi --no-interaction --no-progress --no-install \
                 typo3/cms-core:^12.4 typo3/cms-dashboard:^12.4 || exit 1
             fi
             if [ ${TYPO3_VERSION} -eq 13 ]; then
               composer require --no-ansi --no-interaction --no-progress --no-install \
-                typo3/cms-core:^13.3 typo3/cms-dashboard:^13.3 || exit 1
+                typo3/cms-core:^13.4 typo3/cms-dashboard:^13.4 || exit 1
+            fi
+            if [ ${TYPO3_VERSION} -eq 14 ]; then
+              composer require --no-ansi --no-interaction --no-progress --no-install \
+                typo3/cms-core:^14.2 typo3/cms-dashboard:^14.2 || exit 1
             fi
             composer update --no-ansi --no-interaction --no-progress --with-dependencies --prefer-lowest || exit 1
             composer show || exit 1

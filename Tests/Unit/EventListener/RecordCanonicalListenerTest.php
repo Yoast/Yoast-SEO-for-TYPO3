@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Tests\Unit\EventListener;
@@ -37,7 +44,8 @@ class RecordCanonicalListenerTest extends UnitTestCase
 
         $event->expects(self::never())->method('setUrl');
 
-        $this->subject->setCanonical($event);
+        $invokeSubject = $this->subject;
+        $invokeSubject($event);
     }
 
     #[Test]
@@ -51,7 +59,8 @@ class RecordCanonicalListenerTest extends UnitTestCase
 
         $event->expects(self::never())->method('setUrl');
 
-        $this->subject->setCanonical($event);
+        $invokeSubject = $this->subject;
+        $invokeSubject($event);
     }
 
     #[Test]
@@ -69,6 +78,7 @@ class RecordCanonicalListenerTest extends UnitTestCase
 
         $event->expects(self::once())->method('setUrl')->with('https://example.com');
 
-        $this->subject->setCanonical($event);
+        $invokeSubject = $this->subject;
+        $invokeSubject($event);
     }
 }

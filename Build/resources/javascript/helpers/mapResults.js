@@ -1,8 +1,8 @@
-import { interpreters } from "yoastseo";
-import { default as colors } from "../colors.json";
-import { __ } from "@wordpress/i18n";
+import {interpreters} from "yoastseo";
+import {default as colors} from "../colors.json";
+import {__} from "@wordpress/i18n";
 
-const { scoreToRating } = interpreters;
+const {scoreToRating} = interpreters;
 
 /**
  * Mapped result definition.
@@ -34,7 +34,7 @@ const { scoreToRating } = interpreters;
  *
  * @returns {MappedResult} The mapped result.
  */
-function mapResult( result, key = "" ) {
+function mapResult(result, key = "") {
     const id = result.getIdentifier();
     const mappedResult = {
         score: result.score,
@@ -47,7 +47,7 @@ function mapResult( result, key = "" ) {
     };
 
     // Because of inconsistency between YoastSEO and yoast-components.
-    if ( mappedResult.rating === "ok" ) {
+    if (mappedResult.rating === "ok") {
         mappedResult.rating = "OK";
     }
 
@@ -62,22 +62,22 @@ function mapResult( result, key = "" ) {
  *
  * @returns {MappedResults} The mapped results object with the added result.
  */
-function processResult( mappedResult, mappedResults ) {
-    switch ( mappedResult.rating ) {
+function processResult(mappedResult, mappedResults) {
+    switch (mappedResult.rating) {
         case "error":
-            mappedResults.errorsResults.push( mappedResult );
+            mappedResults.errorsResults.push(mappedResult);
             break;
         case "feedback":
-            mappedResults.considerationsResults.push( mappedResult );
+            mappedResults.considerationsResults.push(mappedResult);
             break;
         case "bad":
-            mappedResults.problemsResults.push( mappedResult );
+            mappedResults.problemsResults.push(mappedResult);
             break;
         case "OK":
-            mappedResults.improvementsResults.push( mappedResult );
+            mappedResults.improvementsResults.push(mappedResult);
             break;
         case "good":
-            mappedResults.goodResults.push( mappedResult );
+            mappedResults.goodResults.push(mappedResult);
             break;
     }
     return mappedResults;
@@ -90,21 +90,21 @@ function processResult( mappedResult, mappedResults ) {
  *
  * @returns {Object} The icon and color for the score.
  */
-export function getIconForScore( score ) {
-    let icon = { icon: "seo-score-none", color: colors.$color_grey_disabled };
+export function getIconForScore(score) {
+    let icon = {icon: "seo-score-none", color: colors.$color_grey_disabled};
 
-    switch ( score ) {
+    switch (score) {
         case "loading":
-            icon = { icon: "loading-spinner", color: colors.$color_green_medium_light };
+            icon = {icon: "loading-spinner", color: colors.$color_green_medium_light};
             break;
         case "good":
-            icon = { icon: "seo-score-good", color: colors.$color_green_medium };
+            icon = {icon: "seo-score-good", color: colors.$color_green_medium};
             break;
         case "ok":
-            icon = { icon: "seo-score-ok", color: colors.$color_ok };
+            icon = {icon: "seo-score-ok", color: colors.$color_ok};
             break;
         case "bad":
-            icon = { icon: "seo-score-bad", color: colors.$color_red };
+            icon = {icon: "seo-score-bad", color: colors.$color_red};
             break;
     }
 
@@ -116,18 +116,18 @@ export function getIconForScore( score ) {
  *
  * @returns {string}
  */
-export function getTextForScore( score ) {
+export function getTextForScore(score) {
     let scoreText = '-';
 
-    switch ( score ) {
+    switch (score) {
         case "good":
-            scoreText = __( "Good", "wordpress-seo" );
+            scoreText = __("Good", "wordpress-seo");
             break;
         case "ok":
-            scoreText = __( "OK", "wordpress-seo" );
+            scoreText = __("OK", "wordpress-seo");
             break;
         case "bad":
-            scoreText = __( "Needs improvement", "wordpress-seo" );
+            scoreText = __("Needs improvement", "wordpress-seo");
             break;
     }
 
@@ -139,15 +139,18 @@ export function getTextForScore( score ) {
  *
  * @returns {string}
  */
-export function getTypeLabelForScore( type ) {
+export function getTypeLabelForScore(type) {
     let scoreLabel = '';
 
     switch (type) {
         case "readability":
-            scoreLabel = __( "Readability analysis:", "wordpress-seo" );
+            scoreLabel = __("Readability analysis:", "wordpress-seo");
             break;
         case "seo":
-            scoreLabel = __( "SEO analysis:", "wordpress-seo" );
+            scoreLabel = __("SEO analysis:", "wordpress-seo");
+            break;
+        case "inclusiveLanguage":
+            scoreLabel = __("Inclusive language:", "wordpress-seo");
             break;
     }
 
@@ -165,7 +168,7 @@ export function getTypeLabelForScore( type ) {
  *
  * @returns {MappedResults} The mapped results.
  */
-export function mapResults( results, keywordKey = "" ) {
+export function mapResults(results, keywordKey = "") {
     let mappedResults = {
         errorsResults: [],
         problemsResults: [],
@@ -173,16 +176,16 @@ export function mapResults( results, keywordKey = "" ) {
         goodResults: [],
         considerationsResults: [],
     };
-    if ( ! results ) {
+    if (!results) {
         return mappedResults;
     }
-    for ( let i = 0; i < results.length; i++ ) {
-        const result = results[ i ];
-        if ( ! result.text ) {
+    for (let i = 0; i < results.length; i++) {
+        const result = results[i];
+        if (!result.text) {
             continue;
         }
-        const mappedResult = mapResult( result, keywordKey );
-        mappedResults = processResult( mappedResult, mappedResults );
+        const mappedResult = mapResult(result, keywordKey);
+        mappedResults = processResult(mappedResult, mappedResults);
     }
     return mappedResults;
 }

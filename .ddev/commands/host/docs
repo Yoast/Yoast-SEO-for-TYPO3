@@ -1,3 +1,9 @@
 #!/bin/bash
 
-docker compose -f .ddev/docker-compose.docs.yaml up docs
+#docker compose -f .ddev/docker-compose.docs.yaml up docs
+
+docker run --rm \
+  -v "$(pwd)/:/PROJECT:ro" \
+  -v "$(pwd)/Documentation-GENERATED-temp:/RESULT" \
+  ghcr.io/t3docs/render-documentation:latest \
+  makehtml

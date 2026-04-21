@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Service;
@@ -9,29 +16,31 @@ use TYPO3\CMS\Core\Context\LanguageAspect;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
-use TYPO3\CMS\Core\Exception\SiteNotFoundException;
-use TYPO3\CMS\Core\Information\Typo3Version;
-use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 use YoastSeoForTypo3\YoastSeo\Traits\LanguageServiceTrait;
 
 class LinkingSuggestionsService
 {
     use LanguageServiceTrait;
 
-    protected const PROMINENT_WORDS_TABLE = 'tx_yoastseo_prominent_word';
-
     protected int $excludePageId;
     protected int $site;
     protected int $languageId;
 
+    /**
+     * @var array<string, int>
+     */
+    protected array $documentFrequencyCache = [];
+
     public function __construct(
         protected ConnectionPool $connectionPool,
-        protected PageRepository $pageRepository
+        protected PageRepository $pageRepository,
+        protected SiteService $siteService,
     ) {}
 
     /**
-     * @param array<array{_occurrences: int, _stem: string}> $words
+     * @param array<array{occurrences: int, stem: string}> $words
      * @return array<array<string, mixed>>
      */
     public function getLinkingSuggestions(
@@ -44,10 +53,11 @@ class LinkingSuggestionsService
             return [];
         }
         $this->excludePageId = $excludePageId;
-        $this->site = $this->getSiteRootPageId($excludePageId);
+        $this->site = $this->siteService->getSiteRootPageId($excludePageId);
         $this->languageId = $languageId;
+        $this->documentFrequencyCache = [];
 
-        $words = array_column($words, '_occurrences', '_stem');
+        $words = array_column($words, 'occurrences', 'stem');
 
         // Combine stems, weights and DFs from request
         $requestData = $this->composeRequestData($words);
@@ -57,7 +67,7 @@ class LinkingSuggestionsService
 
         $requestStems = array_keys($requestData);
         $scores = [];
-        $batchSize = 1000;
+        $batchSize = 100;
         $page = 1;
 
         do {
@@ -118,38 +128,40 @@ class LinkingSuggestionsService
             return [];
         }
 
-        $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::PROMINENT_WORDS_TABLE);
-        $rawDocFrequencies = $queryBuilder->select('stem')
-            ->addSelectLiteral('COUNT(stem) AS document_frequency')
-            ->from(self::PROMINENT_WORDS_TABLE)
-            ->where(
+        $uncachedStems = array_values(array_filter(
+            $stems,
+            fn(string $stem): bool => !isset($this->documentFrequencyCache[$stem])
+        ));
+
+        if ($uncachedStems !== []) {
+            $queryBuilder = $this->connectionPool->getQueryBuilderForTable(TableNames::PROMINENT_WORD);
+            $rawDocFrequencies = $queryBuilder->select('stem')->addSelectLiteral('COUNT(stem) AS document_frequency')->from(
+                TableNames::PROMINENT_WORD
+            )->where(
                 $queryBuilder->expr()->in(
                     'stem',
-                    $queryBuilder->createNamedParameter($stems, Connection::PARAM_STR_ARRAY)
+                    $queryBuilder->createNamedParameter($uncachedStems, Connection::PARAM_STR_ARRAY)
                 ),
                 $queryBuilder->expr()->eq('sys_language_uid', $this->languageId),
                 $queryBuilder->expr()->eq('site', $this->site)
-            )
-            ->groupBy('stem')
-            ->executeQuery()
-            ->fetchAllAssociative();
+            )->groupBy('stem')->executeQuery()->fetchAllAssociative();
 
-        $stems = array_map(
-            static function ($item) {
-                return $item['stem'];
-            },
-            $rawDocFrequencies
-        );
+            foreach ($rawDocFrequencies as $rawDocFrequency) {
+                $this->documentFrequencyCache[(string)$rawDocFrequency['stem']] = (int)$rawDocFrequency['document_frequency'];
+            }
+        }
 
-        $docFrequencies = array_fill_keys($stems, 0);
-        foreach ($rawDocFrequencies as $rawDocFrequency) {
-            $docFrequencies[$rawDocFrequency['stem']] = (int)$rawDocFrequency['document_frequency'];
+        $docFrequencies = [];
+        foreach ($stems as $stem) {
+            if (isset($this->documentFrequencyCache[$stem])) {
+                $docFrequencies[$stem] = $this->documentFrequencyCache[$stem];
+            }
         }
         return $docFrequencies;
     }
 
     /**
-     * @param array<string, array{weight: int, df: int}> $prominentWords
+     * @param array<string, array{weight: int, df?: int}> $prominentWords
      */
     protected function computeVectorLength(array $prominentWords): float
     {
@@ -194,34 +206,15 @@ class LinkingSuggestionsService
         }
 
         $prominentWords = $this->getProminentWords($records);
-        $prominentStems = array_column($prominentWords, 'stem');
+        $prominentStems = array_unique(array_column($prominentWords, 'stem'));
 
-        $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::PROMINENT_WORDS_TABLE);
-        $documentFreqs = $queryBuilder->select('stem')
-            ->addSelectLiteral('COUNT(uid) AS count')
-            ->from(self::PROMINENT_WORDS_TABLE)
-            ->where(
-                $queryBuilder->expr()->in(
-                    'stem',
-                    $queryBuilder->createNamedParameter($prominentStems, Connection::PARAM_STR_ARRAY)
-                ),
-                $queryBuilder->expr()->eq('site', $this->site),
-                $queryBuilder->expr()->eq('sys_language_uid', $this->languageId)
-            )
-            ->groupBy('stem')
-            ->executeQuery()
-            ->fetchAllAssociative();
-
-        $stemCounts = [];
-        foreach ($documentFreqs as $documentFreq) {
-            $stemCounts[$documentFreq['stem']] = $documentFreq['count'];
-        }
+        $stemCounts = $this->countDocumentFrequencies($prominentStems);
 
         foreach ($prominentWords as &$prominentWord) {
-            if (!array_key_exists($prominentWord['stem'], $stemCounts)) {
+            if (!isset($stemCounts[$prominentWord['stem']])) {
                 continue;
             }
-            $prominentWord['df'] = (int)$stemCounts[$prominentWord['stem']];
+            $prominentWord['df'] = $stemCounts[$prominentWord['stem']];
         }
         return $prominentWords;
     }
@@ -232,17 +225,15 @@ class LinkingSuggestionsService
      */
     protected function findRecordsByStems(array $stems, int $batchSize, int $page): array
     {
-        $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::PROMINENT_WORDS_TABLE);
-        $queryBuilder->select('pid', 'tablenames')
-            ->from(self::PROMINENT_WORDS_TABLE)
-            ->where(
-                $queryBuilder->expr()->in(
-                    'stem',
-                    $queryBuilder->createNamedParameter($stems, Connection::PARAM_STR_ARRAY)
-                ),
-                $queryBuilder->expr()->eq('sys_language_uid', $this->languageId),
-                $queryBuilder->expr()->eq('site', $this->site)
-            )
+        $queryBuilder = $this->connectionPool->getQueryBuilderForTable(TableNames::PROMINENT_WORD);
+        $queryBuilder->select('pid', 'tablenames')->from(TableNames::PROMINENT_WORD)->where(
+            $queryBuilder->expr()->in(
+                'stem',
+                $queryBuilder->createNamedParameter($stems, Connection::PARAM_STR_ARRAY)
+            ),
+            $queryBuilder->expr()->eq('sys_language_uid', $this->languageId),
+            $queryBuilder->expr()->eq('site', $this->site)
+        )->groupBy('pid', 'tablenames')
             ->setMaxResults($batchSize)
             ->setFirstResult(($page - 1) * $batchSize);
         /** @var array<array{pid: int, tablenames: string}> $records */
@@ -256,22 +247,25 @@ class LinkingSuggestionsService
      */
     protected function getProminentWords(array $records): array
     {
-        $queryBuilder = $this->connectionPool->getQueryBuilderForTable(self::PROMINENT_WORDS_TABLE);
-        $orStatements = [];
+        // Group pids by tablename to use efficient IN() clauses instead of OR chains
+        $pidsByTable = [];
         foreach ($records as $record) {
-            $orStatements[] = $queryBuilder->expr()->and(
-                $queryBuilder->expr()->eq('pid', $record['pid']),
-                $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($record['tablenames'])),
-                $queryBuilder->expr()->eq(
-                    'sys_language_uid',
-                    $queryBuilder->createNamedParameter($this->languageId, Connection::PARAM_INT)
-                )
+            $pidsByTable[$record['tablenames']][] = (int)$record['pid'];
+        }
+
+        $queryBuilder = $this->connectionPool->getQueryBuilderForTable(TableNames::PROMINENT_WORD);
+        $tableConditions = [];
+        foreach ($pidsByTable as $tablename => $pids) {
+            $tableConditions[] = $queryBuilder->expr()->and(
+                $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($tablename)),
+                $queryBuilder->expr()->in('pid', $queryBuilder->createNamedParameter($pids, Connection::PARAM_INT_ARRAY))
             );
         }
-        $queryBuilder->select('stem', 'weight', 'pid', 'tablenames', 'uid_foreign')
-            ->from(self::PROMINENT_WORDS_TABLE)
+
+        $queryBuilder->select('stem', 'weight', 'pid', 'tablenames', 'uid_foreign')->from(TableNames::PROMINENT_WORD)
             ->where(
-                $queryBuilder->expr()->or(...$orStatements)
+                $queryBuilder->expr()->eq('sys_language_uid', $this->languageId),
+                $queryBuilder->expr()->or(...$tableConditions)
             );
         /** @var array<array{stem: string, weight: int, pid: int, tablenames: string, uid_foreign: int}> $prominentWords */
         $prominentWords = $queryBuilder->executeQuery()->fetchAllAssociative();
@@ -378,7 +372,7 @@ class LinkingSuggestionsService
         $links = [];
         foreach ($scores as $record => $score) {
             [$uid, $table] = explode('-', $record);
-            if ($table === 'pages' && (int)$uid === $this->excludePageId) {
+            if ($table === TableNames::PAGES && (int)$uid === $this->excludePageId) {
                 continue;
             }
 
@@ -386,8 +380,7 @@ class LinkingSuggestionsService
             if ($data === null) {
                 continue;
             }
-            if ($this->languageId > 0
-                && ($overlay = $this->getRecordOverlay($table, $data, $this->languageId))) {
+            if ($this->languageId > 0 && ($overlay = $this->getRecordOverlay($table, $data, $this->languageId))) {
                 $data = $overlay;
             }
 
@@ -396,7 +389,7 @@ class LinkingSuggestionsService
             $links[$record] = [
                 'label' => $data[$labelField],
                 'recordType' => $this->getRecordType($table),
-                'id' => $uid,
+                'id' => (int)$uid,
                 'table' => $table,
                 'cornerstone' => (int)($data['tx_yoastseo_cornerstone'] ?? 0),
                 'score' => $score,
@@ -416,7 +409,7 @@ class LinkingSuggestionsService
      */
     protected function sortSuggestions(array &$links): void
     {
-        usort(
+        uasort(
             $links,
             static function ($suggestion1, $suggestion2) {
                 if ($suggestion1['score'] === $suggestion2['score']) {
@@ -450,20 +443,10 @@ class LinkingSuggestionsService
         $currentLinks = [];
         preg_match_all('/<a href="t3:\/\/(.*)\?uid=([\d]+)/', $content, $matches, PREG_SET_ORDER);
         foreach ($matches as $match) {
-            $key = (int)$match[2] . '-' . str_replace('page', 'pages', $match[1]);
+            $key = (int)$match[2] . '-' . str_replace('page', TableNames::PAGES, $match[1]);
             $currentLinks[$key] = true;
         }
         return $currentLinks;
-    }
-
-    protected function getSiteRootPageId(int $pageUid): int
-    {
-        try {
-            $site = GeneralUtility::makeInstance(SiteFinder::class)->getSiteByPageId($pageUid);
-            return $site->getRootPageId();
-        } catch (SiteNotFoundException $e) {
-            return 0;
-        }
     }
 
     protected function getRecordType(string $table): string
@@ -479,10 +462,6 @@ class LinkingSuggestionsService
      */
     protected function getRecordOverlay(string $table, array $data, int $languageId): array|null
     {
-        if (is_callable([$this->pageRepository, 'getRecordOverlay'])
-            && GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() < 12) {
-            return $this->pageRepository->getRecordOverlay($table, $data, $languageId, 'mixed');
-        }
         $languageAspect = GeneralUtility::makeInstance(LanguageAspect::class, $languageId, $languageId, 'mixed');
         return $this->pageRepository->getLanguageOverlay($table, $data, $languageAspect);
     }

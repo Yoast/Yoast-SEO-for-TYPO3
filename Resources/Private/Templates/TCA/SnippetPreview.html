@@ -1,28 +1,30 @@
-<html data-namespace-typo3-fluid="true">
-	<f:if condition="{previewUrl}">
-		<f:then>
-			<div id="{previewTargetId}" class="yoast-seo-snippet-preview yoast-seo-snippet-preview-styling" data-yoast-snippetpreview>
-				<f:render partial="Spinner" />
-			</div>
-		</f:then>
-		<f:else>
-			<f:if condition="{wrongDoktype}">
-				<div class="callout callout-warning">
-					<div class="media">
-						<div class="media-left">
-							<span class="fa-stack fa-lg callout-icon">
-								<i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-times fa-stack-1x"></i>
-							</span>
-						</div>
-						<div class="media-body">
-							<div class="callout-body">
-								<h4 class="callout-title"><f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:wrongDoktype.title" /></h4>
-								<f:translate key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:wrongDoktype.description" />
-							</div>
-						</div>
-					</div>
-				</div>
-			</f:if>
-		</f:else>
-	</f:if>
+<html data-namespace-typo3-fluid="true" xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers">
+<f:if condition="{wrongDoktype}">
+    <f:then>
+        <div class="callout callout-warning">
+            <div class="media">
+                <div class="media-left">
+                        <span class="fa-stack fa-lg callout-icon">
+                            <i class="fa fa-circle fa-stack-2x"></i><i class="fa fa-times fa-stack-1x"></i>
+                        </span>
+                </div>
+                <div class="media-body">
+                    <div class="callout-body">
+                        <h4 class="callout-title">
+                            <f:translate
+                                    key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:wrongDoktype.title"/>
+                        </h4>
+                        <f:translate
+                                key="LLL:EXT:yoast_seo/Resources/Private/Language/BackendModule.xlf:wrongDoktype.description"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </f:then>
+    <f:else>
+        <div class="yoast-seo-snippet-preview">
+            <yoast-snippet-preview title="" description=""></yoast-snippet-preview>
+        </div>
+    </f:else>
+</f:if>
 </html>

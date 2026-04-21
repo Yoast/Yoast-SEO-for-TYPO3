@@ -1,23 +1,34 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
 use TYPO3\CodingStandards\CsFixerConfig;
 
-$config = CsFixerConfig::create();
-/// TODO: This construction can be removed when 11 support is dropped
-if (method_exists($config, 'setParallelConfig')) {
-    $config->setParallelConfig(ParallelConfigFactory::detect());
-} else {
-    // Old TYPO3 config standards so manually add some rules
-    $config->addRules([
-        'single_line_empty_body' => true
-    ]);
-}
+$header = <<<HEADER
+This file is part of the "yoast_seo" extension for TYPO3 CMS.
 
-// TODO: This construction can be removed when 11 support is dropped
-$config->addRules([
-    'php_unit_test_case_static_method_calls' => false,
-]);
+For the full copyright and license information, please read the
+LICENSE.txt file that was distributed with this source code.
+HEADER;
+
+$config = CsFixerConfig::create();
+$config->setParallelConfig(ParallelConfigFactory::detect());
+$config->addRules(
+    [
+        'header_comment' => [
+            'header' => $header,
+            'location' => 'after_open',
+            'separate' => 'both',
+            'comment_type' => 'PHPDoc',
+        ],
+    ]
+);
 
 $config->getFinder()->in('Classes')->in('Configuration')->in('Tests');
 return $config;

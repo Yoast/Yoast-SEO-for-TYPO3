@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\DataProviders;
@@ -7,6 +14,7 @@ namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 use Doctrine\DBAL\Result;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 
 class CornerstoneOverviewDataProvider extends AbstractOverviewDataProvider
 {
@@ -35,7 +43,7 @@ class CornerstoneOverviewDataProvider extends AbstractOverviewDataProvider
      */
     public function getResults(array $pageIds = []): ?Result
     {
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(self::PAGES_TABLE);
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(TableNames::PAGES);
 
         $constraints = [
             $queryBuilder->expr()->eq('sys_language_uid', $this->dataProviderRequest->getLanguage()),
@@ -44,13 +52,13 @@ class CornerstoneOverviewDataProvider extends AbstractOverviewDataProvider
 
         if (count($pageIds) > 0) {
             $constraints[] = $queryBuilder->expr()->in(
-                $this->dataProviderRequest->getLanguage() > 0 ? $GLOBALS['TCA']['pages']['ctrl']['transOrigPointerField'] : 'uid',
+                $this->dataProviderRequest->getLanguage() > 0 ? $GLOBALS['TCA'][TableNames::PAGES]['ctrl']['transOrigPointerField'] : 'uid',
                 $pageIds
             );
         }
 
         return $queryBuilder->select('*')
-            ->from(self::PAGES_TABLE)
+            ->from(TableNames::PAGES)
             ->where(...$constraints)
             ->executeQuery();
     }

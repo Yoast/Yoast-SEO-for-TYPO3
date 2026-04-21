@@ -1,12 +1,18 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Service;
 
-use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 
 class TcaService
 {
@@ -24,6 +30,7 @@ class TcaService
         $this->descriptionField = $descriptionField;
 
         $this->addDefaultFields();
+        $this->addSocialPreviewFields();
 
         $this->addPalettes();
         $this->addToTypes();
@@ -35,7 +42,12 @@ class TcaService
             'tx_yoastseo_snippetpreview' => [
                 'label' => self::LL_PREFIX_BACKEND . 'snippetPreview',
                 'exclude' => true,
-                'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
+                'displayCond' => [
+                    'OR' => [
+                        'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
+                        'FIELD:tx_yoastseo_disable_analysis:REQ:false',
+                    ],
+                ],
                 'config' => [
                     'type' => 'none',
                     'renderType' => 'snippetPreview',
@@ -48,7 +60,7 @@ class TcaService
             'tx_yoastseo_readability_analysis' => [
                 'label' => self::LL_PREFIX_BACKEND . 'analysis',
                 'exclude' => true,
-                'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
+                'displayCond' => 'FIELD:tx_yoastseo_disable_analysis:REQ:false',
                 'config' => [
                     'type' => 'none',
                     'renderType' => 'readabilityAnalysis',
@@ -57,7 +69,7 @@ class TcaService
             'tx_yoastseo_focuskeyword' => [
                 'label' => self::LL_PREFIX_BACKEND . 'seoFocusKeyword',
                 'exclude' => true,
-                'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
+                'displayCond' => 'FIELD:tx_yoastseo_disable_analysis:REQ:false',
                 'config' => [
                     'type' => 'input',
                 ],
@@ -65,7 +77,7 @@ class TcaService
             'tx_yoastseo_focuskeyword_analysis' => [
                 'label' => self::LL_PREFIX_BACKEND . 'analysis',
                 'exclude' => true,
-                'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
+                'displayCond' => 'FIELD:tx_yoastseo_disable_analysis:REQ:false',
                 'config' => [
                     'type' => 'none',
                     'renderType' => 'focusKeywordAnalysis',
@@ -77,6 +89,7 @@ class TcaService
             'tx_yoastseo_cornerstone' => [
                 'label' => '',
                 'exclude' => true,
+                'displayCond' => 'FIELD:tx_yoastseo_disable_analysis:REQ:false',
                 'config' => [
                     'type' => 'input',
                     'default' => 0,
@@ -100,9 +113,10 @@ class TcaService
             'tx_yoastseo_focuskeyword_related' => [
                 'label' => self::LL_PREFIX_TCA . 'pages.fields.tx_yoastseo_focuskeyword_related',
                 'exclude' => true,
+                'displayCond' => 'FIELD:tx_yoastseo_disable_analysis:REQ:false',
                 'config' => [
                     'type' => 'inline',
-                    'foreign_table' => 'tx_yoastseo_related_focuskeyword',
+                    'foreign_table' => TableNames::RELATED_FOCUSKEYWORD,
                     'foreign_field' => 'uid_foreign',
                     'foreign_table_field' => 'tablenames',
                     'maxitems' => 5,
@@ -110,6 +124,7 @@ class TcaService
             ],
             'tx_yoastseo_insights' => [
                 'exclude' => true,
+                'displayCond' => 'FIELD:tx_yoastseo_disable_analysis:REQ:false',
                 'config' => [
                     'type' => 'none',
                     'renderType' => 'insights',
@@ -118,7 +133,7 @@ class TcaService
             'tx_yoastseo_focuskeyword_synonyms' => [
                 'label' => self::LL_PREFIX_TCA . 'synonyms',
                 'exclude' => true,
-                'displayCond' => 'FIELD:tx_yoastseo_hide_snippet_preview:REQ:false',
+                'displayCond' => 'FIELD:tx_yoastseo_disable_analysis:REQ:false',
                 'config' => [
                     'type' => 'input',
                 ],
@@ -151,7 +166,15 @@ class TcaService
                 ],
             ],
         ];
-        if ($this->table === 'pages') {
+        if ($this->table === TableNames::PAGES) {
+            $columns['tx_yoastseo_disable_analysis'] = [
+                'label' => self::LL_PREFIX_BACKEND . 'disableAnalysis',
+                'exclude' => true,
+                'onChange' => 'reload',
+                'config' => [
+                    'type' => 'check',
+                ],
+            ];
             $columns['tx_yoastseo_hide_snippet_preview'] = [
                 'label' => self::LL_PREFIX_BACKEND . 'hideSnippetPreview',
                 'exclude' => true,
@@ -163,6 +186,47 @@ class TcaService
         ExtensionManagementUtility::addTCAcolumns(
             $this->table,
             $columns
+        );
+    }
+
+    protected function addSocialPreviewFields(): void
+    {
+        ExtensionManagementUtility::addTCAcolumns(
+            $this->table,
+            [
+                'tx_yoastseo_facebook_preview' => [
+                    'label' => self::LL_PREFIX_TCA . 'pages.fields.tx_yoastseo_facebook_preview',
+                    'exclude' => true,
+                    'displayCond' => 'FIELD:tx_yoastseo_disable_analysis:REQ:false',
+                    'config' => [
+                        'type' => 'none',
+                        'renderType' => 'facebookPreview',
+                    ],
+                ],
+                'tx_yoastseo_twitter_preview' => [
+                    'label' => self::LL_PREFIX_TCA . 'pages.fields.tx_yoastseo_twitter_preview',
+                    'exclude' => true,
+                    'displayCond' => 'FIELD:tx_yoastseo_disable_analysis:REQ:false',
+                    'config' => [
+                        'type' => 'none',
+                        'renderType' => 'twitterPreview',
+                    ],
+                ],
+            ]
+        );
+
+        ExtensionManagementUtility::addFieldsToPalette(
+            TableNames::PAGES,
+            'opengraph',
+            'tx_yoastseo_facebook_preview,--linebreak--',
+            'before:og_title'
+        );
+
+        ExtensionManagementUtility::addFieldsToPalette(
+            TableNames::PAGES,
+            'twittercards',
+            'tx_yoastseo_twitter_preview,--linebreak--',
+            'before:twitter_title'
         );
     }
 
@@ -217,8 +281,10 @@ class TcaService
         ExtensionManagementUtility::addFieldsToPalette(
             $this->table,
             'yoast-advanced',
-            '--linebreak--, tx_yoastseo_hide_snippet_preview'
+            '--linebreak--, tx_yoastseo_disable_analysis, tx_yoastseo_hide_snippet_preview'
         );
+        $GLOBALS['TCA'][$this->table]['palettes']['yoast-advanced']['description']
+            = self::LL_PREFIX_TCA . 'pages.palettes.advanced.description';
     }
 
     protected function addToTypes(): void
@@ -249,7 +315,7 @@ class TcaService
 
         ExtensionManagementUtility::addToAllTCAtypes(
             $this->table,
-            '--palette--;' . self::LL_PREFIX_TCA . 'pages.palettes.advances;yoast-advanced,',
+            '--palette--;' . self::LL_PREFIX_TCA . 'pages.palettes.advanced;yoast-advanced,',
             $this->types,
             'after: sitemap_priority'
         );
@@ -260,20 +326,11 @@ class TcaService
      */
     protected function getInvertedCheckbox(): array
     {
-        if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() >= 12) {
-            return [
-                [
-                    1 => '',
-                    'invertStateDisplay' => true,
-                    'label' => '',
-                ],
-            ];
-        }
         return [
             [
-                0 => '',
                 1 => '',
                 'invertStateDisplay' => true,
+                'label' => '',
             ],
         ];
     }

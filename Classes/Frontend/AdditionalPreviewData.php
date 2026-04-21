@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Frontend;
@@ -9,6 +16,7 @@ use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
+use YoastSeoForTypo3\YoastSeo\Service\Frontend\FrontendServiceInterface;
 use YoastSeoForTypo3\YoastSeo\Service\YoastRequestService;
 
 class AdditionalPreviewData implements SingletonInterface
@@ -17,24 +25,29 @@ class AdditionalPreviewData implements SingletonInterface
     protected array $config;
 
     public function __construct(
-        protected YoastRequestService $yoastRequestService
-    ) {
-        $this->config = $GLOBALS['TSFE']->tmpl->setup['config.'] ?? [];
-    }
+        protected YoastRequestService $yoastRequestService,
+        protected FrontendServiceInterface $frontendService,
+    ) {}
 
     /**
      * @param array<string, mixed> $params
      */
     public function render(array &$params, object $pObj): void
     {
-        $serverParams = $GLOBALS['TYPO3_REQUEST'] ? $GLOBALS['TYPO3_REQUEST']->getServerParams() : $_SERVER;
-        if (!$this->yoastRequestService->isValidRequest($serverParams)) {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if ($request === null || !$this->yoastRequestService->isValidRequest($request->getServerParams())) {
             return;
         }
 
-        $config = $this->getPageTitlePrependAppend();
+        $this->config = $this->frontendService->getTyposcriptConfiguration();
+
+        $pageTitleConfiguration = $this->getPageTitlePrependAppend();
         setcookie('yoast-preview-tstamp', (string)time()); // To prevent caching in for example varnish
-        $params['headerData']['YoastPreview'] = '<meta name="x-yoast-title-config" value="' . $config['prepend'] . '|||' . $config['append'] . '" />';
+        $params['headerData']['YoastPreview'] = sprintf(
+            '<meta name="x-yoast-title-config" value="%s|||%s" />',
+            $pageTitleConfiguration['prepend'],
+            $pageTitleConfiguration['append']
+        );
     }
 
     protected function getWebsiteTitle(): string

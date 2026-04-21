@@ -1,17 +1,26 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Service\Overview;
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Pagination\ArrayPaginator;
+use TYPO3\CMS\Core\Pagination\SlidingWindowPagination;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Extbase\Mvc\RequestInterface;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 use YoastSeoForTypo3\YoastSeo\Controller\OverviewController;
 use YoastSeoForTypo3\YoastSeo\DataProviders\OverviewDataProviderInterface;
 use YoastSeoForTypo3\YoastSeo\Service\Overview\Dto\DataProviderRequest;
 use YoastSeoForTypo3\YoastSeo\Service\Overview\Dto\OverviewData;
-use YoastSeoForTypo3\YoastSeo\Service\Overview\Pagination\PaginationService;
 use YoastSeoForTypo3\YoastSeo\Traits\BackendUserTrait;
 
 class OverviewService
@@ -25,7 +34,6 @@ class OverviewService
      * @param iterable<string, OverviewDataProviderInterface> $filters
      */
     public function __construct(
-        protected PaginationService $overviewPaginationService,
         iterable $filters
     ) {
         foreach ($filters as $key => $dataProvider) {
@@ -48,11 +56,15 @@ class OverviewService
         $activeFilter = $this->getActiveFilter($request);
         $items = $activeFilter->process();
 
-        $arrayPaginator = $this->overviewPaginationService->getArrayPaginator($items, $currentPage, $itemsPerPage);
+        $arrayPaginator = new ArrayPaginator(
+            $items,
+            $currentPage,
+            $itemsPerPage
+        );
 
         return $overviewData->setItems($items)
             ->setPaginator($arrayPaginator)
-            ->setPagination($this->overviewPaginationService->getPagination($arrayPaginator))
+            ->setPagination(new SlidingWindowPagination($arrayPaginator, 15))
             ->setActiveFilter($activeFilter)
             ->setParams($this->getDataProviderRequest($request));
     }
@@ -95,7 +107,7 @@ class OverviewService
         return new DataProviderRequest(
             (int)($request->getQueryParams()['id'] ?? 0),
             (int)($request->getQueryParams()[OverviewController::REQUEST_ARGUMENT]['language'] ?? $request->getQueryParams()['language'] ?? 0),
-            'pages'
+            TableNames::PAGES
         );
     }
 

@@ -1,0 +1,27 @@
+{
+	"compilerOptions": {
+		"pretty": true,
+		"target": "es2020",
+		"module": "es2020",
+		"rootDir": "./src",
+		"moduleResolution": "bundler",
+		"paths": {
+			"@yoast/yoast-seo-for-typo3/*": ["./src/*"]
+		},
+		"typeRoots": ["node_modules/@types", "types"],
+		"outDir": "../../Resources/Public/JavaScript",
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"strict": true,
+		"alwaysStrict": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"exactOptionalPropertyTypes": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUncheckedIndexedAccess": true,
+		"noPropertyAccessFromIndexSignature": true,
+		"isolatedModules": true
+	},
+	"include": ["src/**/*"]
+}
