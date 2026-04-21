@@ -14,15 +14,13 @@ $EM_CONF[$_EXTKEY] = [
     'author' => 'MaxServ / Yoast',
     'author_company' => 'MaxServ B.V., Yoast',
     'author_email' => '',
-    'clearCacheOnLoad' => 0,
     'state' => 'stable',
-    'uploadfolder' => 0,
-    'version' => '11.1.0',
+    'version' => '12.0.0',
     'constraints' => [
         'depends' => [
-            'typo3' => '12.4.0-14.4.99',
-            'seo' => '12.4.0-14.4.99',
-            'frontend_request' => '1.0.0-1.99.99',
+            'typo3' => '12.4.0-14.3.99',
+            'seo' => '12.4.0-14.3.99',
+            'frontend_request' => '2.0.0-2.99.99',
         ],
     ],
     'autoload' => [

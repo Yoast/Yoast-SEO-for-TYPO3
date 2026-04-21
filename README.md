@@ -1,4 +1,5 @@
 [![Latest Stable Version](https://poser.pugx.org/yoast-seo-for-typo3/yoast_seo/v/stable)](https://extensions.typo3.org/extension/yoast_seo/)
+[![TYPO3 14](https://img.shields.io/badge/TYPO3-14-orange.svg?style=flat-square)](https://get.typo3.org/version/14)
 [![TYPO3 13](https://img.shields.io/badge/TYPO3-13-orange.svg?style=flat-square)](https://get.typo3.org/version/13)
 [![TYPO3 12](https://img.shields.io/badge/TYPO3-12-orange.svg?style=flat-square)](https://get.typo3.org/version/12)
 [![Total Downloads](https://poser.pugx.org/yoast-seo-for-typo3/yoast_seo/d/total)](https://packagist.org/packages/yoast-seo-for-typo3/yoast_seo)
