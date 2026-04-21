@@ -5,6 +5,13 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+
+### Fixed
+
+- Re-introduced typo3/tailor for automatic TER publishing
+- Set publish workflow to run on ubuntu-latest to fix PHP compatibility errors
+
 ## 12.0.0 April 21, 2026
 
 ### Breaking
