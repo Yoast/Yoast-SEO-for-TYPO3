@@ -5,6 +5,12 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+
+### Changed
+
+- Updated all underlying Yoast and Wordpress libraries to the latest versions
+
 ## 12.0.0 April 21, 2026
 
 ### Breaking
