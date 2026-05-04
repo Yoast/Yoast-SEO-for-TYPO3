@@ -54,7 +54,6 @@ and help editors write high quality content.
    :hidden:
 
    Sitemap
-   genindex
 
 .. tip::
 
