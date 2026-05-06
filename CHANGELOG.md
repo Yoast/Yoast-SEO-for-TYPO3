@@ -11,6 +11,11 @@ We will follow [Semantic Versioning](http://semver.org/).
 
 - Updated all underlying Yoast and Wordpress libraries to the latest versions
 
+### Fixed
+
+- Re-introduced typo3/tailor for automatic TER publishing
+- Set publish workflow to run on ubuntu-latest to fix PHP compatibility errors
+
 ## 12.0.0 April 21, 2026
 
 ### Breaking

@@ -13,12 +13,23 @@ Within the page module
 ~~~~~~~~~~~~~~~~~~~~~~
 On top of the page module you will find the "Readability" and "SEO" analysis.
 When the "Inclusive Language" analysis is enabled, it will also be shown here.
-|img-analysis-page|
+
+..  figure:: /Images/analysis-page.png
+    :alt: Analysis status on top of the page
+
+        Analysis status on top of the page
 
 You can click on a particular analysis to see more information about problems, improvements and which tests have passed:
-|img-analysis-readability|
 
-|img-analysis-seo|
+..  figure:: /Images/analysis-readability.png
+    :alt: Example of the readability analysis
+
+        Example of the readability analysis
+
+..  figure:: /Images/analysis-seo.png
+    :alt: Example of the SEO analysis
+
+        Example of the SEO analysis
 
 Within the page properties
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -65,4 +76,8 @@ Insights
 
 An example of a prominent words list:
 
-|img-insights|
+..  figure:: /Images/insights.png
+    :alt: Example of Insights
+
+        Example of Insights
+

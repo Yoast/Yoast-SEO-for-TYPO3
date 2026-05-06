@@ -10,6 +10,9 @@ Yoast SEO For TYPO3 provides 3 extra "Robots" settings, besides "Index this page
 
 You can find these settings at the bottom of the SEO tab:
 
-|img-robots|
+..  figure:: /Images/robots.png
+    :alt: Advanced robot instructions
+
+        Advanced robot instructions
 
 `Find out more about these advanced settings. <https://yoast.com/help/the-meta-robots-advanced-settings/>`_

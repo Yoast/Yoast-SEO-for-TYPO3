@@ -14,7 +14,10 @@ Where can I find the Facebook preview?
 The Facebook preview is located in the **Social media** tab of the page properties, inside the **Open Graph** palette.
 It is rendered directly above the OpenGraph fields.
 
-|img-facebook-preview|
+..  figure:: /Images/facebook-preview.png
+    :alt: Facebook / OpenGraph preview
+
+        Facebook / OpenGraph preview
 
 What fields are used for the Facebook preview?
 ----------------------------------------------

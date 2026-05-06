@@ -28,4 +28,7 @@ Related keyphrases
 | You have the possibility to add (maximum 5) related keyphrases.
 | These come with their own analysis and their own synonyms possibility:
 
-|img-focus-related|
+..  figure:: /Images/focus-related.png
+    :alt: Related keyphrases
+
+        Related keyphrases

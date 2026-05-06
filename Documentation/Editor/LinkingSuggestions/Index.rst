@@ -18,4 +18,7 @@ Linking suggestions
 |
 | Example:
 
-|img-linking-suggestions|
+..  figure:: /Images/linking-suggestions.png
+    :alt: Internal linking suggestions
+
+        Internal linking suggestions
