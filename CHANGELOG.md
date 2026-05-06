@@ -13,6 +13,7 @@ We will follow [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- Optimized BodyParser to support nested TYPO3SEARCH markers and allow h6 headings in the content
 - Re-introduced typo3/tailor for automatic TER publishing
 - Set publish workflow to run on ubuntu-latest to fix PHP compatibility errors
 
