@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<guides xmlns="https://www.phpdoc.org/guides"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="https://www.phpdoc.org/guides ../vendor/phpdocumentor/guides-cli/resources/schema/guides.xsd"
+        links-are-relative="true"
+>
+  <extension class="\T3Docs\Typo3DocsTheme\DependencyInjection\Typo3DocsThemeExtension"
+        project-home="https://yoast.com/typo3-extensions-seo/"
+        project-contact="https://typo3.slack.com/archives/C14EQDFL1"
+        project-repository="https://github.com/Yoast/Yoast-SEO-for-TYPO3"
+        project-issues="https://github.com/Yoast/Yoast-SEO-for-TYPO3/issues"
+        edit-on-github-branch="main"
+        edit-on-github="Yoast/Yoast-SEO-for-TYPO3"
+        typo3-core-preferred="stable"
+        interlink-shortcode="yoast-seo-for-typo3/yoast_seo"
+  />
+  <project title="Yoast SEO for TYPO3"
+        release="main (development)"
+        version="main"
+        copyright="since 2016 by MaxServ &amp; Yoast &amp; Contributors"
+  />
+  <inventory id="t3tsconfig"
+        url="https://docs.typo3.org/m/typo3/reference-tsconfig/13.4/en-us/"
+  />
+</guides>

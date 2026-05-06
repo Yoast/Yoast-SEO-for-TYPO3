@@ -11,10 +11,18 @@ Where can I find the snippet preview?
 The snippet preview is located in 2 places.
 
 By default it is rendered within the page module above your content:
-|img-snippetpreview-page|
+
+..  figure:: /Images/snippetpreview-page.png
+    :alt: Snippetpreview within the Page module
+
+        Snippetpreview within the Page module
 
 You can also find the snippet preview within the SEO tab of the page properties:
-|img-snippetpreview-properties|
+
+..  figure:: /Images/snippetpreview-properties.png
+    :alt: Snippetpreview within the page properties
+
+        Snippetpreview within the page properties
 
 What information is used for the snippet preview?
 -------------------------------------------------
@@ -41,13 +49,19 @@ There are two ways to disable the snippet preview within the page module:
 | If you want to hide the snippet preview for a specific page, you can check
   "Hide snippet preview" in the Advanced settings of the SEO tab.
 
-|img-snippetpreview-hide-page|
+..  figure:: /Images/snippetpreview-hide-page.png
+    :alt: Hide the snippetpreview for a specific page
+
+        Hide the snippetpreview for a specific page
 
 | **Disabling globally**
 | If you want to globally disable the rendering of the snippet preview within the page module,
   you can set this within your user settings:
 
-|img-snippetpreview-hide-global|
+..  figure:: /Images/snippetpreview-hide-global.png
+    :alt: Hide the snippetpreview globally
+
+        Hide the snippetpreview globally
 
 Can I disable the analysis?
 ---------------------------

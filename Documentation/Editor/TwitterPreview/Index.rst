@@ -14,7 +14,10 @@ Where can I find the X/Twitter preview?
 The X/Twitter preview is located in the **Social media** tab of the page properties, inside the **Twitter Cards** palette.
 It is rendered directly above the Twitter Card fields.
 
-|img-twitter-preview|
+..  figure:: /Images/twitter-preview.png
+    :alt: X/Twitter preview
+
+        X/Twitter preview
 
 What fields are used for the X/Twitter preview?
 ------------------------------------------------
@@ -44,7 +47,7 @@ Card type
 - **Summary** -- A compact card with a small square image on the left.
 - **Summary with large image** -- A card with a large image displayed above the title and description.
 
-| The preview layout updates immediately when you change the card type.
+ The preview layout updates immediately when you change the card type.
 
 Site URL
 ~~~~~~~~
