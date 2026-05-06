@@ -7,6 +7,10 @@ We will follow [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+### Changed
+
+- Updated all underlying Yoast and Wordpress libraries to the latest versions
+
 ### Fixed
 
 - Re-introduced typo3/tailor for automatic TER publishing
