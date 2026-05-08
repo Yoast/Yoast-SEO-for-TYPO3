@@ -5,11 +5,12 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## 12.1.0 May 8, 2026
 
 ### Changed
 
 - Updated all underlying Yoast and Wordpress libraries to the latest versions
+- Migrate to the new PHP-based documentation rendering
 
 ### Fixed
 
