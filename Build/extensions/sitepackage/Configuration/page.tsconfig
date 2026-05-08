@@ -29,3 +29,44 @@ TCEMAIN.preview {
         }
     }
 }
+
+
+## Test backend layout for multiple / nested TYPO3 markers testing
+mod {
+    web_layout {
+        BackendLayouts {
+            Main2Rows {
+                title = Main with 2 rows
+                config {
+                    backend_layout {
+                        colCount = 1
+                        rowCount = 2
+                        rows {
+                            1 {
+                                columns {
+                                    1 {
+                                        identifier = main1
+                                        name = Main 1
+                                        colPos = 0
+                                        colspan = 1
+                                    }
+                                }
+                            }
+
+                            2 {
+                                columns {
+                                    1 {
+                                        identifier = main2
+                                        name = Main 2
+                                        colPos = 3
+                                        colspan = 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
