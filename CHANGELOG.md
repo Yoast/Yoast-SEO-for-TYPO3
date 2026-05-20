@@ -5,6 +5,12 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+
+### Fixed
+
+- Split up the user settings field for 12/13 and 14 to prevent issues with the TCA changes in TYPO3 14
+
 ## 12.1.0 May 8, 2026
 
 ### Changed
