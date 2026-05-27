@@ -12,6 +12,7 @@ parameters:
     - '#TYPO3\\CMS\\Frontend\\Page\\PageInformation#'
     - '#frontend.page.information#'
     - '#BeforePageCacheIdentifierIsHashedEvent#'
+    - '#addUserSetting#'
   typo3:
     requestGetAttributeMapping:
         handlerRequest: string

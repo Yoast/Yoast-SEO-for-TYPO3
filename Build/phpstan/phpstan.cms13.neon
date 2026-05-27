@@ -11,6 +11,7 @@ parameters:
     - ../../Classes/Service/StandaloneView/LegacyStandaloneViewService.php
   ignoreErrors:
     - '#defaultCacheTimoutInSeconds#'
+    - '#addUserSetting#'
   typo3:
     requestGetAttributeMapping:
         frontend.page.information: TYPO3\CMS\Frontend\Page\PageInformation
