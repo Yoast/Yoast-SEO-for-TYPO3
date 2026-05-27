@@ -27,7 +27,11 @@ export default class StatusIcon {
             return;
         let scoreBar = document.createElement("div");
         scoreBar.classList.add("yoast-seo-score-bar");
-        ["readability", "seo", "inclusiveLanguage"].forEach((resultType) => {
+        let resultTypes = ["readability", "seo"];
+        if (YoastConfiguration.isInclusiveLanguageEnabled()) {
+            resultTypes.push("inclusiveLanguage");
+        }
+        resultTypes.forEach((resultType) => {
             scoreBar.append(this.getIconElement(resultType, "", "true", "yoast-seo-score-bar--analysis"));
         });
         container.parentNode?.insertBefore(scoreBar, container.nextSibling);
