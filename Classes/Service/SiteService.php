@@ -58,6 +58,10 @@ class SiteService
             return '';
         }
 
+        if ($languageId === -1) {
+            $languageId = $site->getDefaultLanguage()->getLanguageId();
+        }
+
         $language = $site->getLanguageById($languageId);
         if (trim($language->getWebsiteTitle()) !== '') {
             return $language->getWebsiteTitle();
