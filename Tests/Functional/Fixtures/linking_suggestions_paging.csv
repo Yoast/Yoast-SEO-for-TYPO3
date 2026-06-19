@@ -1,0 +1,6 @@
+"tx_yoastseo_prominent_word"
+,"uid","pid","sys_language_uid","site","stem","weight","uid_foreign","tablenames"
+,1,1,0,1,"seo",10,1,"pages"
+,2,1,0,1,"seo",10,100,"pages"
+,3,2,0,1,"seo",10,2,"pages"
+,4,3,0,1,"seo",10,3,"pages"
