@@ -10,6 +10,8 @@ We will follow [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - Split up the user settings field for 12/13 and 14 to prevent issues with the TCA changes in TYPO3 14
+- Analysis heading color in dark mode
+- Inclusive language check icon in TCA form which was visible even when the check was disabled
 
 ## 12.1.0 May 8, 2026
 

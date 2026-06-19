@@ -40,7 +40,13 @@ export default class StatusIcon {
 
     let scoreBar = document.createElement("div")
     scoreBar.classList.add("yoast-seo-score-bar")
-    ;["readability", "seo", "inclusiveLanguage"].forEach((resultType) => {
+
+    let resultTypes: string[] = ["readability", "seo"]
+    if (YoastConfiguration.isInclusiveLanguageEnabled()) {
+      resultTypes.push("inclusiveLanguage")
+    }
+
+    resultTypes.forEach((resultType) => {
       scoreBar.append(
         this.getIconElement(
           resultType,
