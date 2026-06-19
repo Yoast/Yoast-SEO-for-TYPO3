@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 return [
     'directories' => [
         'bin',
@@ -16,7 +23,9 @@ return [
         'tailor-version-upload',
         'Documentation-GENERATED-temp',
         'tests',
+        'Tests',
         'vendor',
+        'var',
         '.Build',
         'Build',
         'grunt',
@@ -28,6 +37,7 @@ return [
         'bower.json',
         'babel.config.js',
         'codeception.yml',
+        'composer.json.testing',
         'composer.lock',
         'crowdin.yaml',
         'docker-compose.yml',
