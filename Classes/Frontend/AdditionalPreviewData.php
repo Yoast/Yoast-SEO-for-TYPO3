@@ -52,6 +52,9 @@ class AdditionalPreviewData implements SingletonInterface
 
     protected function getWebsiteTitle(): string
     {
+        if ((bool)($this->config['showWebsiteTitle'] ?? false) === false) {
+            return '';
+        }
         $request = $GLOBALS['TYPO3_REQUEST'];
         $language = $request->getAttribute('language');
         if ($language instanceof SiteLanguage && !empty($language->getWebsiteTitle())) {
@@ -61,11 +64,6 @@ class AdditionalPreviewData implements SingletonInterface
         if ($site instanceof Site && !empty($site->getConfiguration()['websiteTitle'] ?? '')) {
             return trim($site->getConfiguration()['websiteTitle']);
         }
-
-        if (!empty($GLOBALS['TSFE']->tmpl->setup['sitetitle'] ?? '')) {
-            return trim($GLOBALS['TSFE']->tmpl->setup['sitetitle']);
-        }
-
         return '';
     }
 
