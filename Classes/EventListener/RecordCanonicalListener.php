@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\EventListener;
 
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 use TYPO3\CMS\Seo\Event\ModifyUrlForCanonicalTagEvent;
 use YoastSeoForTypo3\YoastSeo\Record\Record;
@@ -35,15 +36,21 @@ class RecordCanonicalListener
         }
 
         $event->setUrl(
-            $this->getContentObjectRenderer()->typoLink_URL([
-                'parameter' => $canonicalLink,
-                'forceAbsoluteUrl' => true,
-            ])
+            $this->getUrl($event, $canonicalLink, $activeRecord)
         );
     }
 
-    protected function getContentObjectRenderer(): ContentObjectRenderer
-    {
-        return $GLOBALS['TSFE']->cObj;
+    protected function getUrl(
+        ModifyUrlForCanonicalTagEvent $event,
+        string $canonicalLink,
+        Record $record,
+    ): string {
+        $cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
+        $cObj->setRequest($event->getRequest());
+        $cObj->start($record->getRecordData(), $record->getTableName());
+        return $cObj->createUrl([
+            'parameter' => $canonicalLink,
+            'forceAbsoluteUrl' => true,
+        ]);
     }
 }

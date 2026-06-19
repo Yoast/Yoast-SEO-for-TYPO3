@@ -14,6 +14,7 @@ namespace YoastSeoForTypo3\YoastSeo\Tests\Unit\EventListener;
 use DG\BypassFinals;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 use TYPO3\CMS\Seo\Event\ModifyUrlForCanonicalTagEvent;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
@@ -69,12 +70,13 @@ class RecordCanonicalListenerTest extends UnitTestCase
         $event = $this->createMock(ModifyUrlForCanonicalTagEvent::class);
         $record = $this->createMock(Record::class);
         $record->method('getRecordData')->willReturn(['canonical_link' => 'https://example.com']);
+        $record->method('getTableName')->willReturn('pages');
 
         $this->recordService->method('getActiveRecord')->willReturn($record);
 
-        $GLOBALS['TSFE'] = $this->createMock(\stdClass::class);
-        $GLOBALS['TSFE']->cObj = $this->createMock(ContentObjectRenderer::class);
-        $GLOBALS['TSFE']->cObj->method('typoLink_URL')->willReturn('https://example.com');
+        $contentObjectRenderer = $this->createMock(ContentObjectRenderer::class);
+        $contentObjectRenderer->method('createUrl')->willReturn('https://example.com');
+        GeneralUtility::addInstance(ContentObjectRenderer::class, $contentObjectRenderer);
 
         $event->expects(self::once())->method('setUrl')->with('https://example.com');
 
