@@ -39,6 +39,9 @@ class SaveScoresService
         }
 
         $connection = $this->connectionPool->getConnectionForTable($data['table']);
+        if (!$this->columnsExist($connection, $data['table'])) {
+            return;
+        }
         $connection->update($data['table'], [
             'tx_yoastseo_score_readability' => (string)$data['readabilityScore'],
             'tx_yoastseo_score_seo' => (string)$data['seoScore'],
@@ -96,5 +99,12 @@ class SaveScoresService
         }
         $record = $queryBuilder->executeQuery()->fetchAssociative();
         return $record === false ? null : $record;
+    }
+
+    protected function columnsExist(Connection $connection, string $table): bool
+    {
+        $schemaManager = $connection->createSchemaManager();
+        $columns = $schemaManager->listTableColumns($table);
+        return isset($columns['tx_yoastseo_score_readability'], $columns['tx_yoastseo_score_seo']);
     }
 }
