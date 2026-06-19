@@ -496,6 +496,11 @@ case ${TEST_SUITE} in
         stashComposerFiles
         ${CONTAINER_BIN} run ${CONTAINER_COMMON_PARAMS} --name composer-install-highest-${SUFFIX} -e COMPOSER_CACHE_DIR=.cache/composer -e COMPOSER_ROOT_VERSION=${COMPOSER_ROOT_VERSION} ${IMAGE_PHP} /bin/bash -c "
             if [ ${TYPO3_VERSION} -eq 12 ]; then
+              # TYPO3 12.4 has reached the end of regular maintenance: advisory fixes
+              # (12.4.47+) are only shipped via ELTS (private). The latest public 12.4
+              # release will therefore always be flagged, so disable advisory blocking
+              # for v12 to keep CI running against the newest available public release.
+              composer config --no-plugins policy.advisories.block false || exit 1
               composer require --no-ansi --no-interaction --no-progress --no-install \
                 typo3/cms-core:^12.4 typo3/cms-dashboard:^12.4 || exit 1
             fi
@@ -518,6 +523,11 @@ case ${TEST_SUITE} in
         stashComposerFiles
         ${CONTAINER_BIN} run ${CONTAINER_COMMON_PARAMS} --name composer-install-lowest-${SUFFIX} -e COMPOSER_CACHE_DIR=.cache/composer -e COMPOSER_ROOT_VERSION=${COMPOSER_ROOT_VERSION} ${IMAGE_PHP} /bin/bash -c "
             if [ ${TYPO3_VERSION} -eq 12 ]; then
+              # TYPO3 12.4 has reached the end of regular maintenance: advisory fixes
+              # (12.4.47+) are only shipped via ELTS (private). The latest public 12.4
+              # release will therefore always be flagged, so disable advisory blocking
+              # for v12 to keep CI running against the newest available public release.
+              composer config --no-plugins policy.advisories.block false || exit 1
               composer require --no-ansi --no-interaction --no-progress --no-install \
                 typo3/cms-core:^12.4 typo3/cms-dashboard:^12.4 || exit 1
             fi
