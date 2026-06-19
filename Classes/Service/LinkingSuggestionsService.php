@@ -37,6 +37,7 @@ class LinkingSuggestionsService
         protected ConnectionPool $connectionPool,
         protected PageRepository $pageRepository,
         protected SiteService $siteService,
+        protected int $batchSize = 100,
     ) {}
 
     /**
@@ -57,8 +58,25 @@ class LinkingSuggestionsService
         $this->languageId = $languageId;
         $this->documentFrequencyCache = [];
 
-        $words = array_column($words, 'occurrences', 'stem');
+        $scores = $this->collectScores(array_column($words, 'occurrences', 'stem'));
 
+        // Return the empty list if no suggestions have been found.
+        if ($scores === []) {
+            return [];
+        }
+
+        return $this->linkRecords($scores, $this->getCurrentContentLinks($content));
+    }
+
+    /**
+     * Score every candidate record that shares prominent word stems with the request, paging
+     * through the prominent word table in batches of {@see self::$batchSize} record groups.
+     *
+     * @param array<string, int|string> $words stem => occurrences
+     * @return array<string, float|int> record key (uid_foreign-tablenames) => normalized score
+     */
+    protected function collectScores(array $words): array
+    {
         // Combine stems, weights and DFs from request
         $requestData = $this->composeRequestData($words);
 
@@ -67,34 +85,30 @@ class LinkingSuggestionsService
 
         $requestStems = array_keys($requestData);
         $scores = [];
-        $batchSize = 100;
         $page = 1;
 
         do {
-            // Retrieve the words of all records in this batch that share prominent word stems with request
-            $candidatesWords = $this->getCandidateWords($requestStems, $batchSize, $page);
+            // Retrieve the (pid, tablenames) record groups for this batch that share stems with the request
+            $recordGroups = $this->findRecordsByStems($requestStems, $this->batchSize, $page);
 
-            // Transform the prominent words table so that it indexed by record
+            // Expand the groups into their prominent words and index them by record
+            $candidatesWords = $this->findStemsByRecords($recordGroups);
             $candidatesWordsByRecord = $this->groupWordsByRecord($candidatesWords);
 
-            $batchScoresSize = 0;
             foreach ($candidatesWordsByRecord as $id => $candidateData) {
                 $scores[$id] = $this->calculateScoreForIndexable($requestData, $requestVectorLength, $candidateData);
-                ++$batchScoresSize;
             }
 
             // Sort the list of scores and keep only the top of the scores
             $scores = $this->getTopSuggestions($scores);
 
             ++$page;
-        } while ($batchScoresSize === $batchSize);
+            // Keep paging while the batch was full. The loop must count the paged unit
+            // (record groups), not the scored records, because a single group can expand
+            // into several records and would otherwise stop paging too early.
+        } while (count($recordGroups) === $this->batchSize);
 
-        // Return the empty list if no suggestions have been found.
-        if ($scores === []) {
-            return [];
-        }
-
-        return $this->linkRecords($scores, $this->getCurrentContentLinks($content));
+        return $scores;
     }
 
     /**
@@ -185,17 +199,6 @@ class LinkingSuggestionsService
     }
 
     /**
-     * @param string[] $stems
-     * @return array<array{stem: string, weight: int, pid: int, tablenames: string, uid_foreign: int, df?: int}>
-     */
-    protected function getCandidateWords(array $stems, int $batchSize, int $page): array
-    {
-        return $this->findStemsByRecords(
-            $this->findRecordsByStems($stems, $batchSize, $page)
-        );
-    }
-
-    /**
      * @param array<array{pid: int, tablenames: string}> $records
      * @return array<array{stem: string, weight: int, pid: int, tablenames: string, uid_foreign: int, df?: int}>
      */
@@ -234,6 +237,8 @@ class LinkingSuggestionsService
             $queryBuilder->expr()->eq('sys_language_uid', $this->languageId),
             $queryBuilder->expr()->eq('site', $this->site)
         )->groupBy('pid', 'tablenames')
+            ->orderBy('pid')
+            ->addOrderBy('tablenames')
             ->setMaxResults($batchSize)
             ->setFirstResult(($page - 1) * $batchSize);
         /** @var array<array{pid: int, tablenames: string}> $records */
