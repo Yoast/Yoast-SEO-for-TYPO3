@@ -4,7 +4,7 @@
 [![TYPO3 12](https://img.shields.io/badge/TYPO3-12-orange.svg?style=flat-square)](https://get.typo3.org/version/12)
 [![Total Downloads](https://poser.pugx.org/yoast-seo-for-typo3/yoast_seo/d/total)](https://packagist.org/packages/yoast-seo-for-typo3/yoast_seo)
 [![Monthly Downloads](https://poser.pugx.org/yoast-seo-for-typo3/yoast_seo/d/monthly)](https://packagist.org/packages/yoast-seo-for-typo3/yoast_seo)
-[![CI status](https://github.com/Yoast/Yoast-SEO-for-TYPO3/workflows/CI/badge.svg)](https://github.com/Yoast/Yoast-SEO-for-TYPO3/actions?query=branch%3Amain)
+[![CI status](https://github.com/Yoast/Yoast-SEO-for-TYPO3/actions/workflows/tests.yml/badge.svg)](https://github.com/Yoast/Yoast-SEO-for-TYPO3/actions?query=branch%3Amain)
 
 # TYPO3 extension `yoast_seo`
 

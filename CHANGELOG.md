@@ -5,13 +5,26 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## 12.1.1 June 22, 2026
 
 ### Fixed
 
 - Split up the user settings field for 12/13 and 14 to prevent issues with the TCA changes in TYPO3 14
 - Analysis heading color in dark mode
 - Inclusive language check icon in TCA form which was visible even when the check was disabled
+- Added additional files and folders to exclude from TER release
+- Excluded TYPO3 12 composer install from security advisory since latest public version is marked as vulnerable
+- Check if score columns exist in the table before trying to save scores to prevent errors when the columns do not
+  exist on custom records
+- `RecordCanonicalListener` now mimics the url creation of core `CanonicalGenerator` instead of relying on TSFE->cObj
+  which doesn't exist anymore in TYPO3 14
+- Do not render the website title in the snippet preview if `showWebsiteTitle` is false
+- Fallback to default language if request language is "All Languages" inside `SiteService`
+- Optimized queries, grouping and batching inside `LinkingSuggestionsService`
+
+### Changed
+
+- Code coverage now uses TYPO3 14 as the base for the coverage report
 
 ## 12.1.0 May 8, 2026
 
