@@ -5,6 +5,23 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- Prevent prominent words from being copied when pages are copied. The copied records were corrupted because
+  `uid_foreign`, `tablenames` and `site` have no TCA configuration and were dropped by the DataHandler, ending up with
+  their database defaults. A new `ProminentWordCopyPreventionHook` removes prominent word writes from the DataHandler
+  datamap so the copied page is re-analyzed on first use instead
+- Optimized prominent words and linking suggestions performance:
+    - Load all document frequencies once per scoring run with a single index-covered aggregation query instead of once
+      per candidate batch
+    - Stream the document frequency rows with `fetchAssociative()` instead of buffering them all in memory
+    - Fetch all matching record groups in a single query and chunk them in PHP instead of paging through the table with
+      `setMaxResults`/`setFirstResult`
+    - Skip the linking suggestions analysis when the CKEditor content has not changed, and skip the AJAX request
+      entirely when the content has no prominent words
+
 ## 12.1.1 June 22, 2026
 
 ### Fixed
