@@ -53,6 +53,39 @@ class LinkingSuggestionsServiceTest extends AbstractFunctionalTestCase
         self::assertArrayHasKey('2-pages', $scores);
     }
 
+    /**
+     * Pins the scoring math and the site / language filtering:
+     * - record 11 matches the request vector proportionally and must score exactly 1.0
+     * - record 13 shares one stem, record 12 is diluted by a heavy non-matching stem
+     * - rows on another site (record 21), another language (record 31) and corrupt
+     *   rows (site 0, uid_foreign 0) must neither appear nor skew the document
+     *   frequencies used in the scores
+     */
+    #[Test]
+    public function collectScoresComputesNormalizedScoresFilteredBySiteAndLanguage(): void
+    {
+        $this->importCSVDataSet(__DIR__ . '/../Fixtures/linking_suggestions_scoring.csv');
+        $subject = $this->createSubject(100);
+
+        $scores = $subject->collectScoresForTest(1, 0, ['alpha' => 10, 'beta' => 5]);
+
+        self::assertSame(['11-pages', '13-pages', '12-pages'], array_keys($scores));
+        self::assertEqualsWithDelta(1.0, $scores['11-pages'], 0.0001);
+        self::assertEqualsWithDelta(0.447214, $scores['13-pages'], 0.0001);
+        self::assertEqualsWithDelta(0.035748, $scores['12-pages'], 0.0001);
+    }
+
+    #[Test]
+    public function collectScoresReturnsSameScoresRegardlessOfBatchSize(): void
+    {
+        $this->importCSVDataSet(__DIR__ . '/../Fixtures/linking_suggestions_scoring.csv');
+
+        $allAtOnce = $this->createSubject(100)->collectScoresForTest(1, 0, ['alpha' => 10, 'beta' => 5]);
+        $oneByOne = $this->createSubject(1)->collectScoresForTest(1, 0, ['alpha' => 10, 'beta' => 5]);
+
+        self::assertSame($allAtOnce, $oneByOne);
+    }
+
     private function createSubject(int $batchSize): LinkingSuggestionsService
     {
         $siteService = $this->createMock(SiteService::class);

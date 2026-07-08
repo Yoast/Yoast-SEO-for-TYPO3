@@ -29,6 +29,9 @@ class LinkingSuggestionsService
     protected int $languageId;
 
     /**
+     * Document frequency of every stem of the current site and language,
+     * loaded once per scoring run by {@see self::loadDocumentFrequencies()}.
+     *
      * @var array<string, int>
      */
     protected array $documentFrequencyCache = [];
@@ -69,30 +72,32 @@ class LinkingSuggestionsService
     }
 
     /**
-     * Score every candidate record that shares prominent word stems with the request, paging
-     * through the prominent word table in batches of {@see self::$batchSize} record groups.
+     * Score every candidate record that shares prominent word stems with the request,
+     * processing the candidates in chunks of {@see self::$batchSize} record groups.
      *
      * @param array<string, int|string> $words stem => occurrences
      * @return array<string, float|int> record key (uid_foreign-tablenames) => normalized score
      */
     protected function collectScores(array $words): array
     {
+        $this->loadDocumentFrequencies();
+
         // Combine stems, weights and DFs from request
         $requestData = $this->composeRequestData($words);
+        if ($requestData === []) {
+            return [];
+        }
 
         // Calculate vector length of the request set (needed for score normalization later)
         $requestVectorLength = $this->computeVectorLength($requestData);
 
-        $requestStems = array_keys($requestData);
+        // Retrieve all (pid, tablenames) record groups that share stems with the request
+        $recordGroups = $this->findRecordsByStems(array_keys($requestData));
+
         $scores = [];
-        $page = 1;
-
-        do {
-            // Retrieve the (pid, tablenames) record groups for this batch that share stems with the request
-            $recordGroups = $this->findRecordsByStems($requestStems, $this->batchSize, $page);
-
+        foreach (array_chunk($recordGroups, max(1, $this->batchSize)) as $recordGroupBatch) {
             // Expand the groups into their prominent words and index them by record
-            $candidatesWords = $this->findStemsByRecords($recordGroups);
+            $candidatesWords = $this->findStemsByRecords($recordGroupBatch);
             $candidatesWordsByRecord = $this->groupWordsByRecord($candidatesWords);
 
             foreach ($candidatesWordsByRecord as $id => $candidateData) {
@@ -101,12 +106,7 @@ class LinkingSuggestionsService
 
             // Sort the list of scores and keep only the top of the scores
             $scores = $this->getTopSuggestions($scores);
-
-            ++$page;
-            // Keep paging while the batch was full. The loop must count the paged unit
-            // (record groups), not the scored records, because a single group can expand
-            // into several records and would otherwise stop paging too early.
-        } while (count($recordGroups) === $this->batchSize);
+        }
 
         return $scores;
     }
@@ -133,38 +133,34 @@ class LinkingSuggestionsService
     }
 
     /**
+     * Load all stems and their document frequencies for the current site and language in one call.
+     * This used to be done per batch of candidate records, but that was very expensive on large sites with many stems.
+     * Doing this in one pass is much cheaper, as it can be done with a single index-covered aggregation query.
+     * Using fetchAssociative() to stream the rows instead of buffering them in memory, which saves a lot of memory on large sites.
+     */
+    protected function loadDocumentFrequencies(): void
+    {
+        $this->documentFrequencyCache = [];
+
+        $queryBuilder = $this->connectionPool->getQueryBuilderForTable(TableNames::PROMINENT_WORD);
+        $result = $queryBuilder->select('stem')->addSelectLiteral('COUNT(stem) AS document_frequency')
+            ->from(TableNames::PROMINENT_WORD)
+            ->where(
+                $queryBuilder->expr()->eq('sys_language_uid', $this->languageId),
+                $queryBuilder->expr()->eq('site', $this->site)
+            )->groupBy('stem')->executeQuery();
+
+        while ($rawDocFrequency = $result->fetchAssociative()) {
+            $this->documentFrequencyCache[(string)$rawDocFrequency['stem']] = (int)$rawDocFrequency['document_frequency'];
+        }
+    }
+
+    /**
      * @param string[] $stems
      * @return array<string, int>
      */
     protected function countDocumentFrequencies(array $stems): array
     {
-        if ($stems === []) {
-            return [];
-        }
-
-        $uncachedStems = array_values(array_filter(
-            $stems,
-            fn(string $stem): bool => !isset($this->documentFrequencyCache[$stem])
-        ));
-
-        if ($uncachedStems !== []) {
-            $queryBuilder = $this->connectionPool->getQueryBuilderForTable(TableNames::PROMINENT_WORD);
-            $rawDocFrequencies = $queryBuilder->select('stem')->addSelectLiteral('COUNT(stem) AS document_frequency')->from(
-                TableNames::PROMINENT_WORD
-            )->where(
-                $queryBuilder->expr()->in(
-                    'stem',
-                    $queryBuilder->createNamedParameter($uncachedStems, Connection::PARAM_STR_ARRAY)
-                ),
-                $queryBuilder->expr()->eq('sys_language_uid', $this->languageId),
-                $queryBuilder->expr()->eq('site', $this->site)
-            )->groupBy('stem')->executeQuery()->fetchAllAssociative();
-
-            foreach ($rawDocFrequencies as $rawDocFrequency) {
-                $this->documentFrequencyCache[(string)$rawDocFrequency['stem']] = (int)$rawDocFrequency['document_frequency'];
-            }
-        }
-
         $docFrequencies = [];
         foreach ($stems as $stem) {
             if (isset($this->documentFrequencyCache[$stem])) {
@@ -226,7 +222,7 @@ class LinkingSuggestionsService
      * @param string[] $stems
      * @return array<array{pid: int, tablenames: string}>
      */
-    protected function findRecordsByStems(array $stems, int $batchSize, int $page): array
+    protected function findRecordsByStems(array $stems): array
     {
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable(TableNames::PROMINENT_WORD);
         $queryBuilder->select('pid', 'tablenames')->from(TableNames::PROMINENT_WORD)->where(
@@ -238,9 +234,7 @@ class LinkingSuggestionsService
             $queryBuilder->expr()->eq('site', $this->site)
         )->groupBy('pid', 'tablenames')
             ->orderBy('pid')
-            ->addOrderBy('tablenames')
-            ->setMaxResults($batchSize)
-            ->setFirstResult(($page - 1) * $batchSize);
+            ->orderBy('tablenames');
         /** @var array<array{pid: int, tablenames: string}> $records */
         $records = $queryBuilder->executeQuery()->fetchAllAssociative();
         return $records;

@@ -34,6 +34,7 @@ type CkeditorElement = HTMLElement & {
 class LinkingSuggestions {
   private configuration: LinkingSuggestionsConfig | null = null
   private updateInterval: number | null = null
+  private cachedContent: string | null = null
   public initialize(configuration: LinkingSuggestionsConfig): void {
     YoastConfiguration.setUrl("workerUrl", configuration.urls.workerUrl)
     YoastConfiguration.setSupportedLanguages(configuration.supportedLanguages)
@@ -68,6 +69,10 @@ class LinkingSuggestions {
     )
     if (!suggestionsElement) return
 
+    if (ckeditorContent === this.cachedContent) {
+      return
+    }
+
     const content = analysis.createContent({
       body: ckeditorContent,
       locale: this.configuration!.locale,
@@ -76,6 +81,16 @@ class LinkingSuggestions {
       "getProminentWordsForInternalLinking",
       content
     )
+
+    const words = response.result.prominentWords.slice(0, 5)
+    this.cachedContent = ckeditorContent
+    if (words.length === 0) {
+      setAttributes(suggestionsElement, {
+        "is-checking": "false",
+        links: JSON.stringify([]),
+      })
+      return
+    }
     new AjaxRequest(this.configuration!.urls.linkingSuggestions)
       .post(
         {

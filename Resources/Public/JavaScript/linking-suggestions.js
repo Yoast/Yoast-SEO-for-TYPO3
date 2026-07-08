@@ -9,6 +9,7 @@ class LinkingSuggestions {
     constructor() {
         this.configuration = null;
         this.updateInterval = null;
+        this.cachedContent = null;
     }
     initialize(configuration) {
         YoastConfiguration.setUrl("workerUrl", configuration.urls.workerUrl);
@@ -35,11 +36,23 @@ class LinkingSuggestions {
         const suggestionsElement = document.querySelector("yoast-linking-suggestions");
         if (!suggestionsElement)
             return;
+        if (ckeditorContent === this.cachedContent) {
+            return;
+        }
         const content = analysis.createContent({
             body: ckeditorContent,
             locale: this.configuration.locale,
         });
         const response = await analysis.runResearch("getProminentWordsForInternalLinking", content);
+        const words = response.result.prominentWords.slice(0, 5);
+        this.cachedContent = ckeditorContent;
+        if (words.length === 0) {
+            setAttributes(suggestionsElement, {
+                "is-checking": "false",
+                links: JSON.stringify([]),
+            });
+            return;
+        }
         new AjaxRequest(this.configuration.urls.linkingSuggestions)
             .post({
             excludedPage: this.configuration.currentPage,
