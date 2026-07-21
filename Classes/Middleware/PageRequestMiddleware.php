@@ -15,7 +15,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use TYPO3\CMS\Core\Configuration\Features;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Context\VisibilityAspect;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -25,7 +24,6 @@ final readonly class PageRequestMiddleware implements MiddlewareInterface
 {
     public function __construct(
         protected YoastRequestService $yoastRequestService,
-        protected Features $features,
     ) {}
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -37,10 +35,9 @@ final readonly class PageRequestMiddleware implements MiddlewareInterface
         $context = GeneralUtility::makeInstance(Context::class);
         $context->setAspect('visibility', new VisibilityAspect(true));
 
-        if ($this->features->isFeatureEnabled('yoastSeoDisableAllCachesOnPreviewRequest')) {
-            $request = $request->withAttribute('noCache', true);
-        }
-
+        // Reading from the page cache is prevented by PageCacheListener and writing by
+        // PageCacheWriteListener, so the analysis always reflects the current content and
+        // never persists a "show hidden" render into the shared page cache.
         return $handler->handle($request);
     }
 }

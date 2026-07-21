@@ -5,6 +5,24 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- Validated Yoast frontend requests (snippet preview / analysis / crawler) no longer populate the shared frontend
+  page cache. These requests render with hidden pages/records visible (`PageRequestMiddleware` forces
+  `VisibilityAspect(true)`) and reuse the anonymous page-cache identifier, so persisting them poisoned the public
+  cache — e.g. hidden pages leaking into `HMENU`/directory menus rendered inside cached headers/footers, staying
+  visible to all visitors until the cache was flushed. A new `PageCacheWriteListener` on
+  `AfterCacheableContentIsGeneratedEvent` disables caching for these requests, mirroring the existing read-side
+  `PageCacheListener`
+
+### Deprecated
+
+- The `yoastSeoDisableAllCachesOnPreviewRequest` feature toggle. It only set the legacy `noCache` request attribute,
+  which is no longer honoured since TYPO3 v13, so it never disabled anything on v13+. Page-cache protection for
+  validated Yoast requests is now the unconditional default
+
 ## [12.1.2] July 8, 2026
 
 ### Fixed

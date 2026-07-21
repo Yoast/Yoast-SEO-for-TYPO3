@@ -94,6 +94,11 @@ services:
       - name: event.listener
         identifier: 'yoast-seo/page-cache-listener'
 
+  YoastSeoForTypo3\YoastSeo\EventListener\PageCacheWriteListener:
+    tags:
+      - name: event.listener
+        identifier: 'yoast-seo/page-cache-write-listener'
+
   YoastSeoForTypo3\YoastSeo\EventListener\FrontendRequestListener:
     tags:
       - name: event.listener
