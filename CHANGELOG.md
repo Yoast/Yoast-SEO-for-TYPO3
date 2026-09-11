@@ -5,6 +5,22 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- Yoast frontend requests (snippet preview, analysis, crawler) no longer read from or write to any TYPO3 cache. The
+  `PageRequestMiddleware` now disables caching through the core cache instruction (`noCache` attribute on TYPO3 12),
+  so pages rendered with hidden pages visible are no longer stored in the page cache and served to visitors
+- Structured data is no longer read from or written to the page cache when caching is disabled for the request
+  (Yoast requests, previews, `no_cache`)
+
+### Removed
+
+- `yoastSeoDisableAllCachesOnPreviewRequest` feature toggle, disabling caches for Yoast requests is now the default.
+  The toggle only had an effect on TYPO3 12
+- `PageCacheListener`, redundant now that caching is disabled for Yoast requests
+
 ## [12.1.2] July 8, 2026
 
 ### Fixed
