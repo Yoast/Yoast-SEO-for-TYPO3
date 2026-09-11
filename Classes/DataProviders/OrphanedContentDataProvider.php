@@ -11,9 +11,9 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 
-use Doctrine\DBAL\Result;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 use YoastSeoForTypo3\YoastSeo\Utility\YoastUtility;
@@ -43,10 +43,7 @@ class OrphanedContentDataProvider extends AbstractOverviewDataProvider
     /** @var int[] */
     protected array $referencedPages = [];
 
-    /**
-     * @param int[] $pageIds
-     */
-    public function getResults(array $pageIds = []): ?Result
+    protected function createQueryBuilder(array $pageIds): QueryBuilder
     {
         if ($this->referencedPages === []) {
             $this->referencedPages = $this->getReferencedPages();
@@ -62,16 +59,12 @@ class OrphanedContentDataProvider extends AbstractOverviewDataProvider
             $constraints[] = $qb->expr()->notIn('uid', $this->referencedPages);
         }
         if (count($pageIds) > 0) {
-            $constraints[] = $qb->expr()->in(
-                $this->dataProviderRequest->getLanguage() > 0 ? $GLOBALS['TCA'][TableNames::PAGES]['ctrl']['transOrigPointerField'] : 'uid',
-                $pageIds
-            );
+            $constraints[] = $qb->expr()->in($this->getRestrictionField(), $pageIds);
         }
 
-        return $qb->select('*')
+        return $qb->select(...self::PAGES_FIELDS)
             ->from(TableNames::PAGES)
-            ->where(...$constraints)
-            ->executeQuery();
+            ->where(...$constraints);
     }
 
     /**

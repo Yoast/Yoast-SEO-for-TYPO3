@@ -11,8 +11,8 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 
-use Doctrine\DBAL\Result;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 
@@ -38,10 +38,7 @@ class CornerstoneOverviewDataProvider extends AbstractOverviewDataProvider
         return 'https://yoa.st/typo3-cornerstone-content';
     }
 
-    /**
-     * @param int[] $pageIds
-     */
-    public function getResults(array $pageIds = []): ?Result
+    protected function createQueryBuilder(array $pageIds): QueryBuilder
     {
         $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(TableNames::PAGES);
 
@@ -51,15 +48,11 @@ class CornerstoneOverviewDataProvider extends AbstractOverviewDataProvider
         ];
 
         if (count($pageIds) > 0) {
-            $constraints[] = $queryBuilder->expr()->in(
-                $this->dataProviderRequest->getLanguage() > 0 ? $GLOBALS['TCA'][TableNames::PAGES]['ctrl']['transOrigPointerField'] : 'uid',
-                $pageIds
-            );
+            $constraints[] = $queryBuilder->expr()->in($this->getRestrictionField(), $pageIds);
         }
 
-        return $queryBuilder->select('*')
+        return $queryBuilder->select(...self::PAGES_FIELDS)
             ->from(TableNames::PAGES)
-            ->where(...$constraints)
-            ->executeQuery();
+            ->where(...$constraints);
     }
 }

@@ -13,6 +13,7 @@ namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Platform\PlatformInformation;
+use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 use YoastSeoForTypo3\YoastSeo\Service\Overview\Dto\DataProviderRequest;
@@ -42,41 +43,107 @@ abstract class AbstractOverviewDataProvider implements OverviewDataProviderInter
 
     protected DataProviderRequest $dataProviderRequest;
 
+    protected ?int $numberOfItems = null;
+
     public function initialize(DataProviderRequest $dataProviderRequest): void
     {
         $this->dataProviderRequest = $dataProviderRequest;
+        $this->numberOfItems = null;
     }
+
+    /**
+     * Builds the fully constrained query for a chunk of page ids, selecting an
+     * explicit column list. The query is not executed; the base class applies
+     * counting and pagination on top of it.
+     *
+     * @param int[] $pageIds
+     */
+    abstract protected function createQueryBuilder(array $pageIds): QueryBuilder;
 
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function process(): array
+    public function process(int $offset = 0, int $limit = 0): array
     {
-        $pages = [];
-        foreach (array_chunk($this->getPageIds(), $this->getMaxBindParameters() - 10) as $chunk) {
-            $query = $this->getResults($chunk);
-            if ($query === null) {
-                continue;
+        $chunks = $this->getPageIdChunks();
+
+        // Fast path: a single chunk (the common case on MySQL/MariaDB/PostgreSQL)
+        // lets the database do the windowing in one query.
+        if (count($chunks) <= 1) {
+            $queryBuilder = $this->createQueryBuilder($chunks[0] ?? [])->orderBy('uid');
+            if ($limit > 0) {
+                $queryBuilder->setFirstResult(max(0, $offset))->setMaxResults($limit);
             }
-            foreach ($query->fetchAllAssociative() as $page) {
-                $pages[] = $page;
-            }
+            return $queryBuilder->executeQuery()->fetchAllAssociative();
         }
 
-        return $pages;
+        // Multi-chunk path: window across chunks (very large trees on SQLite).
+        $items = [];
+        $toSkip = max(0, $offset);
+        $remaining = $limit;
+        foreach ($chunks as $chunk) {
+            if ($limit > 0 && $remaining <= 0) {
+                break;
+            }
+            $queryBuilder = $this->createQueryBuilder($chunk)->orderBy('uid');
+            if ($limit > 0) {
+                $chunkCount = $this->countChunk($chunk);
+                if ($toSkip >= $chunkCount) {
+                    $toSkip -= $chunkCount;
+                    continue;
+                }
+                $queryBuilder->setFirstResult($toSkip)->setMaxResults($remaining);
+                $toSkip = 0;
+            }
+            foreach ($queryBuilder->executeQuery()->fetchAllAssociative() as $row) {
+                $items[] = $row;
+                $remaining--;
+            }
+        }
+        return $items;
     }
 
     public function getNumberOfItems(): int
     {
-        $pageCount = 0;
-        foreach (array_chunk($this->getPageIds(), $this->getMaxBindParameters() - 10) as $chunk) {
-            $query = $this->getResults($chunk);
-            if ($query === null) {
-                continue;
+        if ($this->numberOfItems === null) {
+            $count = 0;
+            foreach ($this->getPageIdChunks() as $chunk) {
+                $count += $this->countChunk($chunk);
             }
-            $pageCount += $query->rowCount();
+            $this->numberOfItems = $count;
         }
-        return (int)$pageCount;
+        return $this->numberOfItems;
+    }
+
+    /**
+     * @param int[] $pageIds
+     */
+    protected function countChunk(array $pageIds): int
+    {
+        return (int)$this->createQueryBuilder($pageIds)
+            ->count('uid')
+            ->executeQuery()
+            ->fetchOne();
+    }
+
+    /**
+     * The field a page id restriction is applied to: the translation parent in a
+     * translated language, the page uid itself in the default language.
+     */
+    protected function getRestrictionField(): string
+    {
+        if ($this->dataProviderRequest->getLanguage() > 0) {
+            return (string)$GLOBALS['TCA'][TableNames::PAGES]['ctrl']['transOrigPointerField'];
+        }
+        return 'uid';
+    }
+
+    /**
+     * @return array<int, int[]>
+     */
+    protected function getPageIdChunks(): array
+    {
+        return array_chunk($this->getPageIds(), $this->getMaxBindParameters() - 10);
     }
 
     /**

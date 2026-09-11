@@ -11,7 +11,6 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\DataProviders;
 
-use Doctrine\DBAL\Result;
 use YoastSeoForTypo3\YoastSeo\Service\Overview\Dto\DataProviderRequest;
 
 interface OverviewDataProviderInterface
@@ -27,14 +26,12 @@ interface OverviewDataProviderInterface
     public function initialize(DataProviderRequest $dataProviderRequest): void;
 
     /**
+     * Returns a single page of matching records. A $limit of 0 returns every
+     * matching record (no pagination).
+     *
      * @return array<int, array<string, mixed>>
      */
-    public function process(): array;
+    public function process(int $offset = 0, int $limit = 0): array;
 
     public function getNumberOfItems(): int;
-
-    /**
-     * @param int[] $pageIds
-     */
-    public function getResults(array $pageIds = []): ?Result;
 }

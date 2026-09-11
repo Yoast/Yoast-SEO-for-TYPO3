@@ -50,7 +50,7 @@
         </f:be.infobox>
     </f:if>
 
-    <f:if condition="{items -> f:count()}">
+    <f:if condition="{activeFilter.numberOfItems}">
         <f:then>
             <f:render section="table" arguments="{_all}"/>
         </f:then>
@@ -86,7 +86,7 @@
             </tr>
             </thead>
             <tbody>
-            <f:if condition="{items -> f:count()} > {settings.itemsPerPage}">
+            <f:if condition="{paginator.numberOfPages} > 1">
                 <f:then>
                     <f:render partial="Overview/Pagination"
                               arguments="{pagination: pagination, paginator: paginator, action: action}"/>

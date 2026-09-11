@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace YoastSeoForTypo3\YoastSeo\Service\Overview;
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
-use TYPO3\CMS\Core\Pagination\ArrayPaginator;
 use TYPO3\CMS\Core\Pagination\SlidingWindowPagination;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Extbase\Mvc\RequestInterface;
@@ -21,6 +20,7 @@ use YoastSeoForTypo3\YoastSeo\Controller\OverviewController;
 use YoastSeoForTypo3\YoastSeo\DataProviders\OverviewDataProviderInterface;
 use YoastSeoForTypo3\YoastSeo\Service\Overview\Dto\DataProviderRequest;
 use YoastSeoForTypo3\YoastSeo\Service\Overview\Dto\OverviewData;
+use YoastSeoForTypo3\YoastSeo\Service\Overview\Pagination\DataProviderPaginator;
 use YoastSeoForTypo3\YoastSeo\Traits\BackendUserTrait;
 
 class OverviewService
@@ -54,17 +54,16 @@ class OverviewService
         }
 
         $activeFilter = $this->getActiveFilter($request);
-        $items = $activeFilter->process();
 
-        $arrayPaginator = new ArrayPaginator(
-            $items,
+        $paginator = new DataProviderPaginator(
+            $activeFilter,
             $currentPage,
             $itemsPerPage
         );
 
-        return $overviewData->setItems($items)
-            ->setPaginator($arrayPaginator)
-            ->setPagination(new SlidingWindowPagination($arrayPaginator, 15))
+        return $overviewData->setItems($paginator->getPaginatedItems())
+            ->setPaginator($paginator)
+            ->setPagination(new SlidingWindowPagination($paginator, 15))
             ->setActiveFilter($activeFilter)
             ->setParams($this->getDataProviderRequest($request));
     }

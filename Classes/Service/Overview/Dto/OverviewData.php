@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace YoastSeoForTypo3\YoastSeo\Service\Overview\Dto;
 
-use TYPO3\CMS\Core\Pagination\ArrayPaginator;
+use TYPO3\CMS\Core\Pagination\PaginatorInterface;
 use TYPO3\CMS\Core\Pagination\SlidingWindowPagination;
 use YoastSeoForTypo3\YoastSeo\DataProviders\OverviewDataProviderInterface;
 
@@ -22,7 +22,7 @@ class OverviewData
         protected array $pageInformation = [],
         /** @var array<int, array<string, mixed>> */
         protected array $items = [],
-        protected ArrayPaginator|null $paginator = null,
+        protected PaginatorInterface|null $paginator = null,
         protected SlidingWindowPagination|null $pagination = null,
         /** @var array<string, OverviewDataProviderInterface> */
         protected array $filters = [],
@@ -64,12 +64,12 @@ class OverviewData
         return $this;
     }
 
-    public function getPaginator(): ?ArrayPaginator
+    public function getPaginator(): ?PaginatorInterface
     {
         return $this->paginator;
     }
 
-    public function setPaginator(?ArrayPaginator $paginator): OverviewData
+    public function setPaginator(?PaginatorInterface $paginator): OverviewData
     {
         $this->paginator = $paginator;
         return $this;

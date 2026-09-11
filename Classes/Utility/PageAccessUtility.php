@@ -14,6 +14,7 @@ namespace YoastSeoForTypo3\YoastSeo\Utility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Platform\PlatformInformation;
 use TYPO3\CMS\Core\Database\Query\QueryHelper;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 use TYPO3\CMS\Core\Type\Bitmask\Permission;
@@ -22,65 +23,94 @@ use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
 
 class PageAccessUtility
 {
-    /** @var int[] */
+    protected const MAX_DEPTH = 999;
+
+    /** @var array<int, int[]> */
     protected static array $cache = [];
 
     /**
+     * Resolves the given page and all accessible descendants in a breadth-first
+     * manner: one query per tree level instead of one query per page node.
+     *
      * @return int[]
      */
     public static function getPageIds(int $pid): array
     {
-        if (self::$cache !== []) {
-            return self::$cache;
+        if (isset(self::$cache[$pid])) {
+            return self::$cache[$pid];
         }
 
-        $backendUser = self::getBackendUser();
-        $perms_clause = $backendUser->getPagePermsClause(Permission::PAGE_SHOW);
+        $permsClause = self::getBackendUser()->getPagePermsClause(Permission::PAGE_SHOW);
 
-        return self::$cache = GeneralUtility::intExplode(
-            ',',
-            self::getTreeList($pid, 999, 0, $perms_clause)
-        );
+        $pageIds = [$pid];
+        $seen = [$pid => true];
+        $parentIds = [$pid];
+        $depth = 0;
+
+        while ($parentIds !== [] && $depth < self::MAX_DEPTH) {
+            $next = [];
+            foreach (self::getChildPageIds($parentIds, $permsClause) as $uid) {
+                if (isset($seen[$uid])) {
+                    continue;
+                }
+                $seen[$uid] = true;
+                $pageIds[] = $uid;
+                $next[] = $uid;
+            }
+            $parentIds = $next;
+            $depth++;
+        }
+
+        return self::$cache[$pid] = $pageIds;
     }
 
     /**
-     * Copied from EXT:core, removed in v12
+     * @param int[] $parentIds
+     * @return int[]
      */
-    protected static function getTreeList(int $id, int $depth, int $begin = 0, string $permClause = ''): string
+    protected static function getChildPageIds(array $parentIds, string $permsClause): array
     {
-        if ($id < 0) {
-            $id = abs($id);
-        }
-        $theList = $begin === 0 ? $id : '';
-        if (!($id && $depth > 0)) {
-            return (string)$theList;
+        $connectionPool = GeneralUtility::makeInstance(ConnectionPool::class);
+        $childIds = [];
+
+        foreach (array_chunk($parentIds, self::getMaxBindParameters()) as $chunk) {
+            $queryBuilder = $connectionPool->getQueryBuilderForTable(TableNames::PAGES);
+            $queryBuilder->getRestrictions()
+                ->removeAll()
+                ->add(GeneralUtility::makeInstance(DeletedRestriction::class));
+            $queryBuilder->select('uid')
+                ->from(TableNames::PAGES)
+                ->where(
+                    $queryBuilder->expr()->in(
+                        'pid',
+                        $queryBuilder->createNamedParameter($chunk, Connection::PARAM_INT_ARRAY)
+                    ),
+                    $queryBuilder->expr()->eq(
+                        'sys_language_uid',
+                        $queryBuilder->createNamedParameter(0, Connection::PARAM_INT)
+                    )
+                )
+                ->orderBy('uid');
+
+            if ($permsClause !== '') {
+                $queryBuilder->andWhere(QueryHelper::stripLogicalOperatorPrefix($permsClause));
+            }
+
+            foreach ($queryBuilder->executeQuery()->fetchFirstColumn() as $uid) {
+                $childIds[] = (int)$uid;
+            }
         }
 
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable(TableNames::PAGES);
-        $queryBuilder->getRestrictions()->removeAll()->add(GeneralUtility::makeInstance(DeletedRestriction::class));
-        $queryBuilder->select('uid')
-            ->from(TableNames::PAGES)
-            ->where(
-                $queryBuilder->expr()->eq('pid', $queryBuilder->createNamedParameter($id, Connection::PARAM_INT)),
-                $queryBuilder->expr()->eq('sys_language_uid', 0)
-            )
-            ->orderBy('uid');
-        if ($permClause !== '') {
-            $queryBuilder->andWhere(QueryHelper::stripLogicalOperatorPrefix($permClause));
-        }
-        foreach ($queryBuilder->executeQuery()->fetchAllAssociative() as $row) {
-            if ($begin <= 0) {
-                $theList .= ',' . $row['uid'];
-            }
-            if ($depth > 1) {
-                $theSubList = self::getTreeList($row['uid'], $depth - 1, $begin - 1, $permClause);
-                if (!empty($theList) && !empty($theSubList) && ($theSubList[0] !== ',')) {
-                    $theList .= ',';
-                }
-                $theList .= $theSubList;
-            }
-        }
-        return (string)$theList;
+        return $childIds;
+    }
+
+    /**
+     * @return int<1, max>
+     */
+    protected static function getMaxBindParameters(): int
+    {
+        $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable(TableNames::PAGES);
+        return max(1, PlatformInformation::getMaxBindParameters($connection->getDatabasePlatform()) - 10);
     }
 
     protected static function getBackendUser(): BackendUserAuthentication
