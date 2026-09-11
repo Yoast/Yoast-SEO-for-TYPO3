@@ -60,9 +60,10 @@ class StructuredDataProviderManager implements SingletonInterface
     public function getStructuredData(): array
     {
         $structuredData = [];
+        $useCache = $this->frontendService->isCachingAllowed();
         foreach ($this->getOrderedStructuredDataProviders() as $provider => $configuration) {
             $cacheIdentifier = $this->frontendService->getCacheIdentifier('-structured-data-' . $provider);
-            $data = $this->pageCache->get($cacheIdentifier);
+            $data = $useCache ? $this->pageCache->get($cacheIdentifier) : false;
             if ($data !== false) {
                 $structuredData[$provider] = $data;
                 continue;
@@ -72,7 +73,11 @@ class StructuredDataProviderManager implements SingletonInterface
                 continue;
             }
 
-            if ($data = $structuredDataProviderObject->getData()) {
+            $data = $structuredDataProviderObject->getData();
+            if (empty($data)) {
+                continue;
+            }
+            if ($useCache) {
                 $this->pageCache->set(
                     $cacheIdentifier,
                     $data,
@@ -80,10 +85,7 @@ class StructuredDataProviderManager implements SingletonInterface
                     $this->frontendService->getCacheTimeout(),
                 );
             }
-
-            if (!empty($data)) {
-                $structuredData[$provider] = $data;
-            }
+            $structuredData[$provider] = $data;
         }
 
         return $structuredData;

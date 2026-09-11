@@ -59,6 +59,11 @@ readonly class LegacyFrontendService implements FrontendServiceInterface
         return $this->getTyposcriptFrontendController()->get_cache_timeout();
     }
 
+    public function isCachingAllowed(): bool
+    {
+        return !$this->getTyposcriptFrontendController()->no_cache;
+    }
+
     protected function getTyposcriptFrontendController(): TypoScriptFrontendController
     {
         return $GLOBALS['TSFE'];

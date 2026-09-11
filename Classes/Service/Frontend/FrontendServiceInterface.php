@@ -27,4 +27,5 @@ interface FrontendServiceInterface
     public function isSiteRoot(): bool;
     public function getCacheIdentifier(string $suffix): string;
     public function getCacheTimeout(): int;
+    public function isCachingAllowed(): bool;
 }

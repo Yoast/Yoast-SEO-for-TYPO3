@@ -85,6 +85,11 @@ readonly class FrontendService implements FrontendServiceInterface
             ->calculateLifetimeForPage(...$arguments);
     }
 
+    public function isCachingAllowed(): bool
+    {
+        return $this->getRequest()?->getAttribute('frontend.cache.instruction')?->isCachingAllowed() ?? true;
+    }
+
     protected function getPageInformation(): ?PageInformation
     {
         return $this->getRequest()?->getAttribute('frontend.page.information');
