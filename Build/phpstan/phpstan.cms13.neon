@@ -14,6 +14,7 @@ parameters:
     - '#addUserSetting#'
   typo3:
     requestGetAttributeMapping:
+        frontend.cache.instruction: TYPO3\CMS\Frontend\Cache\CacheInstruction
         frontend.page.information: TYPO3\CMS\Frontend\Page\PageInformation
         handlerRequest: string
         nonce: TYPO3\CMS\Core\Security\ContentSecurityPolicy\ConsumableNonce

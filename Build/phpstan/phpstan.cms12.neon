@@ -15,6 +15,7 @@ parameters:
     - '#addUserSetting#'
   typo3:
     requestGetAttributeMapping:
+        frontend.cache.instruction: mixed
         handlerRequest: string
         nonce: TYPO3\CMS\Core\Security\ContentSecurityPolicy\ConsumableNonce
         moduleData: TYPO3\CMS\Backend\Module\ModuleData
