@@ -11,6 +11,8 @@ We will follow [Semantic Versioning](http://semver.org/).
 
 - Website title is included in the title progress bar again when `config.showWebsiteTitle` is not set, matching
   the TYPO3 core default
+- Readability and SEO status icons and saved scores are no longer (almost) always "Good", the overall score is scaled
+  to 0-10 again before rating it
 
 ## [12.1.3] November 4, 2026
 

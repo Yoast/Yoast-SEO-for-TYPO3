@@ -97,8 +97,8 @@ class YoastPlugin {
         table: YoastConfiguration.getData("table") as string,
         uid: YoastConfiguration.getData("uid") as number,
         languageId: YoastConfiguration.getData("languageId") as number,
-        readabilityScore: scoreToRating(parseInt(readabilityScore)),
-        seoScore: scoreToRating(parseInt(seoScore)),
+        readabilityScore: scoreToRating(parseFloat(readabilityScore)),
+        seoScore: scoreToRating(parseFloat(seoScore)),
       },
       { headers: { "Content-Type": "application/json" } }
     )

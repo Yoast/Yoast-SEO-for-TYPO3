@@ -46,7 +46,8 @@ export function getScoreFromResult(
 ): string {
   const result = getResult(analysis, resultType, resultSubtype)
   if (result) {
-    return result.score.toString()
+    // Overall score is 0-100, scoreToRating() expects 0-10
+    return (result.score / 10).toString()
   }
   return ""
 }

@@ -75,8 +75,8 @@ class YoastPlugin {
             table: YoastConfiguration.getData("table"),
             uid: YoastConfiguration.getData("uid"),
             languageId: YoastConfiguration.getData("languageId"),
-            readabilityScore: scoreToRating(parseInt(readabilityScore)),
-            seoScore: scoreToRating(parseInt(seoScore)),
+            readabilityScore: scoreToRating(parseFloat(readabilityScore)),
+            seoScore: scoreToRating(parseFloat(seoScore)),
         }, { headers: { "Content-Type": "application/json" } });
     }
     saveProminentWords() {
