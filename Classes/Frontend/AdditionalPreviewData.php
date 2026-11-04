@@ -52,7 +52,7 @@ class AdditionalPreviewData implements SingletonInterface
 
     protected function getWebsiteTitle(): string
     {
-        if ((bool)($this->config['showWebsiteTitle'] ?? false) === false) {
+        if ((bool)($this->config['showWebsiteTitle'] ?? true) === false) {
             return '';
         }
         $request = $GLOBALS['TYPO3_REQUEST'];

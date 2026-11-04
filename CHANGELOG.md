@@ -5,7 +5,14 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
-## [12.1.2] November 4, 2026
+## [Unreleased]
+
+### Fixed
+
+- Website title is included in the title progress bar again when `config.showWebsiteTitle` is not set, matching
+  the TYPO3 core default
+
+## [12.1.3] November 4, 2026
 
 ### Fixed
 
