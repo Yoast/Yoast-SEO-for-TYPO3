@@ -89,11 +89,6 @@ services:
       - name: event.listener
         identifier: 'yoast-seo/backend/modify-page-module-content'
 
-  YoastSeoForTypo3\YoastSeo\EventListener\PageCacheListener:
-    tags:
-      - name: event.listener
-        identifier: 'yoast-seo/page-cache-listener'
-
   YoastSeoForTypo3\YoastSeo\EventListener\FrontendRequestListener:
     tags:
       - name: event.listener
