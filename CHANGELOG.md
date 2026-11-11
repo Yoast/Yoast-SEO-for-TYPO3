@@ -5,6 +5,12 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- Yoast header is shown again in the page module "All languages" view
+
 ## [12.1.4] November 4, 2026
 
 ### Fixed

@@ -73,10 +73,8 @@ class ModifyPageLayoutContentListener
             }
         }
 
-        if ($language === -1) {
-            return 0;
-        }
-
-        return (int)$language;
+        // ModuleData stores strings, "-1" is the "All languages" view
+        $language = (int)$language;
+        return $language === -1 ? 0 : $language;
     }
 }
