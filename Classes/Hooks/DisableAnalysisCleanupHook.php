@@ -33,7 +33,7 @@ class DisableAnalysisCleanupHook
         array &$fieldArray,
         DataHandler $dataHandler,
     ): void {
-        if ($table !== TableNames::PAGES) {
+        if ($table !== TableNames::PAGES || $status !== 'update') {
             return;
         }
 
@@ -45,22 +45,34 @@ class DisableAnalysisCleanupHook
             return;
         }
 
-        $uid = (int)$id;
-
         $fieldArray['tx_yoastseo_score_readability'] = '';
         $fieldArray['tx_yoastseo_score_seo'] = '';
         $fieldArray['tx_yoastseo_cornerstone'] = 0;
 
-        $this->deleteProminentWords($uid, $table);
+        $this->deleteProminentWords((int)$id);
     }
 
-    protected function deleteProminentWords(int $uid, string $table): void
+    /**
+     * Prominent words of a translation are stored with the default language uid as uid_foreign.
+     */
+    protected function deleteProminentWords(int $uid): void
     {
+        $languageField = $GLOBALS['TCA'][TableNames::PAGES]['ctrl']['languageField'];
+        $transOrigPointerField = $GLOBALS['TCA'][TableNames::PAGES]['ctrl']['transOrigPointerField'];
+        $page = $this->connectionPool->getConnectionForTable(TableNames::PAGES)
+            ->select([$languageField, $transOrigPointerField], TableNames::PAGES, ['uid' => $uid])
+            ->fetchAssociative();
+        if ($page === false) {
+            return;
+        }
+
+        $languageId = (int)$page[$languageField];
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable(TableNames::PROMINENT_WORD);
         $queryBuilder->delete(TableNames::PROMINENT_WORD)
             ->where(
-                $queryBuilder->expr()->eq('uid_foreign', $uid),
-                $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($table)),
+                $queryBuilder->expr()->eq('uid_foreign', $languageId > 0 ? (int)$page[$transOrigPointerField] : $uid),
+                $queryBuilder->expr()->eq('sys_language_uid', $languageId),
+                $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter(TableNames::PAGES)),
             )
             ->executeStatement();
     }
