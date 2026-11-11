@@ -5,6 +5,12 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Removed
+
+- Unused `Resources/Public/JavaScript/dist/plugin.js` (leftover since 12.0.0)
+
 ## [12.1.4] November 4, 2026
 
 ### Fixed
