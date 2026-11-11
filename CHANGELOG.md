@@ -5,6 +5,12 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- Disabling the analysis on a page only removes the prominent words of that page's language
+
 ## [12.1.4] November 4, 2026
 
 ### Fixed
