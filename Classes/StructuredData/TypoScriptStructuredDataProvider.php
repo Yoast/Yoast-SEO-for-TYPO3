@@ -34,6 +34,11 @@ class TypoScriptStructuredDataProvider implements StructuredDataProviderInterfac
     {
         $data = [];
         $contentObjectRenderer = GeneralUtility::makeInstance(ContentObjectRenderer::class);
+        $contentObjectRenderer->setRequest($GLOBALS['TYPO3_REQUEST'] ?? null);
+        $contentObjectRenderer->start(
+            $this->pageRepository->getPage($this->frontendService->getPageUid()),
+            'pages'
+        );
 
         foreach (
             $this->frontendService->getTyposcriptConfiguration()['structuredData.']['data.'] ?? [] as $dataConfig
@@ -48,7 +53,7 @@ class TypoScriptStructuredDataProvider implements StructuredDataProviderInterfac
             foreach ($config as $key => $value) {
                 $cObject = $key . '.';
                 if (isset($dataConfig[$cObject])) {
-                    $value = $contentObjectRenderer->stdWrap((string)$key, $dataConfig[$cObject]);
+                    $value = $contentObjectRenderer->stdWrap((string)($dataConfig[$key] ?? ''), $dataConfig[$cObject]);
                 }
                 $key = in_array($key, ['type', 'context']) ? '@' . $key : $key;
 
