@@ -2,7 +2,6 @@
     "name": "t3ext-yoast-seo",
     "version": "1.0.0",
     "description": "Yoast SEO for TYPO3",
-    "main": "plugin.js",
     "devDependencies": {
         "@draft-js-plugins/mention": "^5.0.0",
         "@r2wc/react-to-web-component": "^2.1.1",
