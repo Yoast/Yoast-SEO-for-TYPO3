@@ -89,4 +89,18 @@ class SaveScoresHandlerTest extends UnitTestCase
         self::assertInstanceOf(JsonResponse::class, $response);
         self::assertSame(200, $response->getStatusCode());
     }
+
+    #[Test]
+    public function testHandleIgnoresMalformedJson(): void
+    {
+        $body = new Stream('php://temp', 'rw');
+        $body->write('{"table":');
+        $body->rewind();
+
+        $this->saveScoresService->expects(self::never())->method('save');
+
+        $response = $this->subject->handle(new ServerRequest(body: $body));
+
+        self::assertSame(200, $response->getStatusCode());
+    }
 }

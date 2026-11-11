@@ -20,7 +20,7 @@ abstract class AbstractAjaxHandler implements AjaxHandlerInterface
      */
     protected function getJsonData(ServerRequestInterface $request): array
     {
-        $body = $request->getBody()->getContents();
-        return json_decode($body, true);
+        $data = json_decode($request->getBody()->getContents(), true);
+        return is_array($data) ? $data : [];
     }
 }

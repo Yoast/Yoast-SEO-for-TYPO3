@@ -49,11 +49,8 @@ class LocaleService
             return [];
         }
 
-        if ($jsonContents = file_get_contents($translationFilePath)) {
-            return json_decode($jsonContents, true);
-        }
-
-        return [];
+        $translations = json_decode((string)file_get_contents($translationFilePath), true);
+        return is_array($translations) ? $translations : [];
     }
 
     /**
