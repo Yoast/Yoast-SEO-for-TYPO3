@@ -5,6 +5,13 @@ This changelog is according to [Keep a Changelog](http://keepachangelog.com).
 All notable changes to this project will be documented in this file.
 We will follow [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- Editors without access to `tx_yoastseo_prominent_word` can delete analyzed pages again; the prominent words of the
+  deleted page tree are removed beforehand by a new `ProminentWordDeletePreparationHook`
+
 ## [12.1.4] November 4, 2026
 
 ### Fixed

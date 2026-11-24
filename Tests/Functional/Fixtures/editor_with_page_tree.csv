@@ -1,0 +1,17 @@
+"be_groups"
+,"uid","pid","title","tables_select","tables_modify","db_mountpoints"
+,1,0,"Editors","pages","pages","1"
+"be_users"
+,"uid","pid","username","password","admin","usergroup","workspace_perms"
+# The password is "password"
+,2,0,"editor","$1$tCrlLajZ$C0sikFQQ3SWaFAZ1Me0Z/1",0,"1",1
+"pages"
+,"uid","pid","title","doktype","perms_userid","perms_groupid","perms_user","perms_group","perms_everybody"
+,1,0,"Home",1,0,0,31,31,31
+,3,1,"Subpage",1,0,0,31,31,31
+,4,0,"Other",1,0,0,31,31,31
+"tx_yoastseo_prominent_word"
+,"uid","pid","sys_language_uid","site","stem","weight","uid_foreign","tablenames"
+,1,1,0,1,"seo",10,1,"pages"
+,2,3,0,1,"yoast",5,3,"pages"
+,3,4,0,1,"other",5,4,"pages"
